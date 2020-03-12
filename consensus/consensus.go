@@ -25,6 +25,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/core/vm"
 )
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -174,4 +175,27 @@ type PoW interface {
 
 	// Hashrate returns the current mining hashrate of a PoW consensus engine.
 	Hashrate() float64
+}
+
+func makeCAContractInitState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int) bool {
+
+
+	//neo
+	CaCertAddress := types.CACertListAddress
+	key := common.BytesToHash(CaCertAddress[:])
+	obj := state.GetCAState(CaCertAddress, key)
+	if len(obj) == 0 {
+		i := vm.NewCACertList()
+		i.SaveCACertList(state,CaCertAddress)
+		state.SetNonce(CaCertAddress,1)
+		state.SetCode(CaCertAddress,CaCertAddress[:])
+		return true
+	}
+
+
+
+	return false
+}
+func OnceInitCAState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int) bool {
+	return makeCAContractInitState(config,state,fastNumber)
 }
