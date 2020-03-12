@@ -42,7 +42,7 @@ import (
 	"fmt"
 	"hash"
 
-	ethcrypto "github.com/taiyuechain/TaiChain/crypto"
+	ethcrypto "github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var (

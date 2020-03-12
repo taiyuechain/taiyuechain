@@ -14,7 +14,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 	"github.com/taiyuechain/taiyuechain/contracts/chequebook/contract"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var (

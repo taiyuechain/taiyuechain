@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	duktape "gopkg.in/olebedev/go-duktape.v3"
 )

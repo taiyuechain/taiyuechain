@@ -27,7 +27,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/contracts/ens/contract"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var (

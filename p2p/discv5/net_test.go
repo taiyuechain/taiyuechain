@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 func TestNetwork_Lookup(t *testing.T) {

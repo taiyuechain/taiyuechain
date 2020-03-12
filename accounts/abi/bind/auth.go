@@ -25,7 +25,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // NewTransactor is a utility method to easily create a transaction signer from

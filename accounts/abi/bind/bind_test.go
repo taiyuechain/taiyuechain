@@ -250,7 +250,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -299,7 +299,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -339,7 +339,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -391,7 +391,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/ethereum/go-ethereum/common"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -433,7 +433,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -515,7 +515,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -559,7 +559,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/ethereum/go-ethereum/common"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -628,7 +628,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -708,7 +708,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/ethereum/go-ethereum/common"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator
@@ -865,7 +865,7 @@ var bindTests = []struct {
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 			"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 			"github.com/taiyuechain/taiyuechain/core"
-			"github.com/ethereum/go-ethereum/crypto"
+			"github.com/taiyuechain/taiyuechain/crypto"
 		`,
 		`
 			// Generate a new random account and a funded simulator

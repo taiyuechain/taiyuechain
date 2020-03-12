@@ -26,7 +26,7 @@ import (
 	"fmt"
 
 	"github.com/taiyuechain/taiyuechain/accounts"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
 )

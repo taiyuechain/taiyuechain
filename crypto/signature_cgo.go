@@ -23,8 +23,8 @@ import (
 	"crypto/elliptic"
 	"fmt"
 
-	"github.com/taiyuechain/TaiChain/common/math"
-	"github.com/taiyuechain/TaiChain/crypto/secp256k1"
+	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.

@@ -7,7 +7,7 @@ package cryptobyte
 import (
 	encoding_asn1 "encoding/asn1"
 	"fmt"
-	"github.com/TaiChain/crypto/gm/cryptobyte/asn1"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte/asn1"
 	"math/big"
 	"reflect"
 	"time"
