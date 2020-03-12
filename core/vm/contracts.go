@@ -157,7 +157,7 @@ type dataCopy struct{}
 func (c *dataCopy) RequiredGas(input []byte) uint64 {
 	return uint64(len(input)+31)/32*params.IdentityPerWordGas + params.IdentityBaseGas
 }
-func (c *dataCopy) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
+func (c *dataCopy) Run(evm *EVM, contract *Contract, in []byte) ([]byte, error) {
 	return in, nil
 }
 
