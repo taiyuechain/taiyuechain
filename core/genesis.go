@@ -36,6 +36,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/consensus"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -254,6 +255,8 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
+
+	consensus.OnceInitCAState(g.Config,statedb,new(big.Int).SetUint64(g.Number))
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
