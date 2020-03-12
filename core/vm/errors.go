@@ -28,4 +28,6 @@ var (
 	ErrInsufficientBalanceForAll = errors.New("insufficient balance for transfer and fee ")
 	ErrContractAddressCollision  = errors.New("contract address collision")
 	ErrNoCompatibleInterpreter  = errors.New("no compatible interpreter")
+
+	ErrCACertStoreInvalidInput      = errors.New("invalid input for CA Cert Store")
 )
