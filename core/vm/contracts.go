@@ -26,6 +26,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/bn256"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/core/types"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -57,6 +58,20 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{6}): &bn256Add{},
 	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
 	common.BytesToAddress([]byte{8}): &bn256Pairing{},
+}
+
+// PrecompiledContractsPoS contains the default set of pre-compiled Ethereum
+// contracts used in the dpos release.
+var PrecompiledContractsCA = map[common.Address]PrecompiledContract{
+	common.BytesToAddress([]byte{1}): &ecrecover{},
+	common.BytesToAddress([]byte{2}): &sha256hash{},
+	common.BytesToAddress([]byte{3}): &ripemd160hash{},
+	common.BytesToAddress([]byte{4}): &dataCopy{},
+	common.BytesToAddress([]byte{5}): &bigModExp{},
+	common.BytesToAddress([]byte{6}): &bn256Add{},
+	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
+	common.BytesToAddress([]byte{8}): &bn256Pairing{},
+	types.CACertListAddress:          &caCertContract{},
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
@@ -357,4 +372,26 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 		return true32Byte, nil
 	}
 	return false32Byte, nil
+}
+
+type caCertContract struct{}
+
+func (ca *caCertContract) RequiredGas(input []byte) uint64 {
+
+	/*var baseGas uint64 = 21000
+
+	method, err := abiCaCertStore.MethodById(input)
+	if err != nil {
+		return baseGas
+	}
+	if gas, ok := CaCertStoreGas[string(method.Name)]; ok {
+		return gas
+	} else {
+		return baseGas
+	}*/
+	return 0
+}
+
+func (ca *caCertContract) Run(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
+	return RunCaCertStore(evm, contract, input)
 }
