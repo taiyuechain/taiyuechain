@@ -19,6 +19,7 @@ package core
 import (
 	"fmt"
 	"math/big"
+	"math"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
