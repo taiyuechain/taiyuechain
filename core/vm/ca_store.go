@@ -150,7 +150,7 @@ func (ca *CACertList ) LoadCACertList(state StateDB, preAddress common.Address) 
 }
 
 func (ca *CACertList ) SaveCACertList(state StateDB, preAddress common.Address)  error{
-	log.Info("---save ","amount ",ca.cAAmount)
+	//log.Info("---save ","amount ",ca.cAAmount)
 	key := common.BytesToHash(preAddress[:])
 	watch1 := help.NewTWatch(0.005, "Save impawn")
 	data, err := rlp.EncodeToBytes(ca)
