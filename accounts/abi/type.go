@@ -76,9 +76,14 @@ func NewType(t string, internalType string, components []ArgumentMarshaling) (ty
 	// if there are brackets, get ready to go into slice/array mode and
 	// recursively create the type
 	if strings.Count(t, "[") != 0 {
+		// Note internalType can be empty here.
+		subInternal := internalType
+		if i := strings.LastIndex(internalType, "["); i != -1 {
+			subInternal = subInternal[:i]
+		}
 		i := strings.LastIndex(t, "[")
 		// recursively embed the type
-		embeddedType, err := NewType(t[:i])
+		embeddedType, err := NewType(t[:i], subInternal, components)
 		if err != nil {
 			return Type{}, err
 		}
@@ -94,6 +99,7 @@ func NewType(t string, internalType string, components []ArgumentMarshaling) (ty
 			typ.Kind = reflect.Slice
 			typ.Elem = &embeddedType
 			typ.Type = reflect.SliceOf(embeddedType.Type)
+			typ.stringKind = embeddedType.stringKind + sliced
 		} else if len(intz) == 1 {
 			// is a array
 			typ.T = ArrayTy
@@ -104,6 +110,7 @@ func NewType(t string, internalType string, components []ArgumentMarshaling) (ty
 				return Type{}, fmt.Errorf("abi: error parsing variable size: %v", err)
 			}
 			typ.Type = reflect.ArrayOf(typ.Size, embeddedType.Type)
+			typ.stringKind = embeddedType.stringKind + sliced
 		} else {
 			return Type{}, fmt.Errorf("invalid formatting of array type")
 		}
@@ -309,6 +316,12 @@ func (t Type) pack(v reflect.Value) ([]byte, error) {
 	}
 }
 
+// requireLengthPrefix returns whether the type requires any sort of length
+// prefixing.
+func (t Type) requiresLengthPrefix() bool {
+	return t.T == StringTy || t.T == BytesTy || t.T == SliceTy
+}
+
 // isDynamicType returns true if the type is dynamic.
 // The following types are called “dynamic”:
 // * bytes
@@ -328,11 +341,6 @@ func isDynamicType(t Type) bool {
 	return t.T == StringTy || t.T == BytesTy || t.T == SliceTy || (t.T == ArrayTy && isDynamicType(*t.Elem))
 }
 
-// requireLengthPrefix returns whether the type requires any sort of length
-// prefixing.
-func (t Type) requiresLengthPrefix() bool {
-	return t.T == StringTy || t.T == BytesTy || t.T == SliceTy
-}
 // getTypeSize returns the size that this type needs to occupy.
 // We distinguish static and dynamic types. Static types are encoded in-place
 // and dynamic types are encoded at a separately allocated location after the
