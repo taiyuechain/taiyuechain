@@ -75,10 +75,10 @@ var PrecompiledContractsCA = map[common.Address]PrecompiledContract{
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
-func RunPrecompiledContract(p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
+func RunPrecompiledContract(evm *EVM, p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error)  {
 	gas := p.RequiredGas(input)
 	if contract.UseGas(gas) {
-		return p.Run(input)
+		return p.Run(evm, contract, input)
 	}
 	return nil, ErrOutOfGas
 }
