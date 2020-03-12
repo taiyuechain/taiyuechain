@@ -288,6 +288,14 @@ func (self *stateObject) updateTrie(db Database) Trie {
 		v, _ := rlp.EncodeToBytes(bytes.TrimLeft(value[:], "\x00"))
 		self.setError(tr.TryUpdate(key[:], v))
 	}
+	for key, value := range self.dirtyCAStorage {
+		delete(self.dirtyCAStorage, key)
+		if len(value) == 0 {
+			self.setError(tr.TryDelete(key[:]))
+			continue
+		}
+		self.setError(tr.TryUpdate(key[:], value))
+	}
 	return tr
 }
 

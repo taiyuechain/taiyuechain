@@ -189,11 +189,9 @@ func makeCAContractInitState(config *params.ChainConfig,state *state.StateDB,fas
 		i.SaveCACertList(state,CaCertAddress)
 		state.SetNonce(CaCertAddress,1)
 		state.SetCode(CaCertAddress,CaCertAddress[:])
+
 		return true
 	}
-
-
-
 	return false
 }
 func OnceInitCAState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int) bool {
