@@ -31,6 +31,7 @@ type Event struct {
 	Name      string
 	Anonymous bool
 	Inputs    Arguments
+	RawName   string
 }
 
 func (e Event) String() string {
@@ -44,14 +45,23 @@ func (e Event) String() string {
 	return fmt.Sprintf("e %v(%v)", e.Name, strings.Join(inputs, ", "))
 }
 
-// Id returns the canonical representation of the event's signature used by the
-// abi definition to identify event names and types.
-func (e Event) Id() common.Hash {
+// Sig returns the event string signature according to the ABI spec.
+//
+// Example
+//
+//     event foo(uint32 a, int b) = "foo(uint32,int256)"
+//
+// Please note that "int" is substitute for its canonical representation "int256"
+func (e Event) Sig() string {
 	types := make([]string, len(e.Inputs))
-	i := 0
-	for _, input := range e.Inputs {
+	for i, input := range e.Inputs {
 		types[i] = input.Type.String()
-		i++
 	}
-	return common.BytesToHash(crypto.Keccak256([]byte(fmt.Sprintf("%v(%v)", e.Name, strings.Join(types, ",")))))
+	return fmt.Sprintf("%v(%v)", e.RawName, strings.Join(types, ","))
+}
+
+// ID returns the canonical representation of the event's signature used by the
+// abi definition to identify event names and types.
+func (e Event) ID() common.Hash {
+	return common.BytesToHash(crypto.Keccak256([]byte(e.Sig())))
 }
