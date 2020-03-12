@@ -265,10 +265,10 @@ func (self *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash
 }
 
 
-func (self *StateDB) GetPOSState(a common.Address, b common.Hash) []byte {
+func (self *StateDB) GetCAState(a common.Address, b common.Hash) []byte {
 	stateObject := self.GetOrNewStateObject(a)
 	if stateObject != nil {
-		return stateObject.GetPOSState(self.db, b)
+		return stateObject.GetCAState(self.db, b)
 	}
 	return nil
 }
@@ -385,10 +385,10 @@ func (self *StateDB) SetState(addr common.Address, key, value common.Hash) {
 	}
 }
 
-func (self *StateDB) SetPOSState(addr common.Address, key common.Hash, value []byte) {
+func (self *StateDB) SetCAState(addr common.Address, key common.Hash, value []byte) {
 	stateObject := self.GetOrNewStateObject(addr)
 	if stateObject != nil {
-		stateObject.SetPOSState(self.db, key, value)
+		stateObject.SetCAState(self.db, key, value)
 	}
 }
 
