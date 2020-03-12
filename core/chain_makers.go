@@ -156,6 +156,35 @@ func (b *BlockGen) OffsetTime(seconds int64) {
 		panic("block time out of range")
 	}
 }
+func (b *BlockGen) GetHeader() *types.Header {
+	return b.header
+}
+
+func (b *BlockGen) GetStateDB() *state.StateDB {
+	return b.statedb
+}
+
+// ReadTxWithChain read a transaction to the generated block. If no coinbase has
+// been set, the block's coinbase is set to the zero address.
+//
+// AddTxWithChain panics if the transaction cannot be executed. In addition to
+// the protocol-imposed limitations (gas limit, etc.), there are some
+// further limitations on the content of transactions that can be
+// added. If contract code relies on the BLOCKHASH instruction,
+// the block in chain will be returned.
+func (b *BlockGen) ReadTxWithChain(bc *BlockChain, tx *types.Transaction) ([]byte, uint64) {
+	if b.gasPool == nil {
+		b.SetCoinbase(common.Address{})
+		b.feeAmout = big.NewInt(0)
+	}
+	stateDb, err := bc.StateAt(b.parent.Root())
+
+	result, gas, err := ReadTransaction(b.config, bc, stateDb, b.header, tx, vm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	return result, gas
+}
 
 // GenerateChain creates a chain of n blocks. The first block's
 // parent will be the provided parent. db is used to store
@@ -358,4 +387,37 @@ func newCanonical(engine consensus.Engine, n int, full bool) (etruedb.Database, 
 	headers := makeHeaderChain(genesis.Header(), n, engine, db, 1)
 	_, err := blockchain.InsertHeaderChain(headers, 1)
 	return db, blockchain, err
+}
+
+
+// ReadTransaction attempts to apply a transaction to the given state database
+// and uses the input parameters for its environment. It returns the result
+// for the transaction, gas used and an error if the transaction failed,
+// indicating the block was invalid.
+func ReadTransaction(config *params.ChainConfig, bc ChainContext,
+	statedb *state.StateDB, header *types.Header, tx *types.Transaction, cfg vm.Config) ([]byte, uint64, error) {
+
+	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
+
+	msgCopy := types.NewMessage(msg.From(), msg.To(), msg.Payment(), 0, msg.Value(), msg.Fee(), msg.Gas(), msg.GasPrice(), msg.Data(), false)
+
+	if err != nil {
+		return nil, 0, err
+	}
+	if err := types.ForbidAddress(msgCopy.From()); err != nil {
+		return nil, 0, err
+	}
+	// Create a new context to be used in the EVM environment
+	context := NewEVMContext(msgCopy, header, bc, nil, nil)
+	// Create a new environment which holds all relevant information
+	// about the transaction and calling mechanisms.
+	vmenv := vm.NewEVM(context, statedb, config, cfg)
+	// Apply the transaction to the current state (included in the env)
+	gp := new(GasPool).AddGas(math.MaxUint64)
+	result, gas, _, err := ApplyMessage(vmenv, msgCopy, gp)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return result, gas, err
 }
