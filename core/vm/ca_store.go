@@ -22,13 +22,13 @@ import (
 	//"time"
 	"fmt"
 
-	"github.com/taiyuechain/TaiChain/accounts/abi"
-	"github.com/taiyuechain/TaiChain/common"
-	"github.com/taiyuechain/TaiChain/core/types"
-	"github.com/taiyuechain/TaiChain/log"
+	"github.com/taiyuechain/taiyuechain/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/ethereum/go-ethereum/log"
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/taiyuechain/TaiChain/consensus/tbft/help"
-	"github.com/taiyuechain/TaiChain/rlp"
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 
@@ -99,7 +99,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 func (ca *CACertList ) LoadCACertList(state StateDB, preAddress common.Address)  error{
 
 	key := common.BytesToHash(preAddress[:])
-	data := state.GetPOSState(preAddress, key)
+	data := state.GetCAState(preAddress, key)
 	lenght := len(data)
 	if lenght == 0 {
 		return errors.New("Load data = 0")
@@ -165,7 +165,7 @@ func (ca *CACertList ) SaveCACertList(state StateDB, preAddress common.Address) 
 		log.Info("-=-==-=save CA info","Ce name",val.cACert,"is store",val.isStore)
 
 	}
-	state.SetPOSState(preAddress, key, data)
+	state.SetCAState(preAddress, key, data)
 	tmp := CloneCaCache(ca)
 	if tmp != nil {
 		CASC.Cache.Add(hash, tmp)

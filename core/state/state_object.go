@@ -54,6 +54,26 @@ func (self Storage) Copy() Storage {
 	return cpy
 }
 
+type CAStorage map[common.Hash][]byte
+
+func (self CAStorage) String() (str string) {
+	for key, value := range self {
+		str += fmt.Sprintf("%X : %X\n", key, value)
+	}
+
+	return
+}
+
+func (self CAStorage) Copy() CAStorage {
+	cpy := make(CAStorage)
+	for key, value := range self {
+		cpy[key] = value
+	}
+
+	return cpy
+}
+
+
 // stateObject represents an Ethereum account which is being modified.
 //
 // The usage pattern is as follows:
@@ -77,9 +97,12 @@ type stateObject struct {
 	trie Trie // storage trie, which becomes non-nil on first access
 	code Code // contract bytecode, which gets set when code is loaded
 
+
 	originStorage Storage // Storage cache of original entries to dedup rewrites
 	dirtyStorage  Storage // Storage entries that need to be flushed to disk
 
+	originCAStorage CAStorage //storage CA cert
+	dirtyCAStorage  CAStorage
 	// Cache flags.
 	// When an object is marked suicided it will be delete from the trie
 	// during the "update" phase of the state transition.
@@ -90,7 +113,7 @@ type stateObject struct {
 
 // empty returns whether the account is considered empty.
 func (s *stateObject) empty() bool {
-	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
+	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash) && len(s.dirtyCAStorage) == 0
 }
 
 // Account is the Ethereum consensus representation of accounts.
@@ -117,6 +140,8 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 		data:          data,
 		originStorage: make(Storage),
 		dirtyStorage:  make(Storage),
+		originCAStorage: make(CAStorage),
+		dirtyCAStorage:  make(CAStorage),
 	}
 }
 
@@ -170,6 +195,19 @@ func (self *stateObject) GetState(db Database, key common.Hash) common.Hash {
 	return self.GetCommittedState(db, key)
 }
 
+func (self *stateObject) GetCAState(db Database, key common.Hash) []byte {
+	value, exists := self.originCAStorage[key]
+	if exists {
+		return value
+	}
+	// Load from DB in case it is missing.
+	value, err := self.getTrie(db).TryGet(key[:])
+	if err == nil && len(value) != 0 {
+		self.originCAStorage[key] = value
+	}
+	return value
+}
+
 // GetCommittedState retrieves a value from the committed account storage trie.
 func (self *stateObject) GetCommittedState(db Database, key common.Hash) common.Hash {
 	// If we have the original value cached, return that
@@ -209,6 +247,22 @@ func (self *stateObject) SetState(db Database, key, value common.Hash) {
 	})
 	self.setState(key, value)
 }
+
+func (self *stateObject) SetCAState(db Database, key common.Hash, value []byte) {
+	self.db.journal.append(caStorageChange{
+		account:  &self.address,
+		key:      key,
+		prevalue: self.GetCAState(db, key),
+	})
+	self.setStateByteArray(key, value)
+
+}
+
+func (self *stateObject) setStateByteArray(key common.Hash, value []byte) {
+	self.originCAStorage[key] = value
+	self.dirtyCAStorage[key] = value
+}
+
 
 func (self *stateObject) setState(key, value common.Hash) {
 	self.dirtyStorage[key] = value
@@ -304,6 +358,7 @@ func (self *stateObject) deepCopy(db *StateDB) *stateObject {
 	stateObject.code = self.code
 	stateObject.dirtyStorage = self.dirtyStorage.Copy()
 	stateObject.originStorage = self.originStorage.Copy()
+	stateObject.originCAStorage = self.originCAStorage.Copy()
 	stateObject.suicided = self.suicided
 	stateObject.dirtyCode = self.dirtyCode
 	stateObject.deleted = self.deleted

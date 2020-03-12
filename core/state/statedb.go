@@ -264,6 +264,16 @@ func (self *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash
 	return common.Hash{}
 }
 
+
+func (self *StateDB) GetPOSState(a common.Address, b common.Hash) []byte {
+	stateObject := self.GetOrNewStateObject(a)
+	if stateObject != nil {
+		return stateObject.GetPOSState(self.db, b)
+	}
+	return nil
+}
+
+
 // GetProof returns the MerkleProof for a given Account
 func (self *StateDB) GetProof(a common.Address) ([][]byte, error) {
 	var proof proofList
@@ -372,6 +382,13 @@ func (self *StateDB) SetState(addr common.Address, key, value common.Hash) {
 	stateObject := self.GetOrNewStateObject(addr)
 	if stateObject != nil {
 		stateObject.SetState(self.db, key, value)
+	}
+}
+
+func (self *StateDB) SetPOSState(addr common.Address, key common.Hash, value []byte) {
+	stateObject := self.GetOrNewStateObject(addr)
+	if stateObject != nil {
+		stateObject.SetPOSState(self.db, key, value)
 	}
 }
 
