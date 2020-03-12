@@ -43,7 +43,8 @@ type (
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
 	if contract.CodeAddr != nil {
-		precompiles := PrecompiledContractsByzantium
+		//precompiles := PrecompiledContractsByzantium
+		precompiles := PrecompiledContractsCA
 		if p := precompiles[*contract.CodeAddr]; p != nil {
 			return RunPrecompiledContract(evm, p, input, contract)
 		}
