@@ -6,39 +6,36 @@ import (
 )
 
 type CIMManager interface {
-	Init(msps []CIM) error
+	newCIMManager() error
 	// Get all the CIM
 	GetCIMs() (map[string]CIM, error)
+	GetCIM(identifier string) (CIM, error)
 	// validate any identity
 	Validate(id Identity)
 }
 
 type CIM interface {
-	//uniq  id
-	GetIdentifier()
+	//cim uniq  id
+	GetIdentifier() string
 	// construct consortium identity manager
-	Init()
+	newCIM()
 	GetRootCerts() [][]byte
 	GetTLSRootCerts() [][]byte
 	// revoke cert list
 	GetCrlList() []*pkix.CertificateList
 	GetTLSIntermediateCerts() [][]byte
 	GetSigningIdentity() SigningIdentity
-	Validate(id Identity) error
+	Validate(id Identity) (bool, error)
 }
 
 type Identity interface {
 	ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
-	Verify(msg []byte, sig []byte)
+	Verify(msg []byte, sig []byte) (bool, error)
 }
 
 type SigningIdentity interface {
 	Identity
 	Sign(msg []byte) ([]byte, error)
 	GetPublicVersion() Identity
-}
-
-type cimManagerImpl struct {
-	cimMap map[string]CIM
 }

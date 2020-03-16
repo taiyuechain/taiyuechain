@@ -6,6 +6,10 @@ import (
 	"crypto/x509/pkix"
 )
 
+type cimManagerImpl struct {
+	cimMap map[string]CIM
+}
+
 type cimimpl struct {
 	rootCerts         []Identity
 	intermediateCerts []Identity
