@@ -14,28 +14,54 @@ type CIMManager interface {
 	Validate(id Identity)
 }
 
+type CryptoConfig struct {
+	SignatureHashFamily            string
+	IdentityIdentifierHashFunction string
+}
+
+// Cim Config sets
+type CIMConfig struct {
+	Name                 string
+	RootCerts            [][]byte
+	IntermediateCerts    [][]byte
+	Admins               [][]byte
+	RevocationList       [][]byte
+	SigningIdentity      *SigningIdentityInfo
+	TlsRootCerts         [][]byte
+	TlsIntermediateCerts [][]byte
+}
+
+// consortium indentity  manager
 type CIM interface {
 	//cim uniq  id
 	GetIdentifier() string
 	// construct consortium identity manager
-	newCIM()
-	GetRootCerts() [][]byte
-	GetTLSRootCerts() [][]byte
+	setUp(conf CIMConfig) error
+	GetRootCert() Identity
+	GetTLSRootCert() []byte
 	// revoke cert list
 	GetCrlList() []*pkix.CertificateList
-	GetTLSIntermediateCerts() [][]byte
+	GetTLSIntermediateCert() []byte
 	GetSigningIdentity() SigningIdentity
-	Validate(id Identity) (bool, error)
+	Validate(id Identity) error
 }
 
 type Identity interface {
 	ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
-	Verify(msg []byte, sig []byte) (bool, error)
+	Verify(msg []byte, sig []byte) error
 }
 
+// sign identity
 type SigningIdentity interface {
 	Identity
 	Sign(msg []byte) ([]byte, error)
 	GetPublicVersion() Identity
+}
+
+type SigningIdentityInfo struct {
+	PublicSigner []byte
+	// PrivateSigner denotes a reference to the private key of the
+	// peer's signing identity
+	PrivateSigner []byte
 }
