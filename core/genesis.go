@@ -44,6 +44,13 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
+var CryptoType uint8
+
+const(
+	GMCRYPTO  = 1
+	GJCRYPTO  = 2
+)
+
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
@@ -63,6 +70,7 @@ type Genesis struct {
 	Number     uint64      `json:"number"`
 	GasUsed    uint64      `json:"gasUsed"`
 	ParentHash common.Hash `json:"parentHash"`
+	CryptoType uint8 		`json:"cryptoType"`
 }
 
 // GenesisAccount is an account in the state of the genesis block.
