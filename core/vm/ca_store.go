@@ -96,6 +96,7 @@ func NewCACertList() *CACertList{
 	return &CACertList{
 		cAAmount:0,
 		caCertMap:make(map[uint64]*CACert),
+		proposalMap:make(map[common.Hash]*ProposalState),
 	}
 }
 
@@ -107,6 +108,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	tmp := &CACertList{
 		cAAmount: cachaList.cAAmount,
 		caCertMap: make(map[uint64]*CACert),
+		proposalMap:make(map[common.Hash]*ProposalState),
 	}
 	for k,val := range cachaList.caCertMap {
 		log.Info("---clone","k",k,"value",val.cACert,"isstart",val.isStore)
@@ -116,7 +118,22 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 		}
 
 		tmp.caCertMap[k] = items
+	}
 
+	for key,value := range cachaList.proposalMap{
+
+		item := &ProposalState{
+			value.pHash,
+			value.cACert,
+			value.startHight,
+			value.endHight,
+			value.pState,
+			value.needPconfirmNumber,
+			value.pNeedDo,
+			value.signList,
+			value.signMap,
+		}
+		tmp.proposalMap[key] = item
 	}
 	return tmp
 }
