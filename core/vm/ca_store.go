@@ -29,6 +29,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
 )
 
 
@@ -37,6 +38,16 @@ import (
 //*************************
 
 var CASC *CAStoreCache //CA store cache
+
+const (
+	proposalAddCert = 0
+	proposalDelCert = 1
+	proposalTimeLine = 1000 // 1000 block Hight
+	pStateNil = 0
+	pStatePending = 1
+	pStateSuccless = 2
+	pStateFail = 3
+)
 
 func init() {
 	CASC = newCAStoreCache()
@@ -61,9 +72,23 @@ type CACert struct {
 	isStore bool
 }
 
+type ProposalState struct {
+	pHash common.Hash
+	cACert []byte
+	startHight *big.Int
+	endHight *big.Int
+	pState uint8
+	needPconfirmNumber uint64 // muti need confir len
+	pNeedDo uint8 // only supprot add and del
+	signList []common.Hash
+	signMap map[common.Hash]bool
+}
+
+
 type CACertList struct {
 	cAAmount uint64
 	caCertMap   map[uint64]*CACert
+	proposalMap map[common.Hash]*ProposalState
 }
 
 // new a CACerList
