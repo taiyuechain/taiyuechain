@@ -29,6 +29,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/ethereum/go-ethereum/rlp"
+	"math/big"
 )
 
 
@@ -37,6 +38,16 @@ import (
 //*************************
 
 var CASC *CAStoreCache //CA store cache
+
+const (
+	proposalAddCert = 0
+	proposalDelCert = 1
+	proposalTimeLine = 1000 // 1000 block Hight
+	pStateNil = 0
+	pStatePending = 1
+	pStateSuccless = 2
+	pStateFail = 3
+)
 
 func init() {
 	CASC = newCAStoreCache()
@@ -61,9 +72,23 @@ type CACert struct {
 	isStore bool
 }
 
+type ProposalState struct {
+	pHash common.Hash
+	cACert []byte
+	startHight *big.Int
+	endHight *big.Int
+	pState uint8
+	needPconfirmNumber uint64 // muti need confir len
+	pNeedDo uint8 // only supprot add and del
+	signList []common.Hash
+	signMap map[common.Hash]bool
+}
+
+
 type CACertList struct {
 	cAAmount uint64
 	caCertMap   map[uint64]*CACert
+	proposalMap map[common.Hash]*ProposalState
 }
 
 // new a CACerList
@@ -71,6 +96,7 @@ func NewCACertList() *CACertList{
 	return &CACertList{
 		cAAmount:0,
 		caCertMap:make(map[uint64]*CACert),
+		proposalMap:make(map[common.Hash]*ProposalState),
 	}
 }
 
@@ -82,6 +108,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	tmp := &CACertList{
 		cAAmount: cachaList.cAAmount,
 		caCertMap: make(map[uint64]*CACert),
+		proposalMap:make(map[common.Hash]*ProposalState),
 	}
 	for k,val := range cachaList.caCertMap {
 		log.Info("---clone","k",k,"value",val.cACert,"isstart",val.isStore)
@@ -91,7 +118,22 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 		}
 
 		tmp.caCertMap[k] = items
+	}
 
+	for key,value := range cachaList.proposalMap{
+
+		item := &ProposalState{
+			value.pHash,
+			value.cACert,
+			value.startHight,
+			value.endHight,
+			value.pState,
+			value.needPconfirmNumber,
+			value.pNeedDo,
+			value.signList,
+			value.signMap,
+		}
+		tmp.proposalMap[key] = item
 	}
 	return tmp
 }
@@ -240,6 +282,84 @@ func (ca *CACertList)GetCaCertAmount() uint64{
 	return ca.cAAmount
 }
 
+func (ca *CACertList)checkProposal(pHash common.Hash,senderCert []byte,cACert []byte,evm *EVM,needDo uint8)(bool,error){
+
+	ppState :=ca.proposalMap[pHash].pState
+
+	type ProposalState struct {
+		pHash common.Hash
+		cACert []byte
+		startHight *big.Int
+		endHight *big.Int
+		pState uint8
+		needPconfirmNumber uint64 // muti need confir len
+		pNeedDo uint8 // only supprot add and del
+		signList []common.Hash
+
+	}
+
+	if ppState != pStateNil || ppState != pStatePending{
+		// need new one proposal
+		return false,errors.New("the proposal state not rgiht")
+	}
+
+	senderCertHash :=types.RlpHash(senderCert)
+	if !ca.proposalMap[pHash].signMap[senderCertHash]{
+		ca.proposalMap[pHash].signList = append(ca.proposalMap[pHash].signList,senderCertHash )
+		ca.proposalMap[pHash].signMap[senderCertHash] = true
+	}
+
+	if ppState == pStateNil{
+		ca.proposalMap[pHash].pHash = pHash
+		ca.proposalMap[pHash].cACert = cACert
+		ca.proposalMap[pHash].startHight = evm.Context.BlockNumber
+		ca.proposalMap[pHash].endHight = new(big.Int).Add(evm.Context.BlockNumber,big.NewInt(proposalTimeLine))
+		ca.proposalMap[pHash].needPconfirmNumber = (ca.cAAmount / 3 ) * 2
+		ca.proposalMap[pHash].pNeedDo = needDo
+		ca.proposalMap[pHash].pState = pStatePending
+	}else{
+		if ppState == pStatePending{
+			//check time
+			newHight := evm.Context.BlockNumber
+			if newHight.Cmp(ca.proposalMap[pHash].endHight) > 0{
+				ca.proposalMap[pHash].pState = pStateFail
+				return false,errors.New("proposal time is over 1000 block hight")
+			}
+
+			confirmLen := len(ca.proposalMap[pHash].signList)
+			if uint64(confirmLen) >= ca.proposalMap[pHash].needPconfirmNumber{
+				// do proposal
+				res,err := ca.exeProposal(pHash)
+
+				return res,err
+			}
+		}
+	}
+	return true,nil
+}
+
+func (ca *CACertList)exeProposal(pHash common.Hash)(bool,error)  {
+	ca.proposalMap[pHash].pState = pStateFail
+
+	var res bool
+	var err error
+	if ca.proposalMap[pHash].pNeedDo == proposalAddCert{
+		res,err = ca.addCertToList(ca.proposalMap[pHash].cACert)
+		if res && err == nil{
+			ca.proposalMap[pHash].pState = pStateSuccless
+			return true,nil
+		}
+	}else{
+		if ca.proposalMap[pHash].pNeedDo == proposalDelCert{
+			res,err = ca.delCertToList(ca.proposalMap[pHash].cACert)
+			if res && err == nil{
+				ca.proposalMap[pHash].pState = pStateSuccless
+				return true,nil
+			}
+		}
+	}
+	return res,err
+}
 
 
 //*************************
@@ -454,6 +574,46 @@ func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 	return ret,err
 }
 
+func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err error){
+	args := struct {
+		senderCert []byte
+		caCert []byte
+		isAdd bool
+	}{}
+
+
+	method, _ := abiCaCertStore.Methods["multiProposal"]
+	err = method.Inputs.Unpack(&args, input)
+
+	caCertList := NewCACertList()
+	err = caCertList.LoadCACertList(evm.StateDB, types.CACertListAddress)
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	pHash :=types.RlpHash(args.caCert)
+	//check cacert
+	if !args.isAdd{
+		// del this cacert to this group
+		res,err:=caCertList.IsInList(args.caCert)
+
+		if !res{
+			return nil, err
+		}
+
+		//check propsal
+		res,err =caCertList.checkProposal(pHash,args.senderCert,args.caCert,evm,proposalDelCert)
+
+	}else{
+		//add
+		caCertList.checkProposal(pHash,args.senderCert,args.caCert,evm,proposalAddCert)
+	}
+
+	return nil, nil
+}
+
+
 
 
 
@@ -538,6 +698,30 @@ const CACertStoreABIJSON = `
 	  	{
         	"type": "bytes",
         	"name": "CaCert",
+        	"indexed": false
+      	}
+    	],
+    	"constant": true,
+    	"payable": false,
+    	"type": "function"
+   	}
+	{
+    	"name": "multiProposal",
+    	"outputs": [],
+    	"inputs": [
+	  	{
+        	"type": "bytes",
+        	"name": "senderCert",
+        	"indexed": false
+      	}
+		{
+        	"type": "bytes",
+        	"name": "caCert",
+        	"indexed": false
+      	}
+		{
+        	"type": "bool",
+        	"name": "isAdd",
         	"indexed": false
       	}
     	],
