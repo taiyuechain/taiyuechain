@@ -688,6 +688,30 @@ const CACertStoreABIJSON = `
     	"payable": false,
     	"type": "function"
    	}
+	{
+    	"name": "multiProposal",
+    	"outputs": [],
+    	"inputs": [
+	  	{
+        	"type": "bytes",
+        	"name": "senderCert",
+        	"indexed": false
+      	}
+		{
+        	"type": "bytes",
+        	"name": "caCert",
+        	"indexed": false
+      	}
+		{
+        	"type": "bool",
+        	"name": "isAdd",
+        	"indexed": false
+      	}
+    	],
+    	"constant": true,
+    	"payable": false,
+    	"type": "function"
+   	}
 ]
 `
 
