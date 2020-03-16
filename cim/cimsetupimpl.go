@@ -65,11 +65,11 @@ func (cim *cimimpl) getIdentityFromConf(idBytes []byte) (Identity, []byte, error
 		return nil, nil, err
 	}
 
-	mspId, err := newIdentity(cert, certPubK)
+	identity, err := newIdentity(cert, certPubK)
 	if err != nil {
 		return nil, nil, err
 	}
-	return mspId, certPubK, nil
+	return identity, certPubK, nil
 }
 
 func (cim *cimimpl) KeyImport(raw interface{}) (pk []byte, err error) {

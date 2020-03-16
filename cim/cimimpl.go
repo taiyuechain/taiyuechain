@@ -45,13 +45,6 @@ func (cim *cimimpl) setUp(conf CIMConfig) error {
 	if err != nil {
 		return err
 	}
-
-	// setup NodeOUs
-	//if err := cim.setupNodeOUs(conf); err != nil {
-	//	return err
-	//}
-
-	//err = msp.postSetupV11(conf)
 	if err != nil {
 		return err
 	}

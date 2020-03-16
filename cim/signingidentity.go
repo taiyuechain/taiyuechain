@@ -22,10 +22,9 @@ func (sig *signingidentity) GetPublicVersion() Identity {
 }
 
 func newSigningIdentity(cert *x509.Certificate, pk []byte, signer crypto.Signer) (SigningIdentity, error) {
-	//mspIdentityLogger.Infof("Creating signing identity instance for ID %s", id)
-	mspId, err := newIdentity(cert, pk)
+	id, err := newIdentity(cert, pk)
 	if err != nil {
 		return nil, err
 	}
-	return &signingidentity{identity: *mspId.(*identity), signer: signer}, nil
+	return &signingidentity{identity: *id.(*identity), signer: signer}, nil
 }
