@@ -750,9 +750,11 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 		GasLimit:   core.FastCalcGasLimit(parent, agent.gasFloor, agent.gasCeil),
 		Time:       big.NewInt(tstamp),
 	}
+	// do not need snail Block
+	/*
 	if err := agent.validateBlockSpace(header); err == types.ErrSnailBlockTooSlow {
 		return nil, err
-	}
+	}*/
 
 	//assign Proposer
 	pubKey, _ := crypto.UnmarshalPubkey(agent.committeeNode.Publickey)
