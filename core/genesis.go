@@ -51,9 +51,10 @@ var HashCryptoType uint8
 const(
 	SYMMETRICCRYPTOSM4  = 1
 	SYMMETRICCRYPTOAES  = 2
-	AsymmetricCryptoEcdsa =3
-	AsymmetricCryptoSM2 = 4
-
+	ASYMMETRICCRYPTOECDSA =3
+	ASYMMETRICCRYPTOSM2 =4
+	HASHCRYPTOSM3=5
+	HASHCRYPTOHAS3 =6
 )
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
