@@ -14,7 +14,7 @@ type cimManagerImpl struct {
 
 func InitCrypto(cimConfigDir, cimID string) error {
 	var err error
-	// Check whether msp folder exists
+	// Check whether CIM folder exists
 	fi, err := os.Stat(cimConfigDir)
 	if os.IsNotExist(err) || !fi.IsDir() {
 		return errors.Errorf("cannot init crypto, missing %s folder", cimConfigDir)

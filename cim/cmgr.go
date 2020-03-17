@@ -37,10 +37,10 @@ func GetLocalCIM() CIM {
 
 func loadLocaCIM() CIM {
 
-	mspInst, err := NewCIM()
+	cimInst, err := NewCIM()
 	if err != nil {
 		return nil
 	}
 
-	return mspInst
+	return cimInst
 }

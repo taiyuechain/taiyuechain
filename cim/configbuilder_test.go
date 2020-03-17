@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetLocalMspConfig(t *testing.T) {
-	mspDir, err := config.GetDevCIMDir()
+func TestGetLocalCIMConfig(t *testing.T) {
+	cimDir, err := config.GetDevCIMDir()
 	assert.NoError(t, err)
-	_, err = GetLocalCmiConfig(mspDir, "")
+	_, err = GetLocalCmiConfig(cimDir, "")
 	assert.NoError(t, err)
 }

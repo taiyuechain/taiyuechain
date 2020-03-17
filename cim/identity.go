@@ -1,10 +1,10 @@
 package cim
 
 import (
-	"crypto/ecdsa"
 	"crypto/x509"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"time"
 )
 
@@ -27,22 +27,13 @@ func (id *identity) ExpiresAt() time.Time {
 }
 
 func (id *identity) Verify(msg []byte, sig []byte) error {
-	r, s, err := UnmarshalECDSASignature(sig)
+	raw, err := x509.MarshalPKIXPublicKey(id.cert.PublicKey)
 	if err != nil {
-		return fmt.Errorf("Failed unmashalling signature [%s]", err)
+		return fmt.Errorf("Failed marshalling key [%s]", err)
 	}
-
-	lowS, err := IsLowS(id.cert.PublicKey.(*ecdsa.PublicKey), s)
-	if err != nil {
-		return err
-	}
-
-	if !lowS {
-		return fmt.Errorf("Invalid S. Must be smaller than half the order [%s][%s].", s, GetCurveHalfOrdersAt(id.cert.PublicKey.(*ecdsa.PublicKey).Curve))
-	}
-	bVerify := ecdsa.Verify(id.cert.PublicKey.(*ecdsa.PublicKey), msg, r, s)
-	if !bVerify {
-		return fmt.Errorf("verify Failure")
+	isVerify := crypto.VerifySignature(raw, msg, sig)
+	if !isVerify {
+		return fmt.Errorf("verify failure", err)
 	}
 	return nil
 }

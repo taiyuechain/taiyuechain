@@ -112,10 +112,9 @@ func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (Signin
 		return nil, errors.WithMessage(err, "pubKey key import error")
 	}
 
-	cryptosig, err := NewCryptoSigner(idPub.(*identity).cert, *pk)
 	if err != nil {
 		return nil, errors.WithMessage(err, "NewCryptoSigner error")
 	}
 
-	return newSigningIdentity(idPub.(*identity).cert, cryptosig)
+	return newSigningIdentity(idPub.(*identity).cert, pk)
 }

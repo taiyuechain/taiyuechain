@@ -1,30 +1,30 @@
 package cim
 
 import (
-	"crypto"
-	"crypto/rand"
+	"crypto/ecdsa"
 	"crypto/x509"
+	tcry "github.com/taiyuechain/taiyuechain/crypto"
 )
 
 type signingidentity struct {
 	// we embed everything from a base identity
 	identity
 	// signer corresponds to the object that can produce signatures from this identity
-	signer crypto.Signer
+	prv *ecdsa.PrivateKey
 }
 
 func (sig *signingidentity) Sign(msg []byte) ([]byte, error) {
-	return sig.signer.Sign(rand.Reader, msg, crypto.SHA3_256)
+	return tcry.Sign(msg, sig.prv)
 }
 
 func (sig *signingidentity) GetPublicVersion() Identity {
 	return &sig.identity
 }
 
-func newSigningIdentity(cert *x509.Certificate, signer crypto.Signer) (SigningIdentity, error) {
+func newSigningIdentity(cert *x509.Certificate, prvKey *ecdsa.PrivateKey) (SigningIdentity, error) {
 	id, err := NewIdentity(cert)
 	if err != nil {
 		return nil, err
 	}
-	return &signingidentity{identity: *id.(*identity), signer: signer}, nil
+	return &signingidentity{identity: *id.(*identity), prv: prvKey}, nil
 }
