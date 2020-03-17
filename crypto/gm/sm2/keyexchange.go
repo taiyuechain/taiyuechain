@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/ZZMarquis/gm/sm3"
-	"github.com/ZZMarquis/gm/util"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
 	"hash"
 	"math/big"
 )
