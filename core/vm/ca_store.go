@@ -372,6 +372,7 @@ var CaCertStoreGas = map[string]uint64{
 	"addCaCert":      	 450000,
 	"delCaCert":         30000,
 	"isApproveCaCert":   2400000,
+	"multiProposal":   2400000,
 }
 
 // Staking contract ABI
@@ -404,6 +405,8 @@ func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err
 		ret, err = delCaCert(evm, contract, data)
 	case "isApproveCaCert":
 		ret, err = isApproveCaCert(evm, contract, data)
+	case "multiProposal":
+		ret, err = multiProposal(evm, contract, data)
 	default:
 		log.Warn("CA cert store call fallback function")
 		err = ErrCACertStoreInvalidInput
@@ -704,7 +707,7 @@ const CACertStoreABIJSON = `
     	"constant": true,
     	"payable": false,
     	"type": "function"
-   	}
+   	},
 	{
     	"name": "multiProposal",
     	"outputs": [],
@@ -713,12 +716,12 @@ const CACertStoreABIJSON = `
         	"type": "bytes",
         	"name": "senderCert",
         	"indexed": false
-      	}
+      	},
 		{
         	"type": "bytes",
         	"name": "caCert",
         	"indexed": false
-      	}
+      	},
 		{
         	"type": "bool",
         	"name": "isAdd",
