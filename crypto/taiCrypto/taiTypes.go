@@ -31,10 +31,10 @@ type TAddress [TaiAddressLength]byte
 func BytesToHash(b []byte) THash {
 
 	var tHash THash
-	switch core.CryptoType{
-	case core.GMCRYPTO:
+	switch core.HashCryptoType{
+	case core.HASHCRYPTOSM3:
 		//TODO do GM hash
-	case core.GJCRYPTO:
+	case core.HASHCRYPTOHAS3:
 		gjhash := common.BytesToHash(b)
 		tHash = gjHashToGmHash(gjhash)
 	}
@@ -43,10 +43,10 @@ func BytesToHash(b []byte) THash {
 
 func BigToHash(b *big.Int) THash{
 	var tHash THash
-	switch core.CryptoType {
-	case core.GMCRYPTO:
+	switch core.HashCryptoType {
+	case core.HASHCRYPTOSM3:
 		//TODO do GM hash
-	case core.GJCRYPTO:
+	case core.HASHCRYPTOHAS3:
 		gjhash := common.BigToHash(b)
 		tHash = gjHashToGmHash(gjhash)
 	}
