@@ -2,6 +2,7 @@ package sm2
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/asn1"
@@ -9,6 +10,7 @@ import (
 	"errors"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
+	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"hash"
 	"io"
 	"math/big"
@@ -570,6 +572,13 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 
 	return VerifyByRS(pub, userId, src, r, s)
 }
-func Ecrecover(hash, sig []byte) ([]byte, error) {
-	return
+
+func RecoverPubkey(hash, sig []byte) (*PublicKey, error) {
+	s, err := secp256k1.RecoverPubkey(hash, sig)
+	if err != nil {
+		return nil, err
+	}
+	x, y := elliptic.Unmarshal(secp256k1.S256(), s)
+	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
+	return &PublicKey{Curve: sm2P256V1, X: x, Y: y}, nil
 }
