@@ -10,8 +10,6 @@ import (
 
 type identity struct {
 	cert *x509.Certificate
-	//private key
-	pk []byte
 }
 
 func DERToPublicKey(raw []byte) (pub interface{}, err error) {
@@ -44,11 +42,11 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 	}
 	bVerify := ecdsa.Verify(id.cert.PublicKey.(*ecdsa.PublicKey), msg, r, s)
 	if !bVerify {
-		return fmt.Errorf("verify Failure", err)
+		return fmt.Errorf("verify Failure")
 	}
 	return nil
 }
 
-func newIdentity(cert *x509.Certificate, pk []byte) (Identity, error) {
-	return &identity{cert: cert, pk: pk}, nil
+func NewIdentity(cert *x509.Certificate) (Identity, error) {
+	return &identity{cert: cert}, nil
 }

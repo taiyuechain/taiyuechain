@@ -36,7 +36,7 @@ type CIM interface {
 	//cim uniq  id
 	GetIdentifier() string
 	// construct consortium identity manager
-	setUp(conf CIMConfig) error
+	SetUp(conf *CIMConfig) error
 	GetRootCert() Identity
 	GetTLSRootCert() []byte
 	// revoke cert list

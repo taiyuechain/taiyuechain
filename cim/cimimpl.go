@@ -3,11 +3,32 @@ package cim
 import (
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
 	"github.com/pkg/errors"
+	"os"
 )
 
 type cimManagerImpl struct {
 	cimMap map[string]CIM
+}
+
+func InitCrypto(cimConfigDir, cimID string) error {
+	var err error
+	// Check whether msp folder exists
+	fi, err := os.Stat(cimConfigDir)
+	if os.IsNotExist(err) || !fi.IsDir() {
+		return errors.Errorf("cannot init crypto, missing %s folder", cimConfigDir)
+	}
+	if cimID == "" {
+		return errors.New("the local MSP must have an ID")
+	}
+
+	err = LoadLocalCIM(cimConfigDir, cimID)
+	if err != nil {
+		return errors.WithMessage(err, fmt.Sprintf("error when setting up from directory"))
+	}
+
+	return nil
 }
 
 type cimimpl struct {
@@ -30,7 +51,7 @@ type cimimpl struct {
 	cryptoConfig *CryptoConfig
 }
 
-func newCIM() (CIM, error) {
+func NewCIM() (CIM, error) {
 
 	theCIM := &cimimpl{}
 	return theCIM, nil
@@ -40,8 +61,8 @@ func (cim *cimimpl) GetIdentifier() string {
 	panic("implement me")
 }
 
-func (cim *cimimpl) setUp(conf CIMConfig) error {
-	err := cim.preSetup(conf)
+func (cim *cimimpl) SetUp(conf *CIMConfig) error {
+	err := cim.preSetup(*conf)
 	if err != nil {
 		return err
 	}

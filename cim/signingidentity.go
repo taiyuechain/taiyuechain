@@ -21,8 +21,8 @@ func (sig *signingidentity) GetPublicVersion() Identity {
 	return &sig.identity
 }
 
-func newSigningIdentity(cert *x509.Certificate, pk []byte, signer crypto.Signer) (SigningIdentity, error) {
-	id, err := newIdentity(cert, pk)
+func newSigningIdentity(cert *x509.Certificate, signer crypto.Signer) (SigningIdentity, error) {
+	id, err := NewIdentity(cert)
 	if err != nil {
 		return nil, err
 	}

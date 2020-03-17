@@ -86,6 +86,14 @@ const (
 	tlsintermediatecerts = "tlsintermediatecerts"
 )
 
+func GetLocalIdentityDataFromConfig(signcertDir string) (Identity, error) {
+	signcert, err := getPemMaterialFromDir(signcertDir)
+	if err != nil || len(signcert) == 0 {
+		return nil, errors.Wrapf(err, "could not load a valid signer certificate from directory %s", signcertDir)
+	}
+	return GetIdentityFromConf(signcert[0])
+}
+
 func GetLocalCmiConfig(dir string, ID string) (*CIMConfig, error) {
 	signcertDir := filepath.Join(dir, signcerts)
 	keystoreDir := filepath.Join(dir, keystore)

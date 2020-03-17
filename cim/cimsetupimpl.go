@@ -1,11 +1,8 @@
 package cim
 
 import (
-	"crypto/ecdsa"
-	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -22,9 +19,10 @@ func (cim *cimimpl) preSetup(conf CIMConfig) error {
 	}
 
 	// setup the signer (if present)
-	if err := cim.setupSigningIdentity(conf); err != nil {
-		return err
-	}
+	//if err := cim.setupSigningIdentity(conf); err != nil {
+	//	return err
+	//}
+	return nil
 }
 
 func (cim *cimimpl) setupCrypto() error {
@@ -45,44 +43,13 @@ func (cim *cimimpl) setupCA(conf CIMConfig) error {
 		return errors.New("expected at least one CA certificate")
 	}
 
-	id, _, err := cim.getIdentityFromConf(conf.RootCerts[0])
+	id, err := GetIdentityFromConf(conf.RootCerts[0])
 	if err != nil {
 		return err
 	}
 
 	cim.rootCert = id
 	return nil
-}
-
-func (cim *cimimpl) getIdentityFromConf(idBytes []byte) (Identity, []byte, error) {
-	cert, err := cim.getCertFromPem(idBytes)
-	if err != nil {
-		return nil, nil, err
-	}
-	// get the public key in the right format
-	certPubK, err := cim.KeyImport(cert)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	identity, err := newIdentity(cert, certPubK)
-	if err != nil {
-		return nil, nil, err
-	}
-	return identity, certPubK, nil
-}
-
-func (cim *cimimpl) KeyImport(raw interface{}) (pk []byte, err error) {
-	// Validate arguments
-	if raw == nil {
-		return nil, errors.New("Invalid raw. Cannot be nil")
-	}
-	x509Cert, ok := raw.(*x509.Certificate)
-	if !ok {
-		return nil, errors.New("[X509PublicKeyImportOpts] Invalid raw material. Expected *x509.Certificate")
-	}
-	return x509Cert.PublicKey.([]byte), nil
-
 }
 
 func (cim *cimimpl) getCertFromPem(idBytes []byte) (*x509.Certificate, error) {
@@ -135,14 +102,14 @@ func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
 
 func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (SigningIdentity, error) {
 	// Extract the public part of the identity
-	idPub, pubKey, err := cim.getIdentityFromConf(sig.PublicSigner)
+	idPub, err := GetIdentityFromConf(sig.PublicSigner)
 	if err != nil {
 		return nil, err
 	}
 
-	pk, err := KeyImport(sig.PrivateSigner)
+	pk, err := KeyStoreImport(sig.PrivateSigner)
 	if err != nil {
-		return nil, errors.WithMessage(err, "pk key import error")
+		return nil, errors.WithMessage(err, "pubKey key import error")
 	}
 
 	cryptosig, err := NewCryptoSigner(idPub.(*identity).cert, *pk)
@@ -150,51 +117,5 @@ func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (Signin
 		return nil, errors.WithMessage(err, "NewCryptoSigner error")
 	}
 
-	return newSigningIdentity(idPub.(*identity).cert, pubKey, cryptosig)
-}
-
-func KeyImport(raw interface{}) (key *ecdsa.PrivateKey, err error) {
-	der, ok := raw.([]byte)
-	if !ok {
-		return nil, errors.New("[ECDSADERPrivateKeyImportOpts] Invalid raw material. Expected byte array.")
-	}
-
-	if len(der) == 0 {
-		return nil, errors.New("[ECDSADERPrivateKeyImportOpts] Invalid raw. It must not be nil.")
-	}
-
-	lowLevelKey, err := DERToPrivateKey(der)
-	if err != nil {
-		return nil, fmt.Errorf("Failed converting PKIX to ECDSA public key [%s]", err)
-	}
-
-	ecdsaSK, ok := lowLevelKey.(*ecdsa.PrivateKey)
-	if !ok {
-		return nil, errors.New("Failed casting to ECDSA private key. Invalid raw material.")
-	}
-
-	return ecdsaSK, nil
-}
-
-// DERToPrivateKey unmarshals a der to private key
-func DERToPrivateKey(der []byte) (key interface{}, err error) {
-
-	if key, err = x509.ParsePKCS1PrivateKey(der); err == nil {
-		return key, nil
-	}
-
-	if key, err = x509.ParsePKCS8PrivateKey(der); err == nil {
-		switch key.(type) {
-		case *rsa.PrivateKey, *ecdsa.PrivateKey:
-			return
-		default:
-			return nil, errors.New("Found unknown private key type in PKCS#8 wrapping")
-		}
-	}
-
-	if key, err = x509.ParseECPrivateKey(der); err == nil {
-		return
-	}
-
-	return nil, errors.New("Invalid key type. The DER must contain an rsa.PrivateKey or ecdsa.PrivateKey")
+	return newSigningIdentity(idPub.(*identity).cert, cryptosig)
 }
