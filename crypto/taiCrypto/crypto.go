@@ -11,16 +11,16 @@ import (
 )
 
 type TaiPrivKey interface {
-	Public() TaiPrivateKey
+	Public() *TaiPrivateKey
+	Sign(digestHash []byte) ([]byte, error)
 }
 type TaiPubKey interface {
 	CompressPubkey(pubkey TaiPublicKey) []byte
 }
 
 type SignerOpts interface {
-	Sign(digestHash []byte) (sig []byte, err error)
-	VerifySignature(digestHash, signature []byte) bool
-	SigToPub(hash, sig []byte) (TaiPrivateKey error)
+	VerifySignature(digestHash []byte, signature []byte) bool
+	SigToPub(hash []byte, sig []byte) (*TaiPublicKey, error)
 }
 
 func (TPK *TaiPublicKey) CompressPubkey(pubkey TaiPublicKey) []byte {
@@ -43,8 +43,11 @@ func (TPK *TaiPublicKey) SigToPub(hash, sig []byte) (*TaiPublicKey, error) {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		/*pubk, _ := sm2.RawBytesToPrivateKey(TPK.hexBytesPrivate)
-		  TPK.publickey=*pubk*/
+		smPublicKey, err := sm2.RecoverPubkey(hash, sig)
+		if err != nil {
+			return nil, err
+		}
+		TPK.smPublickey = *smPublicKey
 		return TPK, nil
 
 	case core.ASYMMETRICCRYPTOECDSA:
@@ -82,7 +85,7 @@ func (TPK *TaiPrivateKey) Public() *TaiPrivateKey {
 	return nil
 }
 
-func (TPK *TaiPrivateKey) Sign(digestHash []byte) (sig []byte, err error) {
+func (TPK *TaiPrivateKey) Sign(digestHash []byte) ([]byte, error) {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
