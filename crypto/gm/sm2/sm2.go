@@ -12,7 +12,6 @@ import (
 	"hash"
 	"io"
 	"math/big"
-
 )
 
 const (
@@ -570,4 +569,7 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 	}
 
 	return VerifyByRS(pub, userId, src, r, s)
+}
+func Ecrecover(hash, sig []byte) ([]byte, error) {
+	return
 }
