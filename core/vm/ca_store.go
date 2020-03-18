@@ -284,22 +284,14 @@ func (ca *CACertList)GetCaCertAmount() uint64{
 
 func (ca *CACertList)checkProposal(pHash common.Hash,senderCert []byte,cACert []byte,evm *EVM,needDo uint8)(bool,error){
 
-	ppState :=ca.proposalMap[pHash].pState
-
-	type ProposalState struct {
-		pHash common.Hash
-		cACert []byte
-		startHight *big.Int
-		endHight *big.Int
-		pState uint8
-		needPconfirmNumber uint64 // muti need confir len
-		pNeedDo uint8 // only supprot add and del
-		signList []common.Hash
-
+	if(ca.proposalMap[pHash] == nil){
+		ca.proposalMap[pHash] = &ProposalState{pState:pStateNil}
 	}
+	ppState :=ca.proposalMap[pHash].pState
 
 	if ppState != pStateNil || ppState != pStatePending{
 		// need new one proposal
+		log.Info("retrurn err?? checkProposal ")
 		return false,errors.New("the proposal state not rgiht")
 	}
 
@@ -310,6 +302,7 @@ func (ca *CACertList)checkProposal(pHash common.Hash,senderCert []byte,cACert []
 	}
 
 	if ppState == pStateNil{
+		log.Info("the new one")
 		ca.proposalMap[pHash].pHash = pHash
 		ca.proposalMap[pHash].cACert = cACert
 		ca.proposalMap[pHash].startHight = evm.Context.BlockNumber
@@ -320,6 +313,7 @@ func (ca *CACertList)checkProposal(pHash common.Hash,senderCert []byte,cACert []
 	}else{
 		if ppState == pStatePending{
 			//check time
+			log.Info("have lote of pepole check")
 			newHight := evm.Context.BlockNumber
 			if newHight.Cmp(ca.proposalMap[pHash].endHight) > 0{
 				ca.proposalMap[pHash].pState = pStateFail
@@ -579,14 +573,17 @@ func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 
 func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err error){
 	args := struct {
-		senderCert []byte
-		caCert []byte
-		isAdd bool
+		SenderCert []byte
+		CaCert []byte
+		IsAdd bool
 	}{}
 
-
+	log.Info("--multiProposal","input",input)
 	method, _ := abiCaCertStore.Methods["multiProposal"]
 	err = method.Inputs.Unpack(&args, input)
+	if err!=nil {
+		return nil,err
+	}
 
 	caCertList := NewCACertList()
 	err = caCertList.LoadCACertList(evm.StateDB, types.CACertListAddress)
@@ -595,22 +592,23 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 		return nil, err
 	}
 
-	pHash :=types.RlpHash(args.caCert)
+	pHash :=types.RlpHash(args.CaCert)
+	log.Info("multiProposal arg is ","senderca",args.SenderCert,"ca",args.CaCert,"isAdd",args.IsAdd)
 	//check cacert
-	if !args.isAdd{
+	if !args.IsAdd{
 		// del this cacert to this group
-		res,err:=caCertList.IsInList(args.caCert)
+		res,err:=caCertList.IsInList(args.CaCert)
 
 		if !res{
 			return nil, err
 		}
 
 		//check propsal
-		res,err =caCertList.checkProposal(pHash,args.senderCert,args.caCert,evm,proposalDelCert)
+		res,err =caCertList.checkProposal(pHash,args.SenderCert,args.CaCert,evm,proposalDelCert)
 
 	}else{
 		//add
-		caCertList.checkProposal(pHash,args.senderCert,args.caCert,evm,proposalAddCert)
+		caCertList.checkProposal(pHash,args.SenderCert,args.CaCert,evm,proposalAddCert)
 	}
 
 	return nil, nil
@@ -714,21 +712,18 @@ const CACertStoreABIJSON = `
     	"inputs": [
 	  	{
         	"type": "bytes",
-        	"name": "senderCert",
-        	"indexed": false
+        	"name": "SenderCert"
       	},
 		{
         	"type": "bytes",
-        	"name": "caCert",
-        	"indexed": false
+        	"name": "CaCert"
       	},
 		{
         	"type": "bool",
-        	"name": "isAdd",
-        	"indexed": false
+        	"name": "IsAdd"
       	}
     	],
-    	"constant": true,
+    	"constant": false,
     	"payable": false,
     	"type": "function"
    	}
