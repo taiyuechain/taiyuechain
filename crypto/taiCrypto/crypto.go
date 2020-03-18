@@ -12,7 +12,8 @@ import (
 
 type TaiPrivKey interface {
 	Public() *TaiPrivateKey
-	Sign(digestHash []byte) ([]byte, error)
+	Sign(digestHash []byte, tai TaiPrivateKey) ([]byte, error)
+	FromECDSA(prikey TaiPrivateKey) []byte
 }
 type TaiPubKey interface {
 	CompressPubkey(pubkey TaiPublicKey) []byte
@@ -23,6 +24,17 @@ type SignerOpts interface {
 	SigToPub(hash []byte, sig []byte) (*TaiPublicKey, error)
 }
 
+func (TPK *TaiPrivateKey) FromECDSA(prikey TaiPrivateKey) []byte {
+	switch core.AsymmetricCryptoType {
+	case core.ASYMMETRICCRYPTOSM2:
+		//TODO need add SM2 to change hexKey
+		return prikey.gmPrivate.GetRawBytes()
+
+	case core.ASYMMETRICCRYPTOECDSA:
+		return tycrpto.FromECDSA(&prikey.private)
+	}
+	return nil
+}
 func (TPK *TaiPublicKey) CompressPubkey(pubkey TaiPublicKey) []byte {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
@@ -85,15 +97,14 @@ func (TPK *TaiPrivateKey) Public() *TaiPrivateKey {
 	return nil
 }
 
-func (TPK *TaiPrivateKey) Sign(digestHash []byte) ([]byte, error) {
+func (TPK *TaiPrivateKey) Sign(digestHash []byte, tai TaiPrivateKey) ([]byte, error) {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		privk, _ := sm2.RawBytesToPrivateKey(TPK.hexBytesPrivate)
-		return sm2.Sign(privk, nil, digestHash)
+		return sm2.Sign(&tai.gmPrivate, nil, digestHash)
 	case core.ASYMMETRICCRYPTOECDSA:
-		privk, _ := tycrpto.ToECDSA(TPK.hexBytesPrivate)
-		return tycrpto.Sign(digestHash, privk)
+		//privk, _ := tycrpto.ToECDSA(TPK.hexBytesPrivate)
+		return tycrpto.Sign(digestHash, &tai.private)
 	}
 	return nil, nil
 }
@@ -108,11 +119,13 @@ func (TPK *TaiPublicKey) VerifySignature(digestHash, signature []byte) bool {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		pubk, _ := sm2.RawBytesToPublicKey(TPK.hexBytesPublic)
-		return sm2.Verify(pubk, nil, digestHash, signature)
+		//pubk, _ := sm2.RawBytesToPublicKey(TPK.hexBytesPublic)
+		pubk := TPK.smPublickey
+		return sm2.Verify(&pubk, nil, digestHash, signature)
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
+		TPK.hexBytesPublic = TPK.CompressPubkey(*TPK)
 		return tycrpto.VerifySignature(TPK.hexBytesPublic, digestHash, signature)
 	}
 	return false
@@ -145,8 +158,9 @@ func GenPrivKey() *TaiPrivateKey {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		prik, _, _ := sm2.GenerateKey(rand.Reader)
+		prik, pubk, _ := sm2.GenerateKey(rand.Reader)
 		tai.gmPrivate = *prik
+		tai.gmPrivate.PublicKey = *pubk
 		return &tai
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
