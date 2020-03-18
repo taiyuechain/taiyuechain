@@ -43,7 +43,7 @@ func (cim *cimimpl) setupCA(conf CIMConfig) error {
 		return errors.New("expected at least one CA certificate")
 	}
 
-	id, err := GetIdentityFromConf(conf.RootCerts[0])
+	id, err := GetIdentityFromByte(conf.RootCerts[0])
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
 
 func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (SigningIdentity, error) {
 	// Extract the public part of the identity
-	idPub, err := GetIdentityFromConf(sig.PublicSigner)
+	idPub, err := GetIdentityFromByte(sig.PublicSigner)
 	if err != nil {
 		return nil, err
 	}

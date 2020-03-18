@@ -33,7 +33,7 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 	}
 	isVerify := crypto.VerifySignature(raw, msg, sig)
 	if !isVerify {
-		return fmt.Errorf("verify failure", err)
+		return fmt.Errorf("verify failure")
 	}
 	return nil
 }

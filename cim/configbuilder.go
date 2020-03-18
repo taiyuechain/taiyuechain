@@ -91,7 +91,7 @@ func GetLocalIdentityDataFromConfig(signcertDir string) (Identity, error) {
 	if err != nil || len(signcert) == 0 {
 		return nil, errors.Wrapf(err, "could not load a valid signer certificate from directory %s", signcertDir)
 	}
-	return GetIdentityFromConf(signcert[0])
+	return GetIdentityFromByte(signcert[0])
 }
 
 func GetLocalCmiConfig(dir string, ID string) (*CIMConfig, error) {

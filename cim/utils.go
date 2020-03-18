@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetIdentityFromConf(idBytes []byte) (Identity, error) {
+func GetIdentityFromByte(idBytes []byte) (Identity, error) {
 	cert, err := GetCertFromPem(idBytes)
 	if err != nil {
 		return nil, err
