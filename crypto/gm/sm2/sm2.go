@@ -2,15 +2,14 @@ package sm2
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/asn1"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
-	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"hash"
 	"io"
 	"math/big"
@@ -50,13 +49,19 @@ type PublicKey struct {
 	Curve P256V1Curve
 }
 
+func (pub *PublicKey) Error() string {
+	panic("implement me")
+}
+
 type PrivateKey struct {
 	D     *big.Int
 	Curve P256V1Curve
+	PublicKey
 }
 
-type sm2Signature struct {
+type Sm2Signature struct {
 	R, S *big.Int
+	X, Y *big.Int
 }
 
 type sm2CipherC1C3C2 struct {
@@ -457,21 +462,22 @@ func calculateE(digest hash.Hash, curve *P256V1Curve, pubX *big.Int, pubY *big.I
 	return new(big.Int).SetBytes(eHash)
 }
 
-func MarshalSign(r, s *big.Int) ([]byte, error) {
-	result, err := asn1.Marshal(sm2Signature{r, s})
+func MarshalSign(r, s, X, Y *big.Int) ([]byte, error) {
+	result, err := asn1.Marshal(Sm2Signature{r, s, X, Y})
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func UnmarshalSign(sign []byte) (r, s *big.Int, err error) {
-	sm2Sign := new(sm2Signature)
-	_, err = asn1.Unmarshal(sign, sm2Sign)
+func UnmarshalSign(sign []byte) (r, s, x, y *big.Int, err error) {
+	sm2Sign := new(Sm2Signature)
+	tt, err := asn1.Unmarshal(sign, sm2Sign)
+	fmt.Println(len(tt))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
-	return sm2Sign.R, sm2Sign.S, nil
+	return sm2Sign.R, sm2Sign.S, sm2Sign.X, sm2Sign.Y, nil
 }
 
 func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err error) {
@@ -525,8 +531,8 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
 
-	return MarshalSign(r, s)
 }
 
 func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
@@ -565,7 +571,7 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 
 // 输入签名须为DER编码的字节数组
 func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
-	r, s, err := UnmarshalSign(sign)
+	r, s, _, _, err := UnmarshalSign(sign)
 	if err != nil {
 		return false
 	}
@@ -574,11 +580,14 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 }
 
 func RecoverPubkey(hash, sig []byte) (*PublicKey, error) {
-	s, err := secp256k1.RecoverPubkey(hash, sig)
+	_, _, x, y, err := UnmarshalSign(sig)
 	if err != nil {
 		return nil, err
 	}
-	x, y := elliptic.Unmarshal(secp256k1.S256(), s)
+	pub := new(PublicKey)
+	pub.Curve = GetSm2P256V1()
+	pub.X = x
+	pub.Y = y
+	return pub, nil
 	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
-	return &PublicKey{Curve: sm2P256V1, X: x, Y: y}, nil
 }
