@@ -104,7 +104,8 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 		remaining := new(big.Int).Sub(value, balance)
 		printTest("1----sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64())
 		if remaining.Sign() > 0 {
-			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil), signer, privateKey)
+			//tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil), signer, privateKey)
+			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(0), nil), signer, privateKey)
 			if gen != nil {
 				gen.AddTx(tx)
 			} else {
@@ -230,6 +231,17 @@ func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from comm
 	}
 }
 //neo test
+func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte,isAdd bool ,priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+	if height == 30 {
+		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
+
+
+		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar,cert,isAdd)
+		printTest("---sendMultiProposalTranscation ","arges = ",certPar,"cert",cert,"input",input)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
+	}
+}
+//neo test
 func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 || height == 45 {
 		input := packInput(abiStaking, "isApproveCaCert", "sendIsApproveCACertTranscation", cert)
@@ -243,8 +255,9 @@ func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value 
 	//2426392 1000000000
 	//866328  1000000
 	//2400000
-	//tx, _ := types.SignTx(types.NewTransaction(nonce, types.StakingAddress, value, 2446392, big.NewInt(1000000000), input), signer, priKey)
-	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 2446392, big.NewInt(1000000000), input), signer, priKey)
+	//tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 2446392, big.NewInt(1000000000), input), signer, priKey)
+	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 2446392, big.NewInt(0), input), signer, priKey)
+
 	if gen != nil {
 		gen.AddTxWithChain(blockchain, tx)
 	} else {
