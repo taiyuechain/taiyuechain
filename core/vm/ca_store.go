@@ -111,7 +111,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 		proposalMap:make(map[common.Hash]*ProposalState),
 	}
 	for k,val := range cachaList.caCertMap {
-		log.Info("---clone","k",k,"value",val.cACert,"isstart",val.isStore)
+
 		items := &CACert{
 			val.cACert,
 			val.isStore,
@@ -121,7 +121,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	}
 
 	for key,value := range cachaList.proposalMap{
-
+		log.Info("---clone","k",key,"value",value.cACert,"isstart",value.pHash)
 		item := &ProposalState{
 			value.pHash,
 			value.cACert,
@@ -172,7 +172,7 @@ func (ca *CACertList ) LoadCACertList(state StateDB, preAddress common.Address) 
 	}
 	ca.cAAmount = temp.cAAmount
 	for k,val := range temp.caCertMap {
-		log.Info("---clone","k",k,"value",val.cACert,"isstart",val.isStore)
+		//log.Info("---clone","k",k,"value",val.cACert,"isstart",val.isStore)
 		items := &CACert{
 			val.cACert,
 			val.isStore,
@@ -182,9 +182,21 @@ func (ca *CACertList ) LoadCACertList(state StateDB, preAddress common.Address) 
 
 	}
 
-	for k,val := range ca.caCertMap {
-		log.Info("--clone 2","k",k,"val",val.cACert)
+	for k,val := range temp.proposalMap {
+		//log.Info("--clone 2","k",k,"val",val.cACert)
+		item := &ProposalState{
+			val.pHash,
+			val.cACert,
+			val.startHight,
+			val.endHight,
+			val.pState,
+			val.needPconfirmNumber,
+			val.pNeedDo,
+			val.signList,
+			val.signMap,
+		}
 
+		ca.proposalMap[k] = item
 	}
 	watch1.EndWatch()
 	watch1.Finish("DecodeBytes")
@@ -203,8 +215,8 @@ func (ca *CACertList ) SaveCACertList(state StateDB, preAddress common.Address) 
 		log.Crit("Failed to RLP encode CACertList", "err", err)
 	}
 	hash := types.RlpHash(data)
-	for _,val := range ca.caCertMap {
-		log.Info("-=-==-=save CA info","Ce name",val.cACert,"is store",val.isStore)
+	for _,val := range ca.proposalMap {
+		log.Info("-=-==-=save CA info","Ce name",val.cACert,"is store",val.pHash)
 
 	}
 	state.SetCAState(preAddress, key, data)
@@ -285,11 +297,13 @@ func (ca *CACertList)GetCaCertAmount() uint64{
 func (ca *CACertList)checkProposal(pHash common.Hash,senderCert []byte,cACert []byte,evm *EVM,needDo uint8)(bool,error){
 
 	if(ca.proposalMap[pHash] == nil){
+		log.Info("--why is nil??","senderCert",senderCert,"pHash",pHash)
 		ca.proposalMap[pHash] = &ProposalState{pState:pStateNil}
+		ca.proposalMap[pHash].signMap = make(map[common.Hash]bool)
 	}
 	ppState :=ca.proposalMap[pHash].pState
 
-	if ppState != pStateNil || ppState != pStatePending{
+	if ppState != pStateNil && ppState != pStatePending{
 		// need new one proposal
 		log.Info("retrurn err?? checkProposal ")
 		return false,errors.New("the proposal state not rgiht")
@@ -578,7 +592,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 		IsAdd bool
 	}{}
 
-	log.Info("--multiProposal","input",input)
+	//log.Info("--multiProposal",)
 	method, _ := abiCaCertStore.Methods["multiProposal"]
 	err = method.Inputs.Unpack(&args, input)
 	if err!=nil {
@@ -611,6 +625,13 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 		caCertList.checkProposal(pHash,args.SenderCert,args.CaCert,evm,proposalAddCert)
 	}
 
+	//caCertList.proposalMap[pHash]
+	//store
+	err = caCertList.SaveCACertList(evm.StateDB, types.CACertListAddress)
+	if err != nil {
+		log.Error("Ca Cert save state error", "error", err)
+		return nil, err
+	}
 	return nil, nil
 }
 
