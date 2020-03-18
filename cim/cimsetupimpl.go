@@ -19,9 +19,9 @@ func (cim *cimimpl) preSetup(conf CIMConfig) error {
 	}
 
 	// setup the signer (if present)
-	//if err := cim.setupSigningIdentity(conf); err != nil {
-	//	return err
-	//}
+	if err := cim.setupSigningIdentity(conf); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -107,14 +107,23 @@ func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (Signin
 		return nil, err
 	}
 
-	pk, err := KeyStoreImport(sig.PrivateSigner)
-	if err != nil {
-		return nil, errors.WithMessage(err, "pubKey key import error")
+	if sig.PrivateSigner == nil {
+		return nil, errors.New("KeyMaterial not found in SigningIdentityInfo")
 	}
 
+	pemKey, _ := pem.Decode(sig.PrivateSigner)
+
+	keyImporter := &ecdsaPrivateKeyImportOptsKeyImporter{}
+	opts := &ECDSAPrivateKeyImportOpts{Temporary: true}
+
+	privKey, err := keyImporter.KeyImport(pemKey, opts)
+	if err != nil {
+		return nil, errors.WithMessage(err, "getIdentityFromBytes error: Failed to import EC private key")
+	}
+	nodeSigner, err := NewCryptoSigner(privKey)
 	if err != nil {
 		return nil, errors.WithMessage(err, "NewCryptoSigner error")
 	}
 
-	return newSigningIdentity(idPub.(*identity).cert, pk)
+	return newSigningIdentity(idPub.(*identity).cert, idPub.(*identity).pk, nodeSigner)
 }

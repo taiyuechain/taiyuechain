@@ -2,20 +2,19 @@ package cim
 
 import (
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/taiyuechain/taiyuechain/cim/utils"
 	"io"
 )
 
 type cryptoSigner struct {
-	cert       *x509.Certificate
-	pk         interface{}
-	privateKey interface{}
+	key Key
+	pk  interface{}
 }
 
 func (s *cryptoSigner) Public() crypto.PublicKey {
@@ -44,17 +43,19 @@ func (s *cryptoSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpt
 	return sigTag, nil
 }
 
-func NewCryptoSigner(cert *x509.Certificate, key ecdsa.PrivateKey) (crypto.Signer, error) {
-	if cert == nil {
-		return nil, errors.New("key must be different from nil.")
+func NewCryptoSigner(key Key) (crypto.Signer, error) {
+	pub, err := key.PublicKey()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed getting public key")
 	}
-	pub := cert.PublicKey
-
-	raw := pub.([]byte)
-	pk, err := DERToPublicKey(raw)
+	raw, err := pub.Bytes()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling public key")
+	}
+	pk, err := utils.DERToPublicKey(raw)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed marshalling der to public key")
 	}
 
-	return &cryptoSigner{cert, pk, key}, nil
+	return &cryptoSigner{key, pk}, nil
 }

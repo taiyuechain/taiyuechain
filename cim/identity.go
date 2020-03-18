@@ -3,23 +3,13 @@ package cim
 import (
 	"crypto/x509"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"time"
 )
 
 type identity struct {
 	cert *x509.Certificate
-}
-
-func DERToPublicKey(raw []byte) (pub interface{}, err error) {
-	if len(raw) == 0 {
-		return nil, errors.New("Invalid DER. It must be different from nil.")
-	}
-
-	key, err := x509.ParsePKIXPublicKey(raw)
-
-	return key, err
+	pk   Key
 }
 
 func (id *identity) ExpiresAt() time.Time {
@@ -38,6 +28,6 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 	return nil
 }
 
-func NewIdentity(cert *x509.Certificate) (Identity, error) {
-	return &identity{cert: cert}, nil
+func NewIdentity(cert *x509.Certificate, pk Key) (Identity, error) {
+	return &identity{cert: cert, pk: pk}, nil
 }

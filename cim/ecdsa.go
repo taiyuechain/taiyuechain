@@ -1,16 +1,95 @@
+/*
+Copyright IBM Corp. 2016 All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+		 http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package cim
 
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/asn1"
 	"errors"
 	"fmt"
 	"math/big"
 )
 
-type ECDSASignature struct {
-	R, S *big.Int
+func signECDSA(k *ecdsa.PrivateKey, digest []byte) (signature []byte, err error) {
+	r, s, err := ecdsa.Sign(rand.Reader, k, digest)
+	if err != nil {
+		return nil, err
+	}
+
+	s, _, err = ToLowS(&k.PublicKey, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return MarshalECDSASignature(r, s)
+}
+
+func MarshalECDSASignature(r, s *big.Int) ([]byte, error) {
+	return asn1.Marshal(ECDSASignature{r, s})
+}
+
+func verifyECDSA(k *ecdsa.PublicKey, signature, digest []byte) (valid bool, err error) {
+	r, s, err := UnmarshalECDSASignature(signature)
+	if err != nil {
+		return false, fmt.Errorf("Failed unmashalling signature [%s]", err)
+	}
+
+	lowS, err := IsLowS(k, s)
+	if err != nil {
+		return false, err
+	}
+
+	if !lowS {
+		return false, fmt.Errorf("Invalid S. Must be smaller than half the order [%s][%s].", s, GetCurveHalfOrdersAt(k.Curve))
+	}
+
+	return ecdsa.Verify(k, digest, r, s), nil
+}
+
+func GetCurveHalfOrdersAt(c elliptic.Curve) *big.Int {
+	return big.NewInt(0).Set(curveHalfOrders[c])
+}
+
+func ToLowS(k *ecdsa.PublicKey, s *big.Int) (*big.Int, bool, error) {
+	lowS, err := IsLowS(k, s)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if !lowS {
+		// Set s to N - s that will be then in the lower part of signature space
+		// less or equal to half order
+		s.Sub(k.Params().N, s)
+
+		return s, true, nil
+	}
+
+	return s, false, nil
+}
+
+func IsLowS(k *ecdsa.PublicKey, s *big.Int) (bool, error) {
+	halfOrder, ok := curveHalfOrders[k.Curve]
+	if !ok {
+		return false, fmt.Errorf("curve not recognized [%s]", k.Curve)
+	}
+
+	return s.Cmp(halfOrder) != 1, nil
+
 }
 
 var (
@@ -25,14 +104,6 @@ var (
 		elliptic.P521(): new(big.Int).Rsh(elliptic.P521().Params().N, 1),
 	}
 )
-
-func GetCurveHalfOrdersAt(c elliptic.Curve) *big.Int {
-	return big.NewInt(0).Set(curveHalfOrders[c])
-}
-
-func MarshalECDSASignature(r, s *big.Int) ([]byte, error) {
-	return asn1.Marshal(ECDSASignature{r, s})
-}
 
 func UnmarshalECDSASignature(raw []byte) (*big.Int, *big.Int, error) {
 	// Unmarshal
@@ -60,48 +131,24 @@ func UnmarshalECDSASignature(raw []byte) (*big.Int, *big.Int, error) {
 	return sig.R, sig.S, nil
 }
 
-func SignatureToLowS(k *ecdsa.PublicKey, signature []byte) ([]byte, error) {
-	r, s, err := UnmarshalECDSASignature(signature)
-	if err != nil {
-		return nil, err
-	}
-
-	s, modified, err := ToLowS(k, s)
-	if err != nil {
-		return nil, err
-	}
-
-	if modified {
-		return MarshalECDSASignature(r, s)
-	}
-
-	return signature, nil
+type ECDSASignature struct {
+	R, S *big.Int
 }
 
-// IsLow checks that s is a low-S
-func IsLowS(k *ecdsa.PublicKey, s *big.Int) (bool, error) {
-	halfOrder, ok := curveHalfOrders[k.Curve]
-	if !ok {
-		return false, fmt.Errorf("curve not recognized [%s]", k.Curve)
-	}
+type ecdsaSigner struct{}
 
-	return s.Cmp(halfOrder) != 1, nil
-
+func (s *ecdsaSigner) Sign(k Key, digest []byte) (signature []byte, err error) {
+	return signECDSA(k.(*ecdsaPrivateKey).privKey, digest)
 }
 
-func ToLowS(k *ecdsa.PublicKey, s *big.Int) (*big.Int, bool, error) {
-	lowS, err := IsLowS(k, s)
-	if err != nil {
-		return nil, false, err
-	}
+type ecdsaPrivateKeyVerifier struct{}
 
-	if !lowS {
-		// Set s to N - s that will be then in the lower part of signature space
-		// less or equal to half order
-		s.Sub(k.Params().N, s)
+func (v *ecdsaPrivateKeyVerifier) Verify(k Key, signature, digest []byte) (valid bool, err error) {
+	return verifyECDSA(&(k.(*ecdsaPrivateKey).privKey.PublicKey), signature, digest)
+}
 
-		return s, true, nil
-	}
+type ecdsaPublicKeyKeyVerifier struct{}
 
-	return s, false, nil
+func (v *ecdsaPublicKeyKeyVerifier) Verify(k Key, signature, digest []byte) (valid bool, err error) {
+	return verifyECDSA(k.(*ecdsaPublicKey).pubKey, signature, digest)
 }
