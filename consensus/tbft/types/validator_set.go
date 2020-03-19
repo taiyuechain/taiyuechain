@@ -13,6 +13,9 @@ import (
 	"math"
 	"sort"
 	"strings"
+
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
 // ValidatorSet represent a set of *Validator at a given height.
@@ -171,6 +174,18 @@ func (valSet *ValidatorSet) GetProposer() (proposer *Validator) {
 		valSet.Proposer = valSet.findProposer()
 	}
 	return valSet.Proposer.Copy()
+}
+
+func (valSet *ValidatorSet) VerfiyProposeCert() (bool) {
+
+	xCertificate ,_:= cim.GetCertFromPem(valSet.Proposer.Cert)
+	// TODO neo
+	//need add error check
+	if types.RlpHash(xCertificate.PublicKey) != types.RlpHash(valSet.Proposer.PubKey){
+		return false
+	}
+
+	return true
 }
 
 func (valSet *ValidatorSet) findProposer() *Validator {

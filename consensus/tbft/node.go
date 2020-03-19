@@ -20,6 +20,7 @@ import (
 	ttypes "github.com/taiyuechain/taiyuechain/consensus/tbft/types"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	cfg "github.com/taiyuechain/taiyuechain/params"
+	//"github.com/ethereum/go-ethereum/common"
 )
 
 type service struct {
@@ -453,7 +454,7 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
 		}
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
 		h.PutWorkHealth(health)
 	}
@@ -464,7 +465,7 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
 		id := pkToP2pID(pk)
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
 		self := false
 		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
@@ -579,7 +580,8 @@ func MakeValidators(cmm *types.CommitteeInfo) *ttypes.ValidatorSet {
 		if e != nil {
 			log.Debug("MakeValidators pk error", "pk", m.Publickey)
 		}
-		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power)
+		//certHash := types.RlpHash(m.LocalCert)
+		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power,m.LocalCert)
 		vals = append(vals, v)
 	}
 	return ttypes.NewValidatorSet(vals)

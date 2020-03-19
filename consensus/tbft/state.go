@@ -17,6 +17,7 @@ import (
 	ttypes "github.com/taiyuechain/taiyuechain/consensus/tbft/types"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	cfg "github.com/taiyuechain/taiyuechain/params"
+
 )
 
 //-----------------------------------------------------------------------------
@@ -31,6 +32,7 @@ var (
 	ErrAddingVote = errors.New("error adding vote")
 	//ErrVoteHeightMismatch is Error vote height mismatch
 	ErrVoteHeightMismatch = errors.New("error vote height mismatch")
+	ErrInvalidProposalCert = errors.New("error invalid proposal Cert")
 )
 
 //-----------------------------------------------------------------------------
@@ -1361,10 +1363,16 @@ func (cs *ConsensusState) defaultSetProposal(proposal *ttypes.Proposal) error {
 		return ErrInvalidProposalPOLRound
 	}
 
+
 	// Verify signature
 	if !cs.Validators.GetProposer().PubKey.VerifyBytes(proposal.SignBytes(cs.state.GetChainID()),
 		proposal.Signature) {
 		return ErrInvalidProposalSignature
+	}
+
+	//Verfiy cert
+	if !cs.Validators.VerfiyProposeCert(){
+		return ErrInvalidProposalCert
 	}
 
 	cs.Proposal = proposal
@@ -1372,6 +1380,7 @@ func (cs *ConsensusState) defaultSetProposal(proposal *ttypes.Proposal) error {
 	log.Debug("Received proposal", "proposal", proposal)
 	return nil
 }
+
 
 // NOTE: block is not necessarily valid.
 // Asynchronously triggers either enterPrevote (before we timeout of propose) or tryFinalizeCommit, once we have the full block.

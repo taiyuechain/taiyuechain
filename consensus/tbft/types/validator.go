@@ -16,15 +16,18 @@ type Validator struct {
 	PubKey      crypto.PubKey `json:"pub_key"`
 	VotingPower int64         `json:"voting_power"`
 	Accum       int64         `json:"accum"`
+	Cert    []byte            `json:"cert"`
 }
 
 //NewValidator is return a new Validator
-func NewValidator(pubKey crypto.PubKey, votingPower int64) *Validator {
+func NewValidator(pubKey crypto.PubKey, votingPower int64,cert  []byte) *Validator {
+
 	return &Validator{
 		Address:     pubKey.Address(),
 		PubKey:      pubKey,
 		VotingPower: votingPower,
 		Accum:       0,
+		Cert:	cert,
 	}
 }
 

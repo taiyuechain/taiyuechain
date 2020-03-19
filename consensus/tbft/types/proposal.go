@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"time"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var (
@@ -26,6 +27,7 @@ type Proposal struct {
 	POLRound         uint          `json:"pol_round"`    // -1 if null.
 	POLBlockID       BlockID       `json:"pol_block_id"` // zero if null.
 	Signature        []byte        `json:"signature"`
+	CertHash        common.Hash       `json:"certHash"`
 }
 
 // NewProposal returns a new Proposal.
