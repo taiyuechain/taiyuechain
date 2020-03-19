@@ -29,7 +29,19 @@ func readPemFile(file string) ([]byte, error) {
 	if b == nil { // TODO: also check that the type is what we expect (cert vs key..)
 		return nil, errors.Errorf("no pem content for file %s", file)
 	}
+	return bytes, nil
+}
 
+func ReadPemFile(file string) ([]byte, error) {
+	bytes, err := readFile(file)
+	if err != nil {
+		return nil, errors.Wrapf(err, "reading from file %s failed", file)
+	}
+
+	b, _ := pem.Decode(bytes)
+	if b == nil { // TODO: also check that the type is what we expect (cert vs key..)
+		return nil, errors.Errorf("no pem content for file %s", file)
+	}
 	return bytes, nil
 }
 
