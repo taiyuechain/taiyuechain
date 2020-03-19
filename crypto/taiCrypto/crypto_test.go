@@ -4,8 +4,10 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -205,5 +207,305 @@ func TestTaiPublicKey_SigToPub(t *testing.T) {
 }
 
 func TestTaiPublicKey_VerifySignature(t *testing.T) {
+
+}
+
+func TestTHash_CreateAddress(t *testing.T) {
+	//test guomi CreateAddress
+	var thash THash
+	var nonce uint64
+	//src1 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src3 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	var address common.Address
+	//core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOSM2
+	//core.HashCryptoType=core.HASHCRYPTOSM3
+	//privateKey:=GenPrivKey()
+	//pub:=privateKey.gmPrivate.PublicKey.GetRawBytes()
+	//p:=pub[:20]
+	//
+	//for i:=0;i<20;i++{
+	//	address[i]=p[i]
+	//}
+	//nonce=62332323
+	//tt:=thash.CreateAddress(address,nonce)
+	//fmt.Println(tt)
+	//fmt.Println(len(tt))
+	//	guoji CreateAddress test
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOECDSA
+	core.HashCryptoType = core.HASHCRYPTOHAS3
+	privateKey := GenPrivKey()
+	pub := privateKey.private.PublicKey
+	var tai TaiPublicKey
+	tai.publickey = pub
+	pp := tai.FromECDSAPub(tai)
+	p := pp[:20]
+	for i := 0; i < 20; i++ {
+		address[i] = p[i]
+	}
+	nonce = 62332323
+	tt := thash.CreateAddress(address, nonce)
+	fmt.Println(tt)
+	fmt.Println(len(tt))
+}
+
+func TestTHash_CreateAddress2(t *testing.T) {
+	//test guomi CreateAddress2
+	var thash THash
+	var salt [32]byte
+	//src1 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src3 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	var address common.Address
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOSM2
+	core.HashCryptoType = core.HASHCRYPTOSM3
+	privateKey := GenPrivKey()
+	pub := privateKey.gmPrivate.PublicKey.GetRawBytes()
+	p := pub[:20]
+	for i := 0; i < 20; i++ {
+		address[i] = p[i]
+	}
+	for j := 0; j < 20; j++ {
+		salt[j] = p[j]
+	}
+
+	tt := thash.CreateAddress2(address, salt, p)
+	fmt.Println(tt)
+	fmt.Println(len(tt))
+	//	guoji CreateAddress2 test
+	/*	core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOECDSA
+		core.HashCryptoType=core.HASHCRYPTOHAS3
+		privateKey:=GenPrivKey()
+		pub:=privateKey.private.PublicKey
+		var tai TaiPublicKey
+		tai.publickey=pub
+		pp:=tai.FromECDSAPub(tai)
+		p:=pp[:20]
+		for i:=0;i<20;i++{
+			address[i]=p[i]
+		}
+	    for j:=0;j<20;j++{
+			salt[j]=p[j]
+		}
+
+		tt:=thash.CreateAddress2(address,salt,pp)
+		fmt.Println(tt)
+		fmt.Println(len(tt))*/
+}
+
+func TestTHash_Keccak256(t *testing.T) {
+	// guomi Keccak256 test
+	var thash THash
+	src1 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src3 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	/*core.HashCryptoType=core.HASHCRYPTOSM3
+	tt:=thash.Keccak256(src1)
+	fmt.Println(tt)
+	fmt.Println(len(tt))*/
+	//	guoji Keccak256 test
+	core.HashCryptoType = core.HASHCRYPTOHAS3
+	tt := thash.Keccak256(src1)
+	fmt.Println(tt)
+	fmt.Println(len(tt))
+}
+
+func TestTHash_Keccak256Hash(t *testing.T) {
+	var thash THash
+	src1 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src3 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	core.HashCryptoType = core.HASHCRYPTOSM3
+	tt := thash.Keccak256Hash(src1)
+	fmt.Println(tt)
+	fmt.Println(len(tt))
+	//	guoji Keccak256 test
+	//	core.HashCryptoType=core.HASHCRYPTOHAS3
+	//	tt:=thash.Keccak256Hash(src1)
+	//	fmt.Println(tt)
+	//	fmt.Println(len(tt))
+}
+
+func TestTHash_Keccak512(t *testing.T) {
+	var thash THash
+	src1 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src2 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//src3 := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	//guomi Keccak512 test
+	core.HashCryptoType = core.HASHCRYPTOSM3
+	tt := thash.Keccak512(src1)
+	fmt.Println(tt)
+	fmt.Println(len(tt))
+}
+
+func TestTaiPrivateKey_FromECDSA(t *testing.T) {
+
+}
+
+func TestTaiPrivateKey_HexToECDSA(t *testing.T) {
+	//guomi test
+
+	str := "5DD701828C424B84C5D56770ECF7C4FE882E654CAC53C7CC89A66B1709068B9D" // convert content to a 'string'
+	/*fmt.Println(str) // print the content as a 'string'
+	var taip TaiPrivateKey
+	core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOSM2
+	core.HashCryptoType=core.HASHCRYPTOSM3
+	/*gmp:= GenPrivKey()
+	taip.gmPrivate=gmp.gmPrivate*/
+	//fmt.Println(taip.HexToECDSA(str))*/
+	//	    guiji test
+	var taip TaiPrivateKey
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOECDSA
+	core.HashCryptoType = core.HASHCRYPTOHAS3
+	gmp := GenPrivKey()
+	taip.private = gmp.private
+	fmt.Println(taip.HexToECDSA(str))
+}
+
+func TestTaiPrivateKey_LoadECDSA(t *testing.T) {
+	//guomi test
+	b, err := ioutil.ReadFile("H:/caoliang/caoliang.txt") // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	str := string(b) // convert content to a 'string'
+	fmt.Println(str) // print the content as a 'string'
+	var taip TaiPrivateKey
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOSM2
+	core.HashCryptoType = core.HASHCRYPTOSM3
+	/*gmp:= GenPrivKey()
+	taip.gmPrivate=gmp.gmPrivate*/
+	fmt.Println(taip.LoadECDSA(str))
+	//	    guiji test
+	//var taip TaiPrivateKey
+	//core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOECDSA
+	//core.HashCryptoType=core.HASHCRYPTOHAS3
+	//gmp:= GenPrivKey()
+	//taip.private=gmp.private
+	//fmt.Println(taip.LoadECDSA(str))
+}
+
+func TestTaiPrivateKey_SaveECDSA(t *testing.T) {
+	//guomi test
+	b, err := ioutil.ReadFile("H:/caoliang/caoliang.txt") // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	str := string(b) // convert content to a 'string'
+	fmt.Println(str) // print the content as a 'string'
+	/*    var taip TaiPrivateKey
+	 core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOSM2
+	core.HashCryptoType=core.HASHCRYPTOSM3
+	gmp:= GenPrivKey()
+	taip.gmPrivate=gmp.gmPrivate
+	fmt.Println(taip.SaveECDSA(str,taip))*/
+	//	    guiji test
+	var taip TaiPrivateKey
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOECDSA
+	core.HashCryptoType = core.HASHCRYPTOHAS3
+	gmp := GenPrivKey()
+	taip.private = gmp.private
+	fmt.Println(taip.SaveECDSA(str, taip))
+
+}
+
+func TestTaiPrivateKey_ToECDSA(t *testing.T) {
+	//guomi _ToECDSA test
+
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOSM2
+	var gmp TaiPrivateKey
+	tai := GenPrivKey()
+	tai.gmPrivate.PublicKey = sm2.PublicKey{}
+	pbytes := tai.gmPrivate.GetRawBytes()
+	fmt.Println(len(pbytes))
+	tpk, err := gmp.ToECDSA(pbytes)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(tpk.gmPrivate)
+	fmt.Println(tai.gmPrivate)
+	fmt.Println(tai.gmPrivate.PublicKey)
+	//guoji ToECDSA test
+	//	    core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOECDSA
+	//		tai:=GenPrivKey()
+	//		var taipri   TaiPrivateKey
+	//		taipri.private=tai.private
+	//		tpri:=taipri.FromECDSA(taipri)
+	//        private,err:= taipri.ToECDSA(tpri)
+	//        if err!=nil{
+	//        	fmt.Println(err)
+	//		}
+	//		fmt.Println(private.private)
+	//		fmt.Println(tai.private)
+	//		fmt.Println(tai.private.PublicKey)
+
+}
+
+func TestTaiPrivateKey_ToECDSAUnsafe(t *testing.T) {
+
+}
+
+func TestTaiPublicKey_CompressPubkey1(t *testing.T) {
+
+}
+
+func TestTaiPublicKey_FromECDSAPub(t *testing.T) {
+	//guomi test
+	var taipub TaiPublicKey
+
+	core.HashCryptoType = core.HASHCRYPTOSM3
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOSM2
+	gmpub := GenPrivKey()
+	taipub.smPublickey = gmpub.gmPrivate.PublicKey
+	tt := taipub.FromECDSAPub(taipub)
+	fmt.Println(tt)
+	ttt, err := taipub.UnmarshalPubkey(tt)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(ttt.smPublickey)
+	fmt.Println(gmpub.gmPrivate.PublicKey)
+	// guoji test
+	/*	var taipub TaiPublicKey
+
+		core.HashCryptoType=core.HASHCRYPTOHAS3
+		core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOECDSA
+		gmpub:= GenPrivKey()
+		taipub.publickey=gmpub.private.PublicKey
+		tt:=taipub.FromECDSAPub(taipub)
+		fmt.Println(tt)
+		ttt,err:=taipub.UnmarshalPubkey(tt)
+		if err!=nil{
+			fmt.Println(err)
+		}
+		fmt.Println(ttt.publickey)
+		fmt.Println(gmpub.private.PublicKey)*/
+}
+
+func TestTaiPublicKey_PubkeyToAddress(t *testing.T) {
+	//test guomi PubkeyToAddress
+	/*	var taipub TaiPublicKey
+		core.AsymmetricCryptoType= core.ASYMMETRICCRYPTOSM2
+		core.HashCryptoType=core.HASHCRYPTOSM3
+		pub:=GenPrivKey()
+		taipub.smPublickey=pub.gmPrivate.PublicKey
+		address:=taipub.PubkeyToAddress(taipub)
+		fmt.Println(address)*/
+	//	guiji test
+	var taipub TaiPublicKey
+	core.AsymmetricCryptoType = core.ASYMMETRICCRYPTOECDSA
+	core.HashCryptoType = core.HASHCRYPTOHAS3
+	pub := GenPrivKey()
+	taipub.publickey = pub.private.PublicKey
+	address := taipub.PubkeyToAddress(taipub)
+	fmt.Println(address)
+
+}
+
+func TestValidateSignatureValues(t *testing.T) {
 
 }
