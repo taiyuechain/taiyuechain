@@ -33,6 +33,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/usbwallet"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
+	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 const (
@@ -42,6 +43,7 @@ const (
 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
 	datadirNodeDatabase    = "truenodes"          // Path within the datadir to store the node infos
+	datadirLocalCert    = "localCert.pem"          // Path within the datadir to store the node infos
 )
 
 // Config represents a small collection of configuration values to fine tune the
@@ -467,3 +469,17 @@ func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
 	}
 	return key
 }
+
+func (c *Config) BftCommitteeCert() []byte {
+	// Generate ephemeral key if no datadir is being used.
+	cert :=[]byte{}
+	if c.DataDir == "" {
+
+		return cert
+	}
+	certfile := c.ResolvePath(datadirLocalCert)
+
+	cert ,_= cim.ReadPemFile(certfile)
+	return cert
+}
+
