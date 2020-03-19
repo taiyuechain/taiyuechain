@@ -180,6 +180,7 @@ func (pri *PrivateKey) GetRawBytes() []byte {
 		copy(raw[KeyBytes-dl:], dBytes)
 		return raw
 	} else {
+
 		return dBytes
 	}
 }
@@ -590,4 +591,21 @@ func RecoverPubkey(hash, sig []byte) (*PublicKey, error) {
 	pub.Y = y
 	return pub, nil
 	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
+}
+func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
+	intOne := new(big.Int).SetInt64(1)
+	var curve P256V1Curve
+	if r.Cmp(intOne) == -1 {
+		return false
+	}
+	if s.Cmp(intOne) == -1 {
+		return false
+	}
+	if homestead && s.Cmp(curve.Params().N) >= 0 {
+		return false
+	}
+	if v == 0 || v == 1 {
+		return false
+	}
+	return true
 }
