@@ -17,14 +17,12 @@ limitations under the License.
 package cim
 
 import (
-	"errors"
-	"fmt"
-	"github.com/taiyuechain/taiyuechain/cim/utils"
-	"reflect"
-
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
+	"errors"
+	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim/utils"
 )
 
 type KeyImportOpts interface {
@@ -208,13 +206,14 @@ func (ki *x509PublicKeyImportOptsKeyImporter) KeyImport(raw interface{}, opts Ke
 
 	switch pk.(type) {
 	case *ecdsa.PublicKey:
-		return keyImporters[reflect.TypeOf(ECDSAGoPublicKeyImportOpts{})].KeyImport(
-			pk,
-			&ECDSAGoPublicKeyImportOpts{Temporary: opts.Ephemeral()})
+		keyImporter := &ecdsaGoPublicKeyImportOptsKeyImporter{}
+		opts := &ECDSAGoPublicKeyImportOpts{Temporary: true}
+		return keyImporter.KeyImport(pk, opts)
 	case *rsa.PublicKey:
-		return keyImporters[reflect.TypeOf(RSAGoPublicKeyImportOpts{})].KeyImport(
-			pk,
-			&RSAGoPublicKeyImportOpts{Temporary: opts.Ephemeral()})
+
+		keyImporter := &rsaGoPublicKeyImportOptsKeyImporter{}
+		opts := &RSAGoPublicKeyImportOpts{Temporary: true}
+		return keyImporter.KeyImport(pk, opts)
 	default:
 		return nil, errors.New("Certificate's public key type not recognized. Supported keys: [ECDSA, RSA]")
 	}

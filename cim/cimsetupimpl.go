@@ -116,7 +116,7 @@ func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (Signin
 	keyImporter := &ecdsaPrivateKeyImportOptsKeyImporter{}
 	opts := &ECDSAPrivateKeyImportOpts{Temporary: true}
 
-	privKey, err := keyImporter.KeyImport(pemKey, opts)
+	privKey, err := keyImporter.KeyImport(pemKey.Bytes, opts)
 	if err != nil {
 		return nil, errors.WithMessage(err, "getIdentityFromBytes error: Failed to import EC private key")
 	}
