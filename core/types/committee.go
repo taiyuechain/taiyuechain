@@ -69,6 +69,7 @@ type CommitteeMember struct {
 	Coinbase      common.Address
 	CommitteeBase common.Address
 	Publickey     []byte
+	LocalCert 	  []byte
 	Flag          uint32
 	MType         uint32
 }
@@ -105,6 +106,7 @@ func (c *CommitteeMember) UnmarshalJSON(input []byte) error {
 	type committee struct {
 		Address common.Address `json:"address,omitempty"`
 		PubKey  *hexutil.Bytes `json:"publickey,omitempty"`
+		Cert  *hexutil.Bytes `json:"cert,omitempty"`
 		Flag    uint32         `json:"flag,omitempty"`
 		MType   uint32         `json:"mType,omitempty"`
 	}
