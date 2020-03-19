@@ -2,8 +2,7 @@ package cim
 
 import (
 	"crypto/x509"
-	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -17,15 +16,37 @@ func (id *identity) ExpiresAt() time.Time {
 }
 
 func (id *identity) Verify(msg []byte, sig []byte) error {
-	raw, err := x509.MarshalPKIXPublicKey(id.cert.PublicKey)
-	if err != nil {
-		return fmt.Errorf("Failed marshalling key [%s]", err)
+	// Validate arguments
+	if id.pk == nil {
+		return errors.New("Invalid Key. It must not be nil.")
 	}
-	isVerify := crypto.VerifySignature(raw, msg, sig)
-	if !isVerify {
-		return fmt.Errorf("verify failure")
+	if len(sig) == 0 {
+		return errors.New("Invalid signature. Cannot be empty.")
 	}
-	return nil
+	if len(msg) == 0 {
+		return errors.New("Invalid digest. Cannot be empty.")
+	}
+
+	switch id.pk.(type) {
+	case *ecdsaPublicKey:
+		keyVerifier := &ecdsaPublicKeyKeyVerifier{}
+		_, err := keyVerifier.Verify(id.pk, sig, msg)
+		return err
+	case *ecdsaPrivateKey:
+		keyVerifier := &ecdsaPrivateKeyVerifier{}
+		_, err := keyVerifier.Verify(id.pk, sig, msg)
+		return err
+	case *rsaPublicKey:
+		keyVerifier := &rsaPublicKeyKeyVerifier{}
+		_, err := keyVerifier.Verify(id.pk, sig, msg)
+		return err
+	case *rsaPrivateKey:
+		keyVerifier := &rsaPrivateKeyVerifier{}
+		_, err := keyVerifier.Verify(id.pk, sig, msg)
+		return err
+	default:
+		return errors.New("Certificate's public key type not recognized. Supported keys: [ECDSA, RSA]")
+	}
 }
 
 func NewIdentity(cert *x509.Certificate, pk Key) (Identity, error) {

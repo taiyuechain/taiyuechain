@@ -1,17 +1,24 @@
 package cim
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/taiyuechain/taiyuechain/cim/config"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
-func TestInitCrypto(t *testing.T) {
+func TestMain(m *testing.M) {
 	cimConfigDir, _ := config.GetDevCIMDir()
 	cimID := "simpleCIM"
 	err := InitCrypto(cimConfigDir, cimID)
-	assert.Error(t, err)
+	if err != nil {
+		fmt.Printf("Setup for CMI should have succeeded, got err %s instead", err)
+		os.Exit(-1)
+	}
+	retVal := m.Run()
+	os.Exit(retVal)
 }
 
 func TestNewIdentity(t *testing.T) {
@@ -25,9 +32,6 @@ func TestNewIdentity(t *testing.T) {
 func TestChectIdentity(t *testing.T) {
 	cimConfigDir, _ := config.GetDevConfigDir()
 	cimDir, _ := config.GetDevCIMDir()
-	cimID := "simpleCIM"
-	err := InitCrypto(cimDir, cimID)
-	assert.NotNil(t, err)
 	singcertPath := filepath.Join(cimConfigDir, "/testcert")
 	id, err := GetLocalIdentityDataFromConfig(singcertPath)
 	assert.NotNil(t, id)
@@ -37,5 +41,28 @@ func TestChectIdentity(t *testing.T) {
 	certValidId, err := GetLocalIdentityDataFromConfig(singcertValidPath)
 	assert.NotNil(t, id)
 	err = GetLocalCIM().Validate(certValidId)
+	assert.Error(t, err)
+}
+
+func TestSignAndVerify(t *testing.T) {
+	cim := GetLocalCIM()
+	id := cim.GetSigningIdentity()
+
+	msg := []byte("foo")
+	sig, err := id.Sign(msg)
+	if err != nil {
+		t.Fatalf("Sign should have succeeded")
+		return
+	}
+
+	err = id.Verify(msg, sig)
+	if err != nil {
+		t.Fatalf("The signature should be valid")
+		return
+	}
+
+	err = id.Verify(msg[1:], sig)
+	assert.Error(t, err)
+	err = id.Verify(msg, sig[1:])
 	assert.Error(t, err)
 }

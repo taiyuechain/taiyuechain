@@ -90,7 +90,7 @@ func (cim *cimimpl) GetTLSIntermediateCert() []byte {
 }
 
 func (cim *cimimpl) GetSigningIdentity() SigningIdentity {
-	panic("implement me")
+	return cim.signer
 }
 
 func (cim *cimimpl) Validate(id Identity) error {

@@ -25,7 +25,7 @@ import (
 type rsaSigner struct{}
 
 func (s *rsaSigner) Sign(k Key, digest []byte) (signature []byte, err error) {
-	return k.(*rsaPrivateKey).privKey.Sign(rand.Reader, digest, crypto.SHA512)
+	return k.(*rsaPrivateKey).privKey.Sign(rand.Reader, digest, crypto.SHA3_256)
 }
 
 type rsaPrivateKeyVerifier struct{}

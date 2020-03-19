@@ -2,11 +2,6 @@ package cim
 
 import (
 	"crypto"
-	"crypto/rsa"
-	"crypto/sha1"
-	"crypto/x509"
-	"encoding/hex"
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/cim/utils"
 	"io"
@@ -22,25 +17,25 @@ func (s *cryptoSigner) Public() crypto.PublicKey {
 }
 
 func (s *cryptoSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
-	keyByts, err := hex.DecodeString(s.pk.(string))
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+	// Validate arguments
+	if s.key == nil {
+		return nil, errors.New("Invalid Key. It must not be nil.")
 	}
-	privateKey, err := x509.ParsePKCS8PrivateKey(keyByts)
-	if err != nil {
-		fmt.Println("ParsePKCS8PrivateKey err", err)
-		return nil, err
+	if len(digest) == 0 {
+		return nil, errors.New("Invalid digest. Cannot be empty.")
 	}
-	h := sha1.New()
-	h.Write(digest)
-	hash := h.Sum(nil)
-	sigTag, err := rsa.SignPKCS1v15(rand, privateKey.(*rsa.PrivateKey), opts.HashFunc(), hash[:])
-	if err != nil {
-		fmt.Printf("Error from signing: %s\n", err)
-		return nil, err
+
+	switch s.key.(type) {
+	case *ecdsaPrivateKey:
+		keySigner := &ecdsaSigner{}
+		return keySigner.Sign(s.key, digest)
+	case *rsaPrivateKey:
+		keySigner := &rsaSigner{}
+		return keySigner.Sign(s.key, digest)
+
+	default:
+		return nil, errors.New("Certificate's public key type not recognized. Supported keys: [ECDSA, RSA]")
 	}
-	return sigTag, nil
 }
 
 func NewCryptoSigner(key Key) (crypto.Signer, error) {

@@ -2,8 +2,8 @@ package cim
 
 import (
 	"crypto"
+	"crypto/rand"
 	"crypto/x509"
-	tcry "github.com/taiyuechain/taiyuechain/crypto"
 )
 
 type signingidentity struct {
@@ -14,7 +14,7 @@ type signingidentity struct {
 }
 
 func (sig *signingidentity) Sign(msg []byte) ([]byte, error) {
-	return tcry.Sign(msg, nil)
+	return sig.signer.Sign(rand.Reader, msg, nil)
 }
 
 func (sig *signingidentity) GetPublicVersion() Identity {
