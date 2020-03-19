@@ -1099,12 +1099,23 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 		cfg.StandbyPort = int(ctx.GlobalUint64(BFTStandbyPortFlag.Name))
 	}
 
+	//set node cert
+	cfg.NodeCert = stack.Config().BftCommitteeCert()
+	if cfg.NodeCert == nil{
+		log.Error("not cert file ")
+		return
+	}
+
 	//set PrivateKey by config,file or hex
 	setBftCommitteeKey(ctx, cfg)
 	if cfg.PrivateKey == nil {
 		//set PrivateKey by default file
 		cfg.PrivateKey = stack.Config().BftCommitteeKey()
 	}
+
+	//TODO neo
+	// need do verfiy the private key and cert
+
 	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
 		Fatalf("init load CommitteeKey  nil.")
