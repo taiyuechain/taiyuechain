@@ -822,16 +822,19 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 		if sBlock == nil {
 			return nil, types.ErrSnailHeightNotYet
 		}
+		// not need reward
+		/*
 		err := accumulateRewardsFast(m.election, state, sBlock)
 		if err != nil {
 			log.Error("Finalize Error", "accumulateRewardsFast", err.Error())
 			return nil, err
-		}
+		}*/
 	}
 
-	if err := m.finalizeFastGas(state, header.Number, header.Hash(), feeAmount); err != nil {
+	//not need this
+	/*if err := m.finalizeFastGas(state, header.Number, header.Hash(), feeAmount); err != nil {
 		return nil, err
-	}
+	}*/
 	header.Root = state.IntermediateRoot(true)
 	return types.NewBlock(header, txs, receipts, nil, nil), nil
 }
