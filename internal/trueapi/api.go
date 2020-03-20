@@ -1509,6 +1509,7 @@ type SendTxArgs struct {
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`
 	Input *hexutil.Bytes `json:"input"`
+	Cert *hexutil.Bytes `json:"cert"`
 }
 
 // setDefaults is a helper function that fills in default values for unspecified tx fields.
@@ -1554,28 +1555,35 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 
 func (args *SendTxArgs) toTransaction() *types.Transaction {
 	var input []byte
+	var cert []byte
 	if args.Data != nil {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
+	} else if args.Cert != nil{
+		cert  = *args.Cert
 	}
+
 	if args.To == nil {
-		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment)
+		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment,cert)
 	}
-	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment)
+	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment,cert)
 }
 
 func (args *SendTxArgs) toRawTransaction() *types.RawTransaction {
 	var input []byte
+	var cert []byte
 	if args.Data != nil {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
+	} else if args.Cert != nil{
+		cert  = *args.Cert
 	}
 	if args.To == nil {
-		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
+		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input,cert)
 	}
-	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
+	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input,cert)
 }
 
 // submitTransaction is a helper function that submits tx to txPool and logs a message.
