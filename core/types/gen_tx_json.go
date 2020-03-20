@@ -23,6 +23,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
 		Payer        *common.Address `json:"payer"    rlp:"nil"`
 		Fee          *hexutil.Big    `json:"fee" rlp:"nil"`
+		Cert         hexutil.Bytes     `json:"cert"   gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
 		R            *hexutil.Big    `json:"r" gencodec:"required"`
 		S            *hexutil.Big    `json:"s" gencodec:"required"`
@@ -60,6 +61,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
 		Payer        *common.Address `json:"payer" rlp:"nil"`
 		Fee          *hexutil.Big    `json:"fee" rlp:"nil"`
+		Cert         hexutil.Bytes     `json:"cert"   gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
 		R            *hexutil.Big    `json:"r" gencodec:"required"`
 		S            *hexutil.Big    `json:"s" gencodec:"required"`

@@ -63,6 +63,7 @@ type txdata struct {
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Payer        *common.Address `json:"payer"    rlp:"nil"`
 	Fee          *big.Int        `json:"fee"   rlp:"nil"`
+	Cert          []byte        `json:"cert"   gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -85,6 +86,7 @@ type raw_txdata struct {
 	Recipient    *common.Address `json:"to"       rlp:"nil"` // nil means contract creation
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
+	Cert          []byte        `json:"cert"   gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -102,9 +104,9 @@ func (rawTransaction *RawTransaction) ConvertTransaction() *Transaction {
 	tx := new(Transaction)
 	//fmt.Println("data.Recipient", cpy_data.Recipient)
 	if cpy_data.Recipient == nil {
-		tx = NewContractCreation(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload)
+		tx = NewContractCreation(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload,cpy_data.Cert)
 	} else {
-		tx = NewTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload)
+		tx = NewTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload,cpy_data.Cert)
 	}
 	tx.data.V = cpy_data.V
 	tx.data.R = cpy_data.R
@@ -118,9 +120,9 @@ func (tx *Transaction) ConvertRawTransaction() *RawTransaction {
 
 	raw_tx := new(RawTransaction)
 	if cpy_data.Recipient == nil {
-		raw_tx = NewRawTransactionContract(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload)
+		raw_tx = NewRawTransactionContract(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload,cpy_data.Cert)
 	} else {
-		raw_tx = NewRawTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload)
+		raw_tx = NewRawTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload,cpy_data.Cert)
 	}
 	raw_tx.data.V = cpy_data.V
 	raw_tx.data.R = cpy_data.R
@@ -139,29 +141,29 @@ type txdataMarshaling struct {
 	S            *hexutil.Big
 }
 
-func NewTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
-	return NewTransaction_Payment(nonce, to, amount, nil, gasLimit, gasPrice, data, common.Address{})
+func NewTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert []byte) *Transaction {
+	return NewTransaction_Payment(nonce, to, amount, nil, gasLimit, gasPrice, data, common.Address{},cert)
 }
 
-func NewTransaction_Payment(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, payer common.Address) *Transaction {
+func NewTransaction_Payment(nonce uint64, to common.Address, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, payer common.Address,cert []byte) *Transaction {
 	if payer == (common.Address{}) {
-		return newTransaction(nonce, &to, nil, amount, fee, gasLimit, gasPrice, data)
+		return newTransaction(nonce, &to, nil, amount, fee, gasLimit, gasPrice, data,cert)
 	}
-	return newTransaction(nonce, &to, &payer, amount, fee, gasLimit, gasPrice, data)
+	return newTransaction(nonce, &to, &payer, amount, fee, gasLimit, gasPrice, data,cert)
 }
 
-func NewContractCreation(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
-	return NewContractCreation_Payment(nonce, amount, nil, gasLimit, gasPrice, data, common.Address{})
+func NewContractCreation(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert[]byte) *Transaction {
+	return NewContractCreation_Payment(nonce, amount, nil, gasLimit, gasPrice, data, common.Address{},cert)
 }
 
-func NewContractCreation_Payment(nonce uint64, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, payer common.Address) *Transaction {
+func NewContractCreation_Payment(nonce uint64, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, payer common.Address,cert []byte) *Transaction {
 	if payer == (common.Address{}) {
-		return newTransaction(nonce, nil, nil, amount, fee, gasLimit, gasPrice, data)
+		return newTransaction(nonce, nil, nil, amount, fee, gasLimit, gasPrice, data,cert)
 	}
-	return newTransaction(nonce, nil, &payer, amount, fee, gasLimit, gasPrice, data)
+	return newTransaction(nonce, nil, &payer, amount, fee, gasLimit, gasPrice, data,cert)
 }
 
-func newTransaction(nonce uint64, to *common.Address, payer *common.Address, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
+func newTransaction(nonce uint64, to *common.Address, payer *common.Address, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert[]byte) *Transaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -172,6 +174,7 @@ func newTransaction(nonce uint64, to *common.Address, payer *common.Address, amo
 		Payload:      data,
 		Amount:       new(big.Int),
 		//Fee:          new(big.Int),
+		Cert: cert,
 		GasLimit: gasLimit,
 		Price:    new(big.Int),
 		V:        new(big.Int),
@@ -195,15 +198,15 @@ func newTransaction(nonce uint64, to *common.Address, payer *common.Address, amo
 	return &Transaction{data: d}
 }
 
-func NewRawTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *RawTransaction {
-	return newRawTransaction(nonce, &to, amount, gasLimit, gasPrice, data)
+func NewRawTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert []byte) *RawTransaction {
+	return newRawTransaction(nonce, &to, amount, gasLimit, gasPrice, data,cert)
 }
 
-func NewRawTransactionContract(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *RawTransaction {
-	return newRawTransaction(nonce, nil, amount, gasLimit, gasPrice, data)
+func NewRawTransactionContract(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert []byte) *RawTransaction {
+	return newRawTransaction(nonce, nil, amount, gasLimit, gasPrice, data,cert)
 }
 
-func newRawTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *RawTransaction {
+func newRawTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte,cert []byte) *RawTransaction {
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
@@ -211,6 +214,7 @@ func newRawTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLim
 		AccountNonce: nonce,
 		Recipient:    to,
 		Payload:      data,
+		Cert:		  cert,
 		Amount:       new(big.Int),
 		GasLimit:     gasLimit,
 		Price:        new(big.Int),
