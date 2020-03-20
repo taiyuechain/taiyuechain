@@ -44,10 +44,10 @@ var (
 		utils.DataDirFlag,
 		utils.KeyStoreDirFlag,
 		utils.NoUSBFlag,
-		utils.DashboardEnabledFlag,
+		/*utils.DashboardEnabledFlag,
 		utils.DashboardAddrFlag,
 		utils.DashboardPortFlag,
-		utils.DashboardRefreshFlag,
+		utils.DashboardRefreshFlag,*/
 
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,
@@ -187,9 +187,9 @@ func init() {
 	app.Before = func(ctx *cli.Context) error {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 		logdir := ""
-		if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
+		/*if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 			logdir = (&node.Config{DataDir: utils.MakeDataDir(ctx)}).ResolvePath("logs")
-		}
+		}*/
 		if err := debug.Setup(ctx, logdir); err != nil {
 			return err
 		}
@@ -323,8 +323,8 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		}
 		// Set the gas price to the limits from the CLI and start mining
 		truechain.TxPool().SetGasPrice(utils.GlobalBig(ctx, utils.GasPriceFlag.Name))
-		if err := truechain.StartMining(true); err != nil {
+		/*if err := truechain.StartMining(true); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
-		}
+		}*/
 	}
 }

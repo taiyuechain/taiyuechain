@@ -13,7 +13,7 @@ import (
 
 	"github.com/naoina/toml"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
-	"github.com/taiyuechain/taiyuechain/dashboard"
+	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -61,7 +61,7 @@ type gethConfig struct {
 	Etrue      etrue.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
-	Dashboard  dashboard.Config
+	//Dashboard  dashboard.Config
 }
 
 func loadConfig(file string, cfg *gethConfig) error {
@@ -94,7 +94,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	cfg := gethConfig{
 		Etrue:     etrue.DefaultConfig,
 		Node:      defaultNodeConfig(),
-		Dashboard: dashboard.DefaultConfig,
+		//Dashboard: dashboard.DefaultConfig,
 	}
 
 	// Load config file.
@@ -115,7 +115,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		cfg.Etruestats.URL = ctx.GlobalString(utils.EtrueStatsURLFlag.Name)
 	}
 
-	utils.SetDashboardConfig(ctx, &cfg.Dashboard)
+	//utils.SetDashboardConfig(ctx, &cfg.Dashboard)
 
 	return stack, cfg
 }
@@ -125,9 +125,9 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 
 	utils.RegisterEtrueService(stack, &cfg.Etrue)
 
-	if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
+	/*if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
-	}
+	}*/
 
 	// Add the Truechain Stats daemon if requested.
 	if cfg.Etruestats.URL != "" {

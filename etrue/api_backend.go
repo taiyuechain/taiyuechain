@@ -68,10 +68,10 @@ func (b *TrueAPIBackend) SetSnailHead(number uint64) {
 
 func (b *TrueAPIBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error) {
 	// Pending block is only known by the miner
-	if blockNr == rpc.PendingBlockNumber {
+	/*if blockNr == rpc.PendingBlockNumber {
 		block := b.etrue.miner.PendingBlock()
 		return block.Header(), nil
-	}
+	}*/
 	// Otherwise resolve and return the block
 	if blockNr == rpc.LatestBlockNumber {
 		return b.etrue.blockchain.CurrentBlock().Header(), nil
@@ -82,6 +82,7 @@ func (b *TrueAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*t
 	return b.etrue.blockchain.GetHeaderByHash(hash), nil
 }
 
+/*
 func (b *TrueAPIBackend) SnailHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailHeader, error) {
 	// Pending block is only known by the miner
 	if blockNr == rpc.PendingBlockNumber {
@@ -93,7 +94,7 @@ func (b *TrueAPIBackend) SnailHeaderByNumber(ctx context.Context, blockNr rpc.Bl
 		return b.etrue.snailblockchain.CurrentBlock().Header(), nil
 	}
 	return b.etrue.snailblockchain.GetHeaderByNumber(uint64(blockNr)), nil
-}
+}*/
 
 func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error) {
 	// Only snailchain has miner, also return current block here for fastchain
@@ -108,6 +109,7 @@ func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNum
 	return b.etrue.blockchain.GetBlockByNumber(uint64(blockNr)), nil
 }
 
+/*
 func (b *TrueAPIBackend) SnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailBlock, error) {
 	// Pending block is only known by the miner
 	if blockNr == rpc.PendingBlockNumber {
@@ -119,7 +121,7 @@ func (b *TrueAPIBackend) SnailBlockByNumber(ctx context.Context, blockNr rpc.Blo
 		return b.etrue.snailblockchain.CurrentBlock(), nil
 	}
 	return b.etrue.snailblockchain.GetBlockByNumber(uint64(blockNr)), nil
-}
+}*/
 
 func (b *TrueAPIBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
 	// Pending state is only known by the miner

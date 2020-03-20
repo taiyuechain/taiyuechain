@@ -586,7 +586,7 @@ func NewPublicBlockChainAPI(b Backend) *PublicBlockChainAPI {
 }
 
 // SnailBlockNumber returns the block number of the snailchain head.
-func (s *PublicBlockChainAPI) SnailBlockNumber() hexutil.Uint64 {
+/*func (s *PublicBlockChainAPI) SnailBlockNumber() hexutil.Uint64 {
 	header, _ := s.b.SnailHeaderByNumber(context.Background(), rpc.LatestBlockNumber) // latest header should always be available
 	return hexutil.Uint64(header.Number.Uint64())
 }
@@ -598,7 +598,7 @@ func (s *PublicBlockChainAPI) FruitNumber() hexutil.Uint64 {
 	}
 	fruits := block.Fruits()
 	return hexutil.Uint64(fruits[len(fruits)-1].FastNumber().Uint64())
-}
+}*/
 
 // BlockNumber returns the block number of the chain head.
 func (s *PublicBlockChainAPI) BlockNumber() hexutil.Uint64 {
@@ -645,20 +645,14 @@ func (s *PublicBlockChainAPI) GetBlockByHash(ctx context.Context, blockHash comm
 }
 
 // GetSnailBlockByNumber returns the requested snail block. When blockNr is -1 the chain head is returned.
-func (s *PublicBlockChainAPI) GetSnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber, inclFruit bool) (map[string]interface{}, error) {
+/*func (s *PublicBlockChainAPI) GetSnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber, inclFruit bool) (map[string]interface{}, error) {
 	block, err := s.b.SnailBlockByNumber(ctx, blockNr)
 	if block != nil {
 		response, err := s.rpcOutputSnailBlock(block, inclFruit)
-		/*if err == nil && blockNr == rpc.PendingBlockNumber {
-			// Pending blocks need to nil out a few fields
-			for _, field := range []string{"hash", "nonce", "miner"} {
-				response[field] = nil
-			}
-		}*/
 		return response, err
 	}
 	return nil, err
-}
+}*/
 
 // GetSnailBlockByHash returns the requested snail block.
 func (s *PublicBlockChainAPI) GetSnailBlockByHash(ctx context.Context, blockHash common.Hash, inclFruit bool) (map[string]interface{}, error) {
@@ -1319,13 +1313,13 @@ func (s *PublicTransactionPoolAPI) GetBlockTransactionCountByHash(ctx context.Co
 }
 
 // GetBlockFruitCountByNumber returns the number of fruits in the block with the given block number.
-func (s *PublicBlockChainAPI) GetBlockFruitCountByNumber(ctx context.Context, blockNr rpc.BlockNumber) *hexutil.Uint {
+/*func (s *PublicBlockChainAPI) GetBlockFruitCountByNumber(ctx context.Context, blockNr rpc.BlockNumber) *hexutil.Uint {
 	if block, _ := s.b.SnailBlockByNumber(ctx, blockNr); block != nil {
 		n := hexutil.Uint(len(block.Fruits()))
 		return &n
 	}
 	return nil
-}
+}*/
 
 // GetBlockFruitCountByHash returns the number of fruits in the block with the given hash.
 func (s *PublicBlockChainAPI) GetBlockFruitCountByHash(ctx context.Context, blockHash common.Hash) *hexutil.Uint {
@@ -1353,12 +1347,12 @@ func (s *PublicTransactionPoolAPI) GetTransactionByBlockHashAndIndex(ctx context
 }
 
 // GetFruitByBlockNumberAndIndex returns the fruit for the given block number and index.
-func (s *PublicBlockChainAPI) GetFruitByBlockNumberAndIndex(ctx context.Context, blockNr rpc.BlockNumber, index hexutil.Uint, fullSigns bool) (map[string]interface{}, error) {
+/*func (s *PublicBlockChainAPI) GetFruitByBlockNumberAndIndex(ctx context.Context, blockNr rpc.BlockNumber, index hexutil.Uint, fullSigns bool) (map[string]interface{}, error) {
 	if block, _ := s.b.SnailBlockByNumber(ctx, blockNr); block != nil {
 		return s.newRPCFruitFromBlockIndex(ctx, block, uint64(index), fullSigns)
 	}
 	return nil, nil
-}
+}*/
 
 // GetFruitByBlockHashAndIndex returns the fruit for the given block hash and index.
 func (s *PublicBlockChainAPI) GetFruitByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint, fullSigns bool) (map[string]interface{}, error) {

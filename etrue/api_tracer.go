@@ -97,16 +97,16 @@ func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.Block
 	var from, to *types.Block
 
 	switch start {
-	case rpc.PendingBlockNumber:
-		from = api.etrue.miner.PendingBlock()
+	/*case rpc.PendingBlockNumber:
+		from = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		from = api.etrue.blockchain.CurrentBlock()
 	default:
 		from = api.etrue.blockchain.GetBlockByNumber(uint64(start))
 	}
 	switch end {
-	case rpc.PendingBlockNumber:
-		to = api.etrue.miner.PendingBlock()
+	/*case rpc.PendingBlockNumber:
+		to = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		to = api.etrue.blockchain.CurrentBlock()
 	default:
@@ -342,8 +342,8 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.B
 	var block *types.Block
 
 	switch number {
-	case rpc.PendingBlockNumber:
-		block = api.etrue.miner.PendingBlock()
+	/*case rpc.PendingBlockNumber:
+		block = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		block = api.etrue.blockchain.CurrentBlock()
 	default:

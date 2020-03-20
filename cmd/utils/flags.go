@@ -45,7 +45,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/dashboard"
+	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etrue/gasprice"
@@ -226,6 +226,7 @@ var (
 		Usage: "Reduce key-derivation RAM & CPU usage at some expense of KDF strength",
 	}
 	// Dashboard settings
+	/*
 	DashboardEnabledFlag = cli.BoolFlag{
 		Name:  "dashboard",
 		Usage: "Enable the dashboard",
@@ -244,7 +245,7 @@ var (
 		Name:  "dashboard.refresh",
 		Usage: "Dashboard metrics collection refresh rate",
 		Value: dashboard.DefaultConfig.Refresh,
-	}
+	}*/
 	// Transaction pool settings
 	TxPoolNoLocalsFlag = cli.BoolFlag{
 		Name:  "txpool.nolocals",
@@ -1200,13 +1201,13 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 	log.Info("", "cfg.SyncMode", cfg.SyncMode)
 }
-
+/*
 // SetDashboardConfig applies dashboard related command line flags to the config.
 func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 	cfg.Host = ctx.GlobalString(DashboardAddrFlag.Name)
 	cfg.Port = ctx.GlobalInt(DashboardPortFlag.Name)
 	cfg.Refresh = ctx.GlobalDuration(DashboardRefreshFlag.Name)
-}
+}*/
 
 // RegisterEtrueService adds an Truechain client to the stack.
 func RegisterEtrueService(stack *node.Node, cfg *etrue.Config) {
@@ -1229,7 +1230,7 @@ func RegisterEtrueService(stack *node.Node, cfg *etrue.Config) {
 		Fatalf("Failed to register the Truechain service: %v", err)
 	}
 }
-
+/*
 // RegisterDashboardService adds a dashboard to the stack.
 func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1240,10 +1241,7 @@ func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit st
 	}); err != nil {
 		Fatalf("Failed to register the Truechain Stats service: %v", err)
 	}
-	/*stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		return dashboard.New(cfg, commit, ctx.ResolvePath("logs")), nil
-	})*/
-}
+}*/
 
 // RegisterEtrueStatsService configures the Truechain Stats daemon and adds it to
 // th egiven node.

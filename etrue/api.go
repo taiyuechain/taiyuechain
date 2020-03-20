@@ -29,14 +29,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	//"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
-	"github.com/taiyuechain/taiyuechain/miner"
+	//"github.com/taiyuechain/taiyuechain/miner"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"github.com/taiyuechain/taiyuechain/trie"
@@ -90,9 +90,10 @@ func (api *PublicTruechainAPI) GetCurrentState() map[string]interface{} {
 }
 
 // Hashrate returns the POW hashrate
-func (api *PublicTruechainAPI) Hashrate() hexutil.Uint64 {
-	return hexutil.Uint64(api.e.Miner().HashRate())
-}
+//func (api *PublicTruechainAPI) Hashrate() hexutil.Uint64 {
+	//return hexutil.Uint64(api.e.Miner().HashRate())
+//	return nil
+//}
 
 // ChainId retuurn current truechain's chain config.
 func (api *PublicTruechainAPI) ChainId() hexutil.Uint64 {
@@ -105,10 +106,11 @@ func (api *PublicTruechainAPI) ChainId() hexutil.Uint64 {
 // It offers only methods that operate on data that pose no security risk when it is publicly accessible.
 type PublicMinerAPI struct {
 	e     *Truechain
-	agent *miner.RemoteAgent
+	//agent *miner.RemoteAgent
 }
 
 // NewPublicMinerAPI create a new PublicMinerAPI instance.
+/*
 func NewPublicMinerAPI(e *Truechain) *PublicMinerAPI {
 
 	agent := miner.NewRemoteAgent(e.BlockChain(), e.SnailBlockChain(), e.Engine())
@@ -179,11 +181,11 @@ func (api *PublicMinerAPI) GetDatasetBySeedhash(seedhash string) ([10240]string,
 // SubmitHashrate can be used for remote miners to submit their hash rate. This enables the node to report the combined
 // hash rate of all miners which submit work through this node. It accepts the miner hash rate and an identifier which
 // must be unique between nodes.
-func (api *PublicMinerAPI) SubmitHashrate(hashrate rpc.HexNumber, id common.Hash) bool {
+/*func (api *PublicMinerAPI) SubmitHashrate(hashrate rpc.HexNumber, id common.Hash) bool {
 	api.agent.SubmitHashrate(id, hashrate.Uint64())
 	return true
-}
-
+}*/
+/*
 // PrivateMinerAPI provides private RPC methods to control the miner.
 // These methods can be abused by external users and must be considered insecure for use by untrusted users.
 type PrivateMinerAPI struct {
@@ -306,11 +308,11 @@ func (api *PrivateMinerAPI) SetEtherbase(etherbase common.Address) bool {
 	api.e.SetEtherbase(etherbase)
 	return true
 }
-
+*/
 // GetHashRate returns the current hashrate of the miner.
-func (api *PrivateMinerAPI) GetHashRate() uint64 {
+/*func (api *PrivateMinerAPI) GetHashRate() uint64 {
 	return uint64(api.e.Miner().HashRate())
-}
+}*/
 
 // PrivateAdminAPI is the collection of Truechain full node-related APIs
 // exposed over the private admin endpoint.
@@ -417,15 +419,16 @@ func NewPublicDebugAPI(etrue *Truechain) *PublicDebugAPI {
 	return &PublicDebugAPI{etrue: etrue}
 }
 
+
 // DumpBlock retrieves the entire state of the database at a given block.
 func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error) {
-	if blockNr == rpc.PendingBlockNumber {
+	/*if blockNr == rpc.PendingBlockNumber {
 		// If we're dumping the pending state, we need to request
 		// both the pending block as well as the pending state from
 		// the miner and operate on those
-		_, stateDb := api.etrue.miner.Pending()
+		//_, stateDb := api.etrue.miner.Pending()
 		return stateDb.RawDump(), nil
-	}
+	}*/
 	var block *types.Block
 	if blockNr == rpc.LatestBlockNumber {
 		block = api.etrue.blockchain.CurrentBlock()
