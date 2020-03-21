@@ -184,9 +184,6 @@ func (valSet *ValidatorSet) VerfiyProposeCert() bool {
 	if err != nil {
 		return false
 	}
-	// TODO neo
-	//need add error check
-
 	// check cert is valid
 	for _, validate := range valSet.Validators {
 		cimIns, err := cim.NewCIM()
@@ -199,7 +196,6 @@ func (valSet *ValidatorSet) VerfiyProposeCert() bool {
 			return true
 		}
 	}
-
 	if types.RlpHash(xCertificate.PublicKey) != types.RlpHash(valSet.Proposer.PubKey) {
 		return false
 	}

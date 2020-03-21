@@ -20,6 +20,7 @@ package etrue
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	config "github.com/taiyuechain/taiyuechain/params"
@@ -44,6 +45,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etrue/filters"
 	"github.com/taiyuechain/taiyuechain/etrue/gasprice"
@@ -217,6 +219,16 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.snailblockchain, etrue.config)
+
+	members := etrue.election.GetCommittee(big.NewInt(1))
+	for i, member := range members {
+		cimCa, err := cim.NewCIM()
+		if err != nil {
+			return nil, err
+		}
+		cimCa.SetUpFromCA(member.LocalCert)
+		cim.CimMap[strconv.Itoa(i)] = cimCa
+	}
 
 	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
 

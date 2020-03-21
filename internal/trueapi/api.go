@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"math/big"
@@ -447,6 +448,15 @@ func (s *PrivateAccountAPI) signTransaction(ctx context.Context, args SendTxArgs
 // tries to sign it with the key associated with args.To. If the given passwd isn't
 // able to decrypt the key it fails.
 func (s *PrivateAccountAPI) SendTransaction(ctx context.Context, args SendTxArgs, passwd string) (common.Hash, error) {
+	sendCert := args.Cert.String()
+	sendIdentity, err := cim.GetIdentityFromByte([]byte(sendCert))
+	if err != nil {
+		return common.Hash{}, err
+	}
+	if !cim.ValidateIdentity(sendIdentity) {
+		return common.Hash{}, err
+	}
+
 	if args.Payment != (common.Address{}) { //personal.SendTransaction should not contain payment
 		return common.Hash{}, fmt.Errorf("payment should not assigned")
 	}
@@ -460,6 +470,7 @@ func (s *PrivateAccountAPI) SendTransaction(ctx context.Context, args SendTxArgs
 	if err != nil {
 		return common.Hash{}, err
 	}
+
 	return submitTransaction(ctx, s.b, signed)
 }
 
@@ -1558,8 +1569,8 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil {
-		cert = *args.Cert
+	} else if args.Cert != nil{
+		cert  = *args.Cert
 	}
 
 	if args.To == nil {
