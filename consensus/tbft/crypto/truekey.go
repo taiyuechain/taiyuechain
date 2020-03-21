@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/tendermint/go-amino"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 )
 
 //-------------------------------------
@@ -40,8 +42,12 @@ func (priv PrivKeyTrue) Bytes() []byte {
 
 // Sign produces a signature on the provided message.
 func (priv PrivKeyTrue) Sign(msg []byte) ([]byte, error) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	priv1 := ecdsa.PrivateKey(priv)
-	return tcrypyo.Sign(msg, &priv1)
+	//caoliang modify
+	taiprivate.Private = priv1
+	//return tcrypyo.Sign(msg, &priv1)
+	return taiprivate.Sign(msg, taiprivate)
 }
 
 // PubKey gets the corresponding public key from the private key.
@@ -58,11 +64,17 @@ func (priv PrivKeyTrue) PubKey() PubKey {
 // Equals - you probably don't need to use this.
 // Runs in constant time based on length of the keys.
 func (priv PrivKeyTrue) Equals(other PrivKey) bool {
+	var taiprivate taiCrypto.TaiPrivateKey
 	if otherEd, ok := other.(PrivKeyTrue); ok {
 		priv0 := ecdsa.PrivateKey(otherEd)
-		data0 := tcrypyo.FromECDSA(&priv0)
+		//caolaing modify
+		//data0 := tcrypyo.FromECDSA(&priv0)
+		taiprivate.Private = priv0
+		data0 := taiprivate.FromECDSA(taiprivate)
 		priv1 := ecdsa.PrivateKey(priv)
-		data1 := tcrypyo.FromECDSA(&priv1)
+		//data1 := tcrypyo.FromECDSA(&priv1)
+		taiprivate.Private = priv1
+		data1 := taiprivate.FromECDSA(taiprivate)
 		return bytes.Equal(data0[:], data1[:])
 	}
 	return false
@@ -85,16 +97,24 @@ type PubKeyTrue ecdsa.PublicKey
 
 // Address is the Keccak256 of the raw pubkey bytes.
 func (pub PubKeyTrue) Address() help.Address {
+	var taipublic taiCrypto.TaiPublicKey
 	pub1 := ecdsa.PublicKey(pub)
-	data := tcrypyo.PubkeyToAddress(pub1)
+	//caoliang modify
+	//data := tcrypyo.PubkeyToAddress(pub1)
+	taipublic.Publickey = pub1
+	data := taipublic.PubkeyToAddress(taipublic)
 	return help.Address(data[:])
 }
 
 // Bytes marshals the PubKey using amino encoding.
 func (pub PubKeyTrue) Bytes() []byte {
 	//bz, err := cdc.MarshalBinaryBare(pub)
+	var taipublic taiCrypto.TaiPublicKey
 	pub1 := ecdsa.PublicKey(pub)
-	bz := tcrypyo.FromECDSAPub(&pub1)
+	//caoliang modify
+	taipublic.Publickey = pub1
+	//bz := tcrypyo.FromECDSAPub(&pub1)
+	bz := taipublic.FromECDSAPub(taipublic)
 	//bz := elliptic.Marshal(tcrypyo.S256(), pub.X, pub.Y)
 	//if err != nil {
 	//	panic(err)
@@ -105,16 +125,24 @@ func (pub PubKeyTrue) Bytes() []byte {
 //VerifyBytes is check msg
 func (pub PubKeyTrue) VerifyBytes(msg []byte, sig []byte) bool {
 	// make sure we use the same algorithm to sign
-	if pub0, err := tcrypyo.SigToPub(msg, sig); err == nil {
-		pub1 := PubKeyTrue(*pub0)
+	//caoliang modify
+	var taipublic taiCrypto.TaiPublicKey
+	//if pub0, err := tcrypyo.SigToPub(msg, sig); err == nil {
+	if pub0, err := taipublic.SigToPub(msg, sig); err == nil {
+		//pub1 := PubKeyTrue(*pub0)
+		pub1 := PubKeyTrue(pub0.Publickey)
 		return pub.Equals(pub1)
 	}
 	return false
 }
 
 func (pub PubKeyTrue) String() string {
+	var taipublic taiCrypto.TaiPublicKey
 	pub1 := ecdsa.PublicKey(pub)
-	data := tcrypyo.FromECDSAPub(&pub1)
+	//caoliang modify
+	taipublic.Publickey = pub1
+	data := taipublic.FromECDSAPub(taipublic)
+	//data := tcrypyo.FromECDSAPub(&pub1)
 	if data == nil {
 		return ""
 	}
@@ -123,11 +151,17 @@ func (pub PubKeyTrue) String() string {
 
 // Equals is comp public key
 func (pub PubKeyTrue) Equals(other PubKey) bool {
+	var taipublic taiCrypto.TaiPublicKey
 	if otherEd, ok := other.(PubKeyTrue); ok {
 		pub0 := ecdsa.PublicKey(otherEd)
 		pub1 := ecdsa.PublicKey(pub)
-		data0 := tcrypyo.FromECDSAPub(&pub0)
-		data1 := tcrypyo.FromECDSAPub(&pub1)
+		//caoliang modify
+		/*data0 := tcrypyo.FromECDSAPub(&pub0)
+		data1 := tcrypyo.FromECDSAPub(&pub1)*/
+		taipublic.Publickey = pub0
+		data0 := taipublic.FromECDSAPub(taipublic)
+		taipublic.Publickey = pub1
+		data1 := taipublic.FromECDSAPub(taipublic)
 		if data0 == nil || data1 == nil {
 			return false
 		}
