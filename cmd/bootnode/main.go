@@ -21,20 +21,22 @@ import (
 	"crypto/ecdsa"
 	"flag"
 	"fmt"
-	"net"
-	"os"
-
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/p2p/discover"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
+	"net"
+	"os"
 )
 
 func main() {
+	var taiprivate taiCrypto.TaiPrivateKey
+	var taipublic taiCrypto.TaiPublicKey
 	var (
 		listenAddr  = flag.String("addr", ":30301", "listen address")
 		genKey      = flag.String("genkey", "", "generate a node key")
@@ -46,9 +48,10 @@ func main() {
 		runv5       = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
 		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
-
+		//caoliang modify
 		nodeKey *ecdsa.PrivateKey
-		err     error
+		//nodeKey *taiCrypto.TaiPrivateKey
+		err error
 	)
 	flag.Parse()
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
@@ -62,30 +65,52 @@ func main() {
 	}
 	switch {
 	case *genKey != "":
+		//caoliang modify
+
 		nodeKey, err = crypto.GenerateKey()
+
+		//nodeKey = taiCrypto.GenPrivKey()
 		if err != nil {
 			utils.Fatalf("could not generate key: %v", err)
 		}
-		if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
+		//caolaing modify
+		//if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
+		taiprivate.Private = *nodeKey
+		if err = taiprivate.SaveECDSA(*genKey, taiprivate); err != nil {
 			utils.Fatalf("%v", err)
 		}
 		return
+
 	case *nodeKeyFile == "" && *nodeKeyHex == "":
 		utils.Fatalf("Use -nodekey or -nodekeyhex to specify a private key")
 	case *nodeKeyFile != "" && *nodeKeyHex != "":
 		utils.Fatalf("Options -nodekey and -nodekeyhex are mutually exclusive")
 	case *nodeKeyFile != "":
-		if nodeKey, err = crypto.LoadECDSA(*nodeKeyFile); err != nil {
+		//caolaing modify
+		//if nodeKey, err = crypto.LoadECDSA(*nodeKeyFile); err != nil {
+		taiprivate, err := taiprivate.LoadECDSA(*nodeKeyFile)
+		if err != nil {
 			utils.Fatalf("-nodekey: %v", err)
 		}
+		nodeKey = &taiprivate.Private
+	/*	if nodeKey, err = taiprivate.LoadECDSA(*nodeKeyFile); err != nil {
+		utils.Fatalf("-nodekey: %v", err)
+	}*/
 	case *nodeKeyHex != "":
-		if nodeKey, err = crypto.HexToECDSA(*nodeKeyHex); err != nil {
+		//caoliang modify
+		//if nodeKey, err = crypto.HexToECDSA(*nodeKeyHex); err != nil {
+		taiprivate, err := taiprivate.HexToECDSA(*nodeKeyHex)
+		if err != nil {
 			utils.Fatalf("-nodekeyhex: %v", err)
 		}
+		nodeKey = &taiprivate.Private
 	}
 
 	if *writeAddr {
-		fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey)[1:])
+		//caoliang modify
+		//fmt.Printf("%x\n", crypto.FromECDSAPub(&nodeKey.PublicKey)[1:])
+		taipublic.Publickey = nodeKey.PublicKey
+		fmt.Printf("%x\n", taipublic.FromECDSAPub(taipublic)[1:])
 		//fmt.Printf("%v\n", discover.PubkeyID(&nodeKey.PublicKey))
 		os.Exit(0)
 	}
