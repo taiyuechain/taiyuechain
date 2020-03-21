@@ -20,6 +20,7 @@ package utils
 import (
 	"compress/gzip"
 	"fmt"
+	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"os"
 	"os/signal"
@@ -28,12 +29,12 @@ import (
 	"syscall"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -271,7 +272,9 @@ func ImportPreimages(db *etruedb.LDBDatabase, fn string) error {
 			return err
 		}
 		// Accumulate the preimages and flush when enough ws gathered
+		//caoliang modify
 		preimages[crypto.Keccak256Hash(blob)] = common.CopyBytes(blob)
+		//preimages[taihash.Keccak256Hash(blob)] = common.CopyBytes(blob)
 		if len(preimages) > 1024 {
 			rawdb.WritePreimages(db, 0, preimages)
 			preimages = make(map[common.Hash][]byte)
