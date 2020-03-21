@@ -18,6 +18,10 @@ package node
 
 import (
 	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -26,14 +30,13 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/accounts/usbwallet"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
-	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 const (
@@ -43,7 +46,7 @@ const (
 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
 	datadirNodeDatabase    = "truenodes"          // Path within the datadir to store the node infos
-	datadirLocalCert    = "localCert.pem"          // Path within the datadir to store the node infos
+	datadirLocalCert       = "localCert.pem"      // Path within the datadir to store the node infos
 )
 
 // Config represents a small collection of configuration values to fine tune the
@@ -298,14 +301,19 @@ func (c *Config) instanceDir() string {
 // NodeKey retrieves the currently configured private key of the node, checking
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
+//caoliang modify
 func (c *Config) NodeKey() *ecdsa.PrivateKey {
+	//func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
+	var taiprivate taiCrypto.TaiPrivateKey
 	// Use any specifically configured key.
 	if c.P2P.PrivateKey != nil {
 		return c.P2P.PrivateKey
 	}
 	// Generate ephemeral key if no datadir is being used.
 	if c.DataDir == "" {
+		//caoliang modify
 		key, err := crypto.GenerateKey()
+		//key := taiCrypto.GenPrivKey()
 		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
 		}
@@ -313,11 +321,15 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	}
 
 	keyfile := c.ResolvePath(datadirPrivateKey)
-	if key, err := crypto.LoadECDSA(keyfile); err == nil {
-		return key
+	//caolaing modify taiprivate
+	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
+	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
+		return &key.Private
 	}
 	// No persistent key found, generate and store a new one.
+	//caoliang modify
 	key, err := crypto.GenerateKey()
+	//key:= taiCrypto.GenPrivKey()
 	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
 	}
@@ -327,7 +339,10 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 		return key
 	}
 	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
-	if err := crypto.SaveECDSA(keyfile, key); err != nil {
+	//caolaing modify
+	//if err := crypto.SaveECDSA(keyfile, key); err != nil {
+	taiprivate.Private = *key
+	if err := taiprivate.SaveECDSA(keyfile, taiprivate); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
 	return key
@@ -439,47 +454,57 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	return accounts.NewManager(backends...), ephemeral, nil
 }
 
+//caoliang modify
 func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
+	//func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
 	// Generate ephemeral key if no datadir is being used.
+	var taiprivate taiCrypto.TaiPrivateKey
 	if c.DataDir == "" {
-		key, err := crypto.GenerateKey()
-		if err != nil {
+		//caoliang modify
+		//key, err := crypto.GenerateKey()
+		key := taiCrypto.GenPrivKey()
+		/*if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
-		}
-		return key
+		}*/
+		return &key.Private
 	}
 
 	keyfile := c.ResolvePath(bftCommitteePrivateKey)
-	if key, err := crypto.LoadECDSA(keyfile); err == nil {
-		return key
+	//caoliang modify
+	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
+	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
+		return &key.Private
 	}
 	// No persistent key found, generate and store a new one.
-	key, err := crypto.GenerateKey()
-	if err != nil {
+	//caoliang modify
+	//key, err := crypto.GenerateKey()
+	key := taiCrypto.GenPrivKey()
+	/*if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
-	}
+	}*/
 	instanceDir := filepath.Join(c.DataDir, c.name())
 	if err := os.MkdirAll(instanceDir, 0700); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
-		return key
+		return &key.Private
 	}
 	keyfile = filepath.Join(instanceDir, bftCommitteePrivateKey)
-	if err := crypto.SaveECDSA(keyfile, key); err != nil {
+	//caolaing modify
+	//if err := crypto.SaveECDSA(keyfile, key); err != nil {
+	if err := taiprivate.SaveECDSA(keyfile, *key); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
-	return key
+	return &key.Private
 }
 
 func (c *Config) BftCommitteeCert() []byte {
 	// Generate ephemeral key if no datadir is being used.
-	cert :=[]byte{}
+	cert := []byte{}
 	if c.DataDir == "" {
 
 		return cert
 	}
 	certfile := c.ResolvePath(datadirLocalCert)
 
-	cert ,_= cim.ReadPemFile(certfile)
+	cert, _ = cim.ReadPemFile(certfile)
 	return cert
 }
-
