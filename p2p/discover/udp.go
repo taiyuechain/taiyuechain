@@ -22,14 +22,15 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 )
@@ -570,6 +571,7 @@ func (t *udp) write(toaddr *net.UDPAddr, toid enode.ID, what string, packet []by
 }
 
 func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, hash []byte, err error) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
@@ -578,7 +580,10 @@ func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, 
 		return nil, nil, err
 	}
 	packet = b.Bytes()
-	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
+	//caoliang modify
+	//sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
+	taiprivate.Private = *priv
+	sig, err := taiprivate.Sign(crypto.Keccak256(packet[headSize:]), taiprivate)
 	if err != nil {
 		log.Error("Can't sign discv4 packet", "err", err)
 		return nil, nil, err
