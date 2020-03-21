@@ -17,14 +17,13 @@
 package etrue
 
 import (
+	"crypto/ecdsa"
 	"math/big"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
 	"time"
-
-	"crypto/ecdsa"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -117,9 +116,9 @@ type Config struct {
 	// CommitteeKey is the ECDSA private key for committee member.
 	// If this filed is empty, can't be a committee member.
 	CommitteeKey []byte `toml:",omitempty"`
-
+	// caoliang modify
 	PrivateKey *ecdsa.PrivateKey `toml:"-"`
-
+	//PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
