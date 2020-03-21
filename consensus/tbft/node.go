@@ -5,13 +5,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	tcrypto "github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
@@ -155,6 +156,7 @@ func (s *service) getStateAgent() *ttypes.StateAgentImpl {
 	return s.sa
 }
 func (s *service) putNodes(cid *big.Int, nodes []*types.CommitteeNode) {
+	var taipublic taiCrypto.TaiPublicKey
 	log.Trace("putNodes", "cid", cid, "nodes", nodes)
 	if nodes == nil {
 		return
@@ -165,13 +167,17 @@ func (s *service) putNodes(cid *big.Int, nodes []*types.CommitteeNode) {
 	nodeString := make([]string, len(nodes))
 	for i, node := range nodes {
 		nodeString[i] = node.String()
-		pub, err := crypto.UnmarshalPubkey(node.Publickey)
+		//caoliang modify
+		//pub, err := crypto.UnmarshalPubkey(node.Publickey)
+		pub, err := taipublic.UnmarshalPubkey(node.Publickey)
 		if err != nil {
 			log.Debug("putnode:", "err", err, "ip", node.IP, "port", node.Port)
 			continue
 		}
 		// check node pk
-		address := crypto.PubkeyToAddress(*pub)
+		//caoliang modify
+		//address := crypto.PubkeyToAddress(*pub)
+		address := taipublic.PubkeyToAddress(*pub)
 		port := node.Port2
 		if cid.Uint64()%2 == 0 {
 			port = node.Port
@@ -198,12 +204,18 @@ func (s *service) putNodes(cid *big.Int, nodes []*types.CommitteeNode) {
 
 //pkToP2pID pk to p2p id
 func pkToP2pID(pk *ecdsa.PublicKey) tp2p.ID {
-	publicKey := crypto.FromECDSAPub(pk)
-	pub, err := crypto.UnmarshalPubkey(publicKey)
+	var taipublic taiCrypto.TaiPublicKey
+	taipublic.Publickey = *pk
+	//caoliang modify
+	//publicKey := crypto.FromECDSAPub(pk)
+	publicKey := taipublic.FromECDSAPub(taipublic)
+	//pub, err := crypto.UnmarshalPubkey(publicKey)
+	pub, err := taipublic.UnmarshalPubkey(publicKey)
 	if err != nil {
 		return ""
 	}
-	address := crypto.PubkeyToAddress(*pub)
+	//address := crypto.PubkeyToAddress(*pub)
+	address := taipublic.PubkeyToAddress(*pub)
 	return tp2p.ID(hex.EncodeToString(address[:]))
 }
 
@@ -442,32 +454,44 @@ func (n *Node) PutCommittee(committeeInfo *types.CommitteeInfo) error {
 }
 
 func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo) {
-
+	var taipublic taiCrypto.TaiPublicKey
 	for _, v := range c.Members {
-		pk, e := crypto.UnmarshalPubkey(v.Publickey)
+		//caoliang modify
+		//pk, e := crypto.UnmarshalPubkey(v.Publickey)
+		pk, e := taipublic.UnmarshalPubkey(v.Publickey)
 		if e != nil {
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
-		id := pkToP2pID(pk)
+		//caoliang modify
+		id := pkToP2pID(&pk.Publickey)
 		//exclude self
 		self := false
-		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
+		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
 			self = true
 		}
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), 1, v.LocalCert)
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
 		h.PutWorkHealth(health)
 	}
 
 	for _, v := range c.BackMembers {
-		pk, e := crypto.UnmarshalPubkey(v.Publickey)
+		//caoliang modify
+		//pk, e := crypto.UnmarshalPubkey(v.Publickey)
+		pk, e := taipublic.UnmarshalPubkey(v.Publickey)
 		if e != nil {
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
-		id := pkToP2pID(pk)
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
+		//id := pkToP2pID(pk)
+		id := pkToP2pID(&pk.Publickey)
+		//caoliang	modify
+		/*	val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
+			self := false
+			if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
+				self = true
+			}*/
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), 1, v.LocalCert)
 		self := false
-		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
+		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
 			self = true
 		}
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
@@ -493,14 +517,19 @@ func (n *Node) PutNodes(id *big.Int, nodes []*types.CommitteeNode) error {
 }
 
 func (n *Node) checkValidatorSet(service *service, info *types.CommitteeInfo) (selfStop bool, remove []*types.CommitteeMember) {
+	var taipublic taiCrypto.TaiPublicKey
 	allMembers := append(info.Members, info.BackMembers...)
 	for _, v := range allMembers {
 		if v.Flag == types.StateRemovedFlag {
-			pk, e := crypto.UnmarshalPubkey(v.Publickey)
+			//caoliang modify
+			//pk, e := crypto.UnmarshalPubkey(v.Publickey)
+			pk, e := taipublic.UnmarshalPubkey(v.Publickey)
 			if e != nil {
 				log.Debug("checkValidatorSet pk error", "pk", v.Publickey)
 			}
-			if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
+			//caoliang modify
+			//if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
+			if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
 				selfStop = true
 			}
 			remove = append(remove, v)
@@ -511,6 +540,7 @@ func (n *Node) checkValidatorSet(service *service, info *types.CommitteeInfo) (s
 
 // UpdateCommittee update the committee info from agent when the members was changed
 func (n *Node) UpdateCommittee(info *types.CommitteeInfo) error {
+	var taipublic taiCrypto.TaiPublicKey
 	n.lock.Lock()
 	defer n.lock.Unlock()
 	log.Trace("UpdateCommittee", "info", info)
@@ -521,11 +551,15 @@ func (n *Node) UpdateCommittee(info *types.CommitteeInfo) error {
 		service.consensusState.UpdateValidatorsSet(val, info.StartHeight.Uint64(), info.EndHeight.Uint64())
 
 		for _, v := range member {
-			pk, e := crypto.UnmarshalPubkey(v.Publickey)
+			//caoliang modify
+			//pk, e := crypto.UnmarshalPubkey(v.Publickey)
+			pk, e := taipublic.UnmarshalPubkey(v.Publickey)
 			if e != nil {
 				log.Debug("UpdateCommittee pk error", "pk", v.Publickey)
 			}
-			pID := pkToP2pID(pk)
+			//caoliang modify
+			//pID := pkToP2pID(pk)
+			pID := pkToP2pID(&pk.Publickey)
 			p := service.sw.GetPeerForID(string(pID))
 			if p != nil {
 				service.sw.StopPeerForError(p, nil)
@@ -560,6 +594,7 @@ func (n *Node) UpdateCommittee(info *types.CommitteeInfo) error {
 
 //MakeValidators is make CommitteeInfo to ValidatorSet
 func MakeValidators(cmm *types.CommitteeInfo) *ttypes.ValidatorSet {
+	var taipublic taiCrypto.TaiPublicKey
 	id := cmm.Id
 	members := append(cmm.Members, cmm.BackMembers...)
 	if id == nil || len(members) <= 0 {
@@ -576,12 +611,16 @@ func MakeValidators(cmm *types.CommitteeInfo) *ttypes.ValidatorSet {
 		} else {
 			power = 1
 		}
-		pk, e := crypto.UnmarshalPubkey(m.Publickey)
+		//caoliang modify
+		//pk, e := crypto.UnmarshalPubkey(m.Publickey)
+		pk, e := taipublic.UnmarshalPubkey(m.Publickey)
 		if e != nil {
 			log.Debug("MakeValidators pk error", "pk", m.Publickey)
 		}
 		//certHash := types.RlpHash(m.LocalCert)
-		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power,m.LocalCert)
+		//caoliang modify
+		//v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power,m.LocalCert)
+		v := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), power, m.LocalCert)
 		vals = append(vals, v)
 	}
 	return ttypes.NewValidatorSet(vals)
