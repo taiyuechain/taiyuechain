@@ -20,7 +20,9 @@ package les
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math"
 	"math/rand"
@@ -724,11 +726,23 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 }
 
 func encodePubkey64(pub *ecdsa.PublicKey) []byte {
-	return crypto.FromECDSAPub(pub)[1:]
+	var taipublic taiCrypto.TaiPublicKey
+	//caoliang modify
+	//return crypto.FromECDSAPub(pub)[1:]
+	taipublic.Publickey = *pub
+	return taipublic.FromECDSAPub(taipublic)[1:]
 }
 
 func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
-	return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
+	var taipublic taiCrypto.TaiPublicKey
+	//caoliang modify
+	//return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
+	taipub, err := taipublic.UnmarshalPubkey(append([]byte{0x04}, b...))
+	if err != nil {
+		return nil, nil
+	}
+	//return taipublic.UnmarshalPubkey(append([]byte{0x04}, b...))
+	return &taipub.Publickey, nil
 }
 
 // discoveredEntry implements wrsItem
