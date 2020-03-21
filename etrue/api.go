@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 	"os"
@@ -28,7 +29,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core"
@@ -70,8 +71,12 @@ func (api *PublicTruechainAPI) Pubkey() string {
 
 // CommitteeBase is the address that generate by pubkey
 func (api *PublicTruechainAPI) CommitteeBase() common.Address {
-	pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
-	return crypto.PubkeyToAddress(*pubKey)
+	//cao liang modify
+	var taipublic taiCrypto.TaiPublicKey
+	//pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
+	//return crypto.PubkeyToAddress(*pubKey)
+	pubKey, _ := taipublic.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
+	return taipublic.PubkeyToAddress(*pubKey)
 }
 
 //IsCommitteeMember return node whether current committee member
@@ -91,7 +96,7 @@ func (api *PublicTruechainAPI) GetCurrentState() map[string]interface{} {
 
 // Hashrate returns the POW hashrate
 //func (api *PublicTruechainAPI) Hashrate() hexutil.Uint64 {
-	//return hexutil.Uint64(api.e.Miner().HashRate())
+//return hexutil.Uint64(api.e.Miner().HashRate())
 //	return nil
 //}
 
@@ -105,7 +110,7 @@ func (api *PublicTruechainAPI) ChainId() hexutil.Uint64 {
 // PublicMinerAPI provides an API to control the miner.
 // It offers only methods that operate on data that pose no security risk when it is publicly accessible.
 type PublicMinerAPI struct {
-	e     *Truechain
+	e *Truechain
 	//agent *miner.RemoteAgent
 }
 
@@ -418,7 +423,6 @@ type PublicDebugAPI struct {
 func NewPublicDebugAPI(etrue *Truechain) *PublicDebugAPI {
 	return &PublicDebugAPI{etrue: etrue}
 }
-
 
 // DumpBlock retrieves the entire state of the database at a given block.
 func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error) {
