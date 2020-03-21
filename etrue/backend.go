@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	config "github.com/taiyuechain/taiyuechain/params"
 	"math/big"
 	"runtime"
@@ -30,7 +31,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/accounts"
@@ -337,7 +338,7 @@ func (s *Truechain) APIs() []rpc.API {
 				Version:   "1.0",
 				Service:   NewPublicMinerAPI(s),
 				Public:    true,
-			},*/ {
+			},*/{
 				Namespace: name,
 				Version:   "1.0",
 				Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
@@ -357,7 +358,7 @@ func (s *Truechain) APIs() []rpc.API {
 			Version:   "1.0",
 			Service:   NewPrivateMinerAPI(s),
 			Public:    false,
-		},*/ {
+		},*/{
 			Namespace: "admin",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),
@@ -540,7 +541,10 @@ func (s *Truechain) Stop() error {
 }
 
 func (s *Truechain) startPbftServer() error {
-	priv, err := crypto.ToECDSA(s.config.CommitteeKey)
+	var taiprivate taiCrypto.TaiPrivateKey
+	//caoliang modify
+	//priv, err := crypto.ToECDSA(s.config.CommitteeKey)
+	priv, err := taiprivate.ToECDSA(s.config.CommitteeKey)
 	if err != nil {
 		return err
 	}
@@ -549,7 +553,7 @@ func (s *Truechain) startPbftServer() error {
 	cfg.P2P.ListenAddress1 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.Port)
 	cfg.P2P.ListenAddress2 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.StandbyPort)
 
-	n1, err := tbft.NewNode(cfg, "1", priv, s.agent)
+	n1, err := tbft.NewNode(cfg, "1", &priv.Private, s.agent)
 	if err != nil {
 		return err
 	}
