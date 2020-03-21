@@ -21,14 +21,15 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )
 
@@ -141,24 +142,31 @@ type announceData struct {
 
 // sign adds a signature to the block announcement by the given privKey
 func (a *announceData) sign(privKey *ecdsa.PrivateKey) {
+	//caoliang modify
+	var taiprivate taiCrypto.TaiPrivateKey
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
-	sig, _ := crypto.Sign(crypto.Keccak256(rlp), privKey)
+	//sig, _ := crypto.Sign(crypto.Keccak256(rlp), privKey)
+	taiprivate.Private = *privKey
+	sig, _ := taiprivate.Sign(crypto.Keccak256(rlp), taiprivate)
 	a.Update = a.Update.add("sign", sig)
 }
 
 // checkSignature verifies if the block announcement has a valid signature by the given pubKey
 func (a *announceData) checkSignature(id enode.ID) error {
+	var taipublic taiCrypto.TaiPublicKey
 	var sig []byte
 	if err := a.Update.decode().get("sign", &sig); err != nil {
 		return err
 	}
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
-	recPubkey, err := crypto.SigToPub(crypto.Keccak256(rlp), sig)
+	//caoliang modify
+	//recPubkey, err := crypto.SigToPub(crypto.Keccak256(rlp), sig)
+	recPubkey, err := taipublic.SigToPub(crypto.Keccak256(rlp), sig)
 	if err != nil {
 		return err
 	}
 
-	if id == enode.PubkeyToIDV4(recPubkey) {
+	if id == enode.PubkeyToIDV4(&recPubkey.Publickey) {
 		return nil
 	}
 	return errors.New("Wrong signature")
