@@ -18,6 +18,7 @@ package enode
 
 import (
 	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
