@@ -176,12 +176,31 @@ func (valSet *ValidatorSet) GetProposer() (proposer *Validator) {
 	return valSet.Proposer.Copy()
 }
 
-func (valSet *ValidatorSet) VerfiyProposeCert() (bool) {
+func (valSet *ValidatorSet) VerfiyProposeCert() bool {
 
-	xCertificate ,_:= cim.GetCertFromPem(valSet.Proposer.Cert)
+	xCertificate, _ := cim.GetCertFromPem(valSet.Proposer.Cert)
+
+	identity, err := cim.GetIdentityFromByte(valSet.Proposer.Cert)
+	if err != nil {
+		return false
+	}
 	// TODO neo
 	//need add error check
-	if types.RlpHash(xCertificate.PublicKey) != types.RlpHash(valSet.Proposer.PubKey){
+
+	// check cert is valid
+	for _, validate := range valSet.Validators {
+		cimIns, err := cim.NewCIM()
+		cimIns.SetUpFromCA(validate.Cert)
+		if err != nil {
+			log.Error("cim internal error")
+		}
+		err = cimIns.Validate(identity)
+		if err == nil {
+			return true
+		}
+	}
+
+	if types.RlpHash(xCertificate.PublicKey) != types.RlpHash(valSet.Proposer.PubKey) {
 		return false
 	}
 

@@ -31,7 +31,6 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -367,8 +366,6 @@ func (e *Election) VerifySign(sign *types.PbftSign) (*types.CommitteeMember, err
 
 // VerifySigns verify signatures of bft committee in batches
 func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMember, []error) {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
 	members := make([]*types.CommitteeMember, len(signs))
 	errs := make([]error, len(signs))
 

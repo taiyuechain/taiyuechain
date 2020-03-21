@@ -20,7 +20,7 @@ func InitCrypto(cimConfigDir, cimID string) error {
 		return errors.Errorf("cannot init crypto, missing %s folder", cimConfigDir)
 	}
 	if cimID == "" {
-		return errors.New("the local MSP must have an ID")
+		return errors.New("the local cim must have an ID")
 	}
 
 	err = LoadLocalCIM(cimConfigDir, cimID)
@@ -70,6 +70,20 @@ func (cim *cimimpl) SetUp(conf *CIMConfig) error {
 		return err
 	}
 
+	return nil
+}
+
+func (cim *cimimpl) SetUpFromCA(rootCAByte []byte) error {
+	if len(rootCAByte) == 0 {
+		return errors.New("expected at least one CA certificate")
+	}
+
+	id, err := GetIdentityFromByte(rootCAByte)
+	if err != nil {
+		return err
+	}
+
+	cim.rootCert = id
 	return nil
 }
 
