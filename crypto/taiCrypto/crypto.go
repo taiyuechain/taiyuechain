@@ -44,7 +44,7 @@ func (TPK *TaiPrivateKey) SaveECDSA(file string, key TaiPrivateKey) error {
 		k := hex.EncodeToString(TPK.FromECDSA(key))
 		return ioutil.WriteFile(file, []byte(k), 0600)
 	case core.ASYMMETRICCRYPTOECDSA:
-		return tycrpto.SaveECDSA(file, &key.private)
+		return tycrpto.SaveECDSA(file, &key.Private)
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (TPK *TaiPrivateKey) LoadECDSA(file string) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.private = *private
+		TPK.Private = *private
 		return TPK, nil
 	}
 	return TPK, nil
@@ -91,7 +91,7 @@ func (TPK *TaiPrivateKey) HexToECDSA(hexkey string) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.private = *private
+		TPK.Private = *private
 		return TPK, nil
 	}
 	return TPK, nil
@@ -104,7 +104,7 @@ func (TPK *TaiPublicKey) PubkeyToAddress(pubkey TaiPublicKey) common.Address {
 		pubBytes := TPK.FromECDSAPub(pubkey)
 		return common.BytesToAddress(t.Keccak256(pubBytes[1:])[12:])
 	case core.ASYMMETRICCRYPTOECDSA:
-		return tycrpto.PubkeyToAddress(pubkey.publickey)
+		return tycrpto.PubkeyToAddress(pubkey.Publickey)
 	}
 	return common.Address{}
 }
@@ -112,9 +112,9 @@ func (TPK *TaiPublicKey) FromECDSAPub(pubkey TaiPublicKey) []byte {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		return pubkey.smPublickey.GetRawBytes()
+		return pubkey.SmPublickey.GetRawBytes()
 	case core.ASYMMETRICCRYPTOECDSA:
-		return tycrpto.FromECDSAPub(&pubkey.publickey)
+		return tycrpto.FromECDSAPub(&pubkey.Publickey)
 	}
 	return nil
 }
@@ -127,7 +127,7 @@ func (TPK *TaiPublicKey) UnmarshalPubkey(pub []byte) (*TaiPublicKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.smPublickey = *gmPublic
+		TPK.SmPublickey = *gmPublic
 		return TPK, nil
 
 	case core.ASYMMETRICCRYPTOECDSA:
@@ -135,7 +135,7 @@ func (TPK *TaiPublicKey) UnmarshalPubkey(pub []byte) (*TaiPublicKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.publickey = *public
+		TPK.Publickey = *public
 		return TPK, nil
 	}
 	return TPK, nil
@@ -145,13 +145,13 @@ func (TPK *TaiPrivateKey) ToECDSAUnsafe(d []byte) *TaiPrivateKey {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
 		gmPrivate, _ := sm2.RawBytesToPrivateKey(d)
-		TPK.gmPrivate = *gmPrivate
+		TPK.GmPrivate = *gmPrivate
 		return TPK
 
 	case core.ASYMMETRICCRYPTOECDSA:
 		private := tycrpto.ToECDSAUnsafe(d)
 
-		TPK.private = *private
+		TPK.Private = *private
 		return TPK
 	}
 	return TPK
@@ -165,8 +165,8 @@ func (TPK *TaiPrivateKey) ToECDSA(d []byte) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.gmPrivate = *gmPrivate
-		TPK.gmPrivate.PublicKey = gmPrivate.PublicKey
+		TPK.GmPrivate = *gmPrivate
+		TPK.GmPrivate.PublicKey = gmPrivate.PublicKey
 		return TPK, nil
 
 	case core.ASYMMETRICCRYPTOECDSA:
@@ -174,7 +174,7 @@ func (TPK *TaiPrivateKey) ToECDSA(d []byte) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.private = *private
+		TPK.Private = *private
 		return TPK, nil
 	}
 	return TPK, nil
@@ -183,10 +183,10 @@ func (TPK *TaiPrivateKey) FromECDSA(prikey TaiPrivateKey) []byte {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		return prikey.gmPrivate.GetRawBytes()
+		return prikey.GmPrivate.GetRawBytes()
 
 	case core.ASYMMETRICCRYPTOECDSA:
-		return tycrpto.FromECDSA(&prikey.private)
+		return tycrpto.FromECDSA(&prikey.Private)
 	}
 	return nil
 }
@@ -194,14 +194,14 @@ func (TPK *TaiPublicKey) CompressPubkey(pubkey TaiPublicKey) []byte {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		TPK.publickey = pubkey.publickey
-		TPK.smPublickey.GetRawBytes()
-		return TPK.smPublickey.GetRawBytes()
+		TPK.Publickey = pubkey.Publickey
+		TPK.SmPublickey.GetRawBytes()
+		return TPK.SmPublickey.GetRawBytes()
 
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
-		pubk := tycrpto.CompressPubkey(&pubkey.publickey)
+		pubk := tycrpto.CompressPubkey(&pubkey.Publickey)
 		return pubk
 	}
 	return nil
@@ -214,23 +214,24 @@ func (TPK *TaiPublicKey) SigToPub(hash, sig []byte) (*TaiPublicKey, error) {
 		if err != nil {
 			return nil, err
 		}
-		TPK.smPublickey = *smPublicKey
+		TPK.SmPublickey = *smPublicKey
 		return TPK, nil
 
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
 		pubk, _ := tycrpto.SigToPub(hash, sig)
-		TPK.publickey = *pubk
+		TPK.Publickey = *pubk
 		return TPK, nil
 	}
 	return nil, nil
 }
 
 type TaiPrivateKey struct {
-	hexBytesPrivate []byte
-	private         ecdsa.PrivateKey
-	gmPrivate       sm2.PrivateKey
+	HexBytesPrivate []byte
+	Private         ecdsa.PrivateKey
+	GmPrivate       sm2.PrivateKey
+	TaiPubKey       TaiPublicKey
 }
 
 func (TPK *TaiPrivateKey) Public() *TaiPrivateKey {
@@ -238,15 +239,15 @@ func (TPK *TaiPrivateKey) Public() *TaiPrivateKey {
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		pubk, _ := sm2.RawBytesToPrivateKey(TPK.hexBytesPrivate)
-		TPK.gmPrivate = *pubk
+		pubk, _ := sm2.RawBytesToPrivateKey(TPK.HexBytesPrivate)
+		TPK.GmPrivate = *pubk
 		return TPK
 
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
-		pubk, _ := tycrpto.ToECDSA(TPK.hexBytesPrivate)
-		TPK.private = *pubk
+		pubk, _ := tycrpto.ToECDSA(TPK.HexBytesPrivate)
+		TPK.Private = *pubk
 		return TPK
 	}
 	return nil
@@ -256,18 +257,18 @@ func (TPK *TaiPrivateKey) Sign(digestHash []byte, tai TaiPrivateKey) ([]byte, er
 	switch core.AsymmetricCryptoType {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
-		return sm2.Sign(&tai.gmPrivate, nil, digestHash)
+		return sm2.Sign(&tai.GmPrivate, nil, digestHash)
 	case core.ASYMMETRICCRYPTOECDSA:
 		//privk, _ := tycrpto.ToECDSA(TPK.hexBytesPrivate)
-		return tycrpto.Sign(digestHash, &tai.private)
+		return tycrpto.Sign(digestHash, &tai.Private)
 	}
 	return nil, nil
 }
 
 type TaiPublicKey struct {
-	hexBytesPublic []byte
-	publickey      ecdsa.PublicKey
-	smPublickey    sm2.PublicKey
+	HexBytesPublic []byte
+	Publickey      ecdsa.PublicKey
+	SmPublickey    sm2.PublicKey
 }
 
 func (TPK *TaiPublicKey) VerifySignature(digestHash, signature []byte) bool {
@@ -275,13 +276,13 @@ func (TPK *TaiPublicKey) VerifySignature(digestHash, signature []byte) bool {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
 		//pubk, _ := sm2.RawBytesToPublicKey(TPK.hexBytesPublic)
-		pubk := TPK.smPublickey
+		pubk := TPK.SmPublickey
 		return sm2.Verify(&pubk, nil, digestHash, signature)
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
-		TPK.hexBytesPublic = TPK.CompressPubkey(*TPK)
-		return tycrpto.VerifySignature(TPK.hexBytesPublic, digestHash, signature)
+		TPK.HexBytesPublic = TPK.CompressPubkey(*TPK)
+		return tycrpto.VerifySignature(TPK.HexBytesPublic, digestHash, signature)
 	}
 	return false
 }
@@ -295,7 +296,7 @@ func HexToTaiPrivateKey(hexKey string) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, errors.New("invalid hex string")
 		}
-		tai.hexBytesPrivate = b
+		tai.HexBytesPrivate = b
 		return &tai, nil
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
@@ -303,7 +304,7 @@ func HexToTaiPrivateKey(hexKey string) (*TaiPrivateKey, error) {
 		if err != nil {
 			return nil, errors.New("invalid hex string")
 		}
-		tai.hexBytesPrivate = b
+		tai.HexBytesPrivate = b
 		return &tai, nil
 	}
 	return nil, nil
@@ -314,14 +315,14 @@ func GenPrivKey() *TaiPrivateKey {
 	case core.ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
 		prik, pubk, _ := sm2.GenerateKey(rand.Reader)
-		tai.gmPrivate = *prik
-		tai.gmPrivate.PublicKey = *pubk
+		tai.GmPrivate = *prik
+		tai.GmPrivate.PublicKey = *pubk
 		return &tai
 	case core.ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
 		prik, _ := tycrpto.GenerateKey()
-		tai.private = *prik
+		tai.Private = *prik
 		return &tai
 	}
 	return nil
