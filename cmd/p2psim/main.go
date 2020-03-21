@@ -40,12 +40,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"os"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/simulations"
@@ -275,19 +276,22 @@ func protocolList(node *p2p.NodeInfo) []string {
 }
 
 func createNode(ctx *cli.Context) error {
+	var taiprivate taiCrypto.TaiPrivateKey
 	if len(ctx.Args()) != 0 {
 		return cli.ShowCommandHelp(ctx, ctx.Command.Name)
 	}
 	config := adapters.RandomNodeConfig()
 	config.Name = ctx.String("name")
 	if key := ctx.String("key"); key != "" {
-		privKey, err := crypto.HexToECDSA(key)
+		//caoliang modify
+		//privKey, err := crypto.HexToECDSA(key)
+		privKey, err := taiprivate.HexToECDSA(key)
 		if err != nil {
 			return err
 		}
-		nodeid := discv5.PubkeyID(&privKey.PublicKey)
+		nodeid := discv5.PubkeyID(&privKey.Private.PublicKey)
 		copy(config.ID[:], nodeid[:32])
-		config.PrivateKey = privKey
+		config.PrivateKey = &privKey.Private
 	}
 	if services := ctx.String("services"); services != "" {
 		config.Services = strings.Split(services, ",")
