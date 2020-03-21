@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"math/big"
 	"strings"
@@ -30,7 +31,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -42,6 +42,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -388,11 +389,14 @@ func fetchKeystore(am *accounts.Manager) *keystore.KeyStore {
 // ImportRawKey stores the given hex encoded ECDSA key into the key directory,
 // encrypting it with the passphrase.
 func (s *PrivateAccountAPI) ImportRawKey(privkey string, password string) (common.Address, error) {
-	key, err := crypto.HexToECDSA(privkey)
+	//caoliang modify
+	var taiprivate taiCrypto.TaiPrivateKey
+	//key, err := crypto.HexToECDSA(privkey)
+	key, err := taiprivate.HexToECDSA(privkey)
 	if err != nil {
 		return common.Address{}, err
 	}
-	acc, err := fetchKeystore(s.am).ImportECDSA(key, password)
+	acc, err := fetchKeystore(s.am).ImportECDSA(&key.Private, password)
 	return acc.Address, err
 }
 
@@ -1503,7 +1507,7 @@ type SendTxArgs struct {
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`
 	Input *hexutil.Bytes `json:"input"`
-	Cert *hexutil.Bytes `json:"cert"`
+	Cert  *hexutil.Bytes `json:"cert"`
 }
 
 // setDefaults is a helper function that fills in default values for unspecified tx fields.
@@ -1554,14 +1558,14 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil{
-		cert  = *args.Cert
+	} else if args.Cert != nil {
+		cert = *args.Cert
 	}
 
 	if args.To == nil {
-		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment,cert)
+		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment, cert)
 	}
-	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment,cert)
+	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment, cert)
 }
 
 func (args *SendTxArgs) toRawTransaction() *types.RawTransaction {
@@ -1571,13 +1575,13 @@ func (args *SendTxArgs) toRawTransaction() *types.RawTransaction {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil{
-		cert  = *args.Cert
+	} else if args.Cert != nil {
+		cert = *args.Cert
 	}
 	if args.To == nil {
-		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input,cert)
+		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, cert)
 	}
-	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input,cert)
+	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, cert)
 }
 
 // submitTransaction is a helper function that submits tx to txPool and logs a message.
