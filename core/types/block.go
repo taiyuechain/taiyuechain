@@ -20,6 +20,7 @@ package types
 import (
 	"crypto/ecdsa"
 	"encoding/binary"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 	"sort"
@@ -30,7 +31,6 @@ import (
 	"bytes"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/params"
 	"golang.org/x/crypto/sha3"
@@ -763,8 +763,18 @@ func (b *SnailBlock) EncodeRLP(w io.Writer) error {
 }
 
 func (b *SnailBlock) Number() *big.Int { return new(big.Int).Set(b.header.Number) }
-func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
+
+//caoliang modify
+/*func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
 	return crypto.UnmarshalPubkey(b.header.Publickey)
+}*/
+func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
+	var taipublic taiCrypto.TaiPublicKey
+	taipub, err := taipublic.UnmarshalPubkey(b.header.Publickey)
+	if err != nil {
+		return nil, err
+	}
+	return &taipub.Publickey, nil
 }
 func (b *SnailBlock) PublicKey() []byte         { return b.header.Publickey }
 func (b *SnailBlock) BlockDifficulty() *big.Int { return new(big.Int).Set(b.header.Difficulty) }
