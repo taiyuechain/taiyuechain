@@ -20,6 +20,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 	"sync"
@@ -29,7 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/common/prque"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/hashicorp/golang-lru"
@@ -38,6 +38,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -290,8 +291,8 @@ func (bc *BlockChain) loadLastState() error {
 	if rewardHead != nil {
 		bc.currentReward.Store(rewardHead)
 		rawdb.WriteHeadRewardNumber(bc.db, rewardHead.SnailNumber.Uint64())
-	}else {
-		reward := &types.BlockReward{SnailNumber:big.NewInt(0),}
+	} else {
+		reward := &types.BlockReward{SnailNumber: big.NewInt(0)}
 		bc.currentReward.Store(reward)
 		rawdb.WriteHeadRewardNumber(bc.db, 0)
 	}
@@ -361,7 +362,6 @@ func (bc *BlockChain) SetHead(head uint64) error {
 	bc.futureBlocks.Purge()
 	bc.signCache.Purge()
 	bc.rewardCache.Purge()
-
 
 	if currentBlock := bc.CurrentBlock(); currentBlock != nil {
 		if _, err := state.New(currentBlock.Root(), bc.stateCache); err != nil {
@@ -889,6 +889,7 @@ func (bc *BlockChain) Rollback(chain []common.Hash) {
 
 // SetReceiptsData computes all the non-consensus fields of the receipts
 func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts types.Receipts) error {
+	var taipublic taiCrypto.TaiPublicKey
 	signer := types.MakeSigner(config, block.Number())
 
 	transactions, logIndex := block.Transactions(), uint(0)
@@ -904,7 +905,9 @@ func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts ty
 		if transactions[j].To() == nil {
 			// Deriving the signer is expensive, only do if it's actually needed
 			from, _ := types.Sender(signer, transactions[j])
+			//caoliang modify
 			receipts[j].ContractAddress = crypto.CreateAddress(from, transactions[j].Nonce())
+			//receipts[j].ContractAddress = taipublic.CreateAddress(from, transactions[j].Nonce())
 		}
 		// The used gas can be calculated based on previous receipts
 		if j == 0 {
