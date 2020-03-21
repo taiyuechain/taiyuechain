@@ -21,22 +21,23 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	snaildb "github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/consensus"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -48,13 +49,13 @@ var SymmetricCryptoType uint8
 var AsymmetricCryptoType uint8
 var HashCryptoType uint8
 
-const(
-	SYMMETRICCRYPTOSM4  = 1
-	SYMMETRICCRYPTOAES  = 2
-	ASYMMETRICCRYPTOECDSA =3
-	ASYMMETRICCRYPTOSM2 =4
-	HASHCRYPTOSM3=5
-	HASHCRYPTOHAS3 =6
+const (
+	SYMMETRICCRYPTOSM4    = 1
+	SYMMETRICCRYPTOAES    = 2
+	ASYMMETRICCRYPTOECDSA = 3
+	ASYMMETRICCRYPTOSM2   = 4
+	HASHCRYPTOSM3         = 5
+	HASHCRYPTOHAS3        = 6
 )
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
@@ -257,6 +258,8 @@ func (g *Genesis) CommitFast(db etruedb.Database) (*types.Block, error) {
 // ToFastBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
 func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
+	//caolaing modify
+	var taipublic taiCrypto.TaiPublicKey
 	if db == nil {
 		db = etruedb.NewMemDatabase()
 	}
@@ -270,7 +273,7 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 		}
 	}
 
-	consensus.OnceInitCAState(g.Config,statedb,new(big.Int).SetUint64(g.Number))
+	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number))
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
@@ -291,10 +294,14 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 	// All genesis committee members are included in switchinfo of block #0
 	committee := &types.SwitchInfos{CID: common.Big0, Members: g.Committee, BackMembers: make([]*types.CommitteeMember, 0), Vals: make([]*types.SwitchEnter, 0)}
 	for _, member := range committee.Members {
-		pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
+		//caolaing modify
+		//pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
+		pubkey, _ := taipublic.UnmarshalPubkey(member.Publickey)
 		member.Flag = types.StateUsedFlag
 		member.MType = types.TypeFixed
-		member.CommitteeBase = crypto.PubkeyToAddress(*pubkey)
+		//caolaing modify
+		//member.CommitteeBase = crypto.PubkeyToAddress(*pubkey)
+		member.CommitteeBase = taipublic.PubkeyToAddress(*pubkey)
 	}
 	return types.NewBlock(head, nil, nil, nil, committee.Members)
 }
@@ -507,13 +514,13 @@ func decodePrealloc(data string) types.GenesisAlloc {
 
 // GenesisFastBlockForTesting creates and writes a block in which addr has the given wei balance.
 func GenesisFastBlockForTesting(db etruedb.Database, addr common.Address, balance *big.Int) *types.Block {
-	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}},Config:params.AllMinervaProtocolChanges}
+	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
 	return g.MustFastCommit(db)
 }
 
 // GenesisSnailBlockForTesting creates and writes a block in which addr has the given wei balance.
 func GenesisSnailBlockForTesting(db etruedb.Database, addr common.Address, balance *big.Int) *types.SnailBlock {
-	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}},Config:params.AllMinervaProtocolChanges}
+	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
 	return g.MustSnailCommit(db)
 }
 
