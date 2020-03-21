@@ -19,6 +19,9 @@ package utils
 
 import (
 	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -38,13 +41,13 @@ import (
 	//"github.com/taiyuechain/taiyuechain/consensus/clique"
 	"bytes"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
@@ -227,25 +230,25 @@ var (
 	}
 	// Dashboard settings
 	/*
-	DashboardEnabledFlag = cli.BoolFlag{
-		Name:  "dashboard",
-		Usage: "Enable the dashboard",
-	}
-	DashboardAddrFlag = cli.StringFlag{
-		Name:  "dashboard.addr",
-		Usage: "Dashboard listening interface",
-		Value: dashboard.DefaultConfig.Host,
-	}
-	DashboardPortFlag = cli.IntFlag{
-		Name:  "dashboard.host",
-		Usage: "Dashboard listening port",
-		Value: dashboard.DefaultConfig.Port,
-	}
-	DashboardRefreshFlag = cli.DurationFlag{
-		Name:  "dashboard.refresh",
-		Usage: "Dashboard metrics collection refresh rate",
-		Value: dashboard.DefaultConfig.Refresh,
-	}*/
+		DashboardEnabledFlag = cli.BoolFlag{
+			Name:  "dashboard",
+			Usage: "Enable the dashboard",
+		}
+		DashboardAddrFlag = cli.StringFlag{
+			Name:  "dashboard.addr",
+			Usage: "Dashboard listening interface",
+			Value: dashboard.DefaultConfig.Host,
+		}
+		DashboardPortFlag = cli.IntFlag{
+			Name:  "dashboard.host",
+			Usage: "Dashboard listening port",
+			Value: dashboard.DefaultConfig.Port,
+		}
+		DashboardRefreshFlag = cli.DurationFlag{
+			Name:  "dashboard.refresh",
+			Usage: "Dashboard metrics collection refresh rate",
+			Value: dashboard.DefaultConfig.Refresh,
+		}*/
 	// Transaction pool settings
 	TxPoolNoLocalsFlag = cli.BoolFlag{
 		Name:  "txpool.nolocals",
@@ -646,25 +649,38 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *etrue.Config) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
 		file = ctx.GlobalString(BftKeyFileFlag.Name)
-		key  *ecdsa.PrivateKey
-		err  error
+		//caoliang modify
+		key *ecdsa.PrivateKey
+		//key  *taiCrypto.TaiPrivateKey
+		//err  error
 	)
 	log.Debug("", "file:", file, "hex:", hex)
 	switch {
 	case file != "" && hex != "":
 		Fatalf("Options %q and %q are mutually exclusive", BftKeyFileFlag.Name, BftKeyHexFlag.Name)
 	case file != "":
-		if key, err = crypto.LoadECDSA(file); err != nil {
+		//caoliang modify
+		//if key, err = crypto.LoadECDSA(file); err != nil {
+
+		key1, err := taiprivate.LoadECDSA(file)
+		if err != nil {
 			Fatalf("Option %q: %v", BftKeyFileFlag.Name, err)
 		}
+		key = &key1.Private
 		cfg.PrivateKey = key
+
 	case hex != "":
-		if key, err = crypto.HexToECDSA(hex); err != nil {
+		//caoliang modify
+		//if key, err = crypto.HexToECDSA(hex); err != nil {
+		key1, err := taiprivate.HexToECDSA(hex)
+		if err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
+		key = &key1.Private
 		cfg.PrivateKey = key
 	}
 }
@@ -1102,7 +1118,7 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 
 	//set node cert
 	cfg.NodeCert = stack.Config().BftCommitteeCert()
-	if cfg.NodeCert == nil{
+	if cfg.NodeCert == nil {
 		log.Error("not cert file ")
 		return
 	}
@@ -1201,6 +1217,7 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 	log.Info("", "cfg.SyncMode", cfg.SyncMode)
 }
+
 /*
 // SetDashboardConfig applies dashboard related command line flags to the config.
 func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
@@ -1230,6 +1247,7 @@ func RegisterEtrueService(stack *node.Node, cfg *etrue.Config) {
 		Fatalf("Failed to register the Truechain service: %v", err)
 	}
 }
+
 /*
 // RegisterDashboardService adds a dashboard to the stack.
 func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit string) {
@@ -1332,7 +1350,7 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, sch
 			DatasetDir:     stack.ResolvePath(etrue.DefaultConfig.MinervaHash.DatasetDir),
 			DatasetsInMem:  etrue.DefaultConfig.MinervaHash.DatasetsInMem,
 			DatasetsOnDisk: etrue.DefaultConfig.MinervaHash.DatasetsOnDisk,
-			Tip9: 			config.TIP9.SnailNumber.Uint64(),
+			Tip9:           config.TIP9.SnailNumber.Uint64(),
 		})
 	}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {
