@@ -219,15 +219,19 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.snailblockchain, etrue.config)
-
-	members := etrue.election.GetCommittee(big.NewInt(1))
-	for i, member := range members {
+	stateDB, err := etrue.blockchain.State()
+	if err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	for i, caCert := range caCertList.GetCACertMap() {
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			return nil, err
 		}
-		cimCa.SetUpFromCA(member.LocalCert)
-		cim.CimMap[strconv.Itoa(i)] = cimCa
+		cimCa.SetUpFromCA(caCert.GetByte())
+		cim.CimMap[string(i)] = cimCa
 	}
 
 	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
