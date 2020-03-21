@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"golang.org/x/crypto/sha3"
 	"io"
 	"math/big"
@@ -69,7 +70,7 @@ type CommitteeMember struct {
 	Coinbase      common.Address
 	CommitteeBase common.Address
 	Publickey     []byte
-	LocalCert 	  []byte
+	LocalCert     []byte
 	Flag          uint32
 	MType         uint32
 }
@@ -106,7 +107,7 @@ func (c *CommitteeMember) UnmarshalJSON(input []byte) error {
 	type committee struct {
 		Address common.Address `json:"address,omitempty"`
 		PubKey  *hexutil.Bytes `json:"publickey,omitempty"`
-		Cert  *hexutil.Bytes `json:"cert,omitempty"`
+		Cert    *hexutil.Bytes `json:"cert,omitempty"`
 		Flag    uint32         `json:"flag,omitempty"`
 		MType   uint32         `json:"mType,omitempty"`
 	}
@@ -149,11 +150,15 @@ type TransportCommitteeNode struct {
 }
 
 func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *ecdsa.PublicKey) *CommitteeNode {
+	var taipublic taiCrypto.TaiPublicKey
+	taipublic.Publickey = *pubKey
 	return &CommitteeNode{
-		IP:        tcn.IP,
-		Port:      tcn.Port,
-		Port2:     tcn.Port2,
-		Publickey: crypto.FromECDSAPub(pubKey),
+		IP:    tcn.IP,
+		Port:  tcn.Port,
+		Port2: tcn.Port2,
+		//caoliang modify
+		//Publickey: crypto.FromECDSAPub(pubKey),
+		Publickey: taipublic.FromECDSAPub(taipublic),
 	}
 }
 
