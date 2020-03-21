@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -244,8 +246,12 @@ func unlockAccount(client *rpc.Client, account string, password string, time int
 
 // Genesis address
 func genAddress() string {
+	//caolaing modify
+	var taipublic taiCrypto.TaiPublicKey
 	priKey, _ := crypto.GenerateKey()
-	address := crypto.PubkeyToAddress(priKey.PublicKey)
+	//address := crypto.PubkeyToAddress(priKey.PublicKey)
+	taipublic.Publickey = priKey.PublicKey
+	address := taipublic.PubkeyToAddress(taipublic)
 	return address.Hex()
 }
 
