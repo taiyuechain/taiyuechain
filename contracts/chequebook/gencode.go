@@ -1,4 +1,3 @@
-
 // +build none
 
 // This program generates contract/code.go, which contains the chequebook code
@@ -7,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io/ioutil"
 	"math/big"
 
@@ -14,11 +14,14 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 	"github.com/taiyuechain/taiyuechain/contracts/chequebook/contract"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var (
-	testKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	//caoliang modify
+	//testKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	taiprivate taiCrypto.TaiPrivateKey
+	testKey, _ = taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	testAlloc  = core.GenesisAlloc{
 		crypto.PubkeyToAddress(testKey.PublicKey): {Balance: big.NewInt(500000000000)},
 	}
