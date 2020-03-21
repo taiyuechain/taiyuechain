@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"net/url"
 	"regexp"
@@ -147,6 +148,7 @@ func parseComplete(rawurl string) (*Node, error) {
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
 func parsePubkey(in string) (*ecdsa.PublicKey, error) {
+	var taipublic taiCrypto.TaiPublicKey
 	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
@@ -154,20 +156,30 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
 	}
 	b = append([]byte{0x4}, b...)
-	return crypto.UnmarshalPubkey(b)
+	//caoliang modify
+	//return crypto.UnmarshalPubkey(b)
+	public, err := taipublic.UnmarshalPubkey(b)
+	if err != nil {
+		return nil, nil
+	}
+	return &public.Publickey, nil
 }
 
 func (n *Node) v4URL() string {
 	var (
-		scheme enr.ID
-		nodeid string
-		key    ecdsa.PublicKey
+		scheme    enr.ID
+		nodeid    string
+		key       ecdsa.PublicKey
+		taipublic taiCrypto.TaiPublicKey
 	)
 	n.Load(&scheme)
 	n.Load((*Secp256k1)(&key))
 	switch {
 	case scheme == "v4" || key != ecdsa.PublicKey{}:
-		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
+		//caoliang modify
+		//nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
+		taipublic.Publickey = key
+		nodeid = fmt.Sprintf("%x", taipublic.FromECDSAPub(taipublic)[1:])
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
