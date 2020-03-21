@@ -20,11 +20,14 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
+	"math/big"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
 )
 
@@ -51,18 +54,28 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 }
 
 // SignTx signs the transaction using the given signer and private key
+//caolaing modify
 func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
+	//func SignTx(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*Transaction, error) {
+	var taiprivate taiCrypto.TaiPrivateKey
+	taiprivate.Private = *prv
 	h := s.Hash(tx)
-	sig, err := crypto.Sign(h[:], prv)
+	//sig, err := crypto.Sign(h[:], prv)
+	sig, err := taiprivate.Sign(h[:], taiprivate)
 	if err != nil {
 		return nil, err
 	}
 	return tx.WithSignature(s, sig)
 }
 
+//caolaing modify
 func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
+	//func SignTx_Payment(tx *Transaction, s Signer,  prv *taiCrypto.TaiPrivateKey) (*Transaction, error) {
+	var taiprivate taiCrypto.TaiPrivateKey
+	taiprivate.Private = *prv
 	h := s.Hash_Payment(tx)
-	sig, err := crypto.Sign(h[:], prv)
+	//sig, err := crypto.Sign(h[:], prv)
+	sig, err := taiprivate.Sign(h[:], taiprivate)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +381,7 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (commo
 		return common.Address{}, ErrInvalidSig
 	}
 	V := byte(Vb.Uint64() - 27)
-	if !crypto.ValidateSignatureValues(V, R, S, homestead) {
+	if !taiCrypto.ValidateSignatureValues(V, R, S, homestead) {
 		return common.Address{}, ErrInvalidSig
 	}
 	// encode the snature in uncompressed format
