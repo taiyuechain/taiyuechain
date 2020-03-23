@@ -3,7 +3,6 @@ package taiCrypto
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taiyuechain/taiyuechain/core"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"math/big"
@@ -34,10 +33,10 @@ type TaiHash interface {
 }
 
 func (t THash) CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		return common.BytesToAddress(t.Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		return tycrpto.CreateAddress2(b, salt, inithash)
 	}
 	return common.Address{}
@@ -46,18 +45,18 @@ func (t THash) CreateAddress2(b common.Address, salt [32]byte, inithash []byte) 
 
 func (t THash) CreateAddress(b common.Address, nonce uint64) common.Address {
 
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 		return common.BytesToAddress(t.Keccak256(data)[12:])
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		return tycrpto.CreateAddress(b, nonce)
 	}
 	return common.Address{}
 }
 func (t THash) Keccak512(data ...[]byte) []byte {
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		//TODO do GM hash
 		sm := sm3.New()
 		for _, v := range data {
@@ -66,14 +65,14 @@ func (t THash) Keccak512(data ...[]byte) []byte {
 		s := sm.Sum(nil)
 		hash := to512Hash(s)
 		return thashtoBytes(hash)
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		return tycrpto.Keccak512(data...)
 	}
 	return nil
 }
 func (t THash) Keccak256Hash(data ...[]byte) common.Hash {
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		//TODO do GM hash
 		sm := sm3.New()
 		for _, v := range data {
@@ -83,7 +82,7 @@ func (t THash) Keccak256Hash(data ...[]byte) common.Hash {
 		s := sm.Sum(nil)
 		return hashToCommonHash(s)
 
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		tyhash := tycrpto.Keccak256Hash(data...)
 		return tyhash
 
@@ -91,8 +90,8 @@ func (t THash) Keccak256Hash(data ...[]byte) common.Hash {
 	return common.Hash{}
 }
 func (t THash) Keccak256(data ...[]byte) []byte {
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		//TODO do GM hash
 		sm := sm3.New()
 		for _, v := range data {
@@ -102,7 +101,7 @@ func (t THash) Keccak256(data ...[]byte) []byte {
 		s := sm.Sum(nil)
 		return s
 
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		tyhash := tycrpto.Keccak256(data...)
 		return tyhash
 
@@ -112,11 +111,11 @@ func (t THash) Keccak256(data ...[]byte) []byte {
 func BytesToHash(b []byte) THash {
 
 	var tHash THash
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		//TODO do GM hash
 
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		gjhash := common.BytesToHash(b)
 		tHash = gjHashToGmHash(gjhash)
 	}
@@ -125,10 +124,10 @@ func BytesToHash(b []byte) THash {
 
 func BigToHash(b *big.Int) THash {
 	var tHash THash
-	switch core.HashCryptoType {
-	case core.HASHCRYPTOSM3:
+	switch HashCryptoType {
+	case HASHCRYPTOSM3:
 		//TODO do GM hash
-	case core.HASHCRYPTOHAS3:
+	case HASHCRYPTOHAS3:
 		gjhash := common.BigToHash(b)
 		tHash = gjHashToGmHash(gjhash)
 	}
