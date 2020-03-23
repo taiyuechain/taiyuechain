@@ -366,6 +366,7 @@ func (e *Election) VerifySign(sign *types.PbftSign) (*types.CommitteeMember, err
 
 // VerifySigns verify signatures of bft committee in batches
 func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMember, []error) {
+	var taipublic taiCrypto.TaiPublicKey
 	members := make([]*types.CommitteeMember, len(signs))
 	errs := make([]error, len(signs))
 
