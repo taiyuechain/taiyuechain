@@ -20,7 +20,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 	"sync"
@@ -889,7 +889,7 @@ func (bc *BlockChain) Rollback(chain []common.Hash) {
 
 // SetReceiptsData computes all the non-consensus fields of the receipts
 func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts types.Receipts) error {
-	var taipublic taiCrypto.TaiPublicKey
+	//var taipublic taiCrypto.TaiPublicKey
 	signer := types.MakeSigner(config, block.Number())
 
 	transactions, logIndex := block.Transactions(), uint(0)
