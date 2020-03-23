@@ -24,9 +24,7 @@ import (
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
-	//"crypto/ecdsa"
-	"encoding/binary"
-	"encoding/hex"
+
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -35,11 +33,11 @@ import (
 	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/metrics"
+	//"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"golang.org/x/crypto/sha3"
 	"math/big"
-	"math/rand"
+	//"math/rand"
 	"sync"
 	"time"
 )
@@ -210,13 +208,13 @@ type Minerva struct {
 	config Config
 
 	//caches   *lru // In memory caches to avoid regenerating too often
-	datasets *lru // In memory datasets to avoid regenerating too often
+	//datasets *lru // In memory datasets to avoid regenerating too often
 
 	// Mining related fields
-	rand     *rand.Rand    // Properly seeded random source for nonces
+	/*rand     *rand.Rand    // Properly seeded random source for nonces
 	threads  int           // Number of threads to mine on if mining
 	update   chan struct{} // Notification channel to update mining parameters
-	hashrate metrics.Meter // Meter tracking the average hashrate
+	hashrate metrics.Meter // Meter tracking the average hashrate*/
 
 	// The fields below are hooks for testing
 	shared    *Minerva      // Shared PoW verifier to avoid cache regeneration
@@ -247,19 +245,19 @@ func New(config Config) *Minerva {
 	minerva := &Minerva{
 		config: config,
 		//caches:   newlru("cache", config.CachesInMem, newCache),
-		datasets: newlru("dataset", config.DatasetsInMem, NewDataset),
+		/*datasets: newlru("dataset", config.DatasetsInMem, NewDataset),
 		update:   make(chan struct{}),
-		hashrate: metrics.NewMeter(),
+		hashrate: metrics.NewMeter(),*/
 	}
 
 	//MinervaLocal.CheckDataSetState(1)
-	minerva.getDataset(1)
+	//minerva.getDataset(1)
 
 	return minerva
 }
 
 // NewTestData Method test usage
-func (m *Minerva) NewTestData(block uint64) {
+/*func (m *Minerva) NewTestData(block uint64) {
 	m.getDataset(block)
 }
 
@@ -323,13 +321,13 @@ func (m *Minerva) getDataset(block uint64) *Dataset {
 	log.Debug("getDataset:", "epoch is ", current.epoch, "futrue epoch is", m.datasets.future, "blockNumber is ", block, "consistent is ", current.consistent, "dataset hash", current.datasetHash)
 
 	return current
-}
+}*/
 
 func (d *Dataset) Hash() common.Hash {
 	return rlpHash(d.dataset)
 }
 
-// generate ensures that the dataset content is generated before use.
+/*// generate ensures that the dataset content is generated before use.
 func (d *Dataset) Generate(epoch uint64, headershash *[STARTUPDATENUM][]byte) {
 	d.once.Do(func() {
 		if d.dateInit == 0 {
@@ -355,7 +353,7 @@ func (d *Dataset) Generate(epoch uint64, headershash *[STARTUPDATENUM][]byte) {
 		}
 	})
 
-}
+}*/
 
 //SetSnailChainReader Append interface SnailChainReader after instantiations
 func (m *Minerva) SetSnailChainReader(scr consensus.SnailChainReader) {
@@ -435,19 +433,19 @@ func NewShared() *Minerva {
 
 // Threads returns the number of mining threads currently enabled. This doesn't
 // necessarily mean that mining is running!
-func (m *Minerva) Threads() int {
+/*func (m *Minerva) Threads() int {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	return m.threads
-}
+}*/
 
 // SetThreads updates the number of mining threads currently enabled. Calling
 // this method does not start mining, only sets the thread count. If zero is
 // specified, the miner will use all cores of the machine. Setting a thread
 // count below zero is allowed and will cause the miner to idle, without any
 // work being done.
-func (m *Minerva) SetThreads(threads int) {
+/*func (m *Minerva) SetThreads(threads int) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -462,14 +460,14 @@ func (m *Minerva) SetThreads(threads int) {
 	case m.update <- struct{}{}:
 	default:
 	}
-}
+}*/
 
 // Hashrate implements PoW, returning the measured rate of the search invocations
 // per second over the last minute.
-func (m *Minerva) Hashrate() float64 {
+/*func (m *Minerva) Hashrate() float64 {
 	log.Debug("minerva  hashrate", "hash", m.hashrate.Rate1())
 	return m.hashrate.Rate1()
-}
+}*/
 
 // APIs implements consensus.Engine, returning the user facing RPC APIs. Currently
 // that is empty.
@@ -483,7 +481,7 @@ func SeedHash(block uint64) []byte {
 	return seedHash(block)
 }
 
-func (m *Minerva) DataSetHash(epoch uint64) string {
+/*func (m *Minerva) DataSetHash(epoch uint64) string {
 
 	//epoch := uint64((block - 1) / UPDATABLOCKLENGTH)
 	currentI, _ := m.datasets.get(epoch)
@@ -491,17 +489,9 @@ func (m *Minerva) DataSetHash(epoch uint64) string {
 
 	return current.datasetHash
 	//getDataset
-	/*sha256 := makeHasher(sha3.New256())
 
-	for _, v := range current.dataset {
-		binary.LittleEndian.PutUint64(tmp, v)
-		datas = append(datas, tmp...)
-	}
-	sha256(output, datas[:])
-	return output*/
-
-}
-func (d *Dataset) GetDatasetSeedhash(dataset []uint64) string {
+}*/
+/*func (d *Dataset) GetDatasetSeedhash(dataset []uint64) string {
 	//getDataset
 
 	var datas []byte
@@ -523,7 +513,7 @@ func (d *Dataset) GetDatasetSeedhash(dataset []uint64) string {
 	return "0x" + hex.EncodeToString(output)
 
 }
-
+*/
 type fakeElection struct {
 	//caoliang modify
 	privates []*ecdsa.PrivateKey

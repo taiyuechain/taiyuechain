@@ -235,8 +235,10 @@ func NewProtocolManager(config *params.ChainConfig, mode downloader.SyncMode, ne
 		//mecMark how to get ChainFastReader
 		seals := make([]bool, 1)
 		seals[0] = true
-		_, err := engine.VerifySnailHeaders(snailchain, headers, seals)
-		return <-err
+		//_, err := engine.VerifySnailHeaders(snailchain, headers, seals)
+		/*var err error
+		return <-err*/
+		return nil
 	}
 	snailHeighter := func() uint64 {
 		return snailchain.CurrentBlock().NumberU64()

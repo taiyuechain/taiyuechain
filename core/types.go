@@ -18,7 +18,6 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
@@ -65,7 +64,7 @@ type SnailValidator interface {
 	ValidateFruit(fruit *types.SnailBlock, headerNumber *big.Int, canonical bool) error
 	// VerifySnailSeal checking whether the given block satisfies
 	// the PoW difficulty requirements.
-	VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error
+	//VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error
 	// ValidateRewarded validates the given block if rewarded
 	ValidateRewarded(number uint64, hash common.Hash) error
 }

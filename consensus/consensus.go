@@ -91,7 +91,7 @@ type Engine interface {
 	// given engine. Verifying the seal may be done optionally here, or explicitly
 	// via the VerifySeal method.
 	VerifyHeader(chain ChainReader, header *types.Header) error
-	VerifySnailHeader(chain SnailChainReader, fastchain ChainReader, header *types.SnailHeader, seal bool, isFruit bool) error
+	//VerifySnailHeader(chain SnailChainReader, fastchain ChainReader, header *types.SnailHeader, seal bool, isFruit bool) error
 
 	// VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 	// concurrently. The method returns a quit channel to abort the operations and
@@ -104,11 +104,11 @@ type Engine interface {
 	// The method returns a quit channel to abort the operations and
 	// a results channel to retrieve the async verifications (the order is that of
 	// the input slice).
-	VerifySnailHeaders(chain SnailChainReader, headers []*types.SnailHeader, seals []bool) (chan<- struct{}, <-chan error)
+	//VerifySnailHeaders(chain SnailChainReader, headers []*types.SnailHeader, seals []bool) (chan<- struct{}, <-chan error)
 
 	// VerifySeal checks whether the crypto seal on a header is valid according to
 	// the consensus rules of the given engine.
-	VerifySnailSeal(chain SnailChainReader, header *types.SnailHeader, isFruit bool) error
+	//VerifySnailSeal(chain SnailChainReader, header *types.SnailHeader, isFruit bool) error
 
 	VerifyFreshness(chain SnailChainReader, fruit *types.SnailHeader, headerNumber *big.Int, canonical bool) error
 
@@ -134,11 +134,11 @@ type Engine interface {
 	FinalizeCommittee(block *types.Block) error
 
 	// Seal generates a new block for the given input block with the local miner's
-	Seal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error)
+	//Seal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error)
 
 	// ConSeal generates a new block for the given input block with the local miner's
 	// seal place on top.
-	ConSeal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}, send chan *types.SnailBlock)
+	//ConSeal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}, send chan *types.SnailBlock)
 
 	CalcSnailDifficulty(chain SnailChainReader, time uint64, parents []*types.SnailHeader) *big.Int
 
@@ -147,7 +147,7 @@ type Engine interface {
 	// APIs returns the RPC APIs this consensus engine provides.
 	APIs(chain ChainReader) []rpc.API
 
-	DataSetHash(epoch uint64) string
+	//DataSetHash(epoch uint64) string
 
 	GetRewardContentBySnailNumber(sBlock *types.SnailBlock) *types.SnailRewardContenet
 }

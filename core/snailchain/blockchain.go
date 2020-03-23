@@ -866,11 +866,11 @@ func (bc *SnailBlockChain) insertChain(chain types.SnailBlocks, verifySeals bool
 		seals[i] = verifySeals
 	}
 	//bc.CurrentSnailHeader
-	abort, results := bc.engine.VerifySnailHeaders(bc, headers, seals)
-	defer close(abort)
+	/*abort, results := bc.engine.VerifySnailHeaders(bc, headers, seals)
+	defer close(abort)*/
 
 	// Peek the error for the first block to decide the directing import logic
-	it := newInsertIterator(chain, results, bc.Validator())
+	it := newInsertIterator(chain, nil, bc.Validator())
 
 	block, err := it.next(verifyFruits)
 	bstart := time.Now()

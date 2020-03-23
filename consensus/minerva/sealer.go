@@ -16,23 +16,9 @@
 
 package minerva
 
-import (
-	crand "crypto/rand"
-	"math"
-	"math/big"
-	"math/rand"
-	"runtime"
-	"sync"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/consensus"
-	"github.com/taiyuechain/taiyuechain/core/types"
-)
-
 // Seal implements consensus.Engine, attempting to find a nonce that satisfies
 // the block's difficulty requirements.
-func (m *Minerva) Seal(chain consensus.SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error) {
+/*func (m *Minerva) Seal(chain consensus.SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error) {
 	// If we're running a fake PoW, simply return a 0 nonce immediately
 	log.Debug("? in Seal ?   ")
 	if m.config.PowMode == ModeFake || m.config.PowMode == ModeFullFake {
@@ -379,4 +365,4 @@ func (d *Dataset) UpdateTBL(offset [OFF_SKIP_LEN]int, skip [OFF_SKIP_LEN]int, pl
 		}
 	}
 	return plookupTbl
-}
+}*/

@@ -17,8 +17,8 @@
 package minerva
 
 import (
-	"bytes"
-	"encoding/binary"
+	//"bytes"
+	//"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	//"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -116,7 +116,7 @@ func GetParents(chain consensus.SnailChainReader, header *types.SnailHeader) []*
 	return parents
 }
 
-//VerifySnailHeader verify snail Header number
+/*//VerifySnailHeader verify snail Header number
 func (m *Minerva) VerifySnailHeader(chain consensus.SnailChainReader, fastchain consensus.ChainReader, header *types.SnailHeader, seal bool, isFruit bool) error {
 	// If we're running a full engine faking, accept any input as valid
 	if m.config.PowMode == ModeFullFake {
@@ -142,7 +142,7 @@ func (m *Minerva) VerifySnailHeader(chain consensus.SnailChainReader, fastchain 
 
 	// Sanity checks passed, do a proper verification
 	return m.verifySnailHeader(chain, fastchain, header, nil, parents, false, seal, isFruit)
-}
+}*/
 
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 // concurrently. The method returns a quit channel to abort the operations and
@@ -210,7 +210,7 @@ func (m *Minerva) VerifyHeaders(chain consensus.ChainReader, headers []*types.He
 	return abort, errorsOut
 }
 
-// VerifySnailHeaders verify snail headers
+/*// VerifySnailHeaders verify snail headers
 func (m *Minerva) VerifySnailHeaders(chain consensus.SnailChainReader, headers []*types.SnailHeader,
 	seals []bool) (chan<- struct{}, <-chan error) {
 	// If we're running a full engine faking, accept any input as valid
@@ -284,7 +284,7 @@ func (m *Minerva) VerifySnailHeaders(chain consensus.SnailChainReader, headers [
 		}
 	}()
 	return abort, errorsOut
-}
+}*/
 
 func (m *Minerva) verifyHeaderWorker(chain consensus.ChainReader, headers []*types.Header,
 	seals []bool, index int) error {
@@ -306,7 +306,7 @@ func (m *Minerva) verifyHeaderWorker(chain consensus.ChainReader, headers []*typ
 	//return nil
 }
 
-func (m *Minerva) verifySnailHeaderWorker(chain consensus.SnailChainReader, headers, parents []*types.SnailHeader,
+/*func (m *Minerva) verifySnailHeaderWorker(chain consensus.SnailChainReader, headers, parents []*types.SnailHeader,
 	seals []bool, index int) error {
 	//var parent *types.SnailHeader
 
@@ -321,7 +321,7 @@ func (m *Minerva) verifySnailHeaderWorker(chain consensus.SnailChainReader, head
 		parentHeaders = parents[count-int(params.DifficultyPeriod.Int64()) : count]
 	}
 	return m.verifySnailHeader(chain, nil, headers[index], nil, parentHeaders, false, seals[index], false)
-}
+}*/
 
 // verifyHeader checks whether a header conforms to the consensus rules of the
 // stock Truechain minerva engine.
@@ -368,7 +368,7 @@ func (m *Minerva) verifyHeader(chain consensus.ChainReader, header, parent *type
 
 	return nil
 }
-func (m *Minerva) verifySnailHeader(chain consensus.SnailChainReader, fastchain consensus.ChainReader, header, pointer *types.SnailHeader,
+/*func (m *Minerva) verifySnailHeader(chain consensus.SnailChainReader, fastchain consensus.ChainReader, header, pointer *types.SnailHeader,
 	parents []*types.SnailHeader, uncle bool, seal bool, isFruit bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {
@@ -419,7 +419,7 @@ func (m *Minerva) verifySnailHeader(chain consensus.SnailChainReader, fastchain 
 	}
 
 	return nil
-}
+}*/
 
 // CalcSnailDifficulty is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time
@@ -647,7 +647,7 @@ func calcDifficulty(config *params.ChainConfig, time uint64, parents []*types.Sn
 
 // VerifySnailSeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
-func (m *Minerva) VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error {
+/*func (m *Minerva) VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error {
 	// If we're running a fake PoW, accept any seal as valid
 	if m.config.PowMode == ModeFake || m.config.PowMode == ModeFullFake {
 		time.Sleep(m.fakeDelay)
@@ -696,11 +696,11 @@ func (m *Minerva) VerifySnailSeal(chain consensus.SnailChainReader, header *type
 	}
 
 	return nil
-}
+}*/
 
 // VerifySnailSeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
-func (m *Minerva) VerifySnailSeal2(hight *big.Int, nonce string, headNoNoncehash string, ftarg *big.Int, btarg *big.Int, haveFruits bool) (bool, bool, []byte) {
+/*func (m *Minerva) VerifySnailSeal2(hight *big.Int, nonce string, headNoNoncehash string, ftarg *big.Int, btarg *big.Int, haveFruits bool) (bool, bool, []byte) {
 	// If we're running a fake PoW, accept any seal as valid
 
 	nonceHash, _ := hex.DecodeString(nonce)
@@ -735,7 +735,7 @@ func (m *Minerva) VerifySnailSeal2(hight *big.Int, nonce string, headNoNoncehash
 	}
 
 	return false, false, []byte{}
-}
+}*/
 
 // Prepare implements consensus.Engine, initializing the difficulty field of a
 // header to conform to the minerva protocol. The changes are done inline.

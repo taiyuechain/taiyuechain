@@ -178,9 +178,9 @@ func (v *BlockValidator) ValidateBody(block *types.SnailBlock, verifyFruits bool
 
 // VerifySnailSeal checking whether the given block satisfies
 // the PoW difficulty requirements.
-func (v *BlockValidator) VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error {
+/*func (v *BlockValidator) VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error {
 	return v.engine.VerifySnailSeal(chain, header, true)
-}
+}*/
 
 //ValidateFruit is to verify if the fruit is legal
 func (v *BlockValidator) ValidateFruit(fruit *types.SnailBlock, headerNumber *big.Int, canonical bool) error {
@@ -217,11 +217,11 @@ func (v *BlockValidator) ValidateFruit(fruit *types.SnailBlock, headerNumber *bi
 		return err
 	}
 
-	header := fruit.Header()
+	/*header := fruit.Header()
 	if err := v.engine.VerifySnailHeader(v.bc, v.fastchain, header, true, true); err != nil {
 		log.Info("validate fruit verify failed.", "err", err)
 		return err
-	}
+	}*/
 
 	// validate the signatures of this fruit
 	if err := v.engine.VerifySigns(fruit.FastNumber(), fruit.FastHash(), fruit.Signs()); err != nil {
@@ -289,12 +289,12 @@ func (v *BlockValidator) parallelValidateFruit(fruit, block *types.SnailBlock, w
 		return
 	}
 
-	header := fruit.Header()
+	/*header := fruit.Header()
 	if err := v.engine.VerifySnailHeader(v.bc, v.fastchain, header, true, true); err != nil {
 		log.Info("parallelValidateFruit VerifySnailHeader failed.", "number", fruit.FastNumber(), "hash", fruit.Hash(), "err", err)
 		ch <- err
 		return
-	}
+	}*/
 
 	// validate the signatures of this fruit
 	if err := v.engine.VerifySigns(fruit.FastNumber(), fruit.FastHash(), fruit.Signs()); err != nil {
