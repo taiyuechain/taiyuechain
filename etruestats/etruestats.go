@@ -58,7 +58,7 @@ const (
 	chainHeadChanSize = 4096
 
 	// chainSnailHeadChanSize is the size of channel listening to SnailChainHeadEvent.
-	chainSnailHeadChanSize = 128
+	//chainSnailHeadChanSize = 128
 )
 
 type txPool interface {
@@ -150,11 +150,11 @@ func (s *Service) loop() {
 	// Subscribe to chain events to execute updates on
 	var blockchain blockChain
 	var txpool txPool
-	var snailBlockChain snailBlockChain
+	//var snailBlockChain snailBlockChain
 	if s.etrue != nil {
 		blockchain = s.etrue.BlockChain()
 		txpool = s.etrue.TxPool()
-		snailBlockChain = s.etrue.SnailBlockChain()
+		//snailBlockChain = s.etrue.SnailBlockChain()
 	} else {
 		blockchain = s.les.BlockChain()
 		txpool = s.les.TxPool()
@@ -170,9 +170,9 @@ func (s *Service) loop() {
 	defer txSub.Unsubscribe()
 
 	//snailBlock
-	chainsnailHeadCh := make(chan types.SnailChainHeadEvent, chainSnailHeadChanSize)
-	snailheadSub := snailBlockChain.SubscribeChainHeadEvent(chainsnailHeadCh)
-	defer snailheadSub.Unsubscribe()
+	//chainsnailHeadCh := make(chan types.SnailChainHeadEvent, chainSnailHeadChanSize)
+	//snailheadSub := snailBlockChain.SubscribeChainHeadEvent(chainsnailHeadCh)
+	//defer snailheadSub.Unsubscribe()
 
 	//fruit
 	/*chainFruitCh := make(chan types.NewMinedFruitEvent, chainSnailHeadChanSize)
@@ -200,11 +200,11 @@ func (s *Service) loop() {
 				}
 
 				// Notify of chain snailHead events, but drop if too frequent
-			case snailHead := <-chainsnailHeadCh:
+			/*case snailHead := <-chainsnailHeadCh:
 				select {
 				case snailHeadCh <- snailHead.Block:
 				default:
-				}
+				}*/
 				// Notify of new transaction events, but drop if too frequent
 			case <-txEventCh:
 				if time.Duration(mclock.Now()-lastTx) < time.Second {
@@ -672,12 +672,12 @@ func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockSta
 	)
 	if s.etrue != nil {
 		// Full nodes have all needed information available
-		if block == nil {
+		/*if block == nil {
 			block = s.etrue.SnailBlockChain().CurrentBlock()
 		}
 		header = block.Header()
 		td = s.etrue.SnailBlockChain().GetTd(header.Hash(), header.Number.Uint64())
-		fruitNumber = big.NewInt(int64(len((block.Fruits()))))
+		fruitNumber = big.NewInt(int64(len((block.Fruits()))))*/
 	} else {
 		// Light nodes would need on-demand lookups for transactions/uncles, skip
 		if block != nil {
@@ -774,7 +774,7 @@ func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error 
 		// No indexes requested, send back the top ones
 		var head int64
 		if s.etrue != nil {
-			head = s.etrue.SnailBlockChain().CurrentHeader().Number.Int64()
+			//head = s.etrue.SnailBlockChain().CurrentHeader().Number.Int64()
 		} else {
 			//head = s.les.SnailBlockChain().CurrentHeader().Number.Int64()
 		}
@@ -787,16 +787,16 @@ func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error 
 		}
 	}
 	// Gather the batch of blocks to report
-	history := make([]*snailBlockStats, len(indexes))
+	/*history := make([]*snailBlockStats, len(indexes))
 	for i, number := range indexes {
 		// Retrieve the next block if it's known to us
 		var snailBlock *types.SnailBlock
 		if s.etrue != nil {
-			snailBlock = s.etrue.SnailBlockChain().GetBlockByNumber(number)
+			//snailBlock = s.etrue.SnailBlockChain().GetBlockByNumber(number)
 		} else {
-			/*if header := s.les.BlockChain().GetHeaderByNumber(number); header != nil {
+			if header := s.les.BlockChain().GetHeaderByNumber(number); header != nil {
 				snailBlock = types.NewBlockWithHeader(header)
-			}*/
+			}
 		}
 		// If we do have the block, add to the history and continue
 		if snailBlock != nil {
@@ -806,16 +806,16 @@ func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error 
 		// Ran out of blocks, cut the report short and send
 		history = history[len(history)-i:]
 		break
-	}
+	}*/
 	// Assemble the history report and send it to the server
-	if len(history) > 0 {
+	/*if len(history) > 0 {
 		log.Trace("Sending historical snaiBlocks to etruestats", "first", history[0].Number, "last", history[len(history)-1].Number)
 	} else {
 		log.Trace("No history to send to stats server")
-	}
+	}*/
 	stats := map[string]interface{}{
 		"id":      s.node,
-		"history": history,
+		//"history": history,
 	}
 	report := map[string][]interface{}{
 		"emit": {"snailHistory", stats},

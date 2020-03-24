@@ -24,7 +24,7 @@ import (
 	"crypto/rand"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
+
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"math/big"
 	"sort"

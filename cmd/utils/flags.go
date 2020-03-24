@@ -44,7 +44,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -303,17 +302,17 @@ var (
 	SnailPoolJournalFlag = cli.StringFlag{
 		Name:  "fruitpool.journal",
 		Usage: "Disk journal for local fruit to survive node restarts",
-		Value: snailchain.DefaultSnailPoolConfig.Journal,
+		//Value: snailchain.DefaultSnailPoolConfig.Journal,
 	}
 	SnailPoolRejournalFlag = cli.DurationFlag{
 		Name:  "fruitpool.rejournal",
 		Usage: "Time interval to regenerate the local fruit journal",
-		Value: snailchain.DefaultSnailPoolConfig.Rejournal,
+		//Value: snailchain.DefaultSnailPoolConfig.Rejournal,
 	}
 	SnailPoolFruitCountFlag = cli.Uint64Flag{
 		Name:  "fruitpool.count",
 		Usage: "Maximum amount of fruits in fruitPending",
-		Value: snailchain.DefaultSnailPoolConfig.FruitCount,
+		//Value: snailchain.DefaultSnailPoolConfig.FruitCount,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -1016,7 +1015,7 @@ func setEthash(ctx *cli.Context, cfg *etrue.Config) {
 
 }
 
-func setSnailPool(ctx *cli.Context, cfg *snailchain.SnailPoolConfig) {
+/*func setSnailPool(ctx *cli.Context, cfg *snailchain.SnailPoolConfig) {
 	if ctx.GlobalIsSet(SnailPoolJournalFlag.Name) {
 		cfg.Journal = ctx.GlobalString(SnailPoolJournalFlag.Name)
 	}
@@ -1027,7 +1026,7 @@ func setSnailPool(ctx *cli.Context, cfg *snailchain.SnailPoolConfig) {
 		cfg.FruitCount = ctx.GlobalUint64(SnailPoolFruitCountFlag.Name)
 	}
 
-}
+}*/
 
 // checkExclusive verifies that only a single isntance of the provided flags was
 // set by the user. Each flag might optionally be followed by a string type to
@@ -1079,7 +1078,7 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setEthash(ctx, cfg)
-	setSnailPool(ctx, &cfg.SnailPool)
+	//setSnailPool(ctx, &cfg.SnailPool)
 	if ctx.GlobalIsSet(SyncModeFlag.Name) {
 		cfg.SyncMode = *GlobalTextMarshaler(ctx, SyncModeFlag.Name).(*downloader.SyncMode)
 	}
@@ -1328,7 +1327,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, schain *snailchain.SnailBlockChain, chainDb etruedb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain,  chainDb etruedb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
@@ -1368,12 +1367,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, sch
 	vmcfg := vm.Config{EnablePreimageRecording: ctx.GlobalBool(VMEnableDebugFlag.Name)}
 
 	fchain, err = core.NewBlockChain(chainDb, cache, config, engine, vmcfg)
-	schain, err = snailchain.NewSnailBlockChain(chainDb, config, engine, fchain)
+	//schain, err = snailchain.NewSnailBlockChain(chainDb, config, engine, fchain)
 
 	if err != nil {
 		Fatalf("Can't create BlockChain: %v", err)
 	}
-	return fchain, schain, chainDb
+	return fchain, chainDb
 }
 
 // MakeConsolePreloads retrieves the absolute paths for the console JavaScript

@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"math/big"
 

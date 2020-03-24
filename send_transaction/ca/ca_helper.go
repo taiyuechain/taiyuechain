@@ -22,7 +22,6 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"strings"
 )
 

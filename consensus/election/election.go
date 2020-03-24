@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
@@ -503,7 +502,7 @@ func (e *Election) getCommittee(fastNumber *big.Int, snailNumber *big.Int) *comm
 			lastElectionNumber:  new(big.Int).Set(common.Big0),
 			switchCheckNumber:   params.ElectionPeriodNumber,
 			members:             e.genesisCommittee,
-			switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), 0),
+			//switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), 0),
 		}
 	}
 
@@ -533,7 +532,7 @@ func (e *Election) getCommittee(fastNumber *big.Int, snailNumber *big.Int) *comm
 				lastElectionNumber:  new(big.Int).Set(common.Big0),
 				switchCheckNumber:   params.ElectionPeriodNumber,
 				members:             e.genesisCommittee,
-				switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), 0),
+				//switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), 0),
 			}
 		}
 		// get pre snail block to elect current committee
@@ -559,7 +558,7 @@ func (e *Election) getCommittee(fastNumber *big.Int, snailNumber *big.Int) *comm
 			switchCheckNumber:   lastSnailNumber,
 			members:             members.Members,
 			backupMembers:       members.Backups,
-			switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), new(big.Int).Sub(committeeNumber, common.Big1).Uint64()),
+			//switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), new(big.Int).Sub(committeeNumber, common.Big1).Uint64()),
 		}
 	}
 
@@ -575,7 +574,7 @@ func (e *Election) getCommittee(fastNumber *big.Int, snailNumber *big.Int) *comm
 		switchCheckNumber:   new(big.Int).Add(lastSnailNumber, params.ElectionPeriodNumber),
 		members:             members.Members,
 		backupMembers:       members.Backups,
-		switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), committeeNumber.Uint64()),
+		//switches:            rawdb.ReadCommitteeStates(e.snailchain.GetDatabase(), committeeNumber.Uint64()),
 	}
 }
 
@@ -1155,7 +1154,7 @@ func (e *Election) switchMembers(fastNumber *big.Int, infos []*types.CommitteeMe
 		if len(committee.switches) > 0 {
 			log.Info("Reset committee switchinfo on start block", "committee", committee.id, "current", fastNumber)
 			committee.switches = nil
-			rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), committee.id.Uint64(), nil)
+			//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), committee.id.Uint64(), nil)
 		}
 		return
 	}
@@ -1163,7 +1162,7 @@ func (e *Election) switchMembers(fastNumber *big.Int, infos []*types.CommitteeMe
 	// Store all switch block number
 	log.Info("Election update committee member state", "block", fastNumber)
 	committee.switches = append(committee.switches, fastNumber)
-	rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), committee.id.Uint64(), committee.switches)
+	//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), committee.id.Uint64(), committee.switches)
 
 	// Update pbft server's committee info via pbft agent proxy
 	members, backups := e.filterWithSwitchInfo(committee)
@@ -1217,7 +1216,7 @@ func (e *Election) Start() error {
 		if currentCommittee.switches[i].Cmp(fastHeadNumber) > 0 {
 			log.Info("Rewind committee switchinfo", "committee", currentCommittee.id, "current", fastHeadNumber)
 			currentCommittee.switches = currentCommittee.switches[:i]
-			rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
+			//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
 			break
 		}
 	}
@@ -1230,7 +1229,7 @@ func (e *Election) Start() error {
 		if block != nil && len(block.SwitchInfos()) > 0 {
 			log.Info("Election append switch block height", "number", switchNum)
 			currentCommittee.switches = append(currentCommittee.switches, switchNum)
-			rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
+			//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
 		}
 		switchNum = new(big.Int).Add(switchNum, common.Big1)
 	}

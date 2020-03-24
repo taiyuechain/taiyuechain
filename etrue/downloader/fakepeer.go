@@ -20,8 +20,6 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	core "github.com/taiyuechain/taiyuechain/core/snailchain"
-	"github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 )
@@ -32,20 +30,20 @@ import (
 type FakePeer struct {
 	id string
 	db etruedb.Database
-	hc *core.HeaderChain
+	//hc *core.HeaderChain
 	dl *Downloader
 }
 
 // NewFakePeer creates a new mock downloader peer with the given data sources.
-func NewFakePeer(id string, db etruedb.Database, hc *core.HeaderChain, dl *Downloader) *FakePeer {
-	return &FakePeer{id: id, db: db, hc: hc, dl: dl}
+func NewFakePeer(id string, db etruedb.Database,  dl *Downloader) *FakePeer {
+	return &FakePeer{id: id, db: db,  dl: dl}
 }
 
 // Head implements downloader.Peer, returning the current head hash and number
 // of the best known header.
 func (p *FakePeer) Head() (common.Hash, *big.Int) {
-	header := p.hc.CurrentHeader()
-	return header.Hash(), header.Number
+	//header := p.hc.CurrentHeader()
+	return common.Hash{},nil
 }
 
 // RequestHeadersByHash implements downloader.Peer, returning a batch of headers
@@ -53,9 +51,9 @@ func (p *FakePeer) Head() (common.Hash, *big.Int) {
 func (p *FakePeer) RequestHeadersByHash(hash common.Hash, amount int, skip int, reverse bool, isFastchain bool) error {
 	var (
 		headers []*types.SnailHeader
-		unknown bool
+		//unknown bool
 	)
-	for !unknown && len(headers) < amount {
+	/*for !unknown && len(headers) < amount {
 		origin := p.hc.GetHeaderByHash(hash)
 		if origin == nil {
 			break
@@ -87,7 +85,7 @@ func (p *FakePeer) RequestHeadersByHash(hash common.Hash, amount int, skip int, 
 				unknown = true
 			}
 		}
-	}
+	}*/
 	p.dl.DeliverHeaders(p.id, headers)
 	return nil
 }
@@ -97,9 +95,9 @@ func (p *FakePeer) RequestHeadersByHash(hash common.Hash, amount int, skip int, 
 func (p *FakePeer) RequestHeadersByNumber(number uint64, amount int, skip int, reverse bool, isFastchain bool) error {
 	var (
 		headers []*types.SnailHeader
-		unknown bool
+		//unknown bool
 	)
-	for !unknown && len(headers) < amount {
+	/*for !unknown && len(headers) < amount {
 		origin := p.hc.GetHeaderByNumber(number)
 		if origin == nil {
 			break
@@ -114,7 +112,7 @@ func (p *FakePeer) RequestHeadersByNumber(number uint64, amount int, skip int, r
 			number += uint64(skip + 1)
 		}
 		headers = append(headers, origin)
-	}
+	}*/
 	p.dl.DeliverHeaders(p.id, headers)
 	return nil
 }
@@ -125,11 +123,11 @@ func (p *FakePeer) RequestBodies(hashes []common.Hash, isFastchain bool, call ui
 	var (
 		fruits [][]*types.SnailBlock
 	)
-	for _, hash := range hashes {
+	/*for _, hash := range hashes {
 		block := rawdb.ReadBlock(p.db, hash, *p.hc.GetBlockNumber(hash))
 		fruits = append(fruits, block.Fruits())
 
-	}
+	}*/
 	p.dl.DeliverBodies(p.id, fruits)
 	return nil
 }

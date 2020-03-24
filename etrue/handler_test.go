@@ -18,7 +18,6 @@ package etrue
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"math"
 	"math/big"
 	"math/rand"

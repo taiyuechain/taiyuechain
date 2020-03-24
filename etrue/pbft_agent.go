@@ -36,7 +36,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus"
 	elect "github.com/taiyuechain/taiyuechain/consensus/election"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
@@ -74,7 +73,7 @@ var (
 // Backend wraps all methods required for  pbft_agent
 type Backend interface {
 	BlockChain() *core.BlockChain
-	SnailBlockChain() *snailchain.SnailBlockChain
+	//SnailBlockChain() *snailchain.SnailBlockChain
 	TxPool() *core.TxPool
 	Config() *Config
 	Etherbase() (etherbase common.Address, err error)
@@ -84,7 +83,7 @@ type Backend interface {
 type PbftAgent struct {
 	config     *params.ChainConfig
 	fastChain  *core.BlockChain
-	snailChain *snailchain.SnailBlockChain
+	//snailChain *snailchain.SnailBlockChain
 	engine     consensus.Engine
 	eth        Backend
 	signer     types.Signer
@@ -155,7 +154,7 @@ func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.En
 		engine:               engine,
 		eth:                  etrue,
 		fastChain:            etrue.BlockChain(),
-		snailChain:           etrue.SnailBlockChain(),
+		//snailChain:           etrue.SnailBlockChain(),
 		currentCommitteeInfo: new(types.CommitteeInfo),
 		nextCommitteeInfo:    new(types.CommitteeInfo),
 		committeeIds:         make([]*big.Int, committeeIDChanSize),
@@ -811,7 +810,7 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 		txs := types.NewTransactionsByPriceAndNonce(work.signer, pending)
 		work.commitTransactions(agent.mux, txs, agent.fastChain, feeAmount)
 		//calculate snailBlock reward
-		agent.rewardSnailBlock(header)
+		//agent.rewardSnailBlock(header)
 		//padding Header.Root, TxHash, ReceiptHash.  Create the new block to seal with the consensus engine
 		if fastBlock, err = agent.engine.Finalize(agent.fastChain, header, work.state, work.txs, work.receipts, feeAmount); err != nil {
 			log.Error("Failed to finalize block for sealing", "err", err)
@@ -839,7 +838,7 @@ func (agent *PbftAgent) GetSeedMember() []*types.CommitteeMember {
 	return nil
 }
 
-//validate space between latest fruit number of snailchain  and  lastest fastBlock number
+/*//validate space between latest fruit number of snailchain  and  lastest fastBlock number
 func (agent *PbftAgent) validateBlockSpace(header *types.Header) error {
 	if agent.singleNode {
 		return nil
@@ -863,9 +862,9 @@ func (agent *PbftAgent) validateBlockSpace(header *types.Header) error {
 		}
 	}
 	return nil
-}
+}*/
 
-//generate rewardSnailHegiht
+/*//generate rewardSnailHegiht
 func (agent *PbftAgent) rewardSnailBlock(header *types.Header) {
 	rewardSnailHegiht := agent.fastChain.NextSnailNumberReward()
 	space := new(big.Int).Sub(agent.snailChain.CurrentBlock().Number(), rewardSnailHegiht).Int64()
@@ -878,13 +877,11 @@ func (agent *PbftAgent) rewardSnailBlock(header *types.Header) {
 			log.Error("cannot find snailBlock by rewardSnailHegiht.", "snailHeight", rewardSnailHegiht.Uint64())
 		}
 	}
-}
+}*/
 
-func (agent *PbftAgent) GetSnailRewardContent(rewardSnailHegiht uint64) *types.SnailRewardContenet {
+/*func (agent *PbftAgent) GetSnailRewardContent(rewardSnailHegiht uint64) *types.SnailRewardContenet {
 	//currentNumber := agent.snailChain.CurrentBlock().Number().Uint64()
-	/*if space := currentNumber - rewardSnailHegiht; space < params.SnailRewardInterval.Uint64() && rewardSnailHegiht < currentNumber {
-		return nil
-	}*/
+
 	blockReward := agent.fastChain.CurrentReward()
 	if blockReward == nil || blockReward.SnailNumber.Uint64() < rewardSnailHegiht {
 		return nil
@@ -895,7 +892,7 @@ func (agent *PbftAgent) GetSnailRewardContent(rewardSnailHegiht uint64) *types.S
 	}
 	content := agent.engine.GetRewardContentBySnailNumber(snailBlock)
 	return content
-}
+}*/
 
 //GenerateSignWithVote  generate sign from committeeMember in fastBlock
 func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, result bool) (*types.PbftSign, error) {
@@ -949,11 +946,11 @@ func (agent *PbftAgent) VerifyFastBlock(fb *types.Block, result bool) (*types.Pb
 		return voteSign, err
 	}
 
-	err = agent.verifyRewardInCommittee(fb)
+	/*err = agent.verifyRewardInCommittee(fb)
 	if err != nil {
 		voteSign, _ := agent.GenerateSignWithVote(fb, types.VoteAgreeAgainst, result)
 		return voteSign, err
-	}
+	}*/
 
 	err = bc.Validator().ValidateBody(fb, false)
 	if err != nil {
@@ -1022,7 +1019,7 @@ func validateTxInCommittee(fb *types.Block) error {
 
 }
 
-func (agent *PbftAgent) verifyRewardInCommittee(fb *types.Block) error {
+/*func (agent *PbftAgent) verifyRewardInCommittee(fb *types.Block) error {
 	supposedRewardedNumber := agent.fastChain.NextSnailNumberReward()
 	currentSnailBlock := agent.snailChain.CurrentBlock().Number()
 	space := new(big.Int).Sub(currentSnailBlock, supposedRewardedNumber).Int64()
@@ -1042,7 +1039,7 @@ func (agent *PbftAgent) verifyRewardInCommittee(fb *types.Block) error {
 		return err
 	}
 	return nil
-}
+}*/
 
 //BroadcastConsensus  when More than 2/3 signs with agree,
 //  committee Member Reach a consensus  and insert the fastBlock into fastBlockChain

@@ -33,7 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
-	snaildb "github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
@@ -159,9 +158,9 @@ func SetupGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.ChainConf
 	}
 
 	fastConfig, fastHash, fastErr := setupFastGenesisBlock(db, genesis)
-	_, snailHash, _ := setupSnailGenesisBlock(db, genesis)
 
-	return fastConfig, fastHash, snailHash, fastErr
+
+	return fastConfig, fastHash, common.Hash{}, fastErr
 
 }
 
@@ -329,7 +328,7 @@ func (g *Genesis) MustFastCommit(db etruedb.Database) *types.Block {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func setupSnailGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+/*func setupSnailGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -357,7 +356,7 @@ func setupSnailGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.Chai
 	// Get the existing chain configuration.
 	newcfg := genesis.configOrDefault(stored)
 	return newcfg, stored, nil
-}
+}*/
 
 // ToSnailBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
@@ -400,7 +399,7 @@ func (g *Genesis) ToSnailBlock(db etruedb.Database) *types.SnailBlock {
 
 // CommitSnail writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
-func (g *Genesis) CommitSnail(db etruedb.Database) (*types.SnailBlock, error) {
+/*func (g *Genesis) CommitSnail(db etruedb.Database) (*types.SnailBlock, error) {
 	block := g.ToSnailBlock(db)
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
@@ -418,18 +417,18 @@ func (g *Genesis) CommitSnail(db etruedb.Database) (*types.SnailBlock, error) {
 	// }
 	// snaildb.WriteChainConfig(db, block.Hash(), config)
 	return block, nil
-}
+}*/
 
 // MustSnailCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
-func (g *Genesis) MustSnailCommit(db etruedb.Database) *types.SnailBlock {
+/*func (g *Genesis) MustSnailCommit(db etruedb.Database) *types.SnailBlock {
 	block, err := g.CommitSnail(db)
 	if err != nil {
 		panic(err)
 	}
 	return block
 }
-
+*/
 // DefaultGenesisBlock returns the Truechain main net snail block.
 func DefaultGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("65750000000000000000000000", 10)
@@ -520,8 +519,9 @@ func GenesisFastBlockForTesting(db etruedb.Database, addr common.Address, balanc
 
 // GenesisSnailBlockForTesting creates and writes a block in which addr has the given wei balance.
 func GenesisSnailBlockForTesting(db etruedb.Database, addr common.Address, balance *big.Int) *types.SnailBlock {
-	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
-	return g.MustSnailCommit(db)
+	//g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
+	//return g.MustSnailCommit(db)
+	return nil
 }
 
 // DefaultDevGenesisBlock returns the Rinkeby network genesis block.

@@ -25,7 +25,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
-	snaildb "github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"

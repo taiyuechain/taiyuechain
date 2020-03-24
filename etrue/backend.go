@@ -41,8 +41,6 @@ import (
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
-	chain "github.com/taiyuechain/taiyuechain/core/snailchain"
-	"github.com/taiyuechain/taiyuechain/core/snailchain/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -77,13 +75,13 @@ type Truechain struct {
 	// Handlers
 	txPool *core.TxPool
 
-	snailPool *chain.SnailPool
+	//snailPool *chain.SnailPool
 
 	agent    *PbftAgent
 	election *elect.Election
 
 	blockchain      *core.BlockChain
-	snailblockchain *chain.SnailBlockChain
+	//snailblockchain *chain.SnailBlockChain
 	protocolManager *ProtocolManager
 	lesServer       LesServer
 
@@ -135,7 +133,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		return nil, err
 	}
 
-	chainConfig, genesisHash, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+	chainConfig, _, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
@@ -164,13 +162,13 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 
 	log.Info("Initialising Truechain protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
-	if !config.SkipBcVersionCheck {
+	/*if !config.SkipBcVersionCheck {
 		bcVersion := rawdb.ReadDatabaseVersion(chainDb)
 		if bcVersion != core.BlockChainVersion && bcVersion != 0 {
 			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run getrue upgradedb.\n", bcVersion, core.BlockChainVersion)
 		}
 		rawdb.WriteDatabaseVersion(chainDb, core.BlockChainVersion)
-	}
+	}*/
 	var (
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 		cacheConfig = &core.CacheConfig{Deleted: config.DeletedState, Disabled: config.NoPruning, TrieNodeLimit: config.TrieCache, TrieTimeLimit: config.TrieTimeout}
@@ -181,24 +179,24 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		return nil, err
 	}
 
-	etrue.snailblockchain, err = chain.NewSnailBlockChain(chainDb, etrue.chainConfig, etrue.engine, etrue.blockchain)
+	/*etrue.snailblockchain, err = chain.NewSnailBlockChain(chainDb, etrue.chainConfig, etrue.engine, etrue.blockchain)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	// Rewind the chain in case of an incompatible config upgrade.
-	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
+	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
 		etrue.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
-	}
+	}*/
 
 	//  rewind snail if case of incompatible config
-	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
+	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding snail chain to upgrade configuration", "err", compat)
 		etrue.snailblockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
-	}
+	}*/
 
 	etrue.bloomIndexer.Start(etrue.blockchain)
 
@@ -209,16 +207,16 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
 	}
 
-	if config.SnailPool.Journal != "" {
+	/*if config.SnailPool.Journal != "" {
 		config.SnailPool.Journal = ctx.ResolvePath(config.SnailPool.Journal)
-	}
+	}*/
 
 	etrue.txPool = core.NewTxPool(config.TxPool, etrue.chainConfig, etrue.blockchain)
 
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine, sv)
-	etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
+	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
-	etrue.election = elect.NewElection(etrue.blockchain, etrue.snailblockchain, etrue.config)
+	etrue.election = elect.NewElection(etrue.blockchain,nil, etrue.config)
 	stateDB, err := etrue.blockchain.State()
 	if err != nil {
 		return nil, err
@@ -237,15 +235,14 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
 
 	etrue.engine.SetElection(etrue.election)
-	etrue.engine.SetSnailChainReader(etrue.snailblockchain)
+	//etrue.engine.SetSnailChainReader(etrue.snailblockchain)
 	etrue.election.SetEngine(etrue.engine)
 
 	//coinbase, _ := etrue.Etherbase()
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
 	if etrue.protocolManager, err = NewProtocolManager(
 		etrue.chainConfig, config.SyncMode, config.NetworkId,
-		etrue.eventMux, etrue.txPool, etrue.snailPool, etrue.engine,
-		etrue.blockchain, etrue.snailblockchain,
+		etrue.eventMux, etrue.txPool,  etrue.engine, etrue.blockchain,
 		chainDb, etrue.agent); err != nil {
 		return nil, err
 	}
@@ -466,10 +463,10 @@ func (s *Truechain) AccountManager() *accounts.Manager { return s.accountManager
 func (s *Truechain) BlockChain() *core.BlockChain      { return s.blockchain }
 func (s *Truechain) Config() *Config                   { return s.config }
 
-func (s *Truechain) SnailBlockChain() *chain.SnailBlockChain { return s.snailblockchain }
+//func (s *Truechain) SnailBlockChain() *chain.SnailBlockChain { return s.snailblockchain }
 func (s *Truechain) TxPool() *core.TxPool                    { return s.txPool }
 
-func (s *Truechain) SnailPool() *chain.SnailPool { return s.snailPool }
+//func (s *Truechain) SnailPool() *chain.SnailPool { return s.snailPool }
 
 func (s *Truechain) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Truechain) Engine() consensus.Engine           { return s.engine }
@@ -523,7 +520,7 @@ func (s *Truechain) Start(srvr *p2p.Server) error {
 	s.election.Start()
 
 	//start fruit journal
-	s.snailPool.Start()
+	//s.snailPool.Start()
 
 	// Start the networking layer and the light server if requested
 	s.protocolManager.Start2(maxPeers)
@@ -540,13 +537,13 @@ func (s *Truechain) Stop() error {
 	s.stopPbftServer()
 	s.bloomIndexer.Close()
 	s.blockchain.Stop()
-	s.snailblockchain.Stop()
+	//s.snailblockchain.Stop()
 	s.protocolManager.Stop()
 	if s.lesServer != nil {
 		s.lesServer.Stop()
 	}
 	s.txPool.Stop()
-	s.snailPool.Stop()
+	//s.snailPool.Stop()
 	//s.miner.Stop()
 	s.eventMux.Stop()
 

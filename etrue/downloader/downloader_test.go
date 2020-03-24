@@ -25,7 +25,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/etrue/fastdownloader"
 

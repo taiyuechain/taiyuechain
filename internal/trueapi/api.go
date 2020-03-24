@@ -1169,10 +1169,10 @@ func (s *PublicBlockChainAPI) GetRewardBlock(ctx context.Context, blockNr rpc.Bl
 	return nil, err
 }
 
-func (s *PublicBlockChainAPI) GetSnailRewardContent(blockNr rpc.BlockNumber) map[string]interface{} {
+/*func (s *PublicBlockChainAPI) GetSnailRewardContent(blockNr rpc.BlockNumber) map[string]interface{} {
 	snailRewardContent := s.b.GetSnailRewardContent(blockNr)
 	return RPCMarshalRewardContent(snailRewardContent)
-}
+}*/
 
 func RPCMarshalRewardContent(content *types.SnailRewardContenet) map[string]interface{} {
 	if content == nil {

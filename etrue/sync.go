@@ -69,11 +69,11 @@ func (pm *ProtocolManager) syncTransactions(p *peer) {
 // syncFruits starts sending all currently pending fruits to the given peer.
 func (pm *ProtocolManager) syncFruits(p *peer) {
 	var fruits types.SnailBlocks
-	pending := pm.SnailPool.PendingFruits()
+	/*pending := pm.SnailPool.PendingFruits()
 	for _, batch := range pending {
 		fruits = append(fruits, batch)
-	}
-	log.Debug("syncFruits", "pending", len(pending), "fts", len(fruits))
+	}*/
+	//log.Debug("syncFruits", "pending", len(pending), "fts", len(fruits))
 	if len(fruits) == 0 {
 		return
 	}
@@ -288,15 +288,15 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	}
 
 	// Make sure the peer's TD is higher than our own
-	currentBlock := pm.snailchain.CurrentBlock()
-	td := pm.snailchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
+	/*currentBlock := pm.snailchain.CurrentBlock()
+	td := pm.snailchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())*/
 	pHead, pTd := peer.Head()
 	_, fastHeight := peer.fastHead, peer.fastHeight.Uint64()
 
 	pm.fdownloader.SetSyncStatsChainHeightLast(fastHeight)
-	currentNumber := pm.blockchain.CurrentBlock().NumberU64()
-	log.Debug("synchronise  ", "pHead", pHead, "pTd", pTd, "td", td, "fastHeight", fastHeight, "currentNumber", currentNumber, "snailHeight", currentBlock.Number())
-	if pTd.Cmp(td) <= 0 {
+	//currentNumber := pm.blockchain.CurrentBlock().NumberU64()
+	//log.Debug("synchronise  ", "pHead", pHead, "pTd", pTd, "td", td, "fastHeight", fastHeight, "currentNumber", currentNumber, "snailHeight", currentBlock.Number())
+	/*if pTd.Cmp(td) <= 0 {
 
 		if fastHeight > currentNumber {
 			pm.eventMux.Post(downloader.StartEvent{})
@@ -311,7 +311,7 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 			atomic.StoreUint32(&pm.acceptFruits, 1) // Mark initial sync done on any fetcher import
 		}
 		return
-	}
+	}*/
 
 	// Otherwise try to sync with the downloader
 	mode := downloader.FullSync
@@ -337,9 +337,9 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		var pivotHeader *types.Header
 
 		// Make sure the peer's total difficulty we are synchronizing is higher.
-		if pm.snailchain.GetTdByHash(pm.snailchain.CurrentFastBlock().Hash()).Cmp(pTd) >= 0 {
+		/*if pm.snailchain.GetTdByHash(pm.snailchain.CurrentFastBlock().Hash()).Cmp(pTd) >= 0 {
 			return
-		}
+		}*/
 
 		var err error
 		pivotNumber := fastHeight - dtype.FsMinFullBlocks
@@ -375,7 +375,7 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	atomic.StoreUint32(&pm.acceptTxs, 1)    // Mark initial sync done
 	atomic.StoreUint32(&pm.acceptFruits, 1) // Mark initial sync done on any fetcher import
 	//atomic.StoreUint32(&pm.acceptSnailBlocks, 1) // Mark initial sync done on any fetcher import
-	if head := pm.snailchain.CurrentBlock(); head.NumberU64() > 0 {
+	/*if head := pm.snailchain.CurrentBlock(); head.NumberU64() > 0 {
 		// We've completed a sync cycle, notify all peers of new state. This path is
 		// essential in star-topology networks where a gateway node needs to notify
 		// all its out-of-date peers of the availability of a new block. This failure
@@ -383,7 +383,7 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		// degenerate connectivity, but it should be healthy for the mainnet too to
 		// more reliably update peers or the local TD state.
 		go pm.BroadcastSnailBlock(head, false)
-	}
+	}*/
 	if head := pm.blockchain.CurrentBlock(); head.NumberU64() > 0 {
 		// We've completed a sync cycle, notify all peers of new state. This path is
 		// essential in star-topology networks where a gateway node needs to notify

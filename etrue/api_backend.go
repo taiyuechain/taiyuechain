@@ -53,7 +53,8 @@ func (b *TrueAPIBackend) CurrentBlock() *types.Block {
 }
 
 func (b *TrueAPIBackend) CurrentSnailBlock() *types.SnailBlock {
-	return b.etrue.snailblockchain.CurrentBlock()
+	return nil
+	//return b.etrue.snailblockchain.CurrentBlock()
 }
 
 func (b *TrueAPIBackend) SetHead(number uint64) {
@@ -63,7 +64,7 @@ func (b *TrueAPIBackend) SetHead(number uint64) {
 
 func (b *TrueAPIBackend) SetSnailHead(number uint64) {
 	b.etrue.protocolManager.downloader.Cancel()
-	b.etrue.snailblockchain.SetHead(number)
+	//b.etrue.snailblockchain.SetHead(number)
 }
 
 func (b *TrueAPIBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error) {
@@ -144,11 +145,13 @@ func (b *TrueAPIBackend) GetBlock(ctx context.Context, hash common.Hash) (*types
 }
 
 func (b *TrueAPIBackend) GetSnailBlock(ctx context.Context, hash common.Hash) (*types.SnailBlock, error) {
-	return b.etrue.snailblockchain.GetBlockByHash(hash), nil
+	//return b.etrue.snailblockchain.GetBlockByHash(hash), nil
+	return nil,nil
 }
 
 func (b *TrueAPIBackend) GetFruit(ctx context.Context, fastblockHash common.Hash) (*types.SnailBlock, error) {
-	return b.etrue.snailblockchain.GetFruit(fastblockHash), nil
+	//return b.etrue.snailblockchain.GetFruit(fastblockHash), nil
+	return nil,nil
 }
 
 func (b *TrueAPIBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
@@ -175,7 +178,8 @@ func (b *TrueAPIBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*ty
 }
 
 func (b *TrueAPIBackend) GetTd(blockHash common.Hash) *big.Int {
-	return b.etrue.snailblockchain.GetTdByHash(blockHash)
+	//return b.etrue.snailblockchain.GetTdByHash(blockHash)
+	return nil
 }
 
 func (b *TrueAPIBackend) GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmCfg vm.Config) (*vm.EVM, func() error, error) {
@@ -213,9 +217,9 @@ func (b *TrueAPIBackend) GetReward(number int64) *types.BlockReward {
 	return b.etrue.blockchain.GetBlockReward(uint64(number))
 }
 
-func (b *TrueAPIBackend) GetSnailRewardContent(snailNumber rpc.BlockNumber) *types.SnailRewardContenet {
+/*func (b *TrueAPIBackend) GetSnailRewardContent(snailNumber rpc.BlockNumber) *types.SnailRewardContenet {
 	return b.etrue.agent.GetSnailRewardContent(uint64(snailNumber))
-}
+}*/
 
 func (b *TrueAPIBackend) GetCommittee(number rpc.BlockNumber) (map[string]interface{}, error) {
 	return b.etrue.election.GetCommitteeById(big.NewInt(number.Int64())), nil
@@ -282,15 +286,18 @@ func (b *TrueAPIBackend) AccountManager() *accounts.Manager {
 }
 
 func (b *TrueAPIBackend) SnailPoolContent() []*types.SnailBlock {
-	return b.etrue.SnailPool().Content()
+	//return b.etrue.SnailPool().Content()
+	return nil
 }
 
 func (b *TrueAPIBackend) SnailPoolInspect() []*types.SnailBlock {
-	return b.etrue.SnailPool().Inspect()
+	//return b.etrue.SnailPool().Inspect()
+	return nil
 }
 
 func (b *TrueAPIBackend) SnailPoolStats() (pending int, unVerified int) {
-	return b.etrue.SnailPool().Stats()
+	//return b.etrue.SnailPool().Stats()
+	return 0,0
 }
 
 func (b *TrueAPIBackend) BloomStatus() (uint64, uint64) {

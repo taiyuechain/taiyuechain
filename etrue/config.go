@@ -29,7 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/core/snailchain"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etrue/gasprice"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -57,7 +56,7 @@ var DefaultConfig = Config{
 	GasPrice: big.NewInt(1 * params.Babbage),
 
 	TxPool:    core.DefaultTxPoolConfig,
-	SnailPool: snailchain.DefaultSnailPoolConfig,
+	//SnailPool: snailchain.DefaultSnailPoolConfig,
 	GPO: gasprice.Config{
 		Blocks:     20,
 		Percentile: 60,
@@ -154,7 +153,7 @@ type Config struct {
 	TxPool core.TxPoolConfig
 
 	//fruit pool options
-	SnailPool snailchain.SnailPoolConfig
+	//SnailPool snailchain.SnailPoolConfig
 
 	// Gas Price Oracle options
 	GPO gasprice.Config
