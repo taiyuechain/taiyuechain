@@ -91,11 +91,12 @@ const (
 	SnailBlockBodiesMsg     = 0x0d
 	NewSnailBlockMsg        = 0x0e
 
-
 	NewSnailBlockHashesMsg = 0x13
 
 	TbftNodeInfoHashMsg = 0x15
 	GetTbftNodeInfoMsg  = 0x16
+
+	Camsg = 0x18
 )
 
 type errCode int
@@ -110,6 +111,7 @@ const (
 	ErrForkIDRejected
 	ErrNoStatusMsg
 	ErrExtraStatusMsg
+	ErrCamsg
 )
 
 func (e errCode) String() string {
@@ -148,7 +150,6 @@ type txPool interface {
 	// SubscribeNewTxsEvent should return an event subscription of
 	// NewTxsEvent and send events to the given channel.
 	SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription*/
-
 
 	// AddRemotes should add the given transactions to the pool.
 	AddRemotes([]*types.Transaction) []error
