@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -30,7 +31,6 @@ import (
 	"github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/rpc"
-
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -223,6 +223,10 @@ func (ec *Client) BlockByNumber(ctx context.Context, number *big.Int) (*types.Bl
 	return ec.getBlock(ctx, "etrue_getBlockByNumber", toBlockNumArg(number), true)
 }
 
+/*func (ec *Client) CaByDir(ctx context.Context, singcertPath string) (*cim.ReIdentity, error) {
+	return ec.getCa(ctx, "etrue_getCA", singcertPath, true)
+}*/
+
 type rpcBlock struct {
 	Hash         common.Hash              `json:"hash"`
 	Transactions []rpcTransaction         `json:"transactions"`
@@ -271,6 +275,15 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 		txs[i] = tx.tx
 	}
 	return types.NewBlockWithHeader(head).WithBody(txs, body.Signs, body.SwitchInfos), nil
+}
+func (ec *Client) GetCa(ctx context.Context, args ...interface{}) (*cim.ReIdentity, error) {
+	var raw *cim.ReIdentity
+	err := ec.c.CallContext(ctx, &raw, "etrue_getCa", args...)
+	if err == nil && raw == nil {
+		err = truechain.NotFound
+	}
+	return raw, err
+
 }
 
 // HeaderByHash returns the block header with the given hash.
