@@ -18,6 +18,8 @@ package etrue
 
 import (
 	"context"
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/cim/config"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -109,6 +111,16 @@ func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNum
 	}
 	return b.etrue.blockchain.GetBlockByNumber(uint64(blockNr)), nil
 }
+func (b *TrueAPIBackend) GetCa(ctx context.Context, dir string) (interface{}, error) {
+	// Only snailchain has miner, also return current block here for fastchain
+	cimConfigDir, _ := config.GetDevCIMDir()
+	singcertPath := cimConfigDir + dir
+	id, err := cim.GetLocalIdentityDataFromConfig(singcertPath)
+	if err != nil {
+		return nil, err
+	}
+	return id, nil
+}
 
 /*
 func (b *TrueAPIBackend) SnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailBlock, error) {
@@ -146,12 +158,12 @@ func (b *TrueAPIBackend) GetBlock(ctx context.Context, hash common.Hash) (*types
 
 func (b *TrueAPIBackend) GetSnailBlock(ctx context.Context, hash common.Hash) (*types.SnailBlock, error) {
 	//return b.etrue.snailblockchain.GetBlockByHash(hash), nil
-	return nil,nil
+	return nil, nil
 }
 
 func (b *TrueAPIBackend) GetFruit(ctx context.Context, fastblockHash common.Hash) (*types.SnailBlock, error) {
 	//return b.etrue.snailblockchain.GetFruit(fastblockHash), nil
-	return nil,nil
+	return nil, nil
 }
 
 func (b *TrueAPIBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
@@ -297,7 +309,7 @@ func (b *TrueAPIBackend) SnailPoolInspect() []*types.SnailBlock {
 
 func (b *TrueAPIBackend) SnailPoolStats() (pending int, unVerified int) {
 	//return b.etrue.SnailPool().Stats()
-	return 0,0
+	return 0, 0
 }
 
 func (b *TrueAPIBackend) BloomStatus() (uint64, uint64) {
