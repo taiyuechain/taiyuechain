@@ -35,16 +35,19 @@ package etrue
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/cim/config"
 	"math/big"
+	"path/filepath"
 	"sync"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/p2p"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 var (
@@ -637,9 +640,53 @@ func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis 
 	default:
 		panic(fmt.Sprintf("unsupported eth protocol version: %d", p.version))
 	}
+	var reid cim.Identity
+	cimConfigDir, _ := config.GetDevConfigDir()
+	singcertPath := filepath.Join(cimConfigDir, "/testcert")
+	id, err := cim.GetLocalIdentityDataFromConfig(singcertPath)
+	if err != nil {
+		return err
+	}
+	go func() {
+		errc <- p2p.Send(p.rw, Camsg, &id)
+	}()
+	go func() {
+		errc <- p.readCa(network, reid)
+	}()
+	timeout1 := time.NewTimer(handshakeTimeout)
+	defer timeout1.Stop()
+	for i := 0; i < 2; i++ {
+		select {
+		case err := <-errc:
+			if err != nil {
+				return err
+			}
+		case <-timeout1.C:
+			return p2p.DiscReadTimeout
+		}
+	}
 	return nil
 }
-
+func (p *peer) readCa(network uint64, id cim.Identity) (err error) {
+	msg, err := p.rw.ReadMsg()
+	if err != nil {
+		return err
+	}
+	if msg.Code != Camsg {
+		return errResp(ErrCamsg, "first msg has code %x (!= %x)", msg.Code, StatusMsg)
+	}
+	if msg.Size > protocolMaxMsgSize {
+		return errResp(ErrMsgTooLarge, "%v > %v", msg.Size, protocolMaxMsgSize)
+	}
+	// Decode the handshake and make sure everything matches
+	if err := msg.Decode(&id); err != nil {
+		return errResp(ErrDecode, "msg %v: %v", msg, err)
+	}
+	if err := cim.GetLocalCIM().Validate(id); err != nil {
+		return err
+	}
+	return nil
+}
 func (p *peer) readStatusLegacy(network uint64, status *statusData63, genesis common.Hash) error {
 	msg, err := p.rw.ReadMsg()
 	if err != nil {
@@ -831,4 +878,3 @@ func (ps *peerSet) Close() {
 	}
 	ps.closed = true
 }
-
