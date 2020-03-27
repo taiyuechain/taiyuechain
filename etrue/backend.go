@@ -239,13 +239,18 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	etrue.election.SetEngine(etrue.engine)
 
 	//coinbase, _ := etrue.Etherbase()
+
+	cacheLimit := cacheConfig.TrieCleanLimit //+ cacheConfig.TrieDirtyLimit
+	checkpoint := config.Checkpoint
+	//TODO neo
+	/*if checkpoint == nil {
+		checkpoint = params.TrustedCheckpoints[genesisHash]
+	}*/
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(
-		etrue.chainConfig, config.SyncMode, config.NetworkId,
-		etrue.eventMux, etrue.txPool,  etrue.engine, etrue.blockchain,
-		chainDb, etrue.agent); err != nil {
+	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode,config.NetworkId,etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist); err != nil {
 		return nil, err
 	}
+
 
 	//etrue.miner = miner.New(etrue, etrue.chainConfig, etrue.EventMux(), etrue.engine, etrue.election, etrue.Config().MineFruit, etrue.Config().NodeType, etrue.Config().RemoteMine, etrue.Config().Mine)
 	//etrue.miner.SetExtra(makeExtraData(config.ExtraData))
@@ -523,10 +528,10 @@ func (s *Truechain) Start(srvr *p2p.Server) error {
 	//s.snailPool.Start()
 
 	// Start the networking layer and the light server if requested
-	s.protocolManager.Start2(maxPeers)
+	/*s.protocolManager.Start2(maxPeers)
 	if s.lesServer != nil {
 		s.lesServer.Start(srvr)
-	}
+	}*/
 
 	return nil
 }

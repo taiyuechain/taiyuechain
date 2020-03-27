@@ -928,6 +928,18 @@ func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts ty
 	return nil
 }
 
+// HasFastBlock checks if a fast block is fully present in the database or not.
+func (bc *BlockChain) HasFastBlock(hash common.Hash, number uint64) bool {
+	if !bc.HasBlock(hash, number) {
+		return false
+	}
+	if bc.receiptsCache.Contains(hash) {
+		return true
+	}
+	return rawdb.HasReceipts(bc.db, hash, number)
+}
+
+
 // InsertReceiptChain attempts to complete an already existing header chain with
 // transaction and receipt data.
 func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain []types.Receipts) (int, error) {

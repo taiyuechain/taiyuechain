@@ -25,29 +25,55 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
+	//"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/core/forkid"
 )
 
 // Constants to match up protocol versions and messages
 const (
-	etrue63 = 63
-	etrue64 = 64
+	eth63 = 63
+	eth64 = 64
+	eth65 = 65
 )
 
-// ProtocolName is the official short name of the protocol used during capability negotiation.
-var ProtocolName = "etrue"
+// protocolName is the official short name of the protocol used during capability negotiation.
+const protocolName = "eth"
 
-// ProtocolVersions are the upported versions of the etrue protocol (first is primary).
-var ProtocolVersions = []uint{etrue64, etrue63}
+// ProtocolVersions are the supported versions of the eth protocol (first is primary).
+var ProtocolVersions = []uint{eth65, eth64, eth63}
 
-// ProtocolLengths are the number of implemented message corresponding to different protocol versions.
-var ProtocolLengths = []uint64{32, 20}
+// protocolLengths are the number of implemented message corresponding to different protocol versions.
+var protocolLengths = map[uint]uint64{eth65: 17, eth64: 17, eth63: 17}
 
-const ProtocolMaxMsgSize = 10 * 1024 * 1024 // Maximum cap on the size of a protocol message
+const protocolMaxMsgSize = 10 * 1024 * 1024 // Maximum cap on the size of a protocol message
 
-// etrue protocol message codes
+// eth protocol message codes
+const (
+	StatusMsg          = 0x00
+	NewBlockHashesMsg  = 0x01
+	TransactionMsg     = 0x02
+	GetBlockHeadersMsg = 0x03
+	BlockHeadersMsg    = 0x04
+	GetBlockBodiesMsg  = 0x05
+	BlockBodiesMsg     = 0x06
+	NewBlockMsg        = 0x07
+	GetNodeDataMsg     = 0x0d
+	NodeDataMsg        = 0x0e
+	GetReceiptsMsg     = 0x0f
+	ReceiptsMsg        = 0x10
+
+	// New protocol message codes introduced in eth65
+	//
+	// Previously these message ids were used by some legacy and unsupported
+	// eth protocols, reown them here.
+	NewPooledTransactionHashesMsg = 0x08
+	GetPooledTransactionsMsg      = 0x09
+	PooledTransactionsMsg         = 0x0a
+)
+
 const (
 	// Protocol messages belonging to etrue/63
-	StatusMsg              = 0x00
+
 	NewFastBlockHashesMsg  = 0x01
 	TxMsg                  = 0x02
 	GetFastBlockHeadersMsg = 0x03
@@ -65,10 +91,7 @@ const (
 	SnailBlockBodiesMsg     = 0x0d
 	NewSnailBlockMsg        = 0x0e
 
-	GetNodeDataMsg         = 0x0f
-	NodeDataMsg            = 0x10
-	GetReceiptsMsg         = 0x11
-	ReceiptsMsg            = 0x12
+
 	NewSnailBlockHashesMsg = 0x13
 
 	TbftNodeInfoHashMsg = 0x15
@@ -82,11 +105,11 @@ const (
 	ErrDecode
 	ErrInvalidMsgCode
 	ErrProtocolVersionMismatch
-	ErrNetworkIdMismatch
-	ErrGenesisBlockMismatch
+	ErrNetworkIDMismatch
+	ErrGenesisMismatch
+	ErrForkIDRejected
 	ErrNoStatusMsg
 	ErrExtraStatusMsg
-	ErrSuspendedPeer
 )
 
 func (e errCode) String() string {
@@ -99,14 +122,34 @@ var errorToString = map[int]string{
 	ErrDecode:                  "Invalid message",
 	ErrInvalidMsgCode:          "Invalid message code",
 	ErrProtocolVersionMismatch: "Protocol version mismatch",
-	ErrNetworkIdMismatch:       "NetworkId mismatch",
-	ErrGenesisBlockMismatch:    "Genesis block mismatch",
+	ErrNetworkIDMismatch:       "Network ID mismatch",
+	ErrGenesisMismatch:         "Genesis mismatch",
+	ErrForkIDRejected:          "Fork ID rejected",
 	ErrNoStatusMsg:             "No status message",
 	ErrExtraStatusMsg:          "Extra status message",
-	ErrSuspendedPeer:           "Suspended peer",
 }
 
 type txPool interface {
+	// Has returns an indicator whether txpool has a transaction
+	// cached with the given hash.
+	Has(hash common.Hash) bool
+
+	// Get retrieves the transaction from local txpool with given
+	// tx hash.
+	Get(hash common.Hash) *types.Transaction
+
+	/*// AddRemotes should add the given transactions to the pool.
+	AddRemotes([]*types.Transaction) []error
+
+	// Pending should return pending transactions.
+	// The slice should be modifiable by the caller.
+	Pending() (map[common.Address]types.Transactions, error)
+
+	// SubscribeNewTxsEvent should return an event subscription of
+	// NewTxsEvent and send events to the given channel.
+	SubscribeNewTxsEvent(chan<- core.NewTxsEvent) event.Subscription*/
+
+
 	// AddRemotes should add the given transactions to the pool.
 	AddRemotes([]*types.Transaction) []error
 
@@ -119,62 +162,29 @@ type txPool interface {
 	SubscribeNewTxsEvent(chan<- types.NewTxsEvent) event.Subscription
 }
 
-type SnailPool interface {
-	// AddRemoteFruits should add the given fruits to the pool.
-	AddRemoteFruits([]*types.SnailBlock, bool) []error
-
-	// PendingFruits should return pending fruits.
-	PendingFruits() map[common.Hash]*types.SnailBlock
-
-	// SubscribeNewFruitEvent should return an event subscription of
-	// NewFruitsEvent and send events to the given channel.
-	SubscribeNewFruitEvent(chan<- types.NewFruitsEvent) event.Subscription
-
-	RemovePendingFruitByFastHash(fasthash common.Hash)
+// statusData63 is the network packet for the status message for eth/63.
+type statusData63 struct {
+	ProtocolVersion uint32
+	NetworkId       uint64
+	TD              *big.Int
+	CurrentBlock    common.Hash
+	GenesisBlock    common.Hash
 }
 
-type AgentNetworkProxy interface {
-	// SubscribeNewPbftSignEvent should return an event subscription of
-	// PbftSignEvent and send events to the given channel.
-	SubscribeNewPbftSignEvent(chan<- types.PbftSignEvent) event.Subscription
-	// SubscribeNodeInfoEvent should return an event subscription of
-	// NodeInfoEvent and send events to the given channel.
-	SubscribeNodeInfoEvent(chan<- types.NodeInfoEvent) event.Subscription
-	// AddRemoteNodeInfo should add the given NodeInfo to the pbft agent.
-	AddRemoteNodeInfo(*types.EncryptNodeMessage) error
-	//GetNodeInfoByHash get crypto nodeInfo  by hash
-	GetNodeInfoByHash(nodeInfoHash common.Hash) (*types.EncryptNodeMessage, bool)
-}
-
-// statusData is the network packet for the status message.
+// statusData is the network packet for the status message for eth/64 and later.
 type statusData struct {
-	ProtocolVersion  uint32
-	NetworkId        uint64
-	TD               *big.Int
-	FastHeight       *big.Int
-	CurrentBlock     common.Hash
-	GenesisBlock     common.Hash
-	CurrentFastBlock common.Hash
-}
-
-// statusSnapData is the network packet for the status message.
-type statusSnapData struct {
-	ProtocolVersion  uint32
-	NetworkId        uint64
-	TD               *big.Int
-	FastHeight       *big.Int
-	CurrentBlock     common.Hash
-	GenesisBlock     common.Hash
-	CurrentFastBlock common.Hash
-	GcHeight         *big.Int
-	CommitHeight     *big.Int
+	ProtocolVersion uint32
+	NetworkID       uint64
+	TD              *big.Int
+	Head            common.Hash
+	Genesis         common.Hash
+	ForkID          forkid.ID
 }
 
 // newBlockHashesData is the network packet for the block announcements.
 type newBlockHashesData []struct {
 	Hash   common.Hash // Hash of one particular block being announced
 	Number uint64      // Number of one particular block being announced
-	TD     *big.Int
 }
 
 // getBlockHeadersData represents a block header query.
@@ -183,25 +193,12 @@ type getBlockHeadersData struct {
 	Amount  uint64       // Maximum number of headers to retrieve
 	Skip    uint64       // Blocks to skip between consecutive headers
 	Reverse bool         // Query direction (false = rising towards latest, true = falling towards genesis)
-	Call    uint32       // Distinguish fetcher and downloader
-}
-
-// BlockHeadersData represents a block header send.
-type BlockHeadersData struct {
-	Headers      []*types.Header
-	SnailHeaders []*types.SnailHeader
-	Call         uint32 // Distinguish fetcher and downloader
 }
 
 // hashOrNumber is a combined field for specifying an origin block.
 type hashOrNumber struct {
 	Hash   common.Hash // Block hash from which to retrieve headers (excludes Number)
 	Number uint64      // Block hash from which to retrieve headers (excludes Hash)
-}
-
-// getBlockHeadersData represents a block header query.
-type nodeInfoHashData struct {
-	Hash common.Hash
 }
 
 // EncodeRLP is a specialized encoder for hashOrNumber to encode only one of the
@@ -234,46 +231,30 @@ func (hn *hashOrNumber) DecodeRLP(s *rlp.Stream) error {
 	return err
 }
 
-// newFastBlockData is the network packet for the block propagation message.
+// newBlockData is the network packet for the block propagation message.
 type newBlockData struct {
-	Block      []*types.Block
-	SnailBlock []*types.SnailBlock
-	TD         *big.Int
+	Block *types.Block
+	TD    *big.Int
 }
 
-// getBlockBodiesData represents a block body query.
-type getBlockBodiesData struct {
-	Hash common.Hash // Block hash from which to retrieve Bodies (excludes Number)
-	Call uint32      // Distinguish fetcher and downloader
-}
-
-// BlockBodiesRawData represents a block header send.
-type BlockBodiesRawData struct {
-	Bodies []rlp.RawValue
-	Call   uint32 // Distinguish fetcher and downloader
+// sanityCheck verifies that the values are reasonable, as a DoS protection
+func (request *newBlockData) sanityCheck() error {
+	if err := request.Block.SanityCheck(); err != nil {
+		return err
+	}
+	//TD at mainnet block #7753254 is 76 bits. If it becomes 100 million times
+	// larger, it will still fit within 100 bits
+	if tdlen := request.TD.BitLen(); tdlen > 100 {
+		return fmt.Errorf("too large block TD: bitlen %d", tdlen)
+	}
+	return nil
 }
 
 // blockBody represents the data content of a single block.
 type blockBody struct {
-	Transactions []*types.Transaction     // Transactions contained within a block
-	Signs        []*types.PbftSign        // Signs contained within a block
-	Infos        []*types.CommitteeMember //change info
+	Transactions []*types.Transaction // Transactions contained within a block
+	Uncles       []*types.Header      // Uncles contained within a block
 }
 
 // blockBodiesData is the network packet for block content distribution.
-type blockBodiesData struct {
-	BodiesData []*blockBody
-	Call       uint32 // Distinguish fetcher and downloader
-}
-
-// blockBody represents the data content of a single block.
-type snailBlockBody struct {
-	Fruits []*types.SnailBlock
-	Signs  []*types.PbftSign
-}
-
-// blockBodiesData is the network packet for block content distribution.
-type snailBlockBodiesData struct {
-	BodiesData []*snailBlockBody
-	Call       uint32 // Distinguish fetcher and downloader
-}
+type blockBodiesData []*blockBody

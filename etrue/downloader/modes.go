@@ -22,14 +22,13 @@ import "fmt"
 type SyncMode int
 
 const (
-	FullSync     SyncMode = iota // Synchronise the entire blockchain history from full blocks
-	FastSync                     // Quickly download the headers, full sync only at the chain head
-	LightSync                    // Download only the headers and terminate afterwards
-	SnapShotSync                 // Download only the headers and terminate afterwards
+	FullSync  SyncMode = iota // Synchronise the entire blockchain history from full blocks
+	FastSync                  // Quickly download the headers, full sync only at the chain head
+	LightSync                 // Download only the headers and terminate afterwards
 )
 
 func (mode SyncMode) IsValid() bool {
-	return mode >= FullSync && mode <= SnapShotSync
+	return mode >= FullSync && mode <= LightSync
 }
 
 // String implements the stringer interface.
@@ -41,8 +40,6 @@ func (mode SyncMode) String() string {
 		return "fast"
 	case LightSync:
 		return "light"
-	case SnapShotSync:
-		return "snapshot"
 	default:
 		return "unknown"
 	}
@@ -56,10 +53,8 @@ func (mode SyncMode) MarshalText() ([]byte, error) {
 		return []byte("fast"), nil
 	case LightSync:
 		return []byte("light"), nil
-	case SnapShotSync:
-		return []byte("snapshot"), nil
 	default:
-		return nil, fmt.Errorf("Snail unknown sync mode %d", mode)
+		return nil, fmt.Errorf("unknown sync mode %d", mode)
 	}
 }
 
@@ -71,10 +66,8 @@ func (mode *SyncMode) UnmarshalText(text []byte) error {
 		*mode = FastSync
 	case "light":
 		*mode = LightSync
-	case "snapshot":
-		*mode = SnapShotSync
 	default:
-		return fmt.Errorf(`Snail unknown sync mode %q, want "full", "fast" or "light"`, text)
+		return fmt.Errorf(`unknown sync mode %q, want "full", "fast" or "light"`, text)
 	}
 	return nil
 }

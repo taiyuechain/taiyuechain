@@ -18,11 +18,15 @@ package params
 
 import (
 	"encoding/json"
+
+	"encoding/binary"
 	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/crypto"
+
 )
 
 // Genesis hashes to enforce below configs on.
@@ -32,7 +36,19 @@ var (
 
 	TestnetGenesisHash      = common.HexToHash("0x4b82a68ebbf32f2e816754f2b50eda0ae2c0a71dd5f4e0ecd93ccbfb7dba00b8")
 	TestnetSnailGenesisHash = common.HexToHash("0x4ab1748c057b744de202d6ebea64e8d3a0b2ec4c19abbc59e8639967b14b7c96")
+	RinkebyGenesisHash = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
+	GoerliGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
+
+
+// TrustedCheckpoints associates each known checkpoint with the genesis hash of
+// the chain it belongs to.
+var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
+	MainnetGenesisHash: MainnetTrustedCheckpoint,
+	TestnetGenesisHash: TestnetTrustedCheckpoint,
+	RinkebyGenesisHash: RinkebyTrustedCheckpoint,
+	GoerliGenesisHash:  GoerliTrustedCheckpoint,
+}
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
@@ -59,6 +75,35 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(450000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(4000)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
+	}
+
+	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
+	MainnetTrustedCheckpoint = &TrustedCheckpoint{
+		SectionIndex: 289,
+		SectionHead:  common.HexToHash("0x5a95eed1a6e01d58b59f86c754cda88e8d6bede65428530eb0bec03267cda6a9"),
+		CHTRoot:      common.HexToHash("0x6d4abf2b0f3c015952e6a3cbd5cc9885aacc29b8e55d4de662d29783c74a62bf"),
+		BloomRoot:    common.HexToHash("0x1af2a8abbaca8048136b02f782cb6476ab546313186a1d1bd2b02df88ea48e7e"),
+	}
+	// TestnetTrustedCheckpoint contains the light client trusted checkpoint for the Ropsten test network.
+	TestnetTrustedCheckpoint = &TrustedCheckpoint{
+		SectionIndex: 223,
+		SectionHead:  common.HexToHash("0x9aa51ca383f5075f816e0b8ce7125075cd562b918839ee286c03770722147661"),
+		CHTRoot:      common.HexToHash("0x755c6a5931b7bd36e55e47f3f1e81fa79c930ae15c55682d3a85931eedaf8cf2"),
+		BloomRoot:    common.HexToHash("0xabc37762d11b29dc7dde11b89846e2308ba681eeb015b6a202ef5e242bc107e8"),
+	}
+	// RinkebyTrustedCheckpoint contains the light client trusted checkpoint for the Rinkeby test network.
+	RinkebyTrustedCheckpoint = &TrustedCheckpoint{
+		SectionIndex: 181,
+		SectionHead:  common.HexToHash("0xdda275f3e9ecadf4834a6a682db1ca3db6945fa4014c82dadcad032fc5c1aefa"),
+		CHTRoot:      common.HexToHash("0x0fdfdbdb12e947e838fe26dd3ada4cc3092d6fa22aefec719b83f16004b5e596"),
+		BloomRoot:    common.HexToHash("0xfd8dc404a438eaa5cf93dd58dbaeed648aa49d563b511892262acff77c5db7db"),
+	}
+	// GoerliTrustedCheckpoint contains the light client trusted checkpoint for the Görli test network.
+	GoerliTrustedCheckpoint = &TrustedCheckpoint{
+		SectionIndex: 66,
+		SectionHead:  common.HexToHash("0xeea3a7b2cb275956f3049dd27e6cdacd8a6ef86738d593d556efee5361019475"),
+		CHTRoot:      common.HexToHash("0x11712af50b4083dc5910e452ca69fbfc0f2940770b9846200a573f87a0af94e6"),
+		BloomRoot:    common.HexToHash("0x331b7a7b273e81daeac8cafb9952a16669d7facc7be3b0ebd3a792b4d8b95cc5"),
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -104,6 +149,43 @@ type ChainConfig struct {
 	TIP5 *BlockConfig `json:"tip5"`
 	TIP9 *BlockConfig `json:"tip9"`
 }
+
+
+
+// TrustedCheckpoint represents a set of post-processed trie roots (CHT and
+// BloomTrie) associated with the appropriate section index and head hash. It is
+// used to start light syncing from this checkpoint and avoid downloading the
+// entire header chain while still being able to securely access old headers/logs.
+type TrustedCheckpoint struct {
+	SectionIndex uint64      `json:"sectionIndex"`
+	SectionHead  common.Hash `json:"sectionHead"`
+	CHTRoot      common.Hash `json:"chtRoot"`
+	BloomRoot    common.Hash `json:"bloomRoot"`
+}
+
+// HashEqual returns an indicator comparing the itself hash with given one.
+func (c *TrustedCheckpoint) HashEqual(hash common.Hash) bool {
+	if c.Empty() {
+		return hash == common.Hash{}
+	}
+	return c.Hash() == hash
+}
+
+// Hash returns the hash of checkpoint's four key fields(index, sectionHead, chtRoot and bloomTrieRoot).
+func (c *TrustedCheckpoint) Hash() common.Hash {
+	buf := make([]byte, 8+3*common.HashLength)
+	binary.BigEndian.PutUint64(buf, c.SectionIndex)
+	copy(buf[8:], c.SectionHead.Bytes())
+	copy(buf[8+common.HashLength:], c.CHTRoot.Bytes())
+	copy(buf[8+2*common.HashLength:], c.BloomRoot.Bytes())
+	return crypto.Keccak256Hash(buf)
+}
+
+// Empty returns an indicator whether the checkpoint is regarded as empty.
+func (c *TrustedCheckpoint) Empty() bool {
+	return c.SectionHead == (common.Hash{}) || c.CHTRoot == (common.Hash{}) || c.BloomRoot == (common.Hash{})
+}
+
 
 type BlockConfig struct {
 	FastNumber  *big.Int

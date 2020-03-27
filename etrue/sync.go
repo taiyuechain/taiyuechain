@@ -25,7 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
-	dtype "github.com/taiyuechain/taiyuechain/etrue/types"
+	//dtype "github.com/taiyuechain/taiyuechain/etrue/types"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )
 
@@ -35,8 +35,7 @@ const (
 
 	// This is the target size for the packs of transactions sent by txsyncLoop.
 	// A pack can get larger than this if a single transactions exceeds this size.
-	txsyncPackSize    = 64 * 1024
-	fruitsyncPackSize = 50 * 1024
+	txsyncPackSize = 100 * 1024
 )
 
 type txsync struct {
@@ -44,59 +43,56 @@ type txsync struct {
 	txs []*types.Transaction
 }
 
-type fruitsync struct {
-	p      *peer
-	fruits []*types.SnailBlock
-}
-
 // syncTransactions starts sending all currently pending transactions to the given peer.
 func (pm *ProtocolManager) syncTransactions(p *peer) {
+	// Assemble the set of transaction to broadcast or announce to the remote
+	// peer. Fun fact, this is quite an expensive operation as it needs to sort
+	// the transactions if the sorting is not cached yet. However, with a random
+	// order, insertions could overflow the non-executable queues and get dropped.
+	//
+	// TODO(karalabe): Figure out if we could get away with random order somehow
 	var txs types.Transactions
 	pending, _ := pm.txpool.Pending()
 	for _, batch := range pending {
 		txs = append(txs, batch...)
 	}
-	log.Debug("syncTransactions", "pending", len(pending), "txs", len(txs))
 	if len(txs) == 0 {
 		return
 	}
-	select {
-	case pm.txsyncCh <- &txsync{p, txs}:
-	case <-pm.quitSync:
-	}
-}
-
-// syncFruits starts sending all currently pending fruits to the given peer.
-func (pm *ProtocolManager) syncFruits(p *peer) {
-	var fruits types.SnailBlocks
-	/*pending := pm.SnailPool.PendingFruits()
-	for _, batch := range pending {
-		fruits = append(fruits, batch)
-	}*/
-	//log.Debug("syncFruits", "pending", len(pending), "fts", len(fruits))
-	if len(fruits) == 0 {
+	// The eth/65 protocol introduces proper transaction announcements, so instead
+	// of dripping transactions across multiple peers, just send the entire list as
+	// an announcement and let the remote side decide what they need (likely nothing).
+	if p.version >= eth65 {
+		hashes := make([]common.Hash, len(txs))
+		for i, tx := range txs {
+			hashes[i] = tx.Hash()
+		}
+		p.AsyncSendPooledTransactionHashes(hashes)
 		return
 	}
+	// Out of luck, peer is running legacy protocols, drop the txs over
 	select {
-	case pm.fruitsyncCh <- &fruitsync{p, fruits}:
+	case pm.txsyncCh <- &txsync{p: p, txs: txs}:
 	case <-pm.quitSync:
 	}
 }
 
-// txsyncLoop takes care of the initial transaction sync for each new
+// txsyncLoop64 takes care of the initial transaction sync for each new
 // connection. When a new peer appears, we relay all currently pending
 // transactions. In order to minimise egress bandwidth usage, we send
 // the transactions in small packs to one peer at a time.
-func (pm *ProtocolManager) txsyncLoop() {
+func (pm *ProtocolManager) txsyncLoop64() {
 	var (
 		pending = make(map[enode.ID]*txsync)
 		sending = false               // whether a send is active
 		pack    = new(txsync)         // the pack that is being sent
 		done    = make(chan error, 1) // result of the send
 	)
-
 	// send starts a sending a pack of transactions from the sync.
 	send := func(s *txsync) {
+		if s.p.version >= eth65 {
+			panic("initial transaction syncer running on eth/65+")
+		}
 		// Fill pack with transactions up to the target size.
 		size := common.StorageSize(0)
 		pack.p = s.p
@@ -111,9 +107,9 @@ func (pm *ProtocolManager) txsyncLoop() {
 			delete(pending, s.p.ID())
 		}
 		// Send the pack in the background.
-		s.p.Log().Debug("Sending batch of transactions", "count", len(pack.txs), "bytes", size)
+		s.p.Log().Trace("Sending batch of transactions", "count", len(pack.txs), "bytes", size)
 		sending = true
-		go func() { done <- pack.p.SendTransactions(pack.txs) }()
+		go func() { done <- pack.p.SendTransactions64(pack.txs) }()
 	}
 
 	// pick chooses the next pending sync.
@@ -154,87 +150,15 @@ func (pm *ProtocolManager) txsyncLoop() {
 	}
 }
 
-// fruitsyncLoop takes care of the initial fruit sync for each new
-// connection. When a new peer appears, we relay all currently pending
-// fruits. In order to minimise egress bandwidth usage, we send
-// the fruits in small packs to one peer at a time.
-func (pm *ProtocolManager) fruitsyncLoop() {
-	var (
-		pending = make(map[enode.ID]*fruitsync)
-		sending = false               // whether a send is active
-		pack    = new(fruitsync)      // the pack that is being sent
-		done    = make(chan error, 1) // result of the send
-	)
-
-	// send starts a sending a pack of fruits from the sync.
-	send := func(f *fruitsync) {
-		// Fill pack with fruits up to the target size.
-		size := common.StorageSize(0)
-		pack.p = f.p
-		pack.fruits = pack.fruits[:0]
-		for i := 0; i < len(f.fruits) && size < fruitsyncPackSize; i++ {
-			pack.fruits = append(pack.fruits, f.fruits[i])
-			size += f.fruits[i].Size()
-		}
-		// Remove the fruits that will be sent.
-		f.fruits = f.fruits[:copy(f.fruits, f.fruits[len(pack.fruits):])]
-		if len(f.fruits) == 0 {
-			delete(pending, f.p.ID())
-		}
-		// Send the pack in the background.
-		f.p.Log().Trace("Sending batch of fruits", "count", len(pack.fruits), "bytes", size)
-		sending = true
-		go func() { done <- pack.p.SendFruits(pack.fruits) }()
-	}
-
-	// pick chooses the next pending sync.
-	pick := func() *fruitsync {
-		if len(pending) == 0 {
-			return nil
-		}
-		n := rand.Intn(len(pending)) + 1
-		for _, f := range pending {
-			if n--; n == 0 {
-				return f
-			}
-		}
-		return nil
-	}
-
-	for {
-		select {
-		case f := <-pm.fruitsyncCh:
-			pending[f.p.ID()] = f
-			if !sending {
-				send(f)
-			}
-		case err := <-done:
-			sending = false
-			// Stop tracking peers that cause send failures.
-			if err != nil {
-				pack.p.Log().Debug("Fruits send failed", "err", err)
-				delete(pending, pack.p.ID())
-			}
-			// Schedule the next send.
-			if f := pick(); f != nil {
-				send(f)
-			}
-		case <-pm.quitSync:
-			return
-		}
-	}
-}
-
 // syncer is responsible for periodically synchronising with the network, both
 // downloading hashes and blocks as well as handling the announcement handler.
 func (pm *ProtocolManager) syncer() {
 	// Start and ensure cleanup of sync mechanisms
-	pm.fetcherFast.Start()
-	pm.fetcherSnail.Start()
-	defer pm.fetcherFast.Stop()
-	defer pm.fetcherSnail.Stop()
+	pm.blockFetcher.Start()
+	pm.txFetcher.Start()
+	defer pm.blockFetcher.Stop()
+	defer pm.txFetcher.Stop()
 	defer pm.downloader.Terminate()
-	defer pm.fdownloader.Terminate()
 
 	// Wait for different events to fire synchronisation operations
 	forceSync := time.NewTicker(forceSyncCycle)
@@ -256,142 +180,62 @@ func (pm *ProtocolManager) syncer() {
 		case <-pm.noMorePeers:
 			return
 		}
-
 	}
 }
 
 // synchronise tries to sync up our local block chain with a remote peer.
 func (pm *ProtocolManager) synchronise(peer *peer) {
 	// Short circuit if no peers are available
-
-	if !atomic.CompareAndSwapInt32(&pm.synchronising, 0, 1) {
-		log.Debug("synchronise snail busy")
-		return
-	}
-	defer atomic.StoreInt32(&pm.synchronising, 0)
-	pm.lock.Lock()
-	defer pm.lock.Unlock()
-	defer log.Debug("synchronise exit")
 	if peer == nil {
-		log.Debug("synchronise peer nil")
 		return
 	}
-
-	var err error
-	sendEvent := func() {
-		// reset on error
-		if err != nil {
-			pm.eventMux.Post(downloader.FailedEvent{Err: err})
-		} else {
-			pm.eventMux.Post(downloader.DoneEvent{})
-		}
-	}
-
 	// Make sure the peer's TD is higher than our own
-	/*currentBlock := pm.snailchain.CurrentBlock()
-	td := pm.snailchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())*/
-	pHead, pTd := peer.Head()
-	_, fastHeight := peer.fastHead, peer.fastHeight.Uint64()
+	//currentBlock := pm.blockchain.CurrentBlock()
+	//td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
 
-	pm.fdownloader.SetSyncStatsChainHeightLast(fastHeight)
-	//currentNumber := pm.blockchain.CurrentBlock().NumberU64()
-	//log.Debug("synchronise  ", "pHead", pHead, "pTd", pTd, "td", td, "fastHeight", fastHeight, "currentNumber", currentNumber, "snailHeight", currentBlock.Number())
-	/*if pTd.Cmp(td) <= 0 {
-
-		if fastHeight > currentNumber {
-			pm.eventMux.Post(downloader.StartEvent{})
-			defer sendEvent()
-			if err := pm.downloader.SyncFast(peer.id, pHead, fastHeight, downloader.FullSync); err != nil {
-				log.Error("ProtocolManager fast sync: ", "err", err)
-				return
-			}
-			atomic.StoreUint32(&pm.fastSync, 0)
-			atomic.StoreUint32(&pm.snapSync, 0)
-			atomic.StoreUint32(&pm.acceptTxs, 1)    // Mark initial sync done
-			atomic.StoreUint32(&pm.acceptFruits, 1) // Mark initial sync done on any fetcher import
-		}
+	/*pHead, pTd := peer.Head()
+	if pTd.Cmp(td) <= 0 {
 		return
 	}*/
-
 	// Otherwise try to sync with the downloader
 	mode := downloader.FullSync
 	if atomic.LoadUint32(&pm.fastSync) == 1 {
 		// Fast sync was explicitly requested, and explicitly granted
 		mode = downloader.FastSync
-
-		//else if atomic.LoadUint32(&pm.snapSync) == 1 {
-		//	mode = downloader.SnapShotSync
-		//}
-	}else if pm.blockchain.CurrentBlock().NumberU64() == 0 && pm.blockchain.CurrentFastBlock().NumberU64() > 0 {
-		// The database  seems empty as the current block is the genesis. Yet the fast
-		// block is ahead, so fast sync was enabled for this node at a certain point.
-		// The only scenario where this can happen is if the user manually (or via a
-		// bad block) rolled back a fast sync node below the sync point. In this case
-		// however it's safe to reenable fast sync.
-		atomic.StoreUint32(&pm.fastSync, 1)
-		mode = downloader.FastSync
-
 	}
-
-	if mode == downloader.FastSync || mode == downloader.SnapShotSync {
-		var pivotHeader *types.Header
-
+	if mode == downloader.FastSync {
 		// Make sure the peer's total difficulty we are synchronizing is higher.
-		/*if pm.snailchain.GetTdByHash(pm.snailchain.CurrentFastBlock().Hash()).Cmp(pTd) >= 0 {
+		/*if pm.blockchain.GetTdByHash(pm.blockchain.CurrentFastBlock().Hash()).Cmp(pTd) >= 0 {
 			return
 		}*/
-
-		var err error
-		pivotNumber := fastHeight - dtype.FsMinFullBlocks
-		if pivotHeader, err = pm.fdownloader.FetchHeight(peer.id, pivotNumber); err != nil {
-			log.Error("FetchHeight pivotHeader", "peer", peer.id, "pivotNumber", pivotNumber, "err", err)
-			return
-		}
-		pm.downloader.SetHeader(pivotHeader)
-		pm.fdownloader.SetHeader(pivotHeader)
-
 	}
-
-	pm.eventMux.Post(downloader.StartEvent{})
-	defer sendEvent()
-	log.Debug("ProtocolManager1","mode",mode)
 	// Run the sync cycle, and disable fast sync if we've went past the pivot block
-	if err = pm.downloader.Synchronise(peer.id, pHead, pTd, mode); err != nil {
-		log.Error("ProtocolManager end", "err", err)
+	//TODO
+	/*if err := pm.downloader.Synchronise(peer.id, pHead, pTd, mode); err != nil {
 		return
-	}
-	log.Debug("ProtocolManager2","mode",mode)
-	if atomic.LoadUint32(&pm.fastSync) == 1 ||  atomic.LoadUint32(&pm.snapSync) == 1 {
-		if pm.blockchain.CurrentBlock().NumberU64() == 0 && pm.blockchain.CurrentFastBlock().NumberU64() > 0 {
-			if err := pm.downloader.SyncFast(peer.id, pHead, fastHeight, downloader.FastSync); err != nil {
-				log.Error("ProtocolManager fast sync: ", "err", err)
-				return
-			}
-		}
-	}
-
-	atomic.StoreUint32(&pm.fastSync, 0)
-	atomic.StoreUint32(&pm.snapSync, 0)
-	atomic.StoreUint32(&pm.acceptTxs, 1)    // Mark initial sync done
-	atomic.StoreUint32(&pm.acceptFruits, 1) // Mark initial sync done on any fetcher import
-	//atomic.StoreUint32(&pm.acceptSnailBlocks, 1) // Mark initial sync done on any fetcher import
-	/*if head := pm.snailchain.CurrentBlock(); head.NumberU64() > 0 {
-		// We've completed a sync cycle, notify all peers of new state. This path is
-		// essential in star-topology networks where a gateway node needs to notify
-		// all its out-of-date peers of the availability of a new block. This failure
-		// scenario will most often crop up in private and hackathon networks with
-		// degenerate connectivity, but it should be healthy for the mainnet too to
-		// more reliably update peers or the local TD state.
-		go pm.BroadcastSnailBlock(head, false)
 	}*/
-	if head := pm.blockchain.CurrentBlock(); head.NumberU64() > 0 {
+	if atomic.LoadUint32(&pm.fastSync) == 1 {
+		log.Info("Fast sync complete, auto disabling")
+		atomic.StoreUint32(&pm.fastSync, 0)
+	}
+	// If we've successfully finished a sync cycle and passed any required checkpoint,
+	// enable accepting transactions from the network.
+	head := pm.blockchain.CurrentBlock()
+	if head.NumberU64() >= pm.checkpointNumber {
+		// Checkpoint passed, sanity check the timestamp to have a fallback mechanism
+		// for non-checkpointed (number = 0) private networks.
+		//TODO
+		/*if head.Time() >= uint64(time.Now().AddDate(0, -1, 0).Unix()) {
+			atomic.StoreUint32(&pm.acceptTxs, 1)
+		}*/
+	}
+	if head.NumberU64() > 0 {
 		// We've completed a sync cycle, notify all peers of new state. This path is
 		// essential in star-topology networks where a gateway node needs to notify
 		// all its out-of-date peers of the availability of a new block. This failure
 		// scenario will most often crop up in private and hackathon networks with
 		// degenerate connectivity, but it should be healthy for the mainnet too to
 		// more reliably update peers or the local TD state.
-		log.Debug("synchronise", "number", head.Number(), "sign", head.GetLeaderSign() != nil)
-		go pm.BroadcastFastBlock(head, false)
+		go pm.BroadcastBlock(head, false)
 	}
 }

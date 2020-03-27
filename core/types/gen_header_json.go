@@ -51,6 +51,7 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+
 // UnmarshalJSON unmarshals from JSON.
 func (h *Header) UnmarshalJSON(input []byte) error {
 	type Header struct {

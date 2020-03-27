@@ -78,17 +78,16 @@ type ChainStateReader interface {
 }
 
 // SyncProgress gives progress indications when the node is synchronising with
-// the Truechain network.
-type SyncProgress struct {
-	StartingFastBlock uint64 // Snail Block number where sync began
-	CurrentFastBlock  uint64 // Current block number where sync is at
-	HighestFastBlock  uint64 // Highest alleged block number in the chain
+// the Truechain networ
 
-	StartingSnailBlock uint64 // Block number where sync began
-	CurrentSnailBlock  uint64 // Current block number where sync is at
-	HighestSnailBlock  uint64 // Highest alleged block number in the chain
-	PulledStates       uint64 // Number of state trie entries already downloaded
-	KnownStates        uint64 // Total number of state trie entries known about
+// SyncProgress gives progress indications when the node is synchronising with
+// the Ethereum network.
+type SyncProgress struct {
+	StartingBlock uint64 // Block number where sync began
+	CurrentBlock  uint64 // Current block number where sync is at
+	HighestBlock  uint64 // Highest alleged block number in the chain
+	PulledStates  uint64 // Number of state trie entries already downloaded
+	KnownStates   uint64 // Total number of state trie entries known about
 }
 
 // ChainSyncReader wraps access to the node's current sync status. If there's no
@@ -197,3 +196,5 @@ type GasEstimator interface {
 type PendingStateEventer interface {
 	SubscribePendingTransactions(ctx context.Context, ch chan<- *types.Transaction) (Subscription, error)
 }
+
+

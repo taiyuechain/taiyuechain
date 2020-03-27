@@ -30,6 +30,7 @@ import (
 	"github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/rpc"
+
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.
@@ -420,16 +421,24 @@ func toBlockNumArg(number *big.Int) string {
 	return hexutil.EncodeBig(number)
 }
 
-type rpcProgress struct {
-	StartingFastBlock uint64 // Snail Block number where sync began
-	CurrentFastBlock  uint64 // Current block number where sync is at
-	HighestFastBlock  uint64 // Highest alleged block number in the chain
+/*type rpcProgress struct {
+	//StartingFastBlock uint64 // Snail Block number where sync began
+	//CurrentFastBlock  uint64 // Current block number where sync is at
+	//HighestFastBlock  uint64 // Highest alleged block number in the chain
 
 	StartingSnailBlock hexutil.Uint64
 	CurrentSnailBlock  hexutil.Uint64
 	HighestSnailBlock  hexutil.Uint64
 	PulledStates       hexutil.Uint64
 	KnownStates        hexutil.Uint64
+}*/
+
+type rpcProgress struct {
+	StartingBlock hexutil.Uint64
+	CurrentBlock  hexutil.Uint64
+	HighestBlock  hexutil.Uint64
+	PulledStates  hexutil.Uint64
+	KnownStates   hexutil.Uint64
 }
 
 // SyncProgress retrieves the current progress of the sync algorithm. If there's
@@ -448,16 +457,23 @@ func (ec *Client) SyncProgress(ctx context.Context) (*truechain.SyncProgress, er
 	if err := json.Unmarshal(raw, &progress); err != nil {
 		return nil, err
 	}
-	return &truechain.SyncProgress{
-		StartingFastBlock: uint64(progress.StartingFastBlock),
-		CurrentFastBlock:  uint64(progress.CurrentFastBlock),
-		HighestFastBlock:  uint64(progress.HighestFastBlock),
+	/*return &truechain.SyncProgress{
+		//StartingFastBlock: uint64(progress.StartingFastBlock),
+		//CurrentFastBlock:  uint64(progress.CurrentFastBlock),
+		//HighestFastBlock:  uint64(progress.HighestFastBlock),
 
-		StartingSnailBlock: uint64(progress.StartingSnailBlock),
-		CurrentSnailBlock:  uint64(progress.CurrentSnailBlock),
-		HighestSnailBlock:  uint64(progress.HighestSnailBlock),
+		//StartingSnailBlock: uint64(progress.StartingSnailBlock),
+		//CurrentSnailBlock:  uint64(progress.CurrentSnailBlock),
+		//HighestSnailBlock:  uint64(progress.HighestSnailBlock),
 		PulledStates:       uint64(progress.PulledStates),
 		KnownStates:        uint64(progress.KnownStates),
+	}, nil*/
+	return &truechain.SyncProgress{
+		StartingBlock: uint64(progress.StartingBlock),
+		CurrentBlock:  uint64(progress.CurrentBlock),
+		HighestBlock:  uint64(progress.HighestBlock),
+		PulledStates:  uint64(progress.PulledStates),
+		KnownStates:   uint64(progress.KnownStates),
 	}, nil
 }
 

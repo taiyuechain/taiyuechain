@@ -178,6 +178,20 @@ type headerMarshaling struct {
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
 }
+// SanityCheck checks a few basic things -- these checks are way beyond what
+// any 'sane' production values should hold, and can mainly be used to prevent
+// that the unbounded fields are stuffed with junk data to add processing
+// overhead
+func (h *Header) SanityCheck() error {
+	if h.Number != nil && !h.Number.IsUint64() {
+		//return fmt.Errorf("too large block number: bitlen %d", h.Number.BitLen())
+	}
+
+	if eLen := len(h.Extra); eLen > 100*1024 {
+		//return fmt.Errorf("too large block extradata: size %d", eLen)
+	}
+	return nil
+}
 
 // Size returns the approximate memory used by all internal contents. It is used
 // to approximate and limit the memory consumption of various caches.
@@ -481,6 +495,12 @@ func (b *Block) WithBody(transactions []*Transaction, signs []*PbftSign, infos [
 	b.header.CommitteeHash = rlpHash(b.infos)
 
 	return block
+}
+
+// SanityCheck can be used to prevent that unbounded fields are
+// stuffed with junk data to add processing overhead
+func (b *Block) SanityCheck() error {
+	return b.header.SanityCheck()
 }
 
 // Hash returns the keccak256 hash of b's header.

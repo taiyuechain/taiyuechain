@@ -66,6 +66,8 @@ var DefaultConfig = Config{
 	StandbyPort:  30311,
 }
 
+
+
 func init() {
 	home := os.Getenv("HOME")
 	if home == "" {
@@ -177,7 +179,11 @@ type Config struct {
 	RemoteMine bool `toml:",omitempty"`
 
 	NodeCert []byte
+
+	// Checkpoint is a hardcoded checkpoint which can be nil.
+	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`
 }
+
 
 func (c *Config) GetNodeType() bool {
 	return c.NodeType

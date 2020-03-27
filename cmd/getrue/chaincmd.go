@@ -21,7 +21,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/trie"
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/taiyuechain/taiyuechain/etrue/fastdownloader"
+
+
 	"math/big"
 )
 
@@ -383,7 +384,7 @@ func exportPreimages(ctx *cli.Context) error {
 
 func copyDb(ctx *cli.Context) error {
 	// Ensure we have a source chain directory to copy
-	if len(ctx.Args()) != 1 {
+	/*if len(ctx.Args()) != 1 {
 		utils.Fatalf("Source chaindata directory path argument missing")
 	}
 	// Initialize a new chain for the running node to sync into
@@ -445,6 +446,66 @@ func copyDb(ctx *cli.Context) error {
 	}
 	fmt.Printf("Compaction done in %v.\n\n", time.Since(start))
 
+	return nil*/
+	// Ensure we have a source chain directory to copy
+	if len(ctx.Args()) < 1 {
+		utils.Fatalf("Source chaindata directory path argument missing")
+	}
+	if len(ctx.Args()) < 2 {
+		utils.Fatalf("Source ancient chain directory path argument missing")
+	}
+	// Initialize a new chain for the running node to sync into
+	stack := makeFullNode(ctx)
+	defer stack.Close()
+
+	chain, chainDb := utils.MakeChain(ctx, stack)
+	syncMode := *utils.GlobalTextMarshaler(ctx, utils.SyncModeFlag.Name).(*downloader.SyncMode)
+
+	var syncBloom *trie.SyncBloom
+	if syncMode == downloader.FastSync {
+		//syncBloom = trie.NewSyncBloom(uint64(ctx.GlobalInt(utils.CacheFlag.Name)/2), chainDb)
+	}
+	dl := downloader.New(0, chainDb, syncBloom, new(event.TypeMux), chain, nil, nil)
+
+	// Create a source peer to satisfy downloader requests from
+	db, err := etruedb.NewLDBDatabase(ctx.Args().First(), ctx.GlobalInt(utils.CacheFlag.Name), 256)
+	if err != nil {
+		return err
+	}
+	// Create a source peer to satisfy downloader requests from
+	/*db, err := rawdb.NewLevelDBDatabaseWithFreezer(ctx.Args().First(), ctx.GlobalInt(utils.CacheFlag.Name)/2, 256, ctx.Args().Get(1), "")
+	if err != nil {
+		return err
+	}*/
+	hc, err := core.NewHeaderChain(db, chain.Config(), chain.Engine(), func() bool { return false })
+	if err != nil {
+		return err
+	}
+	peer := downloader.NewFakePeer("local", db, hc, dl)
+	if err = dl.RegisterPeer("local", 63, peer); err != nil {
+		return err
+	}
+	// Synchronise with the simulated peer
+	start := time.Now()
+
+	currentHeader := hc.CurrentHeader()
+	//TODO TD
+	if err = dl.Synchronise("local", currentHeader.Hash(), big.NewInt(0), syncMode); err != nil {
+		return err
+	}
+	for dl.Synchronising() {
+		time.Sleep(10 * time.Millisecond)
+	}
+	fmt.Printf("Database copy done in %v\n", time.Since(start))
+
+	// Compact the entire database to remove any sync overhead
+	start = time.Now()
+	fmt.Println("Compacting entire database...")
+	//TODO
+	if err = chainDb.(*etruedb.LDBDatabase).LDB().CompactRange(util.Range{}); err != nil {
+		utils.Fatalf("Compaction failed: %v", err)
+	}
+	fmt.Printf("Compaction done in %v.\n\n", time.Since(start))
 	return nil
 }
 

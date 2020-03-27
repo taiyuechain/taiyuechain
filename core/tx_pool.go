@@ -49,6 +49,8 @@ var (
 	// ErrInvalidSender is returned if the transaction contains an invalid signature.
 	ErrInvalidSender = errors.New("invalid sender")
 
+	ErrAlreadyKnown = errors.New("already known")
+
 	// ErrInvalidPayer is returned if the transaction contains an invalid payer's signature.
 	ErrInvalidPayer = errors.New("invalid payer")
 
@@ -397,6 +399,13 @@ func (pool *TxPool) loop() {
 			}
 		}
 	}
+}
+
+
+// Has returns an indicator whether txpool has a transaction cached with the
+// given hash.
+func (pool *TxPool) Has(hash common.Hash) bool {
+	return pool.all.Get(hash) != nil
 }
 
 // lockedReset is a wrapper around reset to allow calling it in a thread safe

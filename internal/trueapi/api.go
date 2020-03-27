@@ -90,19 +90,16 @@ func (s *PublicTrueAPI) Syncing() (interface{}, error) {
 	progress := s.b.Downloader().Progress()
 
 	// Return not syncing if the synchronisation already completed
-	if progress.CurrentSnailBlock >= progress.HighestSnailBlock {
+	if progress.CurrentBlock >= progress.HighestBlock {
 		return false, nil
 	}
 	// Otherwise gather the block sync stats
 	return map[string]interface{}{
-		"startingFastBlock":  hexutil.Uint64(progress.StartingFastBlock),
-		"currentFastBlock":   hexutil.Uint64(progress.CurrentFastBlock),
-		"highestFastBlock":   hexutil.Uint64(progress.HighestFastBlock),
-		"startingSnailBlock": hexutil.Uint64(progress.StartingSnailBlock),
-		"currentSnailBlock":  hexutil.Uint64(progress.CurrentSnailBlock),
-		"highestSnailBlock":  hexutil.Uint64(progress.HighestSnailBlock),
-		"pulledStates":       hexutil.Uint64(progress.PulledStates),
-		"knownStates":        hexutil.Uint64(progress.KnownStates),
+		"startingBlock": hexutil.Uint64(progress.StartingBlock),
+		"currentBlock":  hexutil.Uint64(progress.CurrentBlock),
+		"highestBlock":  hexutil.Uint64(progress.HighestBlock),
+		"pulledStates":  hexutil.Uint64(progress.PulledStates),
+		"knownStates":   hexutil.Uint64(progress.KnownStates),
 	}, nil
 }
 

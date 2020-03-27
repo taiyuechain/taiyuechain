@@ -77,7 +77,7 @@ type BlockChain interface {
 	GetHeader(hash common.Hash, number uint64) *types.SnailHeader
 	GetHeaderByHash(hash common.Hash) *types.SnailHeader
 	CurrentHeader() *types.SnailHeader
-	GetTd(hash common.Hash, number uint64) *big.Int
+	//GetTd(hash common.Hash, number uint64) *big.Int
 	State() (*state.StateDB, error)
 	InsertHeaderChain(chain []*types.SnailHeader, checkFreq int) (int, error)
 	Rollback(chain []common.Hash)
@@ -274,9 +274,11 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		head    = pm.blockchain.CurrentHeader()
 		hash    = head.Hash()
 		number  = head.Number.Uint64()
-		td      = pm.blockchain.GetTd(hash, number)
+		//td      = pm.blockchain.GetTd(hash, number)
 	)
-	if err := p.Handshake(td, hash, number, genesis.Hash(), pm.server); err != nil {
+	//TODO
+	//if err := p.Handshake(td, hash, number, genesis.Hash(), pm.server); err != nil {
+	if err := p.Handshake(big.NewInt(0), hash, number, genesis.Hash(), pm.server); err != nil {
 		p.Log().Debug("Light Truechain handshake failed", "err", err)
 		return err
 	}
@@ -518,10 +520,11 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		if pm.fetcher != nil && pm.fetcher.requestedID(resp.ReqID) {
 			//pm.fetcher.deliverHeaders(p, resp.ReqID, resp.Headers)
 		} else {
-			err := pm.downloader.DeliverHeaders(p.id, resp.Headers)
+			//TODO
+			/*err := pm.downloader.DeliverHeaders(p.id, resp.Headers)
 			if err != nil {
 				log.Debug(fmt.Sprint(err))
-			}
+			}*/
 		}
 
 	case GetBlockBodiesMsg:
@@ -1199,7 +1202,7 @@ func (self *ProtocolManager) NodeInfo() *NodeInfo {
 
 	return &NodeInfo{
 		Network:    self.networkId,
-		Difficulty: self.blockchain.GetTd(hash, head.Number.Uint64()),
+		//Difficulty: self.blockchain.GetTd(hash, head.Number.Uint64()),
 		Genesis:    self.blockchain.Genesis().Hash(),
 		Config:     self.blockchain.Config(),
 		Head:       hash,
