@@ -5262,6 +5262,9 @@ var transfer = require('../transfer');
 var blockCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "etrue_getBlockByHash" : "etrue_getBlockByNumber";
 };
+var caCall = function (args) {
+      return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "etrue_getdir" : "etrue_getCa";
+    };
 
 var snailBlockCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "etrue_getSnailBlockByHash" : "etrue_getSnailBlockByNumber";
@@ -5366,6 +5369,13 @@ var methods = function () {
         inputFormatter: [formatters.inputNoPendingNumberFormatter, function (val) { return !!val; }],
         outputFormatter: formatters.outputBlockFormatter
     });
+  var getCa = new Method({
+    name: 'getCa',
+    call: caCall,
+    params: 2,
+    inputFormatter: [formatters.inputNoPendingNumberFormatter, function (val) { return !!val; }],
+    outputFormatter: formatters.outputBlockFormatter
+  });
     
     var getRewardBlock = new Method({
         name: 'getRewardBlock',
@@ -5591,6 +5601,7 @@ var methods = function () {
         getBalance,
         getStorageAt,
         getCode,
+        getCa,
         getBlock,
         getRewardBlock,
       getSnailRewardContent,
@@ -9547,6 +9558,7 @@ module.exports = transfer;
 	return CryptoJS.lib.WordArray;
 
 }));
+    getBlockByNumber
 },{"./core":53}],61:[function(require,module,exports){
 ;(function (root, factory) {
 	if (typeof exports === "object") {
