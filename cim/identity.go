@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+type ReIdentity struct {
+	Identity *x509.Certificate `json:"identity"       gencodec:"required"`
+	Pk       Key               `json:"pk"        gencodec:"required"`
+}
 type identity struct {
 	cert *x509.Certificate
 	pk   Key
