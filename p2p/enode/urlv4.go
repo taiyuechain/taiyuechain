@@ -158,6 +158,7 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 	b = append([]byte{0x4}, b...)
 	//caoliang modify
 	//return crypto.UnmarshalPubkey(b)
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	public, err := taipublic.UnmarshalPubkey(b)
 	if err != nil {
 		return nil, nil
