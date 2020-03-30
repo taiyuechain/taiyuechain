@@ -351,6 +351,7 @@ func (e *Election) VerifyPublicKey(fastHeight *big.Int, pubKeyByte []byte) (*typ
 func (e *Election) VerifySign(sign *types.PbftSign) (*types.CommitteeMember, error) {
 	//caolaing modify
 	var taipublic taiCrypto.TaiPublicKey
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	//pubkey, err := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 	pubkey, err := taipublic.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 	if err != nil {
@@ -366,6 +367,7 @@ func (e *Election) VerifySign(sign *types.PbftSign) (*types.CommitteeMember, err
 // VerifySigns verify signatures of bft committee in batches
 func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMember, []error) {
 	var taipublic taiCrypto.TaiPublicKey
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	members := make([]*types.CommitteeMember, len(signs))
 	errs := make([]error, len(signs))
 
