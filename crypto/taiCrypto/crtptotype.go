@@ -1,7 +1,7 @@
 package taiCrypto
 
 var SymmetricCryptoType uint8
-var AsymmetricCryptoType uint8
+var AsymmetricCryptoType = ASYMMETRICCRYPTOECDSA
 var HashCryptoType uint8
 
 const (
