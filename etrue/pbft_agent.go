@@ -30,7 +30,7 @@ import (
 
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -184,22 +184,22 @@ func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.En
 
 //initialize node info
 func (agent *PbftAgent) initNodeInfo(etrue Backend) {
-	var taipublic taiCrypto.TaiPublicKey
+	//var taipublic taiCrypto.TaiPublicKey
 	//config *Config, coinbase common.Address
 	config := etrue.Config()
 	coinbase, _ := etrue.Etherbase()
 	agent.initNodeWork()
 	agent.singleNode = config.NodeType
 	agent.privateKey = config.PrivateKey
-	taipublic.Publickey = agent.privateKey.PublicKey
+	//taipublic.Publickey = agent.privateKey.PublicKey
 	agent.committeeNode = &types.CommitteeNode{
 		IP:       config.Host,
 		Port:     uint32(config.Port),
 		Port2:    uint32(config.StandbyPort),
 		Coinbase: coinbase,
 		//caolaing modify
-		//Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
-		Publickey: taipublic.FromECDSAPub(taipublic),
+		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
+		//Publickey: taipublic.FromECDSAPub(taipublic),
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {
