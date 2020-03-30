@@ -1119,7 +1119,7 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	cfg.NodeCert = stack.Config().BftCommitteeCert()
 	if cfg.NodeCert == nil {
 		log.Error("not cert file ")
-		return
+		//return
 	}
 
 	//set PrivateKey by config,file or hex
