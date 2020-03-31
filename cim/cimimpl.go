@@ -1,11 +1,17 @@
 package cim
 
 import (
+	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"log"
+	"math/big"
 	"os"
+	"time"
 )
 
 type cimManagerImpl struct {
@@ -117,4 +123,56 @@ func (cim *cimimpl) Validate(id Identity) error {
 	default:
 		return errors.New("identity type not recognized")
 	}
+}
+func (cim *cimimpl) CreateIdentity(priv string) bool {
+	var private taiCrypto.TaiPrivateKey
+	//var public taiCrypto.TaiPublicKey
+	ca := &x509.Certificate{
+		SerialNumber: big.NewInt(1653),
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	if err != nil {
+		log.Println("create ca failed", err)
+		return false
+	}
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.Private.PublicKey, &caecda.Private)
+	if err != nil {
+		log.Println("create ca failed", err)
+		return false
+	}
+	encodeString := base64.StdEncoding.EncodeToString(ca_b)
+	fileName := priv[:4] + "ca.pem"
+	dstFile, err := os.Create(fileName)
+	if err != nil {
+		return false
+	}
+	defer dstFile.Close()
+	priv_b, _ := x509.MarshalECPrivateKey(&caecda.Private)
+	encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fileName1 := priv[:4] + "ca.key"
+	dstFile1, err := os.Create(fileName1)
+	if err != nil {
+		return false
+	}
+	defer dstFile1.Close()
+	dstFile1.WriteString(encodeString1 + "\n")
+	fmt.Println(encodeString)
+	return true
 }
