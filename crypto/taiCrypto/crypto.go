@@ -23,6 +23,7 @@ type TaiPrivKey interface {
 	HexToECDSA(hexkey string) (*TaiPrivateKey, error)
 	LoadECDSA(file string) (*TaiPrivateKey, error)
 	SaveECDSA(file string, key TaiPrivateKey) error
+	ToECDSACA(d []byte) (*TaiPrivateKey, error)
 }
 type TaiPubKey interface {
 	CompressPubkey(pubkey TaiPublicKey) []byte
@@ -129,7 +130,7 @@ func (TPK *TaiPublicKey) UnmarshalPubkey(pub []byte) (*TaiPublicKey, error) {
 		return TPK, nil
 
 	case ASYMMETRICCRYPTOECDSA:
-		public, err := tycrpto.UnmarshalPubkey(pub)
+		public, err := tycrpto.UnmarshalPubkey1(pub)
 		if err != nil {
 			return nil, err
 		}
@@ -169,6 +170,29 @@ func (TPK *TaiPrivateKey) ToECDSA(d []byte) (*TaiPrivateKey, error) {
 
 	case ASYMMETRICCRYPTOECDSA:
 		private, err := tycrpto.ToECDSA(d)
+		if err != nil {
+			return nil, err
+		}
+		TPK.Private = *private
+		return TPK, nil
+	}
+	return TPK, nil
+}
+func (TPK *TaiPrivateKey) ToECDSACA(d []byte) (*TaiPrivateKey, error) {
+	switch AsymmetricCryptoType {
+	case CAASYMMETRICCRYPTOSM2:
+		//TODO need add SM2 to change hexKey
+		//sm2.RawBytesToPrivateKey(d)
+		gmPrivate, err := sm2.RawBytesToPrivateKey(d)
+		if err != nil {
+			return nil, err
+		}
+		TPK.GmPrivate = *gmPrivate
+		TPK.GmPrivate.PublicKey = gmPrivate.PublicKey
+		return TPK, nil
+
+	case CAASYMMETRICCRYPTOECDSA:
+		private, err := tycrpto.ToECDSACA(d)
 		if err != nil {
 			return nil, err
 		}
