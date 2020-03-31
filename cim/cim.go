@@ -45,6 +45,7 @@ type CIM interface {
 	GetTLSIntermediateCert() []byte
 	GetSigningIdentity() SigningIdentity
 	Validate(id Identity) error
+	CreateIdentity(priv string) bool
 }
 
 type Identity interface {
