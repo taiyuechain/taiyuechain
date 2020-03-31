@@ -7,9 +7,9 @@ import (
 
 func (cim *cimimpl) validateIdentity(id *identity) error {
 
-	err := id.cert.CheckSignatureFrom(cim.rootCert.(*identity).cert)
-
-	if id.cert.IsCA {
+	//err := id.cert.CheckSignatureFrom(cim.rootCert.(*identity).cert)
+	err := id.cert.CheckSignatureFrom(id.cert)
+	if !id.cert.IsCA {
 		return errors.New("An X509 certificate with Basic Constraint: " +
 			"Certificate Authority equals true cannot be used as an identity")
 	}
