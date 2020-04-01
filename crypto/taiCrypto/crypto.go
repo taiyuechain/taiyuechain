@@ -130,7 +130,7 @@ func (TPK *TaiPublicKey) UnmarshalPubkey(pub []byte) (*TaiPublicKey, error) {
 		return TPK, nil
 
 	case ASYMMETRICCRYPTOECDSA:
-		public, err := tycrpto.UnmarshalPubkey1(pub)
+		public, err := tycrpto.UnmarshalPubkey(pub)
 		if err != nil {
 			return nil, err
 		}
