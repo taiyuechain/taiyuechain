@@ -361,6 +361,7 @@ func (agent *PbftAgent) loop() {
 		case ch := <-agent.electionCh:
 			switch ch.Option {
 			case types.CommitteeStart:
+				log.Info("-- CommitteeStart")
 				committeeID := copyCommitteeID(ch.CommitteeID)
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
@@ -373,6 +374,7 @@ func (agent *PbftAgent) loop() {
 					agent.isCurrentCommitteeMember = false
 				}
 			case types.CommitteeStop:
+				log.Info("-- CommitteeStop")
 				committeeID := copyCommitteeID(ch.CommitteeID)
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
@@ -382,6 +384,7 @@ func (agent *PbftAgent) loop() {
 				}
 				agent.stopSend()
 			case types.CommitteeSwitchover:
+				log.Info("-- CommitteeSwitchover")
 				committeeID := copyCommitteeID(ch.CommitteeID)
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
@@ -406,6 +409,7 @@ func (agent *PbftAgent) loop() {
 					agent.startSend(receivedCommitteeInfo, false)
 				}
 			case types.CommitteeUpdate:
+				log.Info("-- CommitteeUpdate")
 				committeeID := copyCommitteeID(ch.CommitteeID)
 				rawCommitteeInfo := &types.CommitteeInfo{
 					Id:          ch.CommitteeID,
@@ -441,6 +445,7 @@ func (agent *PbftAgent) loop() {
 			}
 			//receive nodeInfo
 		case cryNodeInfo := <-agent.cryNodeInfoCh:
+
 			if nodeTagHash, bool := agent.knownRecievedNodes.Get(cryNodeInfo.Hash()); bool {
 				savedTime, bool := agent.committeeNodeTag.Get(nodeTagHash)
 				if !bool {
@@ -740,6 +745,7 @@ func (agent *PbftAgent) GetFastLastProposer() common.Address {
 
 //FetchFastBlock  generate fastBlock as leader
 func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.CommitteeMember) (*types.Block, error) {
+	log.Info("Fetch Fast Block")
 	var taipublic taiCrypto.TaiPublicKey
 	agent.mu.Lock()
 	defer agent.mu.Unlock()

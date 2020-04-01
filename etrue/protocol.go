@@ -163,6 +163,20 @@ type txPool interface {
 	SubscribeNewTxsEvent(chan<- types.NewTxsEvent) event.Subscription
 }
 
+
+type AgentNetworkProxy interface {
+	// SubscribeNewPbftSignEvent should return an event subscription of
+	// PbftSignEvent and send events to the given channel.
+	SubscribeNewPbftSignEvent(chan<- types.PbftSignEvent) event.Subscription
+	// SubscribeNodeInfoEvent should return an event subscription of
+	// NodeInfoEvent and send events to the given channel.
+	SubscribeNodeInfoEvent(chan<- types.NodeInfoEvent) event.Subscription
+	// AddRemoteNodeInfo should add the given NodeInfo to the pbft agent.
+	AddRemoteNodeInfo(*types.EncryptNodeMessage) error
+	//GetNodeInfoByHash get crypto nodeInfo  by hash
+	GetNodeInfoByHash(nodeInfoHash common.Hash) (*types.EncryptNodeMessage, bool)
+}
+
 // statusData63 is the network packet for the status message for eth/63.
 type statusData63 struct {
 	ProtocolVersion uint32
@@ -180,6 +194,11 @@ type statusData struct {
 	Head            common.Hash
 	Genesis         common.Hash
 	ForkID          forkid.ID
+}
+
+// getBlockHeadersData represents a block header query.
+type nodeInfoHashData struct {
+	Hash common.Hash
 }
 
 // newBlockHashesData is the network packet for the block announcements.

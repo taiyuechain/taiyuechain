@@ -78,6 +78,11 @@ const (
 	// txChanSize is the size of channel listening to NewTxsEvent.
 	// The number is referenced from the size of tx pool.
 	txChanSize = 4096
+
+	blockChanSize = 256
+	nodeChanSize  = 256
+
+	minBroadcastPeers = 4
 )
 
 var (
@@ -123,10 +128,20 @@ type ProtocolManager struct {
 	// wait group is used for graceful shutdowns during downloading
 	// and processing
 	wg sync.WaitGroup
+	agentProxy AgentNetworkProxy
 
 	// Test fields or hooks
 	broadcastTxAnnouncesOnly bool // Testing field, disable transaction propagation
 	SubProtocols []p2p.Protocol
+
+	chainconfig *params.ChainConfig
+
+	minedFastCh  chan types.PbftSignEvent
+	minedFastSub event.Subscription
+
+	pbNodeInfoCh  chan types.NodeInfoEvent
+	pbNodeInfoSub event.Subscription
+
 }
 
 // NewProtocolManager returns a new Ethereum sub protocol manager. The Ethereum sub protocol manages peers capable
@@ -138,9 +153,11 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		forkFilter:  forkid.NewFilter(blockchain),
 		eventMux:    mux,
 		txpool:      txpool,
+		chainconfig: config,
 		blockchain:  blockchain,
 		peers:       newPeerSet(),
 		whitelist:   whitelist,
+		agentProxy:  agent,
 		newPeerCh:   make(chan *peer),
 		noMorePeers: make(chan struct{}),
 		txsyncCh:    make(chan *txsync),
@@ -300,6 +317,17 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent{})
 	go pm.minedBroadcastLoop()
 
+
+	// broadcast fastBlocks
+	pm.minedFastCh = make(chan types.PbftSignEvent, blockChanSize)
+	pm.minedFastSub = pm.agentProxy.SubscribeNewPbftSignEvent(pm.minedFastCh)
+	go pm.minedFastBroadcastLoop()
+
+	// broadcast node info
+	pm.pbNodeInfoCh = make(chan types.NodeInfoEvent, nodeChanSize)
+	pm.pbNodeInfoSub = pm.agentProxy.SubscribeNodeInfoEvent(pm.pbNodeInfoCh)
+	go pm.pbNodeInfoBroadcastLoop()
+
 	// start sync handlers
 	go pm.syncer()
 	go pm.txsyncLoop64() // TODO(karalabe): Legacy initial tx echange, drop with eth/64.
@@ -310,6 +338,8 @@ func (pm *ProtocolManager) Stop() {
 
 	pm.txsSub.Unsubscribe()        // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
+	pm.minedFastSub.Unsubscribe() // quits minedFastBroadcastLoop
+	pm.pbNodeInfoSub.Unsubscribe()
 
 	// Quit the sync loop.
 	// After this send has completed, no new peers will be accepted.
@@ -723,7 +753,62 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		for _, block := range unknown {
 			pm.blockFetcher.Notify(p.id, block.Hash, block.Number, time.Now(), p.RequestOneHeader, p.RequestBodies)
 		}
+	case msg.Code == TxMsg:
+		// Transactions arrived, make sure we have a valid and fresh chain to handle them
+		if atomic.LoadUint32(&pm.acceptTxs) == 0 {
+			break
+		}
+		// Transactions can be processed, parse all of them and deliver to the pool
+		var txs []*types.Transaction
+		if err := msg.Decode(&txs); err != nil {
+			return errResp(ErrDecode, "msg %v: %v", msg, err)
+		}
+		for i, tx := range txs {
+			// Validate and mark the remote transaction
+			if tx == nil {
+				return errResp(ErrDecode, "transaction %d is nil", i)
+			}
+			propTxnInTxsMeter.Mark(1)
+			p.MarkTransaction(tx.Hash())
+		}
+		log.Trace("Receive tx", "peer", p.id, "txs", len(txs), "ip", p.RemoteAddr())
+		go pm.txpool.AddRemotes(txs)
 
+	case msg.Code == TbftNodeInfoMsg:
+		// EncryptNodeMessage can be processed, parse all of them and deliver to the queue
+		var nodeInfo *types.EncryptNodeMessage
+		if err := msg.Decode(&nodeInfo); err != nil {
+			return errResp(ErrDecode, "msg %v: %v", msg, err)
+		}
+		// Validate and mark the remote node
+		if nodeInfo == nil {
+			return errResp(ErrDecode, "node  is nil")
+		}
+		p.MarkNodeInfo(nodeInfo.Hash())
+		pm.agentProxy.AddRemoteNodeInfo(nodeInfo)
+
+	case msg.Code == TbftNodeInfoHashMsg:
+		var data nodeInfoHashData
+		if err := msg.Decode(&data); err != nil {
+			return errResp(ErrDecode, "%v: %v", msg, err)
+		}
+		// Mark the hashes as present at the remote node
+		p.MarkNodeInfo(data.Hash)
+		_, isExist := pm.agentProxy.GetNodeInfoByHash(data.Hash)
+		if !isExist {
+			return p.Send(GetTbftNodeInfoMsg, data)
+		}
+
+	case msg.Code == GetTbftNodeInfoMsg:
+		var data nodeInfoHashData
+		if err := msg.Decode(&data); err != nil {
+			return errResp(ErrDecode, "%v: %v", msg, err)
+		}
+		cryptoNodeInfo, isExist := pm.agentProxy.GetNodeInfoByHash(data.Hash)
+		if isExist {
+			//log.Info("Send nodeInfo by get node info msg")
+			return p.SendNodeInfo(cryptoNodeInfo)
+		}
 	case msg.Code == NewBlockMsg:
 		// Retrieve and decode the propagated block
 		var request newBlockData
@@ -915,6 +1000,112 @@ func (pm *ProtocolManager) BroadcastTransactions(txs types.Transactions, propaga
 			peer.AsyncSendPooledTransactionHashes(hashes)
 		} else {
 			peer.AsyncSendTransactions(hashes)
+		}
+	}
+}
+// PeersWithoutBlock retrieves a list of peers that do not have a given block in
+// their set of known hashes.
+func (ps *peerSet) PeersWithoutFastBlock(hash common.Hash) []*peer {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	list := make([]*peer, 0, len(ps.peers))
+	for _, p := range ps.peers {
+		if !p.knownFastBlocks.Contains(hash) {
+			list = append(list, p)
+		}
+	}
+	return list
+}
+
+// BroadcastFastBlock will either propagate a block to a subset of it's peers, or
+// will only announce it's availability (depending what's requested).
+func (pm *ProtocolManager) BroadcastFastBlock(block *types.Block, propagate bool) {
+	hash := block.Hash()
+	peers := pm.peers.PeersWithoutFastBlock(hash)
+
+	// If propagation is requested, send to a subset of the peer
+	if propagate {
+		if parent := pm.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1); parent == nil {
+			log.Error("Propagating dangling fast block", "number", block.Number(), "hash", hash)
+			return
+		}
+		// Send the block to a subset of our peers
+		transferLen := int(math.Sqrt(float64(len(peers))))
+		if transferLen < minBroadcastPeers {
+			transferLen = minBroadcastPeers
+		}
+		if transferLen > len(peers) {
+			transferLen = len(peers)
+		}
+		transfer := peers[:transferLen]
+		for _, peer := range transfer {
+			//TODO td
+			peer.AsyncSendNewBlock(block, big.NewInt(0))
+		}
+		log.Debug("Propagated fast block", "num", block.Number(), "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+		return
+	}
+	// Otherwise if the block is indeed in out own chain, announce it
+	if pm.blockchain.HasBlock(hash, block.NumberU64()) {
+		for _, peer := range peers {
+			peer.AsyncSendNewBlockHash(block)
+		}
+		log.Debug("Announced fast block", "num", block.Number(), "hash", hash.String(), "block size", block.Size(), "recipients", len(peers), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
+	}
+}
+
+
+// BroadcastPbNodeInfo will propagate a batch of EncryptNodeMessage to all peers which are not known to
+// already have the given CryNodeInfo.
+func (pm *ProtocolManager) BroadcastPbNodeInfo(nodeInfo *types.EncryptNodeMessage) {
+	// Broadcast transactions to a batch of peers not knowing about it
+	peers := pm.peers.PeersWithoutNodeInfo(nodeInfo.Hash())
+
+	transferLen := int(math.Sqrt(float64(len(peers))))
+	if transferLen < minBroadcastPeers {
+		transferLen = minBroadcastPeers
+	}
+	if transferLen > len(peers) {
+		transferLen = len(peers)
+	}
+	transfer := peers[:transferLen]
+
+	for _, peer := range transfer {
+		peer.AsyncSendNodeInfo(nodeInfo)
+	}
+	for _, peer := range peers {
+		peer.AsyncSendNodeInfoHash(nodeInfo)
+	}
+	log.Trace("Broadcast node info ", "hash", nodeInfo.Hash(), "sendNodeHash.peer", len(peers), "sendNode.peer", len(transfer), "pm.peers.peers", len(pm.peers.peers))
+}
+
+
+// Mined broadcast loop
+func (pm *ProtocolManager) minedFastBroadcastLoop() {
+	for {
+		select {
+		case signEvent := <-pm.minedFastCh:
+			log.Info("Broadcast fast block", "number", signEvent.PbftSign.FastHeight, "hash", signEvent.PbftSign.Hash(), "recipients", len(pm.peers.peers))
+			atomic.StoreUint32(&pm.acceptTxs, 1)
+			pm.BroadcastFastBlock(signEvent.Block, true)  // Only then announce to the rest
+			pm.BroadcastFastBlock(signEvent.Block, false) // Only then announce to the rest
+
+			// Err() channel will be closed when unsubscribing.
+		case <-pm.minedFastSub.Err():
+			return
+		}
+	}
+}
+
+func (pm *ProtocolManager) pbNodeInfoBroadcastLoop() {
+	for {
+		select {
+		case nodeInfoEvent := <-pm.pbNodeInfoCh:
+			pm.BroadcastPbNodeInfo(nodeInfoEvent.NodeInfo)
+			// Err() channel will be closed when unsubscribing.
+		case <-pm.pbNodeInfoSub.Err():
+			return
 		}
 	}
 }

@@ -41,6 +41,7 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+	"strings"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
@@ -48,12 +49,14 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/p2p"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 var (
 	errClosed            = errors.New("peer set is closed")
 	errAlreadyRegistered = errors.New("peer is already registered")
 	errNotRegistered     = errors.New("peer is not registered")
+	notHandle            = "not handled"
 )
 
 const (
@@ -79,6 +82,17 @@ const (
 	maxQueuedBlockAnns = 4
 
 	handshakeTimeout = 5 * time.Second
+
+	maxKnownNodeInfo    = 2048
+
+	// maxQueuedNodeInfo is the maximum number of node info propagations to queue up before
+	// dropping broadcasts. There's not much point in queueing stale blocks, so a few
+	// that might cover uncles should be enough.
+	maxQueuedNodeInfo = 128
+
+	maxQueuedNodeInfoHash = 256
+
+	maxKnownFastBlocks  = 1024  // Maximum block hashes to keep in the known list (prevent DOS)
 )
 
 // max is a helper function which returns the larger of the two given integers.
@@ -103,6 +117,20 @@ type propEvent struct {
 	td    *big.Int
 }
 
+
+// propEvent is a fast block propagation, waiting for its turn in the broadcast queue.
+type propHashEvent struct {
+	hash   common.Hash // Hash of one particular block being announced
+	number uint64      // Number of one particular block being announced
+	fast   bool
+}
+
+// dropPeerEvent is a snailBlock propagation, waiting for its turn in the broadcast queue.
+type dropPeerEvent struct {
+	id     string
+	reason string
+}
+
 type peer struct {
 	id string
 
@@ -121,11 +149,17 @@ type peer struct {
 	queuedBlockAnns chan *types.Block // Queue of blocks to announce to the peer
 
 	knownTxs    mapset.Set                           // Set of transaction hashes known to be known by this peer
+	knownNodeInfos     mapset.Set
 	txBroadcast chan []common.Hash                   // Channel used to queue transaction propagation requests
 	txAnnounce  chan []common.Hash                   // Channel used to queue transaction announcement requests
 	getPooledTx func(common.Hash) *types.Transaction // Callback used to retrieve transaction from txpool
 
 	term chan struct{} // Termination channel to stop the broadcaster
+
+	dropEvent chan *dropPeerEvent // Queue of drop error peer
+	queuedNodeInfo     chan *types.EncryptNodeMessage // a node info to broadcast to the peer
+	queuedNodeInfoHash chan *types.EncryptNodeMessage // a node info to broadcast to the peer
+	knownFastBlocks    mapset.Set // Set of fast block hashes known to be known by this peer
 }
 
 func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(hash common.Hash) *types.Transaction) *peer {
@@ -135,9 +169,13 @@ func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(ha
 		version:         version,
 		id:              fmt.Sprintf("%x", p.ID().Bytes()[:8]),
 		knownTxs:        mapset.NewSet(),
+		knownNodeInfos:     mapset.NewSet(),
 		knownBlocks:     mapset.NewSet(),
 		queuedBlocks:    make(chan *propEvent, maxQueuedBlocks),
 		queuedBlockAnns: make(chan *types.Block, maxQueuedBlockAnns),
+		queuedNodeInfo:     make(chan *types.EncryptNodeMessage, maxQueuedNodeInfo),
+		queuedNodeInfoHash: make(chan *types.EncryptNodeMessage, maxQueuedNodeInfoHash),
+		knownFastBlocks:    mapset.NewSet(),
 		txBroadcast:     make(chan []common.Hash),
 		txAnnounce:      make(chan []common.Hash),
 		getPooledTx:     getPooledTx,
@@ -308,6 +346,15 @@ func (p *peer) Info() *PeerInfo {
 		Head:       hash.Hex(),
 	}
 }
+// MarkFastBlock marks a block as known for the peer, ensuring that the block will
+// never be propagated to this particular peer.
+func (p *peer) MarkFastBlock(hash common.Hash) {
+	// If we reached the memory allowance, drop a previously known block hash
+	for p.knownFastBlocks.Cardinality() >= maxKnownFastBlocks {
+		p.knownFastBlocks.Pop()
+	}
+	p.knownFastBlocks.Add(hash)
+}
 
 // Head retrieves a copy of the current head hash and total difficulty of the
 // peer.
@@ -348,6 +395,16 @@ func (p *peer) MarkTransaction(hash common.Hash) {
 	p.knownTxs.Add(hash)
 }
 
+// MarkNodeInfo marks a node info as known for the peer, ensuring that it
+// will never be propagated to this particular peer.
+func (p *peer) MarkNodeInfo(hash common.Hash) {
+	// If we reached the memory allowance, drop a previously known node info hash
+	for p.knownNodeInfos.Cardinality() >= maxKnownNodeInfo {
+		p.knownNodeInfos.Pop()
+	}
+	p.knownNodeInfos.Add(hash)
+}
+
 // SendTransactions64 sends transactions to the peer and includes the hashes
 // in its transaction hash set for future reference.
 //
@@ -355,6 +412,22 @@ func (p *peer) MarkTransaction(hash common.Hash) {
 // prior. For eth/65 and higher use SendPooledTransactionHashes.
 func (p *peer) SendTransactions64(txs types.Transactions) error {
 	return p.sendTransactions(txs)
+}
+
+
+// PeersWithoutNodeInfo retrieves a list of peers that do not have a given node info
+// in their set of known hashes.
+func (ps *peerSet) PeersWithoutNodeInfo(hash common.Hash) []*peer {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	list := make([]*peer, 0, len(ps.peers))
+	for _, p := range ps.peers {
+		if !p.knownNodeInfos.Contains(hash) {
+			list = append(list, p)
+		}
+	}
+	return list
 }
 
 // sendTransactions sends transactions to the peer and includes the hashes
@@ -443,6 +516,39 @@ func (p *peer) SendPooledTransactionsRLP(hashes []common.Hash, txs []rlp.RawValu
 	return p2p.Send(p.rw, PooledTransactionsMsg, txs)
 }
 
+
+//SendNodeInfo sends node info to the peer and includes the hashes
+// in its signs hash set for future reference.
+func (p *peer) SendNodeInfo(nodeInfo *types.EncryptNodeMessage) error {
+	p.knownNodeInfos.Add(nodeInfo.Hash())
+	log.Trace("SendNodeInfo", "size", nodeInfo.Size(), "peer", p.id)
+	return p.Send(TbftNodeInfoMsg, nodeInfo)
+}
+
+func (p *peer) SendNodeInfoHash(nodeInfo *types.EncryptNodeMessage) error {
+	p.knownNodeInfos.Add(nodeInfo.Hash())
+	log.Trace("SendNodeInfoHash", "peer", p.id)
+	return p.Send(TbftNodeInfoHashMsg, &nodeInfoHashData{nodeInfo.Hash()})
+}
+
+func (p *peer) AsyncSendNodeInfo(nodeInfo *types.EncryptNodeMessage) {
+	select {
+	case p.queuedNodeInfo <- nodeInfo:
+		p.knownNodeInfos.Add(nodeInfo.Hash())
+	default:
+		p.Log().Debug("Dropping nodeInfo propagation", "size", nodeInfo.Size(), "queuedNodeInfo", len(p.queuedNodeInfo), "peer", p.RemoteAddr())
+	}
+}
+
+func (p *peer) AsyncSendNodeInfoHash(nodeInfo *types.EncryptNodeMessage) {
+	select {
+	case p.queuedNodeInfoHash <- nodeInfo:
+		p.knownNodeInfos.Add(nodeInfo.Hash())
+	default:
+		p.Log().Debug("Dropping nodeInfoHash propagation", "queuedNodeInfoHash", len(p.queuedNodeInfoHash), "peer", p.RemoteAddr())
+	}
+}
+
 // SendNewBlockHashes announces the availability of a number of blocks through
 // a hash notification.
 func (p *peer) SendNewBlockHashes(hashes []common.Hash, numbers []uint64) error {
@@ -472,6 +578,16 @@ func (p *peer) AsyncSendNewBlockHash(block *types.Block) {
 			p.knownBlocks.Pop()
 		}
 		p.knownBlocks.Add(block.Hash())
+	case nodeInfo := <-p.queuedNodeInfo:
+		if err := p.SendNodeInfo(nodeInfo); err != nil {
+			return
+		}
+		p.Log().Trace("Broadcast node info ")
+	case nodeInfo := <-p.queuedNodeInfoHash:
+		if err := p.SendNodeInfoHash(nodeInfo); err != nil {
+			log.Info("SendNodeInfoHash error", "err", err)
+		}
+		p.Log().Trace("Broadcast node info hash")
 	default:
 		p.Log().Debug("Dropping block announcement", "number", block.NumberU64(), "hash", block.Hash())
 	}
@@ -576,6 +692,20 @@ func (p *peer) RequestTxs(hashes []common.Hash) error {
 	p.Log().Debug("Fetching batch of transactions", "count", len(hashes))
 	return p2p.Send(p.rw, GetPooledTransactionsMsg, hashes)
 }
+
+func (p *peer) Send(msgcode uint64, data interface{}) error {
+	err := p2p.Send(p.rw, msgcode, data)
+
+	if err != nil && !strings.Contains(err.Error(), notHandle) {
+		select {
+		case p.dropEvent <- &dropPeerEvent{p.id, err.Error()}:
+		default:
+			p.Log().Info("Dropping Send propagation", "peer", p.id, "err", err)
+		}
+	}
+	return err
+}
+
 
 // Handshake executes the eth protocol handshake, negotiating version number,
 // network IDs, difficulties, head and genesis blocks.
