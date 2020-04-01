@@ -41,23 +41,7 @@ const (
 
 var OpenFileLimit = 64
 
-
 // AncientReader contains the methods required to read from immutable ancient data.
-type AncientReader interface {
-	// HasAncient returns an indicator whether the specified data exists in the
-	// ancient store.
-	HasAncient(kind string, number uint64) (bool, error)
-
-	// Ancient retrieves an ancient binary blob from the append-only immutable files.
-	Ancient(kind string, number uint64) ([]byte, error)
-
-	// Ancients returns the ancient item numbers in the ancient store.
-	Ancients() (uint64, error)
-
-	// AncientSize returns the ancient size of the specified category.
-	AncientSize(kind string) (uint64, error)
-}
-
 type LDBDatabase struct {
 	fn string      // filename for reporting
 	db *leveldb.DB // LevelDB instance
@@ -399,6 +383,10 @@ type ldbBatch struct {
 	size int
 }
 
+func (b *ldbBatch) Replay(w interface{}) error {
+	panic("implement me")
+}
+
 func (b *ldbBatch) Put(key, value []byte) error {
 	b.b.Put(key, value)
 	b.size += len(value)
@@ -490,4 +478,10 @@ func (tb *tableBatch) ValueSize() int {
 
 func (tb *tableBatch) Reset() {
 	tb.batch.Reset()
+}
+
+type Batcher interface {
+	// NewBatch creates a write-only database that buffers changes to its host db
+	// until a final write is called.
+	NewBatch() Batch
 }
