@@ -573,6 +573,7 @@ func (cs *ConsensusState) receiveRoutine(maxSteps int) {
 			cs.handleMsg(mi)
 		case mi = <-cs.internalMsgQueue:
 			// handles proposals, block parts, votes
+			log.Info("not come to here? internalMsgQueue")
 			cs.handleMsg(mi)
 		case ti := <-cs.timeoutTicker.Chan(): // tockChan:
 			// if the timeout is relevant to the rs
@@ -593,18 +594,20 @@ func (cs *ConsensusState) receiveRoutine(maxSteps int) {
 func (cs *ConsensusState) handleMsg(mi msgInfo) {
 	cs.mtx.Lock()
 	defer cs.mtx.Unlock()
-
+	log.Info("handleMsg")
 	var err error
 	msg, peerID := mi.Msg, mi.PeerID
 	switch msg := msg.(type) {
 	case *ProposalMessage:
 		// will not cause transition.
 		// once proposal is set, we can receive block parts
+		log.Info("1 handleMsg")
 		err = cs.setProposal(msg.Proposal)
 		if err != nil {
 			log.Warn("SetProposal", "Warning", err)
 		}
 	case *BlockPartMessage:
+		log.Info("2 handleMsg")
 		// if the proposal is complete, we'll enterPrevote or tryFinalizeCommit
 		_, err = cs.addProposalBlockPart(msg, peerID)
 		if err != nil && msg.Round != cs.Round {
@@ -612,6 +615,7 @@ func (cs *ConsensusState) handleMsg(mi msgInfo) {
 			err = nil
 		}
 	case *VoteMessage:
+		log.Info("3 handleMsg")
 		// attempt to add the vote and dupeout the validator if its a duplicate signature
 		// if the vote gives us a 2/3-any or 2/3-one, we transition
 		log.Trace("VoteMessage", "peerID", peerID, "round", msg.Vote.Round, "height", msg.Vote.Height, "type", msg.Vote.Type)
@@ -630,6 +634,7 @@ func (cs *ConsensusState) handleMsg(mi msgInfo) {
 		// the peer is sending us CatchupCommit precommits.
 		// We could make note of this and help filter in broadcastHasVoteMessage().
 	case *ValidatorUpdateMessage:
+		log.Info("4 handleMsg")
 		cs.validatorUpdate(msg)
 	default:
 		log.Debug("Unknown msg type", reflect.TypeOf(msg))
@@ -658,6 +663,7 @@ func (cs *ConsensusState) handleTimeout(ti timeoutInfo, rs ttypes.RoundState) {
 		// XXX: should we fire timeout here (for timeout commit)?
 		cs.enterNewRound(ti.Height, 0)
 	case ttypes.RoundStepNewRound:
+		log.Info("handleTimeout,RoundStepNewRound")
 		cs.tryEnterProposal(ti.Height, 0, ti.Wait)
 	case ttypes.RoundStepPropose:
 		//help.CheckAndPrintError(cs.eventBus.PublishEventTimeoutPropose(cs.RoundStateEvent()))
@@ -767,6 +773,7 @@ func (cs *ConsensusState) tryEnterProposal(height uint64, round int, wait uint) 
 
 	if doing {
 		// get block
+		log.Info("start create proposalBlocke")
 		block, blockParts, err = cs.createProposalBlock(round)
 		if err != nil || block == nil {
 			log.Debug("createProposalBlock", "height:", height, "round:", round, "makeblock:", err)
@@ -795,6 +802,7 @@ func (cs *ConsensusState) tryEnterProposal(height uint64, round int, wait uint) 
 		wait++
 		cs.scheduleTimeoutWithWait(timeoutInfo{dd, height, uint(round), ttypes.RoundStepNewRound, wait})
 	} else {
+		log.Info("enterPropose must in")
 		metrics.MTimesCount(metrics.FetchFastBlockTC, time.Duration(wait))
 		cs.enterPropose(height, round, block, blockParts)
 	}
@@ -855,7 +863,7 @@ func (cs *ConsensusState) defaultDecideProposal(height uint64, round int, blk *t
 			return
 		}
 	}
-
+	log.Info("go to defaultDecideProposal")
 	// Make proposal
 	polRound, polBlockID := cs.Votes.POLInfo()
 	proposal := ttypes.NewProposal(height, round, blockParts.Header(), uint(polRound), polBlockID)
@@ -866,7 +874,7 @@ func (cs *ConsensusState) defaultDecideProposal(height uint64, round int, blk *t
 		cs.ProposalBlock = block
 		cs.ProposalBlockParts = blockParts
 		*/
-
+		log.Info("you must come to here defaultDecideProposal ")
 		// send proposal and block parts on internal msg queue
 		cs.sendInternalMessage(msgInfo{&ProposalMessage{proposal}, ""})
 		for i := 0; i < int(blockParts.Total()); i++ {
@@ -929,7 +937,7 @@ func (cs *ConsensusState) createProposalBlock(round int) (*types.Block, *ttypes.
 			}
 		}
 	}
-
+	log.Info("start MakeBlock")
 	block, err := cs.state.MakeBlock(v)
 	if block != nil && err == nil {
 		parts, err2 := cs.state.MakePartSet(ttypes.BlockPartSizeBytes, block)
