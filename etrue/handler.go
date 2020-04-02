@@ -189,17 +189,17 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		}
 	}
 
-	/*// Initiate a sub-protocol for every implemented version we can handle
+	// Initiate a sub-protocol for every implemented version we can handle
 	manager.SubProtocols = make([]p2p.Protocol, 0, len(ProtocolVersions))
-	for i, version := range ProtocolVersions {
+	for _, version := range ProtocolVersions {
 		// Compatible; initialise the sub-protocol
 		version := version // Closure for the run
 		manager.SubProtocols = append(manager.SubProtocols, p2p.Protocol{
 			Name:    ProtocolName,
 			Version: version,
-			Length:  ProtocolLengths[i],
+			Length:  ProtocolLengths[version],
 			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
-				peer := manager.newPeer(int(version), p, rw)
+				peer := manager.newPeer(int(version), p, rw, manager.txpool.Get)
 				select {
 				case manager.newPeerCh <- peer:
 					manager.wg.Add(1)
@@ -222,7 +222,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 	}
 	if len(manager.SubProtocols) == 0 {
 		return nil, errIncompatibleConfig
-	}*/
+	}
 
 
 	// If we have trusted checkpoints, enforce them on the chain
@@ -402,6 +402,10 @@ func (pm *ProtocolManager) Stop() {
 func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(hash common.Hash) *types.Transaction) *peer {
 	return newPeer(pv, p, rw, getPooledTx)
 }
+/*func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+	return newPeer(pv, p, newMeteredMsgWriter(rw), pm.removePeer)
+}*/
+
 
 // handle is the callback invoked to manage the life cycle of an eth peer. When
 // this function terminates, the peer is disconnected.
@@ -419,15 +423,18 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		hash    = head.Hash()
 		//number  = head.Number.Uint64()
 		//td      = pm.blockchain.GetTd(hash, number)
+		//number = pm.blockchain.CurrentBlock().Number()
 	)
 	//TODO
 	if err := p.Handshake(pm.networkID, big.NewInt(0), hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
-		p.Log().Debug("Ethereum handshake failed", "err", err)
+		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}
+
+
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
-		p.Log().Error("Ethereum peer registration failed", "err", err)
+		p.Log().Error("etrue peer registration failed", "err", err)
 		return err
 	}
 	defer pm.removePeer(p.id)

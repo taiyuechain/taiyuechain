@@ -36,14 +36,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
-	"github.com/taiyuechain/taiyuechain/cim/config"
 	"math/big"
-	"path/filepath"
 	"sync"
 	"time"
 	"strings"
 
-	mapset "github.com/deckarep/golang-set"
+	"github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
@@ -794,7 +792,7 @@ func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis 
 	default:
 		panic(fmt.Sprintf("unsupported eth protocol version: %d", p.version))
 	}
-	var reid cim.Identity
+	/*var reid cim.Identity
 	cimConfigDir, _ := config.GetDevConfigDir()
 	singcertPath := filepath.Join(cimConfigDir, "/testcert")
 	id, err := cim.GetLocalIdentityDataFromConfig(singcertPath)
@@ -818,7 +816,7 @@ func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis 
 		case <-timeout1.C:
 			return p2p.DiscReadTimeout
 		}
-	}
+	}*/
 	return nil
 }
 func (p *peer) readCa(network uint64, id cim.Identity) (err error) {
