@@ -118,11 +118,11 @@ type LDBDatabase struct {
 }
 
 func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
-	panic("implement me")
+	return db.NewIteratorWithPrefix(prefix)
 }
 
 func (db *LDBDatabase) NewIterator() Iterator {
-	panic("implement me")
+	return db.NewIterator()
 }
 
 /*func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
@@ -133,46 +133,46 @@ func (db *LDBDatabase) NewIterator() Iterator {
 // database content starting at a particular initial key (or after, if it does
 // not exist).
 func (db *LDBDatabase) NewIteratorWithStart(start []byte) Iterator {
-	panic("implement me")
+	return db.NewIteratorWithStart(start)
 }
 
 // NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
 // of database content with a particular key prefix.
 
 func (db *LDBDatabase) Stat(property string) (string, error) {
-	panic("implement me")
+	return db.Stat(property)
 }
 
 func (db *LDBDatabase) Compact(start []byte, limit []byte) error {
-	panic("implement me")
+	return db.Compact(start, limit)
 }
 
 func (db *LDBDatabase) HasAncient(kind string, number uint64) (bool, error) {
-	panic("implement me")
+	return db.HasAncient(kind, number)
 }
 
 func (db *LDBDatabase) Ancient(kind string, number uint64) ([]byte, error) {
-	panic("implement me")
+	return db.Ancient(kind, number)
 }
 
 func (db *LDBDatabase) Ancients() (uint64, error) {
-	panic("implement me")
+	return db.Ancients()
 }
 
 func (db *LDBDatabase) AncientSize(kind string) (uint64, error) {
-	panic("implement me")
+	return db.AncientSize(kind)
 }
 
 func (db *LDBDatabase) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
-	panic("implement me")
+	return db.AppendAncient(number, hash, header, body, receipt, td)
 }
 
 func (db *LDBDatabase) TruncateAncients(n uint64) error {
-	panic("implement me")
+	return db.TruncateAncients(n)
 }
 
 func (db *LDBDatabase) Sync() error {
-	panic("implement me")
+	return db.Sync()
 }
 
 // NewLDBDatabase returns a LevelDB wrapped object.
@@ -499,27 +499,27 @@ type ldbBatch struct {
 }
 
 func (b *ldbBatch) NewIterator() Iterator {
-	panic("implement me")
+	return b.NewIterator()
 }
 
 func (b *ldbBatch) NewIteratorWithStart(start []byte) Iterator {
-	panic("implement me")
+	return b.NewIteratorWithStart(start)
 }
 
 func (b *ldbBatch) NewIteratorWithPrefix(prefix []byte) Iterator {
-	panic("implement me")
+	return b.NewIteratorWithPrefix(prefix)
 }
 
 func (b *ldbBatch) Has(key []byte) (bool, error) {
-	panic("implement me")
+	return b.Has(key)
 }
 
 func (b *ldbBatch) Get(key []byte) ([]byte, error) {
-	panic("implement me")
+	return b.Get(key)
 }
 
 func (b *ldbBatch) Replay(w KeyValueWriter) error {
-	panic("implement me")
+	return b.Replay(w)
 }
 
 func (b *ldbBatch) Put(key, value []byte) error {
