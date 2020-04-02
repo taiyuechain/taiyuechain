@@ -331,6 +331,30 @@ func (p *peer) announceTransactions() {
 	}
 }
 
+
+
+func (p *peer) broadcast() {
+	for {
+		select {
+		case nodeInfo := <-p.queuedNodeInfo:
+			log.Info("broadcast queuedNodeInfo")
+			if err := p.SendNodeInfo(nodeInfo); err != nil {
+				return
+			}
+			p.Log().Trace("Broadcast node info ")
+		case nodeInfo := <-p.queuedNodeInfoHash:
+			log.Info("broadcast queuedNodeInfoHash")
+			if err := p.SendNodeInfoHash(nodeInfo); err != nil {
+				log.Info("SendNodeInfoHash error", "err", err)
+			}
+			p.Log().Trace("Broadcast node info hash")
+
+		case <-p.term:
+			return
+		}
+	}
+}
+
 // close signals the broadcast goroutine to terminate.
 func (p *peer) close() {
 	close(p.term)
@@ -914,6 +938,7 @@ func (ps *peerSet) Register(p *peer) error {
 	go p.broadcastBlocks()
 	go p.broadcastTransactions()
 	go p.announceTransactions()
+	go p.broadcast()
 
 	return nil
 }

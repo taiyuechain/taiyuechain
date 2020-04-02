@@ -1072,12 +1072,14 @@ func (pm *ProtocolManager) BroadcastPbNodeInfo(nodeInfo *types.EncryptNodeMessag
 	transfer := peers[:transferLen]
 
 	for _, peer := range transfer {
+		log.Info("1 BroadcastPbNodeInfo AsyncSendNodeInfo ")
 		peer.AsyncSendNodeInfo(nodeInfo)
 	}
 	for _, peer := range peers {
+		log.Info("2 BroadcastPbNodeInfo AsyncSendNodeInfoHash ")
 		peer.AsyncSendNodeInfoHash(nodeInfo)
 	}
-	log.Trace("Broadcast node info ", "hash", nodeInfo.Hash(), "sendNodeHash.peer", len(peers), "sendNode.peer", len(transfer), "pm.peers.peers", len(pm.peers.peers))
+	log.Info("Broadcast node info ", "hash", nodeInfo.Hash(), "sendNodeHash.peer", len(peers), "sendNode.peer", len(transfer), "pm.peers.peers", len(pm.peers.peers))
 }
 
 
