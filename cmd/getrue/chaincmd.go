@@ -20,10 +20,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/trie"
 	"gopkg.in/urfave/cli.v1"
-
-
-
-	"math/big"
 )
 
 var (
@@ -451,9 +447,7 @@ func copyDb(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {
 		utils.Fatalf("Source chaindata directory path argument missing")
 	}
-	if len(ctx.Args()) < 2 {
-		utils.Fatalf("Source ancient chain directory path argument missing")
-	}
+
 	// Initialize a new chain for the running node to sync into
 	stack := makeFullNode(ctx)
 	defer stack.Close()
@@ -463,7 +457,7 @@ func copyDb(ctx *cli.Context) error {
 
 	var syncBloom *trie.SyncBloom
 	if syncMode == downloader.FastSync {
-		//syncBloom = trie.NewSyncBloom(uint64(ctx.GlobalInt(utils.CacheFlag.Name)/2), chainDb)
+		syncBloom = trie.NewSyncBloom(uint64(ctx.GlobalInt(utils.CacheFlag.Name)/2), chainDb)
 	}
 	dl := downloader.New(0, chainDb, syncBloom, new(event.TypeMux), chain, nil, nil)
 
@@ -472,11 +466,7 @@ func copyDb(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	// Create a source peer to satisfy downloader requests from
-	/*db, err := rawdb.NewLevelDBDatabaseWithFreezer(ctx.Args().First(), ctx.GlobalInt(utils.CacheFlag.Name)/2, 256, ctx.Args().Get(1), "")
-	if err != nil {
-		return err
-	}*/
+
 	hc, err := core.NewHeaderChain(db, chain.Config(), chain.Engine(), func() bool { return false })
 	if err != nil {
 		return err
@@ -489,8 +479,7 @@ func copyDb(ctx *cli.Context) error {
 	start := time.Now()
 
 	currentHeader := hc.CurrentHeader()
-	//TODO TD
-	if err = dl.Synchronise("local", currentHeader.Hash(), big.NewInt(0), syncMode); err != nil {
+	if err = dl.Synchronise("local", currentHeader.Hash(), currentHeader.Number, syncMode); err != nil {
 		return err
 	}
 	for dl.Synchronising() {

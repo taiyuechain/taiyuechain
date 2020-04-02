@@ -19,6 +19,8 @@ package downloader
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
+	truechain "github.com/taiyuechain/taiyuechain"
 	"math/big"
 	"strings"
 	"sync"
@@ -26,13 +28,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/trie"
 )
 
 // Reduce some of the parameters to make the tester faster.
@@ -47,8 +47,8 @@ type downloadTester struct {
 	downloader *Downloader
 
 	genesis *types.Block   // Genesis blocks used by the tester and peers
-	stateDb ethdb.Database // Database used by the tester for syncing from peers
-	peerDb  ethdb.Database // Database of the peers containing all data
+	stateDb etruedb.Database // Database used by the tester for syncing from peers
+	peerDb  etruedb.Database // Database of the peers containing all data
 	peers   map[string]*downloadTesterPeer
 
 	ownHashes   []common.Hash                  // Hash chain belonging to the tester
@@ -75,15 +75,15 @@ func newTester() *downloadTester {
 		ownHeaders:  map[common.Hash]*types.Header{testGenesis.Hash(): testGenesis.Header()},
 		ownBlocks:   map[common.Hash]*types.Block{testGenesis.Hash(): testGenesis},
 		ownReceipts: map[common.Hash]types.Receipts{testGenesis.Hash(): nil},
-		ownChainTd:  map[common.Hash]*big.Int{testGenesis.Hash(): testGenesis.Difficulty()},
+		ownChainTd:  map[common.Hash]*big.Int{testGenesis.Hash(): big.NewInt(0)},
 
 		// Initialize ancient store with test genesis block
 		ancientHeaders:  map[common.Hash]*types.Header{testGenesis.Hash(): testGenesis.Header()},
 		ancientBlocks:   map[common.Hash]*types.Block{testGenesis.Hash(): testGenesis},
 		ancientReceipts: map[common.Hash]types.Receipts{testGenesis.Hash(): nil},
-		ancientChainTd:  map[common.Hash]*big.Int{testGenesis.Hash(): testGenesis.Difficulty()},
+		ancientChainTd:  map[common.Hash]*big.Int{testGenesis.Hash(): big.NewInt(0)},
 	}
-	tester.stateDb = rawdb.NewMemoryDatabase()
+	tester.stateDb = etruedb.NewMemDatabase()
 	tester.stateDb.Put(testGenesis.Root().Bytes(), []byte{0x00})
 
 	tester.downloader = New(0, tester.stateDb, trie.NewSyncBloom(1, tester.stateDb), new(event.TypeMux), tester, nil, tester.dropPeer)
@@ -221,7 +221,7 @@ func (dl *downloadTester) CurrentFastBlock() *types.Block {
 func (dl *downloadTester) FastSyncCommitHead(hash common.Hash) error {
 	// For now only check that the state trie is correct
 	if block := dl.GetBlockByHash(hash); block != nil {
-		_, err := trie.NewSecure(block.Root(), trie.NewDatabase(dl.stateDb))
+		_, err := trie.NewSecure(block.Root(), trie.NewDatabase(dl.stateDb), 0)
 		return err
 	}
 	return fmt.Errorf("non existent block: %x", hash[:4])
@@ -262,7 +262,7 @@ func (dl *downloadTester) InsertHeaderChain(headers []*types.Header, checkFreq i
 		}
 		dl.ownHashes = append(dl.ownHashes, header.Hash())
 		dl.ownHeaders[header.Hash()] = header
-		dl.ownChainTd[header.Hash()] = new(big.Int).Add(dl.ownChainTd[header.ParentHash], header.Difficulty)
+		dl.ownChainTd[header.Hash()] = new(big.Int).Add(dl.ownChainTd[header.ParentHash], big.NewInt(0))
 	}
 	return len(headers), nil
 }
@@ -285,13 +285,16 @@ func (dl *downloadTester) InsertChain(blocks types.Blocks) (i int, err error) {
 		dl.ownBlocks[block.Hash()] = block
 		dl.ownReceipts[block.Hash()] = make(types.Receipts, 0)
 		dl.stateDb.Put(block.Root().Bytes(), []byte{0x00})
-		dl.ownChainTd[block.Hash()] = new(big.Int).Add(dl.ownChainTd[block.ParentHash()], block.Difficulty())
+		dl.ownChainTd[block.Hash()] = new(big.Int).Add(dl.ownChainTd[block.ParentHash()], big.NewInt(0))
 	}
 	return len(blocks), nil
 }
 
+func (dl *downloadTester) InsertReceiptChain(blocks types.Blocks, receipts []types.Receipts) (i int, err error) {
+	return dl.insertReceiptChain(blocks, receipts, 0)
+}
 // InsertReceiptChain injects a new batch of receipts into the simulated chain.
-func (dl *downloadTester) InsertReceiptChain(blocks types.Blocks, receipts []types.Receipts, ancientLimit uint64) (i int, err error) {
+func (dl *downloadTester) insertReceiptChain(blocks types.Blocks, receipts []types.Receipts, ancientLimit uint64) (i int, err error) {
 	dl.lock.Lock()
 	defer dl.lock.Unlock()
 
@@ -310,7 +313,7 @@ func (dl *downloadTester) InsertReceiptChain(blocks types.Blocks, receipts []typ
 
 			// Migrate from active db to ancient db
 			dl.ancientHeaders[blocks[i].Hash()] = blocks[i].Header()
-			dl.ancientChainTd[blocks[i].Hash()] = new(big.Int).Add(dl.ancientChainTd[blocks[i].ParentHash()], blocks[i].Difficulty())
+			dl.ancientChainTd[blocks[i].Hash()] = new(big.Int).Add(dl.ancientChainTd[blocks[i].ParentHash()], big.NewInt(0))
 
 			delete(dl.ownHeaders, blocks[i].Hash())
 			delete(dl.ownChainTd, blocks[i].Hash())
@@ -891,7 +894,7 @@ func testEmptyShortCircuit(t *testing.T, protocol int, mode SyncMode) {
 	// Validate the number of block bodies that should have been requested
 	bodiesNeeded, receiptsNeeded := 0, 0
 	for _, block := range chain.blockm {
-		if mode != LightSync && block != tester.genesis && (len(block.Transactions()) > 0 || len(block.Uncles()) > 0) {
+		if mode != LightSync && block != tester.genesis && (len(block.Transactions()) > 0) {
 			bodiesNeeded++
 		}
 	}
@@ -982,6 +985,9 @@ func TestInvalidHeaderRollback64Fast(t *testing.T)  { testInvalidHeaderRollback(
 func TestInvalidHeaderRollback64Light(t *testing.T) { testInvalidHeaderRollback(t, 64, LightSync) }
 
 func testInvalidHeaderRollback(t *testing.T, protocol int, mode SyncMode) {
+	log.OpenLogDebug(5)
+	defer log.CloseLogDebug()
+
 	t.Parallel()
 
 	tester := newTester()
@@ -1032,12 +1038,13 @@ func testInvalidHeaderRollback(t *testing.T, protocol int, mode SyncMode) {
 	withholdAttackChain := chain.shorten(chain.len())
 	tester.newPeer("withhold-attack", protocol, withholdAttackChain)
 	tester.downloader.syncInitHook = func(uint64, uint64) {
+		log.Debug("missing ", missing, "withholdAttackChain.len", withholdAttackChain.len())
 		for i := missing; i < withholdAttackChain.len(); i++ {
 			delete(withholdAttackChain.headerm, withholdAttackChain.chain[i])
 		}
 		tester.downloader.syncInitHook = nil
 	}
-	if err := tester.sync("withhold-attack", nil, mode); err == nil {
+	if err := tester.sync("withhold-attack", withholdAttackChain.headBlock().Number(), mode); err == nil {
 		t.Fatalf("succeeded withholding attacker synchronisation")
 	}
 	if head := tester.CurrentHeader().Number.Int64(); int(head) > 2*fsHeaderSafetyNet+MaxHeaderFetch {
@@ -1166,7 +1173,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", ethereum.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
 
 	// Synchronise half the blocks and check initial progress
 	tester.newPeer("peer-half", protocol, chain.shorten(chain.len()/2))
@@ -1180,7 +1187,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
 		HighestBlock: uint64(chain.len()/2 - 1),
 	})
 	progress <- struct{}{}
@@ -1196,7 +1203,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "completing", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "completing", truechain.SyncProgress{
 		StartingBlock: uint64(chain.len()/2 - 1),
 		CurrentBlock:  uint64(chain.len()/2 - 1),
 		HighestBlock:  uint64(chain.len() - 1),
@@ -1205,14 +1212,14 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
 		StartingBlock: uint64(chain.len()/2 - 1),
 		CurrentBlock:  uint64(chain.len() - 1),
 		HighestBlock:  uint64(chain.len() - 1),
 	})
 }
 
-func checkProgress(t *testing.T, d *Downloader, stage string, want ethereum.SyncProgress) {
+func checkProgress(t *testing.T, d *Downloader, stage string, want truechain.SyncProgress) {
 	// Mark this method as a helper to report errors at callsite, not in here
 	t.Helper()
 
@@ -1250,7 +1257,7 @@ func testForkedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", ethereum.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
 
 	// Synchronise with one of the forks and check progress
 	tester.newPeer("fork A", protocol, chainA)
@@ -1264,7 +1271,7 @@ func testForkedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	}()
 	<-starting
 
-	checkProgress(t, tester.downloader, "initial", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
 		HighestBlock: uint64(chainA.len() - 1),
 	})
 	progress <- struct{}{}
@@ -1283,7 +1290,7 @@ func testForkedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "forking", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "forking", truechain.SyncProgress{
 		StartingBlock: uint64(testChainBase.len()) - 1,
 		CurrentBlock:  uint64(chainA.len() - 1),
 		HighestBlock:  uint64(chainB.len() - 1),
@@ -1292,7 +1299,7 @@ func testForkedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
 		StartingBlock: uint64(testChainBase.len()) - 1,
 		CurrentBlock:  uint64(chainB.len() - 1),
 		HighestBlock:  uint64(chainB.len() - 1),
@@ -1324,7 +1331,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", ethereum.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
 
 	// Attempt a full sync with a faulty peer
 	brokenChain := chain.shorten(chain.len())
@@ -1343,7 +1350,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
 		HighestBlock: uint64(brokenChain.len() - 1),
 	})
 	progress <- struct{}{}
@@ -1366,7 +1373,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
 		CurrentBlock: uint64(chain.len() - 1),
 		HighestBlock: uint64(chain.len() - 1),
 	})
@@ -1395,7 +1402,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", ethereum.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
 
 	// Create and sync with an attacker that promises a higher chain than available.
 	brokenChain := chain.shorten(chain.len())
@@ -1414,7 +1421,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
 		HighestBlock: uint64(brokenChain.len() - 1),
 	})
 	progress <- struct{}{}
@@ -1434,7 +1441,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "completing", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "completing", truechain.SyncProgress{
 		CurrentBlock: afterFailedSync.CurrentBlock,
 		HighestBlock: uint64(validChain.len() - 1),
 	})
@@ -1442,7 +1449,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync.
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", ethereum.SyncProgress{
+	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
 		CurrentBlock: uint64(validChain.len() - 1),
 		HighestBlock: uint64(validChain.len() - 1),
 	})

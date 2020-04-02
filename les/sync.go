@@ -17,7 +17,6 @@
 package les
 
 import (
-	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 )
 
@@ -50,10 +49,10 @@ func (pm *ProtocolManager) syncer() {
 	}
 }
 
+// no need to compare td, compare head number is enough for pbft based permissioned chain
 func (pm *ProtocolManager) needToSync(peerHead blockInfo) bool {
 	head := pm.blockchain.CurrentHeader()
-	currentTd := rawdb.ReadTd(pm.chainDb, head.Hash(), head.Number.Uint64())
-	return currentTd != nil && peerHead.Td.Cmp(currentTd) > 0
+	return peerHead.Number > head.Number.Uint64()
 }
 
 // synchronise tries to sync up our local block chain with a remote peer.

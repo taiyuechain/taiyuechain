@@ -488,23 +488,6 @@ func (d *Downloader) syncWithPeer(p *peerConnection, hash common.Hash, td *big.I
 		} else if height > maxForkAncestry+1 {
 			d.ancientLimit = height - maxForkAncestry - 1
 		}
-		/*frozen, _ := d.stateDB.Ancients() // Ignore the error here since light client can also hit here.
-		// If a part of blockchain data has already been written into active store,
-		// disable the ancient style insertion explicitly.
-		if origin >= frozen && frozen != 0 {
-			d.ancientLimit = 0
-			log.Info("Disabling direct-ancient mode", "origin", origin, "ancient", frozen-1)
-		} else if d.ancientLimit > 0 {
-			log.Debug("Enabling direct-ancient mode", "ancient", d.ancientLimit)
-		}
-		// Rewind the ancient store and blockchain if reorg happens.
-		if origin+1 < frozen {
-			var hashes []common.Hash
-			for i := origin + 1; i < d.lightchain.CurrentHeader().Number.Uint64(); i++ {
-				hashes = append(hashes, rawdb.ReadCanonicalHash(d.stateDB, i))
-			}
-			d.lightchain.Rollback(hashes)
-		}*/
 	}
 	// Initiate the sync using a concurrent header and content retrieval algorithm
 	d.queue.Prepare(origin+1, d.mode)
@@ -909,7 +892,7 @@ func (d *Downloader) findAncestor(p *peerConnection, remoteHeader *types.Header)
 // other peers are only accepted if they map cleanly to the skeleton. If no one
 // can fill in the skeleton - not even the origin peer - it's assumed invalid and
 // the origin is dropped.
-func (d *Downloader) fetchHeaders(p *peerConnection, from uint64, pivot uint64) error {
+func (d *Downloader)  fetchHeaders(p *peerConnection, from uint64, pivot uint64) error {
 	p.log.Debug("Directing header downloads", "origin", from)
 	defer p.log.Debug("Header download terminated")
 
@@ -1386,7 +1369,7 @@ func (d *Downloader) processHeaders(origin uint64, pivot uint64, td *big.Int) er
 	}()
 
 	// Wait for batches of headers to process
-	//gotHeaders := false
+	gotHeaders := false
 
 	for {
 		select {
@@ -1416,12 +1399,11 @@ func (d *Downloader) processHeaders(origin uint64, pivot uint64, td *big.Int) er
 				// L: Request new headers up from 11 (R's TD was higher, it must have something)
 				// R: Nothing to give
 				if d.mode != LightSync {
-					//TODO
-					/*head := d.blockchain.CurrentBlock()
+					head := d.blockchain.CurrentBlock()
 
-					if !gotHeaders && td.Cmp(d.blockchain.GetTd(head.Hash(), head.NumberU64())) > 0 {
+					if !gotHeaders && td.Cmp(head.Number()) > 0 {
 						return errStallingPeer
-					}*/
+					}
 				}
 				// If fast or light syncing, ensure promised headers are indeed delivered. This is
 				// needed to detect scenarios where an attacker feeds a bad pivot and then bails out
@@ -1431,11 +1413,10 @@ func (d *Downloader) processHeaders(origin uint64, pivot uint64, td *big.Int) er
 				// queued for processing when the header download completes. However, as long as the
 				// peer gave us something useful, we're already happy/progressed (above check).
 				if d.mode == FastSync || d.mode == LightSync {
-					//TODO
-					/*head := d.lightchain.CurrentHeader()
-					if td.Cmp(d.lightchain.GetTd(head.Hash(), head.Number.Uint64())) > 0 {
+					head := d.lightchain.CurrentHeader()
+					if td.Cmp(head.Number) > 0 {
 						return errStallingPeer
-					}*/
+					}
 				}
 				// Disable any rollback and return
 				rollback = nil
@@ -1443,7 +1424,7 @@ func (d *Downloader) processHeaders(origin uint64, pivot uint64, td *big.Int) er
 			}
 			//
 			// Otherwise split the chunk of headers into batches and process them
-			//gotHeaders = true
+			gotHeaders = true
 			for len(headers) > 0 {
 				// Terminate if something failed in between processing chunks
 				select {

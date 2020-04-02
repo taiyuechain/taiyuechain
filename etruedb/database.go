@@ -27,7 +27,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -122,12 +121,12 @@ func (db *LDBDatabase) Delete(key []byte) error {
 	return db.db.Delete(key, nil)
 }
 
-func (db *LDBDatabase) NewIterator() iterator.Iterator {
+func (db *LDBDatabase) NewIterator() Iterator {
 	return db.db.NewIterator(nil, nil)
 }
 
 // NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
-func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
+func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
 }
 
@@ -377,6 +376,12 @@ func (db *LDBDatabase) NewBatch() Batch {
 	return &ldbBatch{db: db.db, b: new(leveldb.Batch)}
 }
 
+
+func (dt *LDBDatabase) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+
 type ldbBatch struct {
 	db   *leveldb.DB
 	b    *leveldb.Batch
@@ -415,6 +420,18 @@ func (b *ldbBatch) Reset() {
 type table struct {
 	db     Database
 	prefix string
+}
+
+func (dt *table) NewIterator() Iterator {
+	panic("implement me")
+}
+
+func (dt *table) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+func (dt *table) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
 }
 
 // NewTable returns a Database object that prefixes all keys with a given
