@@ -28,7 +28,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
-	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
@@ -116,6 +115,10 @@ type LDBDatabase struct {
 	quitLock sync.Mutex      // Mutex protecting the quit channel access
 	quitChan chan chan error // Quit channel to stop the metrics collection before closing the database
 	log      log.Logger      // Contextual logger tracking the database path
+}
+
+func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
 }
 
 func (db *LDBDatabase) NewIterator() Iterator {
@@ -235,14 +238,13 @@ func (db *LDBDatabase) Delete(key []byte) error {
 }
 
 /*func (db *LDBDatabase) NewIterator() iterator.Iterator {
-
 	return db.db.NewIterator(nil, nil)
 }*/
 
 // NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
-func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+/*func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
-}
+}*/
 
 func (db *LDBDatabase) Close() {
 	// Stop the metrics collection to avoid internal database races
@@ -490,11 +492,22 @@ func (db *LDBDatabase) NewBatch() Batch {
 	return &ldbBatch{db: db.db, b: new(leveldb.Batch)}
 }
 
-
 type ldbBatch struct {
 	db   *leveldb.DB
 	b    *leveldb.Batch
 	size int
+}
+
+func (b *ldbBatch) NewIterator() Iterator {
+	panic("implement me")
+}
+
+func (b *ldbBatch) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+func (b *ldbBatch) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
 }
 
 func (b *ldbBatch) Has(key []byte) (bool, error) {
@@ -540,51 +553,51 @@ type table struct {
 }
 
 func (dt *table) Stat(property string) (string, error) {
-	panic("implement me")
+	return dt.Stat(property)
 }
 
 func (dt *table) Compact(start []byte, limit []byte) error {
-	panic("implement me")
+	return dt.Compact(start, limit)
 }
 
 func (dt *table) HasAncient(kind string, number uint64) (bool, error) {
-	panic("implement me")
+	return dt.HasAncient(kind, number)
 }
 
 func (dt *table) Ancient(kind string, number uint64) ([]byte, error) {
-	panic("implement me")
+	return dt.Ancient(kind, number)
 }
 
 func (dt *table) Ancients() (uint64, error) {
-	panic("implement me")
+	return dt.Ancients()
 }
 
 func (dt *table) AncientSize(kind string) (uint64, error) {
-	panic("implement me")
+	return dt.AncientSize(kind)
 }
 
 func (dt *table) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
-	panic("implement me")
+	return dt.AppendAncient(number, hash, header, body, receipt, td)
 }
 
 func (dt *table) TruncateAncients(n uint64) error {
-	panic("implement me")
+	return dt.TruncateAncients(n)
 }
 
 func (dt *table) Sync() error {
-	panic("implement me")
+	return dt.Sync()
 }
 
 func (dt *table) NewIterator() Iterator {
-	panic("implement me")
+	return dt.NewIterator()
 }
 
 func (dt *table) NewIteratorWithStart(start []byte) Iterator {
-	panic("implement me")
+	return dt.NewIteratorWithStart(start)
 }
 
 func (dt *table) NewIteratorWithPrefix(prefix []byte) Iterator {
-	panic("implement me")
+	return dt.NewIteratorWithPrefix(prefix)
 }
 
 // NewTable returns a Database object that prefixes all keys with a given
@@ -621,16 +634,28 @@ type tableBatch struct {
 	prefix string
 }
 
+func (tb *tableBatch) NewIterator() Iterator {
+	return tb.NewIterator()
+}
+
+func (tb *tableBatch) NewIteratorWithStart(start []byte) Iterator {
+	return tb.NewIteratorWithStart(start)
+}
+
+func (tb *tableBatch) NewIteratorWithPrefix(prefix []byte) Iterator {
+	return tb.NewIteratorWithPrefix(prefix)
+}
+
 func (tb *tableBatch) Has(key []byte) (bool, error) {
-	panic("implement me")
+	return tb.Has(key)
 }
 
 func (tb *tableBatch) Get(key []byte) ([]byte, error) {
-	panic("implement me")
+	return tb.Get(key)
 }
 
 func (tb *tableBatch) Replay(w KeyValueWriter) error {
-	panic("implement me")
+	return tb.Replay(w)
 }
 
 // NewTableBatch returns a Batch object which prefixes all keys with a given string.
