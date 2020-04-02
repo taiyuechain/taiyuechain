@@ -41,7 +41,6 @@ const (
 
 var OpenFileLimit = 64
 
-
 // AncientReader contains the methods required to read from immutable ancient data.
 type AncientReader interface {
 	// HasAncient returns an indicator whether the specified data exists in the
@@ -58,6 +57,51 @@ type AncientReader interface {
 	AncientSize(kind string) (uint64, error)
 }
 
+//caoliang add
+/*// AncientReader contains the methods required to read from immutable ancient data.
+type AncientReader interface {
+	// HasAncient returns an indicator whether the specified data exists in the
+	// ancient store.
+	HasAncient(kind string, number uint64) (bool, error)
+
+	// Ancient retrieves an ancient binary blob from the append-only immutable files.
+	Ancient(kind string, number uint64) ([]byte, error)
+
+	// Ancients returns the ancient item numbers in the ancient store.
+	Ancients() (uint64, error)
+
+	// AncientSize returns the ancient size of the specified category.
+	AncientSize(kind string) (uint64, error)
+}*/
+
+// AncientWriter contains the methods required to write to immutable ancient data.
+type AncientWriter interface {
+	// AppendAncient injects all binary blobs belong to block at the end of the
+	// append-only immutable table files.
+	AppendAncient(number uint64, hash, header, body, receipt, td []byte) error
+
+	// TruncateAncients discards all but the first n ancient data from the ancient store.
+	TruncateAncients(n uint64) error
+
+	// Sync flushes all in-memory ancient store data to disk.
+	Sync() error
+}
+
+// Reader contains the methods required to read data from both key-value as well as
+// immutable ancient data.
+type Reader interface {
+	KeyValueReader
+	AncientReader
+}
+
+// Writer contains the methods required to write data to both key-value as well as
+// immutable ancient data.
+type Writer interface {
+	KeyValueWriter
+	AncientWriter
+}
+
+//caoliang add
 type LDBDatabase struct {
 	fn string      // filename for reporting
 	db *leveldb.DB // LevelDB instance
@@ -72,8 +116,61 @@ type LDBDatabase struct {
 
 	quitLock sync.Mutex      // Mutex protecting the quit channel access
 	quitChan chan chan error // Quit channel to stop the metrics collection before closing the database
+	log      log.Logger      // Contextual logger tracking the database path
+}
 
-	log log.Logger // Contextual logger tracking the database path
+func (db *LDBDatabase) NewIterator() Iterator {
+	panic("implement me")
+}
+
+/*func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
+}*/
+
+// NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
+// database content starting at a particular initial key (or after, if it does
+// not exist).
+func (db *LDBDatabase) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+// NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
+// of database content with a particular key prefix.
+
+func (db *LDBDatabase) Stat(property string) (string, error) {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) Compact(start []byte, limit []byte) error {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) HasAncient(kind string, number uint64) (bool, error) {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) Ancient(kind string, number uint64) ([]byte, error) {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) Ancients() (uint64, error) {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) AncientSize(kind string) (uint64, error) {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) TruncateAncients(n uint64) error {
+	panic("implement me")
+}
+
+func (db *LDBDatabase) Sync() error {
+	panic("implement me")
 }
 
 // NewLDBDatabase returns a LevelDB wrapped object.
@@ -138,9 +235,9 @@ func (db *LDBDatabase) Delete(key []byte) error {
 	return db.db.Delete(key, nil)
 }
 
-func (db *LDBDatabase) NewIterator() iterator.Iterator {
+/*func (db *LDBDatabase) NewIterator() iterator.Iterator {
 	return db.db.NewIterator(nil, nil)
-}
+}*/
 
 // NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
 func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
@@ -399,6 +496,18 @@ type ldbBatch struct {
 	size int
 }
 
+func (b *ldbBatch) Has(key []byte) (bool, error) {
+	panic("implement me")
+}
+
+func (b *ldbBatch) Get(key []byte) ([]byte, error) {
+	panic("implement me")
+}
+
+func (b *ldbBatch) Replay(w KeyValueWriter) error {
+	panic("implement me")
+}
+
 func (b *ldbBatch) Put(key, value []byte) error {
 	b.b.Put(key, value)
 	b.size += len(value)
@@ -427,6 +536,54 @@ func (b *ldbBatch) Reset() {
 type table struct {
 	db     Database
 	prefix string
+}
+
+func (dt *table) Stat(property string) (string, error) {
+	panic("implement me")
+}
+
+func (dt *table) Compact(start []byte, limit []byte) error {
+	panic("implement me")
+}
+
+func (dt *table) HasAncient(kind string, number uint64) (bool, error) {
+	panic("implement me")
+}
+
+func (dt *table) Ancient(kind string, number uint64) ([]byte, error) {
+	panic("implement me")
+}
+
+func (dt *table) Ancients() (uint64, error) {
+	panic("implement me")
+}
+
+func (dt *table) AncientSize(kind string) (uint64, error) {
+	panic("implement me")
+}
+
+func (dt *table) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
+	panic("implement me")
+}
+
+func (dt *table) TruncateAncients(n uint64) error {
+	panic("implement me")
+}
+
+func (dt *table) Sync() error {
+	panic("implement me")
+}
+
+func (dt *table) NewIterator() Iterator {
+	panic("implement me")
+}
+
+func (dt *table) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+func (dt *table) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
 }
 
 // NewTable returns a Database object that prefixes all keys with a given
@@ -461,6 +618,18 @@ func (dt *table) Close() {
 type tableBatch struct {
 	batch  Batch
 	prefix string
+}
+
+func (tb *tableBatch) Has(key []byte) (bool, error) {
+	panic("implement me")
+}
+
+func (tb *tableBatch) Get(key []byte) ([]byte, error) {
+	panic("implement me")
+}
+
+func (tb *tableBatch) Replay(w KeyValueWriter) error {
+	panic("implement me")
 }
 
 // NewTableBatch returns a Batch object which prefixes all keys with a given string.
