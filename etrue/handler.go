@@ -423,15 +423,18 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		hash    = head.Hash()
 		//number  = head.Number.Uint64()
 		//td      = pm.blockchain.GetTd(hash, number)
+		//number = pm.blockchain.CurrentBlock().Number()
 	)
 	//TODO
 	if err := p.Handshake(pm.networkID, big.NewInt(0), hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
-		p.Log().Debug("Ethereum handshake failed", "err", err)
+		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}
+
+
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
-		p.Log().Error("Ethereum peer registration failed", "err", err)
+		p.Log().Error("etrue peer registration failed", "err", err)
 		return err
 	}
 	defer pm.removePeer(p.id)
