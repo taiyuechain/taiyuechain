@@ -18,8 +18,6 @@ package etruedb
 
 import (
 	"errors"
-	"sort"
-	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -34,39 +32,51 @@ type MemDatabase struct {
 }
 
 func (db *MemDatabase) Stat(property string) (string, error) {
-	panic("implement me")
+	return db.Stat(property)
 }
 
 func (db *MemDatabase) Compact(start []byte, limit []byte) error {
-	panic("implement me")
+	return db.Compact(start, limit)
 }
 
 func (db *MemDatabase) HasAncient(kind string, number uint64) (bool, error) {
-	panic("implement me")
+	return db.HasAncient(kind, number)
 }
 
 func (db *MemDatabase) Ancient(kind string, number uint64) ([]byte, error) {
-	panic("implement me")
+	return db.Ancient(kind, number)
 }
 
 func (db *MemDatabase) Ancients() (uint64, error) {
-	panic("implement me")
+	return db.Ancients()
 }
 
 func (db *MemDatabase) AncientSize(kind string) (uint64, error) {
-	panic("implement me")
+	return db.AncientSize(kind)
 }
 
 func (db *MemDatabase) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
-	panic("implement me")
+	return db.AppendAncient(number, hash, header, body, receipt, td)
 }
 
 func (db *MemDatabase) TruncateAncients(n uint64) error {
-	panic("implement me")
+	return db.TruncateAncients(n)
 }
 
 func (db *MemDatabase) Sync() error {
-	panic("implement me")
+	return db.Sync()
+}
+
+func (db *MemDatabase) NewIterator() Iterator {
+	return db.NewIterator()
+}
+
+func (db *MemDatabase) NewIteratorWithStart(start []byte) Iterator {
+	return db.NewIteratorWithStart(start)
+}
+
+func (db *MemDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+	return db.NewIteratorWithPrefix(prefix)
 }
 
 func NewMemDatabase() *MemDatabase {
@@ -133,68 +143,7 @@ func (db *MemDatabase) NewBatch() Batch {
 }
 
 func (db *MemDatabase) Len() int { return len(db.db) }
-// NewIterator creates a binary-alphabetical iterator over the entire keyspace
-// contained within the memory database.
-func (db *MemDatabase) NewIterator() Iterator {
-	return db.NewIteratorWithStart(nil)
-}
 
-// NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
-// database content starting at a particular initial key (or after, if it does
-// not exist).
-func (db *MemDatabase) NewIteratorWithStart(start []byte) Iterator {
-	db.lock.RLock()
-	defer db.lock.RUnlock()
-
-	var (
-		st     = string(start)
-		keys   = make([]string, 0, len(db.db))
-		values = make([][]byte, 0, len(db.db))
-	)
-	// Collect the keys from the memory database corresponding to the given start
-	for key := range db.db {
-		if key >= st {
-			keys = append(keys, key)
-		}
-	}
-	// Sort the items and retrieve the associated values
-	sort.Strings(keys)
-	for _, key := range keys {
-		values = append(values, db.db[key])
-	}
-	return &iterator{
-		keys:   keys,
-		values: values,
-	}
-}
-
-// NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
-// of database content with a particular key prefix.
-func (db *MemDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
-	db.lock.RLock()
-	defer db.lock.RUnlock()
-
-	var (
-		pr     = string(prefix)
-		keys   = make([]string, 0, len(db.db))
-		values = make([][]byte, 0, len(db.db))
-	)
-	// Collect the keys from the memory database corresponding to the given prefix
-	for key := range db.db {
-		if strings.HasPrefix(key, pr) {
-			keys = append(keys, key)
-		}
-	}
-	// Sort the items and retrieve the associated values
-	sort.Strings(keys)
-	for _, key := range keys {
-		values = append(values, db.db[key])
-	}
-	return &iterator{
-		keys:   keys,
-		values: values,
-	}
-}
 type kv struct{ k, v []byte }
 
 type memBatch struct {
@@ -203,16 +152,28 @@ type memBatch struct {
 	size   int
 }
 
+func (b *memBatch) NewIterator() Iterator {
+	return b.NewIterator()
+}
+
+func (b *memBatch) NewIteratorWithStart(start []byte) Iterator {
+	return b.NewIteratorWithStart(start)
+}
+
+func (b *memBatch) NewIteratorWithPrefix(prefix []byte) Iterator {
+	return b.NewIteratorWithPrefix(prefix)
+}
+
 func (b *memBatch) Has(key []byte) (bool, error) {
-	panic("implement me")
+	return b.Has(key)
 }
 
 func (b *memBatch) Get(key []byte) ([]byte, error) {
-	panic("implement me")
+	return b.Get(key)
 }
 
 func (b *memBatch) Replay(w KeyValueWriter) error {
-	panic("implement me")
+	return b.Replay(w)
 }
 
 func (b *memBatch) Put(key, value []byte) error {
@@ -247,61 +208,4 @@ func (b *memBatch) ValueSize() int {
 func (b *memBatch) Reset() {
 	b.writes = b.writes[:0]
 	b.size = 0
-}
-
-// iterator can walk over the (potentially partial) keyspace of a memory key
-// value store. Internally it is a deep copy of the entire iterated state,
-// sorted by keys.
-type iterator struct {
-	inited bool
-	keys   []string
-	values [][]byte
-}
-
-// Next moves the iterator to the next key/value pair. It returns whether the
-// iterator is exhausted.
-func (it *iterator) Next() bool {
-	// If the iterator was not yet initialized, do it now
-	if !it.inited {
-		it.inited = true
-		return len(it.keys) > 0
-	}
-	// Iterator already initialize, advance it
-	if len(it.keys) > 0 {
-		it.keys = it.keys[1:]
-		it.values = it.values[1:]
-	}
-	return len(it.keys) > 0
-}
-
-// Error returns any accumulated error. Exhausting all the key/value pairs
-// is not considered to be an error. A memory iterator cannot encounter errors.
-func (it *iterator) Error() error {
-	return nil
-}
-
-// Key returns the key of the current key/value pair, or nil if done. The caller
-// should not modify the contents of the returned slice, and its contents may
-// change on the next call to Next.
-func (it *iterator) Key() []byte {
-	if len(it.keys) > 0 {
-		return []byte(it.keys[0])
-	}
-	return nil
-}
-
-// Value returns the value of the current key/value pair, or nil if done. The
-// caller should not modify the contents of the returned slice, and its contents
-// may change on the next call to Next.
-func (it *iterator) Value() []byte {
-	if len(it.values) > 0 {
-		return it.values[0]
-	}
-	return nil
-}
-
-// Release releases associated resources. Release should always succeed and can
-// be called multiple times without causing error.
-func (it *iterator) Release() {
-	it.keys, it.values = nil, nil
 }
