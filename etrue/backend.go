@@ -481,13 +481,25 @@ func (s *Truechain) EthVersion() int                    { return int(s.protocolM
 func (s *Truechain) NetVersion() uint64                 { return s.networkID }
 func (s *Truechain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
 
+
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
 func (s *Truechain) Protocols() []p2p.Protocol {
+	/*
 	if s.lesServer == nil {
 		return s.protocolManager.SubProtocols
 	}
-	return append(s.protocolManager.SubProtocols, s.lesServer.Protocols()...)
+	return append(s.protocolManager.SubProtocols, s.lesServer.Protocols()...)*/
+	protos := make([]p2p.Protocol, len(ProtocolVersions))
+	for i, vsn := range ProtocolVersions {
+		protos[i] = s.protocolManager.makeProtocol(vsn)
+		//protos[i].Attributes = []enr.Entry{s.currentEthEntry()}
+		//protos[i].DialCandidates = s.dialCandiates
+	}
+	if s.lesServer != nil {
+		protos = append(protos, s.lesServer.Protocols()...)
+	}
+	return protos
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
