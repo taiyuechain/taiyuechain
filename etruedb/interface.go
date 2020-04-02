@@ -96,8 +96,7 @@ type Database interface {
 	Compacter
 	AncientReader
 	AncientWriter
-	//Iteratee
-
+	Iteratee
 }
 
 // Batch is a write-only database that commits changes to its host database

@@ -237,10 +237,10 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 	// bloom when it's done.
 	//TODO Neo
 	var stateBloom *trie.SyncBloom
-	/*
+
 	if atomic.LoadUint32(&manager.fastSync) == 1 {
 		stateBloom = trie.NewSyncBloom(uint64(cacheLimit), chaindb)
-	}*/
+	}
 	manager.downloader = downloader.New(manager.checkpointNumber, chaindb, stateBloom, manager.eventMux, blockchain, nil, manager.removePeer)
 
 	// Construct the fetcher (short sync)

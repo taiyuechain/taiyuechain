@@ -137,7 +137,7 @@ func (p *peer) Td() *big.Int {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
 
-	return new(big.Int).Set(p.headInfo.Td)
+	return new(big.Int).SetUint64(p.headInfo.Number)
 }
 
 // waitBefore implements distPeer interface
