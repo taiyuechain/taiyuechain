@@ -19,7 +19,6 @@ package rawdb
 
 import (
 	"encoding/binary"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/metrics"
 )
