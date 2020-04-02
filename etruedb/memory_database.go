@@ -31,6 +31,54 @@ type MemDatabase struct {
 	lock sync.RWMutex
 }
 
+func (db *MemDatabase) Stat(property string) (string, error) {
+	panic("implement me")
+}
+
+func (db *MemDatabase) Compact(start []byte, limit []byte) error {
+	panic("implement me")
+}
+
+func (db *MemDatabase) HasAncient(kind string, number uint64) (bool, error) {
+	panic("implement me")
+}
+
+func (db *MemDatabase) Ancient(kind string, number uint64) ([]byte, error) {
+	panic("implement me")
+}
+
+func (db *MemDatabase) Ancients() (uint64, error) {
+	panic("implement me")
+}
+
+func (db *MemDatabase) AncientSize(kind string) (uint64, error) {
+	panic("implement me")
+}
+
+func (db *MemDatabase) AppendAncient(number uint64, hash, header, body, receipt, td []byte) error {
+	panic("implement me")
+}
+
+func (db *MemDatabase) TruncateAncients(n uint64) error {
+	panic("implement me")
+}
+
+func (db *MemDatabase) Sync() error {
+	panic("implement me")
+}
+
+func (db *MemDatabase) NewIterator() Iterator {
+	panic("implement me")
+}
+
+func (db *MemDatabase) NewIteratorWithStart(start []byte) Iterator {
+	panic("implement me")
+}
+
+func (db *MemDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+	panic("implement me")
+}
+
 func NewMemDatabase() *MemDatabase {
 	return &MemDatabase{
 		db: make(map[string][]byte),
@@ -102,6 +150,18 @@ type memBatch struct {
 	db     *MemDatabase
 	writes []kv
 	size   int
+}
+
+func (b *memBatch) Has(key []byte) (bool, error) {
+	panic("implement me")
+}
+
+func (b *memBatch) Get(key []byte) ([]byte, error) {
+	panic("implement me")
+}
+
+func (b *memBatch) Replay(w KeyValueWriter) error {
+	panic("implement me")
 }
 
 func (b *memBatch) Put(key, value []byte) error {
