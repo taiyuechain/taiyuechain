@@ -427,6 +427,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		}
 	}
 	// Handle incoming messages until the connection is torn down
+	p.Log().Info("Peer connected success", "name", p.Name(), "remoteAddr", p.RemoteAddr())
 	for {
 		if err := pm.handleMsg(p); err != nil {
 			p.Log().Debug("Ethereum message handling failed", "err", err)
