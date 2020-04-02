@@ -27,7 +27,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -236,11 +235,12 @@ func (db *LDBDatabase) Delete(key []byte) error {
 }
 
 /*func (db *LDBDatabase) NewIterator() iterator.Iterator {
+
 	return db.db.NewIterator(nil, nil)
 }*/
 
 // NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
-func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
+func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
 }
 
@@ -489,6 +489,7 @@ func (db *LDBDatabase) meter(refresh time.Duration) {
 func (db *LDBDatabase) NewBatch() Batch {
 	return &ldbBatch{db: db.db, b: new(leveldb.Batch)}
 }
+
 
 type ldbBatch struct {
 	db   *leveldb.DB
