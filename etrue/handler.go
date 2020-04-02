@@ -89,6 +89,8 @@ var (
 	syncChallengeTimeout = 15 * time.Second // Time allowance for a node to reply to the sync progress challenge
 )
 
+var errIncompatibleConfig = errors.New("incompatible configuration")
+
 func errResp(code errCode, format string, v ...interface{}) error {
 	return fmt.Errorf("%v - %v", code, fmt.Sprintf(format, v...))
 }
@@ -186,6 +188,43 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 			manager.fastSync = uint32(1)
 		}
 	}
+
+	/*// Initiate a sub-protocol for every implemented version we can handle
+	manager.SubProtocols = make([]p2p.Protocol, 0, len(ProtocolVersions))
+	for i, version := range ProtocolVersions {
+		// Compatible; initialise the sub-protocol
+		version := version // Closure for the run
+		manager.SubProtocols = append(manager.SubProtocols, p2p.Protocol{
+			Name:    ProtocolName,
+			Version: version,
+			Length:  ProtocolLengths[i],
+			Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
+				peer := manager.newPeer(int(version), p, rw)
+				select {
+				case manager.newPeerCh <- peer:
+					manager.wg.Add(1)
+					defer manager.wg.Done()
+					return manager.handle(peer)
+				case <-manager.quitSync:
+					return p2p.DiscQuitting
+				}
+			},
+			NodeInfo: func() interface{} {
+				return manager.NodeInfo()
+			},
+			PeerInfo: func(id enode.ID) interface{} {
+				if p := manager.peers.Peer(fmt.Sprintf("%x", id[:8])); p != nil {
+					return p.Info()
+				}
+				return nil
+			},
+		})
+	}
+	if len(manager.SubProtocols) == 0 {
+		return nil, errIncompatibleConfig
+	}*/
+
+
 	// If we have trusted checkpoints, enforce them on the chain
 	if checkpoint != nil {
 		//TODO neo
@@ -252,13 +291,13 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 }
 
 func (pm *ProtocolManager) makeProtocol(version uint) p2p.Protocol {
-	length, ok := protocolLengths[version]
+	length, ok := ProtocolLengths[version]
 	if !ok {
 		panic("makeProtocol for unknown version")
 	}
 
 	return p2p.Protocol{
-		Name:    protocolName,
+		Name:    ProtocolName,
 		Version: version,
 		Length:  length,
 		Run: func(p *p2p.Peer, rw p2p.MsgReadWriter) error {
@@ -427,6 +466,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		}
 	}
 	// Handle incoming messages until the connection is torn down
+	p.Log().Info("Peer connected success", "name", p.Name(), "remoteAddr", p.RemoteAddr())
 	for {
 		if err := pm.handleMsg(p); err != nil {
 			p.Log().Debug("Ethereum message handling failed", "err", err)
