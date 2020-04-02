@@ -106,6 +106,7 @@ type Batch interface {
 	Deleter
 	//KeyValueWriter
 	KeyValueReader
+	Iteratee
 	ValueSize() int // amount of data in the batch
 	Write() error
 	// Reset resets the batch for reuse
