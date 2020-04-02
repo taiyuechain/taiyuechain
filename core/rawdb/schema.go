@@ -59,9 +59,16 @@ var (
 	txLookupPrefix  = []byte("l") // txLookupPrefix + hash -> transaction/receipt lookup metadata
 	bloomBitsPrefix = []byte("B") // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
 
-	preimagePrefix = []byte("secure-key-")       // preimagePrefix + hash -> preimage
-	configPrefix   = []byte("truechain-config-") // config prefix for the db
+	SnapshotAccountPrefix = []byte("a")                 // SnapshotAccountPrefix + account hash -> account trie value
+	SnapshotStoragePrefix = []byte("o")                 // SnapshotStoragePrefix + account hash + storage hash -> storage trie value
+	preimagePrefix        = []byte("secure-key-")       // preimagePrefix + hash -> preimage
+	configPrefix          = []byte("truechain-config-") // config prefix for the db
 
+	// snapshotRootKey tracks the hash of the last snapshot.
+	snapshotRootKey = []byte("SnapshotRoot")
+
+	// snapshotJournalKey tracks the in-memory diff layers across restarts.
+	snapshotJournalKey = []byte("SnapshotJournal")
 	// Chain index prefixes (use `i` + single byte to avoid mixing data types).
 	BloomBitsIndexPrefix = []byte("iB") // BloomBitsIndexPrefix is the data table of a chain indexer to track its progress
 
@@ -93,6 +100,7 @@ const (
 	// freezerDifficultyTable indicates the name of the freezer total difficulty table.
 	freezerDifficultyTable = "diffs"
 )
+
 var freezerNoSnappy = map[string]bool{
 	freezerHeaderTable:     false,
 	freezerHashTable:       true,
@@ -166,4 +174,24 @@ func preimageKey(hash common.Hash) []byte {
 // configKey = configPrefix + hash
 func configKey(hash common.Hash) []byte {
 	return append(configPrefix, hash.Bytes()...)
+}
+
+// headerKeyPrefix = headerPrefix + num (uint64 big endian)
+func headerKeyPrefix(number uint64) []byte {
+	return append(headerPrefix, encodeBlockNumber(number)...)
+}
+
+// accountSnapshotKey = SnapshotAccountPrefix + hash
+func accountSnapshotKey(hash common.Hash) []byte {
+	return append(SnapshotAccountPrefix, hash.Bytes()...)
+}
+
+// storageSnapshotKey = SnapshotStoragePrefix + account hash + storage hash
+func storageSnapshotKey(accountHash, storageHash common.Hash) []byte {
+	return append(append(SnapshotStoragePrefix, accountHash.Bytes()...), storageHash.Bytes()...)
+}
+
+// storageSnapshotsKey = SnapshotStoragePrefix + account hash + storage hash
+func storageSnapshotsKey(accountHash common.Hash) []byte {
+	return append(SnapshotStoragePrefix, accountHash.Bytes()...)
 }
