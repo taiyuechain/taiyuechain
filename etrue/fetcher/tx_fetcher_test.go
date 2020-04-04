@@ -18,24 +18,24 @@ package fetcher
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/mclock"
+	"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/core/types"
 	"math/big"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
 	// testTxs is a set of transactions to use during testing that have meaninful hashes.
 	testTxs = []*types.Transaction{
-		types.NewTransaction(5577006791947779410, common.Address{0x0f}, new(big.Int), 0, new(big.Int), nil),
-		types.NewTransaction(15352856648520921629, common.Address{0xbb}, new(big.Int), 0, new(big.Int), nil),
-		types.NewTransaction(3916589616287113937, common.Address{0x86}, new(big.Int), 0, new(big.Int), nil),
-		types.NewTransaction(9828766684487745566, common.Address{0xac}, new(big.Int), 0, new(big.Int), nil),
+		types.NewTransaction(5577006791947779410, common.Address{0x0f}, new(big.Int), 0, new(big.Int), nil, nil),
+		types.NewTransaction(15352856648520921629, common.Address{0xbb}, new(big.Int), 0, new(big.Int), nil, nil),
+		types.NewTransaction(3916589616287113937, common.Address{0x86}, new(big.Int), 0, new(big.Int), nil, nil),
+		types.NewTransaction(9828766684487745566, common.Address{0xac}, new(big.Int), 0, new(big.Int), nil, nil),
 	}
 	// testTxsHashes is the hashes of the test transactions above
 	testTxsHashes = []common.Hash{testTxs[0].Hash(), testTxs[1].Hash(), testTxs[2].Hash(), testTxs[3].Hash()}
@@ -908,7 +908,7 @@ func TestTransactionFetcherUnderpricedDoSProtection(t *testing.T) {
 	// Create a slew of transactions to max out the underpriced set
 	var txs []*types.Transaction
 	for i := 0; i < maxTxUnderpricedSetSize+1; i++ {
-		txs = append(txs, types.NewTransaction(rand.Uint64(), common.Address{byte(rand.Intn(256))}, new(big.Int), 0, new(big.Int), nil))
+		txs = append(txs, types.NewTransaction(rand.Uint64(), common.Address{byte(rand.Intn(256))}, new(big.Int), 0, new(big.Int), nil, nil))
 	}
 	hashes := make([]common.Hash, len(txs))
 	for i, tx := range txs {

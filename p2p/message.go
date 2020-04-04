@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
 	"io"
 	"io/ioutil"
 	"sync/atomic"
@@ -51,6 +52,7 @@ type Msg struct {
 // For the decoding rules, please see package rlp.
 func (msg Msg) Decode(val interface{}) error {
 	s := rlp.NewStream(msg.Payload, uint64(msg.Size))
+	log.Debug("Decode", "msg.Size", msg.Size)
 	if err := s.Decode(val); err != nil {
 		return newPeerError(errInvalidMsg, "(code %x) (size %d) %v", msg.Code, msg.Size, err)
 	}

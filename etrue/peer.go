@@ -16,22 +16,6 @@
 
 package etrue
 
-/*import (
-	"errors"
-	"fmt"
-	"math/big"
-	"strings"
-	"sync"
-	"time"
-
-	"github.com/deckarep/golang-set"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/p2p"
-)*/
-
 import (
 	"errors"
 	"fmt"
@@ -888,7 +872,7 @@ func (p *peer) readStatus(network uint64, status *statusData, genesis common.Has
 		return errResp(ErrProtocolVersionMismatch, "%d (!= %d)", status.ProtocolVersion, p.version)
 	}
 	if status.Genesis != genesis {
-		return errResp(ErrGenesisMismatch, "%x (!= %x)", status.Genesis, genesis)
+		return errResp(ErrGenesisMismatch, "%x (!= %x)", status.Genesis[:8], genesis[:8])
 	}
 	if err := forkFilter(status.ForkID); err != nil {
 		return errResp(ErrForkIDRejected, "%v", err)
