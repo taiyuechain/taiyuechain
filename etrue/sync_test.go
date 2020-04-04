@@ -35,20 +35,20 @@ import (
 // imported into the blockchain.
 func TestFastSyncDisabling(t *testing.T) {
 	// Create a pristine protocol manager, check that fast sync is left enabled
-	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FastSync, 0, 0, nil, nil, nil, nil)
+	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FastSync, 0, 0, nil, nil)
 	if atomic.LoadUint32(&pmEmpty.fastSync) == 0 {
 		t.Fatalf("fast sync disabled on pristine blockchain")
 	}
 	// Create a full protocol manager, check that fast sync gets disabled
-	pmFull, _ := newTestProtocolManagerMust(t, downloader.FastSync, 1024, 0, nil, nil, nil, nil)
+	pmFull, _ := newTestProtocolManagerMust(t, downloader.FastSync, 1024, 0, nil, nil)
 	if atomic.LoadUint32(&pmFull.fastSync) == 1 {
 		t.Fatalf("fast sync not disabled on non-empty blockchain")
 	}
 	// Sync up the two peers
 	io1, io2 := p2p.MsgPipe()
 
-	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2))
-	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1))
+	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2, pmFull.txpool.Get))
+	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1, pmEmpty.txpool.Get))
 
 	time.Sleep(250 * time.Millisecond)
 	pmEmpty.synchronise(pmEmpty.peers.BestPeer())
@@ -63,14 +63,14 @@ func TestFastSyncDisabling(t *testing.T) {
 // imported into the blockchain.
 func TestFullFastSync(t *testing.T) {
 	// Create a pristine protocol manager, check that fast sync is left enabled
-	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil, nil, nil)
+	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil)
 	// Create a full protocol manager, check that fast sync gets disabled
-	pmFull, _ := newTestProtocolManagerMust(t, downloader.FullSync, 256, 0, nil, nil, nil, nil)
+	pmFull, _ := newTestProtocolManagerMust(t, downloader.FullSync, 256, 0, nil, nil)
 	// Sync up the two peers
 	io1, io2 := p2p.MsgPipe()
 
-	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2))
-	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1))
+	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2, pmFull.txpool.Get))
+	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1, pmEmpty.txpool.Get))
 
 	time.Sleep(250 * time.Millisecond)
 	pmEmpty.synchronise(pmEmpty.peers.BestPeer())
@@ -87,21 +87,21 @@ func TestFullFastTXsSync(t *testing.T) {
 		signer  = types.NewTIP1Signer(params.AllMinervaProtocolChanges.ChainID)
 	)
 	// Create a pristine protocol manager, check that fast sync is left enabled
-	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil, nil, nil)
+	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil)
 	// Create a full protocol manager, check that fast sync gets disabled
 	pmFull, _ := newTestProtocolManagerMust(t, downloader.FullSync, 256, 0, func(i int, gen *core.BlockGen) {
 		switch i % 10 {
 		case 2:
 			// In block 1, addr1 sends addr2 some ether.
-			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(100), params.TxGas, nil, nil), signer, key1)
+			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(100), params.TxGas, nil, nil, nil), signer, key1)
 			gen.AddTx(tx)
 		}
-	}, nil, nil, nil)
+	}, nil)
 	// Sync up the two peers
 	io1, io2 := p2p.MsgPipe()
 
-	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2))
-	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1))
+	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2, pmFull.txpool.Get))
+	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1, pmEmpty.txpool.Get))
 
 	time.Sleep(250 * time.Millisecond)
 	pmEmpty.synchronise(pmEmpty.peers.BestPeer())
@@ -111,14 +111,14 @@ func TestFullFastTXsSync(t *testing.T) {
 // imported into the blockchain.
 func TestFullSync(t *testing.T) {
 	// Create a pristine protocol manager, check that fast sync is left enabled
-	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil, nil, nil)
+	pmEmpty, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil)
 	// Create a full protocol manager, check that fast sync gets disabled
-	pmFull, _ := newTestProtocolManagerMust(t, downloader.FullSync, 256, 256, nil, nil, nil, nil)
+	pmFull, _ := newTestProtocolManagerMust(t, downloader.FullSync, 256, 256, nil, nil)
 	// Sync up the two peers
 	io1, io2 := p2p.MsgPipe()
 
-	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2))
-	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1))
+	go pmFull.handle(pmFull.newPeer(63, p2p.NewPeer(enode.ID{0}, "empty", nil), io2, pmFull.txpool.Get))
+	go pmEmpty.handle(pmEmpty.newPeer(63, p2p.NewPeer(enode.ID{1}, "full", nil), io1, pmEmpty.txpool.Get))
 
 	time.Sleep(250 * time.Millisecond)
 	pmEmpty.synchronise(pmEmpty.peers.BestPeer())

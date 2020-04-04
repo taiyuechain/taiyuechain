@@ -215,6 +215,13 @@ type getBlockHeadersData struct {
 	Reverse bool         // Query direction (false = rising towards latest, true = falling towards genesis)
 }
 
+// BlockHeadersData represents a block header send.
+type BlockHeadersData struct {
+	Headers      []*types.Header
+	SnailHeaders []*types.SnailHeader
+	Call         uint32 // Distinguish fetcher and downloader
+}
+
 // hashOrNumber is a combined field for specifying an origin block.
 type hashOrNumber struct {
 	Hash   common.Hash // Block hash from which to retrieve headers (excludes Number)
@@ -274,6 +281,12 @@ func (request *newBlockData) sanityCheck() error {
 type blockBody struct {
 	Transactions []*types.Transaction // Transactions contained within a block
 	Uncles       []*types.Header      // Uncles contained within a block
+}
+
+// getBlockBodiesData represents a block body query.
+type getBlockBodiesData struct {
+	Hash common.Hash // Block hash from which to retrieve Bodies (excludes Number)
+	Call uint32      // Distinguish fetcher and downloader
 }
 
 // blockBodiesData is the network packet for block content distribution.

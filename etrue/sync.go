@@ -190,13 +190,13 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 		return
 	}
 	// Make sure the peer's TD is higher than our own
-	//currentBlock := pm.blockchain.CurrentBlock()
-	//td := pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
+	currentBlock := pm.blockchain.CurrentBlock()
+	td := currentBlock.Number()
 
-	/*pHead, pTd := peer.Head()
+	pHead, pTd := peer.Head()
 	if pTd.Cmp(td) <= 0 {
 		return
-	}*/
+	}
 	// Otherwise try to sync with the downloader
 	mode := downloader.FullSync
 	if atomic.LoadUint32(&pm.fastSync) == 1 {
@@ -205,15 +205,15 @@ func (pm *ProtocolManager) synchronise(peer *peer) {
 	}
 	if mode == downloader.FastSync {
 		// Make sure the peer's total difficulty we are synchronizing is higher.
-		/*if pm.blockchain.GetTdByHash(pm.blockchain.CurrentFastBlock().Hash()).Cmp(pTd) >= 0 {
+		if pm.blockchain.CurrentFastBlock().Number().Cmp(pTd) >= 0 {
 			return
-		}*/
+		}
 	}
 	// Run the sync cycle, and disable fast sync if we've went past the pivot block
 	//TODO
-	/*if err := pm.downloader.Synchronise(peer.id, pHead, pTd, mode); err != nil {
+	if err := pm.downloader.Synchronise(peer.id, pHead, pTd, mode); err != nil {
 		return
-	}*/
+	}
 	if atomic.LoadUint32(&pm.fastSync) == 1 {
 		log.Info("Fast sync complete, auto disabling")
 		atomic.StoreUint32(&pm.fastSync, 0)

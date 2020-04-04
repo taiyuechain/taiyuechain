@@ -16,34 +16,6 @@
 
 package etrue
 
-/*import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
-	"math"
-	"math/big"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"time"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taiyuechain/taiyuechain/consensus"
-	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etrue/downloader"
-	"github.com/taiyuechain/taiyuechain/etrue/fastdownloader"
-	"github.com/taiyuechain/taiyuechain/etrue/fetcher"
-	"github.com/taiyuechain/taiyuechain/etrue/fetcher/snail"
-	"github.com/taiyuechain/taiyuechain/etruedb"
-	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/p2p"
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
-	"github.com/taiyuechain/taiyuechain/params"
-)*/
 import (
 	"encoding/json"
 	"errors"
@@ -421,12 +393,10 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		genesis = pm.blockchain.Genesis()
 		head    = pm.blockchain.CurrentHeader()
 		hash    = head.Hash()
-		//number  = head.Number.Uint64()
-		//td      = pm.blockchain.GetTd(hash, number)
-		//number = pm.blockchain.CurrentBlock().Number()
+		number  = head.Number
 	)
-	//TODO
-	if err := p.Handshake(pm.networkID, big.NewInt(0), hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
+
+	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
 		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}
@@ -1088,7 +1058,7 @@ func (pm *ProtocolManager) BroadcastFastBlock(block *types.Block, propagate bool
 		transfer := peers[:transferLen]
 		for _, peer := range transfer {
 			//TODO td
-			peer.AsyncSendNewBlock(block, big.NewInt(0))
+			peer.AsyncSendNewBlock(block, block.Number())
 		}
 		log.Debug("Propagated fast block", "num", block.Number(), "hash", hash, "recipients", len(transfer), "duration", common.PrettyDuration(time.Since(block.ReceivedAt)))
 		return
@@ -1204,7 +1174,7 @@ func (pm *ProtocolManager) NodeInfo() *NodeInfo {
 	currentBlock := pm.blockchain.CurrentBlock()
 	return &NodeInfo{
 		Network:    pm.networkID,
-		//Difficulty: pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64()),
+		Difficulty: currentBlock.Number(),
 		Genesis:    pm.blockchain.Genesis().Hash(),
 		Config:     pm.blockchain.Config(),
 		Head:       currentBlock.Hash(),

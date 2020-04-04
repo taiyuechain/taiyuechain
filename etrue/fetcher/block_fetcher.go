@@ -523,6 +523,7 @@ func (f *BlockFetcher) loop() {
 					f.rescheduleComplete(completeTimer)
 				}
 			}
+
 			// Schedule the header-only blocks for import
 			for _, block := range complete {
 				if announce := f.completing[block.Hash()]; announce != nil {
@@ -563,7 +564,7 @@ func (f *BlockFetcher) loop() {
 								f.forgetHash(hash)
 							}
 						}
-					//}
+					}
 				}
 				if matched {
 					task.transactions = append(task.transactions[:i], task.transactions[i+1:]...)
@@ -580,7 +581,7 @@ func (f *BlockFetcher) loop() {
 			case <-f.quit:
 				return
 			}
-			// Schedule the retrieved blocks for ordered import
+				// Schedule the retrieved blocks for ordered import
 			for _, block := range blocks {
 				log.Debug("Loop filter end", "transactions", len(task.transactions), "blocks", len(blocks), "number", block.Number(), "sign", len(block.Signs()))
 				if announce := f.completing[block.Hash()]; announce != nil {
@@ -590,7 +591,6 @@ func (f *BlockFetcher) loop() {
 			watch.EndWatch()
 			watch.Finish(fmt.Sprintf("end  blocks: %d completing: %d ", len(blocks), len(f.completing)))
 		}
-			}
 	}
 }
 
