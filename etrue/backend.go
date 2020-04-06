@@ -179,10 +179,23 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		return nil, err
 	}
 
-	/*etrue.snailblockchain, err = chain.NewSnailBlockChain(chainDb, etrue.chainConfig, etrue.engine, etrue.blockchain)
+	//init cert list to
+	// need init cert list to statedb
+	stateDB, err := etrue.blockchain.State()
 	if err != nil {
 		return nil, err
-	}*/
+	}
+	CaCertAddress := types.CACertListAddress
+	key := common.BytesToHash(CaCertAddress[:])
+	obj := stateDB.GetCAState(CaCertAddress, key)
+	if len(obj) == 0 {
+		i := vm.NewCACertList()
+		i.LoadCACertList(stateDB,CaCertAddress)
+		i.InitCACertList(config.Genesis.CertList)
+		i.SaveCACertList(stateDB,CaCertAddress)
+		stateDB.SetNonce(CaCertAddress,1)
+		stateDB.SetCode(CaCertAddress,CaCertAddress[:])
+	}
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
@@ -211,19 +224,19 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		config.SnailPool.Journal = ctx.ResolvePath(config.SnailPool.Journal)
 	}*/
 
+
+
 	etrue.txPool = core.NewTxPool(config.TxPool, etrue.chainConfig, etrue.blockchain)
 
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine, sv)
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-	stateDB, err := etrue.blockchain.State()
-	if err != nil {
-		return nil, err
-	}
+
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {
+		log.Info("cart List ","is",caCert)
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			return nil, err
