@@ -279,14 +279,9 @@ func (request *newBlockData) sanityCheck() error {
 
 // blockBody represents the data content of a single block.
 type blockBody struct {
-	Transactions []*types.Transaction // Transactions contained within a block
-	Uncles       []*types.Header      // Uncles contained within a block
-}
-
-// getBlockBodiesData represents a block body query.
-type getBlockBodiesData struct {
-	Hash common.Hash // Block hash from which to retrieve Bodies (excludes Number)
-	Call uint32      // Distinguish fetcher and downloader
+	Transactions []*types.Transaction     // Transactions contained within a block
+	Signs        []*types.PbftSign        // Signs contained within a block
+	Infos        []*types.CommitteeMember //change info
 }
 
 // blockBodiesData is the network packet for block content distribution.

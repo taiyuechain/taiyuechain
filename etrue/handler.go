@@ -647,20 +647,26 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		}
 		// Deliver them all to the downloader for queuing
 		transactions := make([][]*types.Transaction, len(request))
-		uncles := make([][]*types.Header, len(request))
+		signs := make([][]*types.PbftSign, len(request))
+		infos := make([][]*types.CommitteeMember, len(request))
 
 		for i, body := range request {
 			transactions[i] = body.Transactions
-			uncles[i] = body.Uncles
+			signs[i] = body.Signs
+			infos[i] = body.Infos
+			if len(body.Signs) == 0 {
+				log.Warn("BlockBodiesMsg", "transactions", len(body.Transactions), "signs", len(body.Signs), "infos", len(body.Infos))
+			}
 		}
 		// Filter out any explicitly requested bodies, deliver the rest to the downloader
-		filter := len(transactions) > 0 || len(uncles) > 0
+		filter := len(transactions) > 0 || len(signs) > 0 || len(infos) > 0
 		if filter {
-			//TODO
-			transactions, _,_ = pm.blockFetcher.FilterBodies(p.id, transactions, nil,nil, time.Now())
+			transactions, signs, infos = pm.blockFetcher.FilterBodies(p.id, transactions, signs, infos, time.Now())
 		}
-		if len(transactions) > 0 || len(uncles) > 0 || !filter {
-			err := pm.downloader.DeliverBodies(p.id, transactions, uncles)
+
+		if len(transactions) > 0 || len(signs) > 0 || len(infos) > 0 || !filter {
+			log.Debug("BlockBodiesMsg", "transactions", len(transactions), "signs", len(signs), "infos", len(infos), "filter", filter)
+			err := pm.downloader.DeliverBodies(p.id, transactions, signs, infos)
 			if err != nil {
 				log.Debug("Failed to deliver bodies", "err", err)
 			}

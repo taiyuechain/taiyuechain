@@ -123,16 +123,18 @@ func (p *FakePeer) RequestHeadersByNumber(number uint64, amount int, skip int, r
 // corresponding to the specified block hashes.
 func (p *FakePeer) RequestBodies(hashes []common.Hash) error {
 	var (
-		txs    [][]*types.Transaction
-		uncles [][]*types.Header
+		txs   [][]*types.Transaction
+		signs [][]*types.PbftSign
+		infos [][]*types.CommitteeMember
 	)
 	for _, hash := range hashes {
 		block := rawdb.ReadBlock(p.db, hash, *p.hc.GetBlockNumber(hash))
-
+		signs = append(signs, block.Signs())
 		txs = append(txs, block.Transactions())
-		//uncles = append(uncles, block.Uncles())
+		infos = append(infos, block.SwitchInfos())
 	}
-	p.dl.DeliverBodies(p.id, txs, uncles)
+
+	p.dl.DeliverBodies(p.id, txs, signs, infos)
 	return nil
 }
 
@@ -140,9 +142,9 @@ func (p *FakePeer) RequestBodies(hashes []common.Hash) error {
 // receipts corresponding to the specified block hashes.
 func (p *FakePeer) RequestReceipts(hashes []common.Hash) error {
 	var receipts [][]*types.Receipt
-	/*for _, hash := range hashes {
-		//receipts = append(receipts, rawdb.ReadRawReceipts(p.db, hash, *p.hc.GetBlockNumber(hash)))
-	}*/
+	for _, hash := range hashes {
+		receipts = append(receipts, rawdb.ReadReceipts(p.db, hash, *p.hc.GetBlockNumber(hash)))
+	}
 	p.dl.DeliverReceipts(p.id, receipts)
 	return nil
 }
