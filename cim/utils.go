@@ -121,8 +121,11 @@ func  CreateIdentity(priv string) bool {
 func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
+
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	ca := &x509.Certificate{
-		SerialNumber: big.NewInt(1653),
+		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Country:            []string{"China"},
 			Organization:       []string{"Yjwt"},

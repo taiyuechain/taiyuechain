@@ -82,5 +82,9 @@ func TestCreateCertByPrivate(t *testing.T) {
 	fmt.Println(crypto.FromECDSA(prv3))
 	fmt.Println(crypto.FromECDSA(prv4))
 	//varpriKey, _     = crypto.HexToECDSA("0260c952edc49037129d8cabbe4603d15185d83aa718291279937fb6db0fa7a2")
+	CreateIdentity2(prv,prv2,"696b")
+	CreateIdentity2(prv2,prv2,"c109")
+	CreateIdentity2(prv3,prv2,"9653")
 	CreateIdentity2(prv4,prv2,"0477")
+	//CreateIdentity2(prv4,prv2,"0477")
 }
