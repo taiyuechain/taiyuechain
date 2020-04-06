@@ -188,6 +188,13 @@ func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
 	return elliptic.Marshal(S256(), pub.X, pub.Y)
 }
 
+func FromECDSAPubCA(pub *ecdsa.PublicKey) []byte {
+	if pub == nil || pub.X == nil || pub.Y == nil {
+		return nil
+	}
+	return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
+}
+
 // HexToECDSA parses a secp256k1 private key.
 func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
@@ -195,6 +202,14 @@ func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 		return nil, errors.New("invalid hex string")
 	}
 	return ToECDSA(b)
+}
+
+func HexToECDSACA(hexkey string) (*ecdsa.PrivateKey, error) {
+	b, err := hex.DecodeString(hexkey)
+	if err != nil {
+		return nil, errors.New("invalid hex string")
+	}
+	return ToECDSACA(b)
 }
 
 // LoadECDSA loads a secp256k1 private key from the given file.
