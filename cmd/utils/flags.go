@@ -63,6 +63,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
 	"gopkg.in/urfave/cli.v1"
+	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 var (
@@ -1131,6 +1132,10 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 
 	//TODO neo
 	// need do verfiy the private key and cert
+	if cim.VarifyCertByPrivateKey(cfg.PrivateKey,cfg.NodeCert) != nil{
+		log.Error("cert not the privatekey create")
+		return
+	}
 
 	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
