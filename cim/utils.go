@@ -220,4 +220,33 @@ func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
 	return true
 }
 
+func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey,cert []byte) error {
+	if cert == nil{
+		return errors.New("cert is nil")
+	}
+	if priv == nil{
+		return errors.New("priv is nil")
+	}
+	bytes, _ := base64.StdEncoding.DecodeString(string(cert))
+
+
+	theCert, err := x509.ParseCertificate(bytes)
+	if err != nil{
+		return err
+	}
+	pubk := theCert.PublicKey
+	var publicKeyBytes []byte
+
+	switch pub2 := pubk.(type) {
+	case *ecdsa.PublicKey:
+		publicKeyBytes = elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y)
+	}
+
+	if(string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey))){
+		return nil
+	}else{
+		return errors.New("cert pubk not same with cert")
+	}
+
+}
 
