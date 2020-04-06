@@ -521,13 +521,16 @@ type fakeElection struct {
 	members []*types.CommitteeMember
 }
 
+func hexToECDSA(hexkey string) (*taiCrypto.TaiPrivateKey, error) {
+	var taiprivate *taiCrypto.TaiPrivateKey = new(taiCrypto.TaiPrivateKey)
+	return taiprivate.HexToECDSA(hexkey)
+}
+
 func newFakeElection() *fakeElection {
 	var members []*types.CommitteeMember
-	var taiprivate taiCrypto.TaiPrivateKey
-	var taipublic taiCrypto.TaiPublicKey
 	//caoliang modify
 	//pk1, err := crypto.HexToECDSA("68161a6bf59df3261038d99a132d9125c75bc2260e2f89c87b15b1b1b657baaa")
-	pk1, err := taiprivate.HexToECDSA("68161a6bf59df3261038d99a132d9125c75bc2260e2f89c87b15b1b1b657baaa")
+	pk1, err := hexToECDSA("68161a6bf59df3261038d99a132d9125c75bc2260e2f89c87b15b1b1b657baaa")
 	if err != nil {
 		log.Error("initMembers", "error", err)
 	}
@@ -537,12 +540,12 @@ func newFakeElection() *fakeElection {
 	pk5, err := crypto.HexToECDSA("61aca120387023b33ad46c7804fcb9deaa22d5185208548ef3f041eed4131efb")
 	pk6, err := crypto.HexToECDSA("df47c4b6f0d5b72fc0bf98551dac344fe5f79a1993e8340c9f90e195939ccd30")
 	pk7, err := crypto.HexToECDSA("5b58e95edbf4db558d49ed15849a7cc5b7dc2e3530ff599cf1440285f7d4586e")*/
-	pk2, err := taiprivate.HexToECDSA("17be747053f88bf4cd500785284a5c79ecca235081bda0d335c14e32e9d772db")
-	pk3, err := taiprivate.HexToECDSA("5e2108e3186b6dc0e723fd767978d59dc9fefb0290d85e5ed567d715776a7142")
-	pk4, err := taiprivate.HexToECDSA("9427c2357d2d87d4a8f88977af14277035889e09d43a5d58c0867fa68e4ae7dc")
-	pk5, err := taiprivate.HexToECDSA("61aca120387023b33ad46c7804fcb9deaa22d5185208548ef3f041eed4131efb")
-	pk6, err := taiprivate.HexToECDSA("df47c4b6f0d5b72fc0bf98551dac344fe5f79a1993e8340c9f90e195939ccd30")
-	pk7, err := taiprivate.HexToECDSA("5b58e95edbf4db558d49ed15849a7cc5b7dc2e3530ff599cf1440285f7d4586e")
+	pk2, err := hexToECDSA("17be747053f88bf4cd500785284a5c79ecca235081bda0d335c14e32e9d772db")
+	pk3, err := hexToECDSA("5e2108e3186b6dc0e723fd767978d59dc9fefb0290d85e5ed567d715776a7142")
+	pk4, err := hexToECDSA("9427c2357d2d87d4a8f88977af14277035889e09d43a5d58c0867fa68e4ae7dc")
+	pk5, err := hexToECDSA("61aca120387023b33ad46c7804fcb9deaa22d5185208548ef3f041eed4131efb")
+	pk6, err := hexToECDSA("df47c4b6f0d5b72fc0bf98551dac344fe5f79a1993e8340c9f90e195939ccd30")
+	pk7, err := hexToECDSA("5b58e95edbf4db558d49ed15849a7cc5b7dc2e3530ff599cf1440285f7d4586e")
 
 	if err != nil {
 		log.Error("initMembers", "error", err)
@@ -554,10 +557,11 @@ func newFakeElection() *fakeElection {
 	for _, priKey := range priKeys {
 		//caoliang modify
 		//coinbase := crypto.PubkeyToAddress(priKey.PublicKey)
+		taipublic := new(taiCrypto.TaiPublicKey)
 		taipublic.Publickey = priKey.PublicKey
-		coinbase := taipublic.PubkeyToAddress(taipublic)
+		coinbase := taipublic.PubkeyToAddress(*taipublic)
 		//m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: crypto.PubkeyToAddress(priKey.PublicKey), Publickey: crypto.FromECDSAPub(&priKey.PublicKey), Flag: types.StateUsedFlag, MType: types.TypeFixed}
-		m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: taipublic.PubkeyToAddress(taipublic), Publickey: taipublic.FromECDSAPub(taipublic), Flag: types.StateUsedFlag, MType: types.TypeFixed}
+		m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: taipublic.PubkeyToAddress(*taipublic), Publickey: taipublic.FromECDSAPub(*taipublic), Flag: types.StateUsedFlag, MType: types.TypeFixed}
 		members = append(members, m)
 
 	}

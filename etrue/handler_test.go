@@ -266,7 +266,7 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 	for i, tt := range tests {
 		// Collect the hashes to request, and the response to expect
 		seen := make(map[int64]bool)
-		datas := make([]getBlockBodiesData, len(seen))
+		datas := []common.Hash{}
 		bodyData := blockBodiesData{}
 
 		for j := 0; j < tt.random; j++ {
@@ -276,23 +276,23 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 					seen[num] = true
 
 					block := pm.blockchain.GetBlockByNumber(uint64(num))
-					datas = append(datas, getBlockBodiesData{Hash: block.Hash()})
+					datas = append(datas, block.Hash())
 					if len(bodyData) < tt.expected {
-						bodyData = append(bodyData, &blockBody{Transactions: block.Transactions()})
+						bodyData = append(bodyData,  &blockBody{Transactions: block.Transactions(), Signs: block.Signs(), Infos: block.SwitchInfos()})
 					}
 					break
 				}
 			}
 		}
 		for j, hash := range tt.explicit {
-			datas = append(datas, getBlockBodiesData{Hash: hash})
+			datas = append(datas, hash)
 			if tt.available[j] && len(bodyData) < tt.expected {
 				block := pm.blockchain.GetBlockByHash(hash)
-				bodyData = append(bodyData, &blockBody{Transactions: block.Transactions()})
+				bodyData = append(bodyData, &blockBody{Transactions: block.Transactions(), Signs: block.Signs(), Infos: block.SwitchInfos()})
 			}
 		}
 		// Send the hash request and verify the response
-		p2p.Send(peer.app, 0x05, datas)
+		p2p.Send(peer.app, GetBlockBodiesMsg, datas)
 		if err := p2p.ExpectMsg(peer.app, 0x06, bodyData); err != nil {
 			t.Errorf("test %d: bodies mismatch: %v", i, err)
 		}

@@ -20,22 +20,22 @@ package downloader
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"math/big"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	ethereum "github.com/taiyuechain/taiyuechain"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
+	ethereum "github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/trie"
-
 )
 
 var (
@@ -1102,7 +1102,7 @@ func (d *Downloader) fetchBodies(from uint64) error {
 	var (
 		deliver = func(packet dataPack) (int, error) {
 			pack := packet.(*bodyPack)
-			return d.queue.DeliverBodies(pack.peerID, pack.transactions, pack.uncles)
+			return d.queue.DeliverBodies(pack.peerID, pack.transactions, pack.signs, pack.infos)
 		}
 		expire   = func() map[string]int { return d.queue.ExpireBodies(d.requestTTL()) }
 		fetch    = func(p *peerConnection, req *fetchRequest) error { return p.FetchBodies(req) }
@@ -1727,8 +1727,13 @@ func (d *Downloader) DeliverHeaders(id string, headers []*types.Header) (err err
 }
 
 // DeliverBodies injects a new batch of block bodies received from a remote node.
-func (d *Downloader) DeliverBodies(id string, transactions [][]*types.Transaction, uncles [][]*types.Header) (err error) {
-	return d.deliver(id, d.bodyCh, &bodyPack{id, transactions, uncles}, bodyInMeter, bodyDropMeter)
+func (d *Downloader) DeliverBodies(id string, transactions [][]*types.Transaction, signs [][]*types.PbftSign, infos [][]*types.CommitteeMember) (err error) {
+	watch := help.NewTWatch(3, fmt.Sprintf("peer: %s, handleMsg DeliverBodies, header %d", id, len(transactions)))
+	defer func() {
+		watch.EndWatch()
+		watch.Finish("end")
+	}()
+	return d.deliver(id, d.bodyCh, &bodyPack{id, transactions, signs, infos}, bodyInMeter, bodyDropMeter)
 }
 
 // DeliverReceipts injects a new batch of receipts received from a remote node.
