@@ -101,6 +101,14 @@ func NewCACertList() *CACertList {
 	}
 }
 
+func (ca *CACertList) InitCACertList(caList [][]byte)  {
+
+	len:= len(caList)
+	for i:=0; i<len; i++{
+		ca.addCertToList(caList[i]);
+	}
+}
+
 func CloneCaCache(cachaList *CACertList) *CACertList {
 	if cachaList == nil {
 		return nil
@@ -272,6 +280,8 @@ func (ca *CACertList) addCertToList(caCert []byte) (bool, error) {
 	return true, nil
 
 }
+
+
 
 func (ca *CACertList) delCertToList(caCert []byte) (bool, error) {
 	if len(caCert) == 0 {
