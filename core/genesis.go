@@ -70,6 +70,7 @@ type Genesis struct {
 	Coinbase   common.Address           `json:"coinbase"`
 	Alloc      types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
 	Committee  []*types.CommitteeMember `json:"committee"      gencodec:"required"`
+	CertList  [][]byte 					`json:"CertList"      gencodec:"required"`
 
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
@@ -567,6 +568,12 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	seedkey3 := hexutil.MustDecode("0x04862f27458e2b03ef90f7c2c5dbe83a7e201961a1d7e3c3e8bb8ef4e86e90fb0ff3f3a3c804d05b551bc64924c6096c1cc0375c80fdf4c5773225addbd1ea6430")
 	seedkey4 := hexutil.MustDecode("0x045ea06ec693e7e5d0265374d8ddadf119d6a67f02fbbb05d591b0aedcd0e9a56235c80444679319ed9add25688027bc3fa9edba5d79368b46f1b7efe467805d9c")
 
+	cert4 :=[]byte("MIIBrTCCAVSgAwIBAgIQYolHzqHnGSjp0MSUYOjubDAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQZs5V+v6SvterLGkCpwn8QKToj6a8QCT4ec/a86b9QHBGP9/1zma7rsy8u9GneDlzameit6iwkHi6k6OoiohOko1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0cAMEQCIC6gl/Hbhqca/1o+bw5PXcKBTqk9hpyka4wGvLpO6tdDAiBqeTK1PVo0kB9TiZC7310k6+4PC7nCawMF5LDuk/cpqQ==")
+	cert1 :=[]byte("MIIBrjCCAVSgAwIBAgIQDmN9g4Njrljeax9ZbkqtVzAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQJnMYU9o1ESduGzcsm7JcSpBQlrHs7F+olMhJQZ/UsyB08Vu6F0DipAjnSn/ss6VZIiKZM5kkhmquKSgXNSSZQo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIAc3l3EEMV3GjrqQEIfqEyahUAL2LU1kxzFmKlASxLjUAiEA89AI0uJalX5ms0mNwhCbBdMaxNzyjtB4SKfieA+cBxM=")
+	cert3 :=[]byte("MIIBrjCCAVSgAwIBAgIQB/vMrawE+Fq16TcT3/2iYjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR9qS3/cu6LEs8QJ71alOW6SGY1o5r9pNvYdqWpGj7f54Pu7T7Jwox3wFMU2DZStpbWga2A9uebxAbxzWroAksBo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIEvw0dFYOOlpTzGiUfCRrAY2I6yIRb7xZcEViNepgCkhAiEAiRxA7tSdmgOUtpEypQ9NqePAWJb1J7C6YOx4nWO1gS8=")
+	cert2 :=[]byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
+
+	var certList =[][]byte{cert1,cert2,cert3,cert4}
 	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
@@ -583,10 +590,11 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey1},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey2},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey3},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey1,LocalCert:cert1},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey2,LocalCert:cert2},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey3,LocalCert:cert3},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4,LocalCert:cert4},
 		},
+		CertList:certList,
 	}
 }
