@@ -17,6 +17,7 @@ import (
 	"crypto/ecdsa"
 
 	"crypto/elliptic"
+	"io/ioutil"
 )
 
 func GetIdentityFromByte(idBytes []byte) (Identity, error) {
@@ -227,6 +228,7 @@ func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey,cert []byte) error {
 	if priv == nil{
 		return errors.New("priv is nil")
 	}
+
 	bytes, _ := base64.StdEncoding.DecodeString(string(cert))
 
 
@@ -247,6 +249,15 @@ func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey,cert []byte) error {
 	}else{
 		return errors.New("cert pubk not same with cert")
 	}
+
+}
+
+func ReadPemFileByPath(path string)( []byte, error) {
+	if len(path) == 0{
+		return nil,errors.New("ReadPemFileByPath path is nil")
+	}
+	//data, err := ioutil.ReadFile(path)
+	return ioutil.ReadFile(path)
 
 }
 

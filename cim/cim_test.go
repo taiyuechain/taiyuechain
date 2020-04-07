@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/TaiChain/log"
 )
 
 func TestMain(m *testing.M) {
@@ -87,4 +88,22 @@ func TestCreateCertByPrivate(t *testing.T) {
 	CreateIdentity2(prv3,prv2,"9653")
 	CreateIdentity2(prv4,prv2,"0477")
 	//CreateIdentity2(prv4,prv2,"0477")
+}
+
+func TestVerifyCertByPrivate(t *testing.T) {
+	var prv ,_ = crypto.HexToECDSACA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	fmt.Println(crypto.FromECDSA(prv))
+	path := "./testdata/testcert/696bca.pem"
+	cert ,err :=ReadPemFileByPath(path)
+	if err !=nil{
+		t.Fatalf("ReadPemFileByPath err")
+		return
+	}
+	tt := string(cert)
+	log.Info("cert","is",tt)
+	fmt.Println(tt)
+	if VarifyCertByPrivateKey(prv,cert) != nil{
+		t.Fatalf("VarifyCertByPrivateKey err")
+		return
+	}
 }
