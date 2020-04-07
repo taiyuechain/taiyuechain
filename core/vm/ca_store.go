@@ -120,7 +120,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 		proposalMap: make(map[common.Hash]*ProposalState),
 	}
 	for k, val := range cachaList.caCertMap {
-
+		//log.Info("-----------clone cert map","k",k)
 		items := &CACert{
 			val.cACert,
 			val.isStore,
@@ -130,7 +130,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	}
 
 	for key, value := range cachaList.proposalMap {
-		log.Info("---clone", "k", key, "value", value.cACert, "isstart", value.pHash)
+		//log.Info("---clone", "k", key, "value", value.cACert, "isstart", value.pHash)
 		item := &ProposalState{
 			value.pHash,
 			value.cACert,
@@ -165,11 +165,6 @@ func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) e
 	if cc, ok := CASC.Cache.Get(hash); ok {
 		caList := cc.(*CACertList)
 		temp = *(CloneCaCache(caList))
-		log.Info("--load --come to cache", "ca amount", temp.cAAmount)
-		for k, val := range temp.caCertMap {
-			log.Info("--clone", "k", k, "val", val.cACert)
-
-		}
 	} else {
 		if err := rlp.DecodeBytes(data, &temp); err != nil {
 			watch1.EndWatch()
@@ -243,7 +238,7 @@ func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) e
 func (ca *CACertList) IsInList(caCert []byte) (bool, error) {
 	hash := types.RlpHash(caCert)
 	for _, val := range ca.caCertMap {
-		log.Info("-=-==-=CA info", "Ce name", val.cACert, "is store", val.isStore)
+		//log.Info("-=-==-=CA info", "Ce name", val.cACert, "is store", val.isStore)
 		if hash == types.RlpHash(val.cACert) && val.isStore == true {
 			return true, nil
 		}
@@ -267,7 +262,7 @@ func (ca *CACertList) addCertToList(caCert []byte) (bool, error) {
 		true,
 	}
 	log.Info("ccc", "caamount", cac.cACert)
-	ca.caCertMap = make(map[uint64]*CACert)
+	//ca.caCertMap = make(map[uint64]*CACert)
 	/*if(amount == 0){
 		ca.caCertMap[uint64(0)] = cac
 	}else{
