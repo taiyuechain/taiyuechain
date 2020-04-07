@@ -807,7 +807,7 @@ func (m *Minerva) PrepareSnailWithParent(fastchain consensus.ChainReader, chain 
 func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB,
 	txs []*types.Transaction, receipts []*types.Receipt, feeAmount *big.Int) (*types.Block, error) {
 
-	consensus.OnceInitCAState(chain.Config(),state,new(big.Int).Set(header.Number))
+	consensus.OnceInitCAState(chain.Config(),state,new(big.Int).Set(header.Number),[][]byte{})
 
 	if header != nil && header.SnailHash != (common.Hash{}) && header.SnailNumber != nil {
 		log.Info("Finalize:", "header.SnailHash", header.SnailHash, "header.SnailNumber", header.SnailNumber, "number", header.Number)

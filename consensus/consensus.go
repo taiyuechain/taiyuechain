@@ -26,6 +26,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"fmt"
 )
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -177,7 +178,7 @@ type PoW interface {
 	Hashrate() float64
 }
 
-func makeCAContractInitState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int) bool {
+func makeCAContractInitState(state *state.StateDB,certList [][]byte) bool {
 
 
 	//neo
@@ -185,7 +186,9 @@ func makeCAContractInitState(config *params.ChainConfig,state *state.StateDB,fas
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := state.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
+		fmt.Println("-----------------come")
 		i := vm.NewCACertList()
+		i.InitCACertList(certList)
 		i.SaveCACertList(state,CaCertAddress)
 		state.SetNonce(CaCertAddress,1)
 		state.SetCode(CaCertAddress,CaCertAddress[:])
@@ -194,6 +197,6 @@ func makeCAContractInitState(config *params.ChainConfig,state *state.StateDB,fas
 	}
 	return false
 }
-func OnceInitCAState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int) bool {
-	return makeCAContractInitState(config,state,fastNumber)
+func OnceInitCAState(config *params.ChainConfig,state *state.StateDB,fastNumber *big.Int,certList [][]byte) bool {
+	return makeCAContractInitState(state,certList)
 }

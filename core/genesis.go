@@ -273,7 +273,7 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 		}
 	}
 
-	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number))
+	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number),g.CertList)
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
