@@ -185,17 +185,18 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	if err != nil {
 		return nil, err
 	}
-	CaCertAddress := types.CACertListAddress
+	/*CaCertAddress := types.CACertListAddress
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := stateDB.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
 		i := vm.NewCACertList()
 		i.LoadCACertList(stateDB,CaCertAddress)
+		log.Info("----config.Genesis.CertList","len", len(config.Genesis.CertList))
 		i.InitCACertList(config.Genesis.CertList)
 		i.SaveCACertList(stateDB,CaCertAddress)
 		stateDB.SetNonce(CaCertAddress,1)
 		stateDB.SetCode(CaCertAddress,CaCertAddress[:])
-	}
+	}*/
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
