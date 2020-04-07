@@ -504,7 +504,11 @@ func (c *Config) BftCommitteeCert() []byte {
 		return cert
 	}
 	certfile := c.ResolvePath(datadirLocalCert)
-
-	cert, _ = cim.ReadPemFile(certfile)
+	var err error
+	cert, err = cim.ReadPemFileByPath(certfile)
+	if err != nil{
+		log.Error("ReadPemFileByPath","err",err)
+		return nil
+	}
 	return cert
 }
