@@ -1130,10 +1130,11 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 		cfg.PrivateKey = stack.Config().BftCommitteeKey()
 	}
 
-	//TODO neo
+	//TODO
 	// need do verfiy the private key and cert
-	if cim.VarifyCertByPrivateKey(cfg.PrivateKey,cfg.NodeCert) != nil{
-		log.Error("cert not the privatekey create")
+	privatekey ,_:=crypto.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
+	if cim.VarifyCertByPrivateKey(privatekey,cfg.NodeCert) != nil{
+		log.Error("cert not the varify cert by private key")
 		return
 	}
 
