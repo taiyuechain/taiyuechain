@@ -2,7 +2,7 @@ package types
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
@@ -149,9 +149,10 @@ type TransportCommitteeNode struct {
 	EXT   []byte
 }
 
-func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *ecdsa.PublicKey) *CommitteeNode {
+//func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *ecdsa.PublicKey) *CommitteeNode {
+func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *taiCrypto.TaiPublicKey) *CommitteeNode {
 	var taipublic taiCrypto.TaiPublicKey
-	taipublic.Publickey = *pubKey
+	taipublic = *pubKey
 	return &CommitteeNode{
 		IP:    tcn.IP,
 		Port:  tcn.Port,
