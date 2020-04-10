@@ -19,15 +19,19 @@ package state
 import (
 	"bytes"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-var emptyCodeHash = crypto.Keccak256(nil)
+var thash taiCrypto.THash
+
+//var emptyCodeHash = crypto.Keccak256(nil)
+var emptyCodeHash = thash.Keccak256(nil)
 
 type Code []byte
 
@@ -73,7 +77,6 @@ func (self CAStorage) Copy() CAStorage {
 	return cpy
 }
 
-
 // stateObject represents an Ethereum account which is being modified.
 //
 // The usage pattern is as follows:
@@ -96,7 +99,6 @@ type stateObject struct {
 	// Write caches.
 	trie Trie // storage trie, which becomes non-nil on first access
 	code Code // contract bytecode, which gets set when code is loaded
-
 
 	originStorage Storage // Storage cache of original entries to dedup rewrites
 	dirtyStorage  Storage // Storage entries that need to be flushed to disk
@@ -134,12 +136,13 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 		data.CodeHash = emptyCodeHash
 	}
 	return &stateObject{
-		db:            db,
-		address:       address,
-		addrHash:      crypto.Keccak256Hash(address[:]),
-		data:          data,
-		originStorage: make(Storage),
-		dirtyStorage:  make(Storage),
+		db:      db,
+		address: address,
+		//addrHash:      crypto.Keccak256Hash(address[:]),
+		addrHash:        thash.Keccak256Hash(address[:]),
+		data:            data,
+		originStorage:   make(Storage),
+		dirtyStorage:    make(Storage),
 		originCAStorage: make(CAStorage),
 		dirtyCAStorage:  make(CAStorage),
 	}
@@ -262,7 +265,6 @@ func (self *stateObject) setStateByteArray(key common.Hash, value []byte) {
 	self.originCAStorage[key] = value
 	self.dirtyCAStorage[key] = value
 }
-
 
 func (self *stateObject) setState(key, value common.Hash) {
 	self.dirtyStorage[key] = value
