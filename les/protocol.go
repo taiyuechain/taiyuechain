@@ -18,7 +18,8 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
@@ -29,7 +30,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )
 
@@ -141,19 +142,23 @@ type announceData struct {
 }
 
 // sign adds a signature to the block announcement by the given privKey
-func (a *announceData) sign(privKey *ecdsa.PrivateKey) {
+//func (a *announceData) sign(privKey *ecdsa.PrivateKey) {
+func (a *announceData) sign(privKey *taiCrypto.TaiPrivateKey) {
 	//caoliang modify
 	var taiprivate taiCrypto.TaiPrivateKey
+	var thash taiCrypto.THash
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
 	//sig, _ := crypto.Sign(crypto.Keccak256(rlp), privKey)
-	taiprivate.Private = *privKey
-	sig, _ := taiprivate.Sign(crypto.Keccak256(rlp), taiprivate)
+	taiprivate = *privKey
+	//sig, _ := taiprivate.Sign(crypto.Keccak256(rlp), taiprivate)
+	sig, _ := taiprivate.Sign(thash.Keccak256(rlp), taiprivate)
 	a.Update = a.Update.add("sign", sig)
 }
 
 // checkSignature verifies if the block announcement has a valid signature by the given pubKey
 func (a *announceData) checkSignature(id enode.ID) error {
 	var taipublic taiCrypto.TaiPublicKey
+	var thash taiCrypto.THash
 	var sig []byte
 	if err := a.Update.decode().get("sign", &sig); err != nil {
 		return err
@@ -161,12 +166,13 @@ func (a *announceData) checkSignature(id enode.ID) error {
 	rlp, _ := rlp.EncodeToBytes(announceBlock{a.Hash, a.Number, a.Td})
 	//caoliang modify
 	//recPubkey, err := crypto.SigToPub(crypto.Keccak256(rlp), sig)
-	recPubkey, err := taipublic.SigToPub(crypto.Keccak256(rlp), sig)
+	//recPubkey, err := taipublic.SigToPub(crypto.Keccak256(rlp), sig)
+	recPubkey, err := taipublic.SigToPub(thash.Keccak256(rlp), sig)
 	if err != nil {
 		return err
 	}
 
-	if id == enode.PubkeyToIDV4(&recPubkey.Publickey) {
+	if id == enode.PubkeyToIDV4(recPubkey) {
 		return nil
 	}
 	return errors.New("Wrong signature")
