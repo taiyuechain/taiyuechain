@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math"
 	"sort"
 	"sync"
@@ -27,7 +28,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/bitutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // bloomIndexes represents the bit indexes inside the bloom filter that belong
@@ -36,7 +37,9 @@ type bloomIndexes [3]uint
 
 // calcBloomIndexes returns the bloom filter bit indexes belonging to the given key.
 func calcBloomIndexes(b []byte) bloomIndexes {
-	b = crypto.Keccak256(b)
+	var thash taiCrypto.THash
+	//b = crypto.Keccak256(b)
+	b = thash.Keccak256(b)
 
 	var idxs bloomIndexes
 	for i := 0; i < len(idxs); i++ {
