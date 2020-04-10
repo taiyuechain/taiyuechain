@@ -21,13 +21,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io/ioutil"
 	"math/big"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/accounts"
@@ -415,6 +416,8 @@ func (api *SignerAPI) Sign(ctx context.Context, addr common.MixedcaseAddress, da
 //
 // https://github.com/taiyuechain/taiyuechain/wiki/Management-APIs#personal_ecRecover
 func (api *SignerAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (common.Address, error) {
+	//var taiprivate taiCrypto.TaiPrivateKey
+	var taipublic taiCrypto.TaiPublicKey
 	if len(sig) != 65 {
 		return common.Address{}, fmt.Errorf("signature must be 65 bytes long")
 	}
@@ -423,11 +426,13 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (c
 	}
 	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
 	hash, _ := SignHash(data)
-	rpk, err := crypto.SigToPub(hash, sig)
+	//rpk, err := crypto.SigToPub(hash, sig)
+	rpk, err := taipublic.SigToPub(hash, sig)
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*rpk), nil
+	//return crypto.PubkeyToAddress(*rpk), nil
+	return taipublic.PubkeyToAddress(*rpk), nil
 }
 
 // SignHash is a helper function that calculates a hash for the given message that can be
@@ -438,8 +443,10 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data, sig hexutil.Bytes) (c
 //
 // This gives context to the signed message and prevents signing of transactions.
 func SignHash(data []byte) ([]byte, string) {
+	var thash taiCrypto.THash
 	msg := fmt.Sprintf("\x19Truechain Signed Message:\n%d%s", len(data), data)
-	return crypto.Keccak256([]byte(msg)), msg
+	//return crypto.Keccak256([]byte(msg)), msg
+	return thash.Keccak256([]byte(msg)), msg
 }
 
 // Export returns encrypted private key associated with the given address in web3 keystore format.
