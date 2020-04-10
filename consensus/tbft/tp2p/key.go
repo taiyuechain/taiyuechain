@@ -20,22 +20,28 @@ const IDByteLength = 20
 // It contains the nodes private key for authentication.
 type NodeKey struct {
 	PrivKey crypto.PrivKey `json:"priv_key"` // our priv key
+	//PrivKey taiCrypto.TaiPrivateKey `json:"priv_key"` // our priv key
 }
 
 // ID returns the peer's canonical ID - the hash of its public key.
 func (nodeKey *NodeKey) ID() ID {
-	return PubKeyToID(nodeKey.PubKey())
+	return PubKeyToID(nodeKey.PrivKey.PubKey())
 }
 
 // PubKey returns the peer's PubKey
+//func (nodeKey *NodeKey) PubKey() crypto.PubKey {
 func (nodeKey *NodeKey) PubKey() crypto.PubKey {
 	return nodeKey.PrivKey.PubKey()
+	//return nodeKey.PrivKey.TaiPubKey
 }
 
 // PubKeyToID returns the ID corresponding to the given PubKey.
 // It's the hex-encoding of the pubKey.Address().
+//func PubKeyToID(pubKey crypto.PubKey) ID {
+//func PubKeyToID(pubKey crypto.PubKey) ID {
 func PubKeyToID(pubKey crypto.PubKey) ID {
 	return ID(hex.EncodeToString(pubKey.Address()))
+
 }
 
 //------------------------------------------------------------------------------
