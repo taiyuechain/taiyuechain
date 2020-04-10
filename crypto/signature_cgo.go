@@ -69,16 +69,22 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
 func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
-	x, y := secp256k1.DecompressPubkey(pubkey)
+	/*x, y := secp256k1.DecompressPubkey(pubkey)
 	if x == nil {
 		return nil, fmt.Errorf("invalid public key")
 	}
-	return &ecdsa.PublicKey{X: x, Y: y, Curve: S256()}, nil
+	return &ecdsa.PublicKey{X: x, Y: y, Curve: S256()}, nil*/
+	x, y := elliptic.Unmarshal(elliptic.P256(),pubkey)
+	if x == nil {
+		return nil, fmt.Errorf("invalid public key")
+	}
+	return &ecdsa.PublicKey{X: x, Y: y, Curve: elliptic.P256()}, nil
 }
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
 func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
-	return secp256k1.CompressPubkey(pubkey.X, pubkey.Y)
+	//return secp256k1.CompressPubkey(pubkey.X, pubkey.Y)
+	return elliptic.Marshal(pubkey.Curve, pubkey.X, pubkey.Y)
 }
 
 // S256 returns an instance of the secp256k1 curve.
