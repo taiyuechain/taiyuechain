@@ -1,20 +1,20 @@
 package cim
 
 import (
-	"crypto/x509"
-	"encoding/pem"
-	"github.com/pkg/errors"
-	"math/big"
-	"crypto/x509/pkix"
-	"time"
-	"log"
-	"crypto/rand"
-	"encoding/base64"
-	"os"
-	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+	"github.com/pkg/errors"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"log"
+	"math/big"
+	"os"
+	"time"
 
 	"crypto/elliptic"
 	"io/ioutil"
@@ -62,8 +62,7 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 	return cert, nil
 }
 
-
-func  CreateIdentity(priv string) bool {
+func CreateIdentity(priv string) bool {
 	var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 	ca := &x509.Certificate{
@@ -119,7 +118,7 @@ func  CreateIdentity(priv string) bool {
 	return true
 }
 
-func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
+func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 
@@ -165,7 +164,7 @@ func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
 
 	//theCert, err := x509.ParseCertificate(data)
 
-	 //t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+	//t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
 
 	theCert, err := x509.ParseCertificate(bytes)
 	pubk1 := theCert.PublicKey
@@ -181,10 +180,10 @@ func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
 	fmt.Println(publicKeyBytes)
 	fmt.Println(crypto.FromECDSAPub(&priv.PublicKey))
 	fmt.Println(crypto.FromECDSAPub(&priv2.PublicKey))
-	if(string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv2.PublicKey))){
+	if string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv2.PublicKey)) {
 		fmt.Println("1111succes")
-	}else{
-		if(string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey))){
+	} else {
+		if string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey)) {
 			fmt.Println("222success")
 		}
 	}
@@ -195,45 +194,42 @@ func  CreateIdentity2(priv , priv2 *ecdsa.PrivateKey,name string) bool {
 		fmt.Println("not =====")
 	}*/
 
-
 	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	fileName := "./testdata/testcert/"+name + "ca.pem"
+	fileName := "./testdata/testcert/" + name + "ca.pem"
 	dstFile, err := os.Create(fileName)
 	if err != nil {
 		return false
 	}
-	dstFile.WriteString(encodeString +"\n")
+	dstFile.WriteString(encodeString + "\n")
 	defer dstFile.Close()
 	/*
-	priv_b, _ := x509.MarshalECPrivateKey(priv)
-	encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileName1 := "test1" + "ca.key"
-	dstFile1, err := os.Create(fileName1)
-	if err != nil {
-		return false
-	}
-	defer dstFile1.Close()
-	dstFile1.WriteString(encodeString1 + "\n")
-	fmt.Println(encodeString)*/
+		priv_b, _ := x509.MarshalECPrivateKey(priv)
+		encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fileName1 := "test1" + "ca.key"
+		dstFile1, err := os.Create(fileName1)
+		if err != nil {
+			return false
+		}
+		defer dstFile1.Close()
+		dstFile1.WriteString(encodeString1 + "\n")
+		fmt.Println(encodeString)*/
 	return true
 }
 
-func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey,cert []byte) error {
-	if cert == nil{
+func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey, cert []byte) error {
+	if cert == nil {
 		return errors.New("cert is nil")
 	}
-	if priv == nil{
+	if priv == nil {
 		return errors.New("priv is nil")
 	}
 
 	bytes, _ := base64.StdEncoding.DecodeString(string(cert))
-
-
 	theCert, err := x509.ParseCertificate(bytes)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	pubk := theCert.PublicKey
@@ -244,20 +240,19 @@ func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey,cert []byte) error {
 		publicKeyBytes = elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y)
 	}
 
-	if(string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey))){
+	if string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey)) {
 		return nil
-	}else{
+	} else {
 		return errors.New("cert pubk not same with cert")
 	}
 
 }
 
-func ReadPemFileByPath(path string)( []byte, error) {
-	if len(path) == 0{
-		return nil,errors.New("ReadPemFileByPath path is nil")
+func ReadPemFileByPath(path string) ([]byte, error) {
+	if len(path) == 0 {
+		return nil, errors.New("ReadPemFileByPath path is nil")
 	}
 	//data, err := ioutil.ReadFile(path)
 	return ioutil.ReadFile(path)
 
 }
-
