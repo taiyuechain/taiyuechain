@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
 	"os"
@@ -248,9 +248,9 @@ func unlockAccount(client *rpc.Client, account string, password string, time int
 func genAddress() string {
 	//caolaing modify
 	var taipublic taiCrypto.TaiPublicKey
-	priKey, _ := crypto.GenerateKey()
+	priKey, _ := taiCrypto.GenPrivKey()
 	//address := crypto.PubkeyToAddress(priKey.PublicKey)
-	taipublic.Publickey = priKey.PublicKey
+	taipublic = priKey.TaiPubKey
 	address := taipublic.PubkeyToAddress(taipublic)
 	return address.Hex()
 }
