@@ -22,9 +22,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
@@ -304,7 +305,9 @@ func (r *CodeRequest) Validate(db etruedb.Database, msg *Msg) error {
 	data := reply[0]
 
 	// Verify the data and store if checks out
-	if hash := crypto.Keccak256Hash(data); r.Hash != hash {
+	var thash taiCrypto.THash
+	//if hash := crypto.Keccak256Hash(data); r.Hash != hash {
+	if hash := thash.Keccak256Hash(data); r.Hash != hash {
 		return errDataHashMismatch
 	}
 	r.Data = data
