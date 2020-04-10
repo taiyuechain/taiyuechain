@@ -17,8 +17,8 @@
 package node
 
 import (
-	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"crypto/ecdsa"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
 	//"crypto/ecdsa"
@@ -302,7 +302,8 @@ func (c *Config) instanceDir() string {
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
 //caoliang modify
-func (c *Config) NodeKey() *ecdsa.PrivateKey {
+//func (c *Config) NodeKey() *ecdsa.PrivateKey {
+func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
 	//func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
 	var taiprivate taiCrypto.TaiPrivateKey
 	// Use any specifically configured key.
@@ -312,8 +313,8 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	// Generate ephemeral key if no datadir is being used.
 	if c.DataDir == "" {
 		//caoliang modify
-		key, err := crypto.GenerateKey()
-		//key := taiCrypto.GenPrivKey()
+		//key, err := crypto.GenerateKey()
+		key, err := taiCrypto.GenPrivKey()
 		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
 		}
@@ -324,12 +325,12 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	//caolaing modify taiprivate
 	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
 	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
-		return &key.Private
+		return key
 	}
 	// No persistent key found, generate and store a new one.
 	//caoliang modify
-	key, err := crypto.GenerateKey()
-	//key:= taiCrypto.GenPrivKey()
+	//key, err := crypto.GenerateKey()
+	key, err := taiCrypto.GenPrivKey()
 	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
 	}
@@ -341,7 +342,7 @@ func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
 	//caolaing modify
 	//if err := crypto.SaveECDSA(keyfile, key); err != nil {
-	taiprivate.Private = *key
+	taiprivate.Private = key.Private
 	if err := taiprivate.SaveECDSA(keyfile, taiprivate); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
@@ -455,37 +456,38 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 }
 
 //caoliang modify
-func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
+//func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
+func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
 	//func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
 	// Generate ephemeral key if no datadir is being used.
 	var taiprivate taiCrypto.TaiPrivateKey
 	if c.DataDir == "" {
 		//caoliang modify
 		//key, err := crypto.GenerateKey()
-		key := taiCrypto.GenPrivKey()
-		/*if err != nil {
+		key, err := taiCrypto.GenPrivKey()
+		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
-		}*/
-		return &key.Private
+		}
+		return key
 	}
 
 	keyfile := c.ResolvePath(bftCommitteePrivateKey)
 	//caoliang modify
 	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
 	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
-		return &key.Private
+		return key
 	}
 	// No persistent key found, generate and store a new one.
 	//caoliang modify
 	//key, err := crypto.GenerateKey()
-	key := taiCrypto.GenPrivKey()
-	/*if err != nil {
+	key, err := taiCrypto.GenPrivKey()
+	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
-	}*/
+	}
 	instanceDir := filepath.Join(c.DataDir, c.name())
 	if err := os.MkdirAll(instanceDir, 0700); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
-		return &key.Private
+		return key
 	}
 	keyfile = filepath.Join(instanceDir, bftCommitteePrivateKey)
 	//caolaing modify
@@ -493,7 +495,7 @@ func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
 	if err := taiprivate.SaveECDSA(keyfile, *key); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
-	return &key.Private
+	return key
 }
 
 func (c *Config) BftCommitteeCert() []byte {
@@ -506,8 +508,8 @@ func (c *Config) BftCommitteeCert() []byte {
 	certfile := c.ResolvePath(datadirLocalCert)
 	var err error
 	cert, err = cim.ReadPemFileByPath(certfile)
-	if err != nil{
-		log.Error("ReadPemFileByPath","err",err)
+	if err != nil {
+		log.Error("ReadPemFileByPath", "err", err)
 		return nil
 	}
 	return cert
