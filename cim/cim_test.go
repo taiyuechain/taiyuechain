@@ -9,8 +9,10 @@ import (
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/TaiChain/log"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
+
 
 func TestMain(m *testing.M) {
 	cimConfigDir, _ := config.GetDevCIMDir()
@@ -107,3 +109,30 @@ func TestVerifyCertByPrivate(t *testing.T) {
 		return
 	}
 }
+
+func TestCreatePubk(t *testing.T) {
+	var prv ,_ = crypto.HexToECDSACA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2 ,_ = crypto.HexToECDSACA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3 ,_ = crypto.HexToECDSACA("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4 ,_ = crypto.HexToECDSACA("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+
+	//pk :=
+	pkbyte1 := crypto.FromECDSAPubCA(&prv.PublicKey)
+	pkstring1 := hexutil.Encode(pkbyte1)
+	fmt.Println(pkstring1)
+
+	pkbyte2 := crypto.FromECDSAPubCA(&prv2.PublicKey)
+	pkstring2 := hexutil.Encode(pkbyte2)
+	fmt.Println(pkstring2)
+
+	pkbyte3 := crypto.FromECDSAPubCA(&prv3.PublicKey)
+	pkstring3 := hexutil.Encode(pkbyte3)
+	fmt.Println(pkstring3)
+
+	pkbyte4 := crypto.FromECDSAPubCA(&prv4.PublicKey)
+	pkstring4 := hexutil.Encode(pkbyte4)
+	fmt.Println(pkstring4)
+
+}
+
+
