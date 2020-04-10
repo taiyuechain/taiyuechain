@@ -18,10 +18,11 @@ package types
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 type bytesBacked interface {
@@ -113,8 +114,9 @@ func LogsBloom(logs []*Log) *big.Int {
 }
 
 func bloom9(b []byte) *big.Int {
-	b = crypto.Keccak256(b[:])
-
+	var thash taiCrypto.THash
+	//b = crypto.Keccak256(b[:])
+	b = thash.Keccak256(b[:])
 	r := new(big.Int)
 
 	for i := 0; i < 6; i += 2 {
