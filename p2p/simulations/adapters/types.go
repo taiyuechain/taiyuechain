@@ -17,7 +17,9 @@
 package adapters
 
 import (
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -26,7 +28,7 @@ import (
 	"strconv"
 
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/p2p"
@@ -84,11 +86,8 @@ type NodeConfig struct {
 
 	// PrivateKey is the node's private key which is used by the devp2p
 	// stack to encrypt communications
-	PrivateKey *ecdsa.PrivateKey
-
-	// Enable peer events for Msgs
-	EnableMsgEvents bool
-
+	//PrivateKey *ecdsa.PrivateKey
+	PrivateKey *taiCrypto.TaiPrivateKey
 	// Name is a human friendly name for the node like "node01"
 	Name string
 
@@ -110,7 +109,8 @@ type NodeConfig struct {
 	// function to sanction or prevent suggesting a peer
 	Reachable func(id enode.ID) bool
 
-	Port uint16
+	Port            uint16
+	EnableMsgEvents bool
 }
 
 // nodeConfigJSON is used to encode and decode NodeConfig as JSON by encoding
@@ -127,6 +127,7 @@ type nodeConfigJSON struct {
 // MarshalJSON implements the json.Marshaler interface by encoding the config
 // fields as strings
 func (n *NodeConfig) MarshalJSON() ([]byte, error) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	confJSON := nodeConfigJSON{
 		ID:              n.ID.String(),
 		Name:            n.Name,
@@ -135,7 +136,9 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 		EnableMsgEvents: n.EnableMsgEvents,
 	}
 	if n.PrivateKey != nil {
-		confJSON.PrivateKey = hex.EncodeToString(crypto.FromECDSA(n.PrivateKey))
+		//confJSON.PrivateKey = hex.EncodeToString(crypto.FromECDSA(n.PrivateKey))
+		confJSON.PrivateKey = hex.EncodeToString(taiprivate.FromECDSA(*n.PrivateKey))
+
 	}
 	return json.Marshal(confJSON)
 }
@@ -144,6 +147,7 @@ func (n *NodeConfig) MarshalJSON() ([]byte, error) {
 // string values into the config fields
 func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 	var confJSON nodeConfigJSON
+	var taiprivate taiCrypto.TaiPrivateKey
 	if err := json.Unmarshal(data, &confJSON); err != nil {
 		return err
 	}
@@ -159,7 +163,8 @@ func (n *NodeConfig) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		privKey, err := crypto.ToECDSA(key)
+		//privKey, err := crypto.ToECDSA(key)
+		privKey, err := taiprivate.ToECDSA(key)
 		if err != nil {
 			return err
 		}
@@ -182,7 +187,9 @@ func (n *NodeConfig) Node() *enode.Node {
 // RandomNodeConfig returns node configuration with a randomly generated ID and
 // PrivateKey
 func RandomNodeConfig() *NodeConfig {
-	prvkey, err := crypto.GenerateKey()
+	var taipublic taiCrypto.TaiPublicKey
+	//prvkey, err := crypto.GenerateKey()
+	prvkey, err := taiCrypto.GenPrivKey()
 	if err != nil {
 		panic("unable to generate key")
 	}
@@ -192,7 +199,9 @@ func RandomNodeConfig() *NodeConfig {
 		panic("unable to assign tcp port")
 	}
 
-	enodId := enode.PubkeyToIDV4(&prvkey.PublicKey)
+	//enodId := enode.PubkeyToIDV4(&prvkey.PublicKey)
+	taipublic.Publickey = prvkey.Private.PublicKey
+	enodId := enode.PubkeyToIDV4(&taipublic)
 	return &NodeConfig{
 		PrivateKey:      prvkey,
 		ID:              enodId,
