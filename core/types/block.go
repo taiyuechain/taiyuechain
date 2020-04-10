@@ -18,7 +18,8 @@
 package types
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/binary"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
@@ -178,6 +179,7 @@ type headerMarshaling struct {
 func (h *Header) Hash() common.Hash {
 	return rlpHash(h)
 }
+
 // SanityCheck checks a few basic things -- these checks are way beyond what
 // any 'sane' production values should hold, and can mainly be used to prevent
 // that the unbounded fields are stuffed with junk data to add processing
@@ -788,13 +790,14 @@ func (b *SnailBlock) Number() *big.Int { return new(big.Int).Set(b.header.Number
 /*func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
 	return crypto.UnmarshalPubkey(b.header.Publickey)
 }*/
-func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
+//func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
+func (b *SnailBlock) GetPubKey() (*taiCrypto.TaiPublicKey, error) {
 	var taipublic taiCrypto.TaiPublicKey
 	taipub, err := taipublic.UnmarshalPubkey(b.header.Publickey)
 	if err != nil {
 		return nil, err
 	}
-	return &taipub.Publickey, nil
+	return taipub, nil
 }
 func (b *SnailBlock) PublicKey() []byte         { return b.header.Publickey }
 func (b *SnailBlock) BlockDifficulty() *big.Int { return new(big.Int).Set(b.header.Difficulty) }
