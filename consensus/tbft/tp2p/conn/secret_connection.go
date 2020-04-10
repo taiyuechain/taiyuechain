@@ -103,7 +103,7 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	}
 	//caoliang modify
 	//remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
-	remPubKey := crypto.PubKeyTrue(remPubKeyEcdsa.Publickey)
+	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
 		return nil, errors.New("Challenge verification failed")
 	}
