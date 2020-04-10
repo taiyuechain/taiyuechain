@@ -24,9 +24,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
 	"github.com/taiyuechain/taiyuechain/accounts"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -44,6 +45,9 @@ func importPreSaleKey(keyStore keyStore, keyJSON []byte, password string) (accou
 }
 
 func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error) {
+	var thash taiCrypto.THash
+	var taiprivate taiCrypto.TaiPrivateKey
+	var taipublic taiCrypto.TaiPublicKey
 	preSaleKeyStruct := struct {
 		EncSeed string
 		EthAddr string
@@ -76,12 +80,21 @@ func decryptPreSaleKey(fileContent []byte, password string) (key *Key, err error
 	if err != nil {
 		return nil, err
 	}
-	ethPriv := crypto.Keccak256(plainText)
-	ecKey := crypto.ToECDSAUnsafe(ethPriv)
 
+	/*ethPriv := crypto.Keccak256(plainText)
+	ecKey := crypto.ToECDSAUnsafe(ethPriv)*/
+	ethPriv := thash.Keccak256(plainText)
+	ecKey := taiprivate.ToECDSAUnsafe(ethPriv)
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		taipublic.Publickey = ecKey.Private.PublicKey
+	}
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		taipublic.SmPublickey = ecKey.GmPrivate.PublicKey
+	}
 	key = &Key{
-		Id:         nil,
-		Address:    crypto.PubkeyToAddress(ecKey.PublicKey),
+		Id: nil,
+		//Address:    crypto.PubkeyToAddress(ecKey.PublicKey),
+		Address:    taipublic.PubkeyToAddress(taipublic),
 		PrivateKey: ecKey,
 	}
 	derivedAddr := hex.EncodeToString(key.Address.Bytes()) // needed because .Hex() gives leading "0x"
