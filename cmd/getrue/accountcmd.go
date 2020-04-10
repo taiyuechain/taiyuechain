@@ -360,7 +360,7 @@ func accountImport(ctx *cli.Context) error {
 	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 	//caolaing modify
 	//acct, err := ks.ImportECDSA(key, passphrase)
-	acct, err := ks.ImportECDSA(&key.Private, passphrase)
+	acct, err := ks.ImportECDSA(key, passphrase)
 	if err != nil {
 		utils.Fatalf("Could not create the account: %v", err)
 	}
