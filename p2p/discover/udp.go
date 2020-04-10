@@ -19,7 +19,6 @@ package discover
 import (
 	"bytes"
 	"container/list"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
@@ -30,7 +29,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 )
@@ -77,8 +76,8 @@ const (
 // RPC request structures
 type (
 	ping struct {
-		senderKey *ecdsa.PublicKey // filled in by preverify
-
+		//senderKey *ecdsa.PublicKey // filled in by preverify
+		senderKey  *taiCrypto.TaiPublicKey // filled in by preverify
 		Version    uint
 		From, To   rpcEndpoint
 		Expiration uint64
@@ -160,7 +159,8 @@ func (t *udp) nodeFromRPC(sender *net.UDPAddr, rn rpcNode) (*node, error) {
 }
 
 func nodeToRPC(n *node) rpcNode {
-	var key ecdsa.PublicKey
+	//var key ecdsa.PublicKey
+	var key taiCrypto.TaiPublicKey
 	var ekey encPubkey
 	if err := n.Load((*enode.Secp256k1)(&key)); err == nil {
 		ekey = encodePubkey(&key)
@@ -189,11 +189,12 @@ type conn interface {
 type udp struct {
 	conn        conn
 	netrestrict *netutil.Netlist
-	priv        *ecdsa.PrivateKey
-	localNode   *enode.LocalNode
-	db          *enode.DB
-	tab         *Table
-	wg          sync.WaitGroup
+	//priv        *ecdsa.PrivateKey
+	priv      *taiCrypto.TaiPrivateKey
+	localNode *enode.LocalNode
+	db        *enode.DB
+	tab       *Table
+	wg        sync.WaitGroup
 
 	addReplyMatcher chan *replyMatcher
 	gotreply        chan reply
@@ -253,8 +254,8 @@ type ReadPacket struct {
 // Config holds Table-related settings.
 type Config struct {
 	// These settings are required and configure the UDP listener:
-	PrivateKey *ecdsa.PrivateKey
-
+	//PrivateKey *ecdsa.PrivateKey
+	PrivateKey *taiCrypto.TaiPrivateKey
 	// These settings are optional:
 	NetRestrict *netutil.Netlist  // network whitelist
 	Bootnodes   []*enode.Node     // list of bootstrap nodes
@@ -570,8 +571,10 @@ func (t *udp) write(toaddr *net.UDPAddr, toid enode.ID, what string, packet []by
 	return err
 }
 
-func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, hash []byte, err error) {
+//func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, hash []byte, err error) {
+func encodePacket(priv *taiCrypto.TaiPrivateKey, ptype byte, req interface{}) (packet, hash []byte, err error) {
 	var taiprivate taiCrypto.TaiPrivateKey
+	var thash taiCrypto.THash
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
@@ -582,8 +585,9 @@ func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, 
 	packet = b.Bytes()
 	//caoliang modify
 	//sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
-	taiprivate.Private = *priv
-	sig, err := taiprivate.Sign(crypto.Keccak256(packet[headSize:]), taiprivate)
+	taiprivate = *priv
+	//sig, err := taiprivate.Sign(crypto.Keccak256(packet[headSize:]), taiprivate)
+	sig, err := taiprivate.Sign(thash.Keccak256(packet[headSize:]), taiprivate)
 	if err != nil {
 		log.Error("Can't sign discv4 packet", "err", err)
 		return nil, nil, err
@@ -592,7 +596,8 @@ func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (packet, 
 	// add the hash to the front. Note: this doesn't protect the
 	// packet in any way. Our public key will be part of this hash in
 	// The future.
-	hash = crypto.Keccak256(packet[macSize:])
+	//hash = crypto.Keccak256(packet[macSize:])
+	hash = thash.Keccak256(packet[macSize:])
 	copy(packet, hash)
 	return packet, hash, nil
 }
@@ -647,15 +652,18 @@ func (t *udp) handlePacket(from *net.UDPAddr, buf []byte) error {
 }
 
 func decodePacket(buf []byte) (packet, encPubkey, []byte, error) {
+	var thash taiCrypto.THash
 	if len(buf) < headSize+1 {
 		return nil, encPubkey{}, nil, errPacketTooSmall
 	}
 	hash, sig, sigdata := buf[:macSize], buf[macSize:headSize], buf[headSize:]
-	shouldhash := crypto.Keccak256(buf[macSize:])
+	//shouldhash := crypto.Keccak256(buf[macSize:])
+	shouldhash := thash.Keccak256(buf[macSize:])
 	if !bytes.Equal(hash, shouldhash) {
 		return nil, encPubkey{}, nil, errBadHash
 	}
-	fromKey, err := recoverNodeKey(crypto.Keccak256(buf[headSize:]), sig)
+	//fromKey, err := recoverNodeKey(crypto.Keccak256(buf[headSize:]), sig)
+	fromKey, err := recoverNodeKey(thash.Keccak256(buf[headSize:]), sig)
 	if err != nil {
 		return nil, fromKey, hash, err
 	}
@@ -759,8 +767,10 @@ func (req *findnode) handle(t *udp, from *net.UDPAddr, fromID enode.ID, mac []by
 		log.Debug("findnode", "error", fmt.Sprintf("error %d version number", req.Version))
 		return
 	}
+	var thash taiCrypto.THash
 	// Determine closest nodes.
-	target := enode.ID(crypto.Keccak256Hash(req.Target[:]))
+	//target := enode.ID(crypto.Keccak256Hash(req.Target[:]))
+	target := enode.ID(thash.Keccak256Hash(req.Target[:]))
 	t.tab.mutex.Lock()
 	closest := t.tab.closest(target, bucketSize).entries
 	t.tab.mutex.Unlock()
