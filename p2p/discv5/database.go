@@ -24,11 +24,12 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -200,10 +201,12 @@ func (db *nodeDB) fetchRLP(key []byte, val interface{}) error {
 // node retrieves a node with a given id from the database.
 func (db *nodeDB) node(id NodeID) *Node {
 	var node Node
+	var thash taiCrypto.THash
 	if err := db.fetchRLP(makeKey(id, nodeDBDiscoverRoot), &node); err != nil {
 		return nil
 	}
-	node.sha = crypto.Keccak256Hash(node.ID[:])
+	//node.sha = crypto.Keccak256Hash(node.ID[:])
+	node.sha = thash.Keccak256Hash(node.ID[:])
 	return &node
 }
 
