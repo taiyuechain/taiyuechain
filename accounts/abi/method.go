@@ -18,9 +18,9 @@ package abi
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"strings"
-
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // Method represents a callable given a `Name` and whether the method is a constant.
@@ -73,5 +73,7 @@ func (method Method) String() string {
 }
 
 func (method Method) Id() []byte {
-	return crypto.Keccak256([]byte(method.Sig()))[:4]
+	var thash taiCrypto.THash
+	//return crypto.Keccak256([]byte(method.Sig()))[:4]
+	return thash.Keccak256([]byte(method.Sig()))[:4]
 }
