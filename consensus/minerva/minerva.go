@@ -19,11 +19,11 @@ package minerva
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+
+	//"crypto/ecdsa"
 
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-
 
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
@@ -516,9 +516,9 @@ func SeedHash(block uint64) []byte {
 */
 type fakeElection struct {
 	//caoliang modify
-	privates []*ecdsa.PrivateKey
-	//privates []*taiCrypto.TaiPrivateKey
-	members []*types.CommitteeMember
+	//privates []*ecdsa.PrivateKey
+	privates []*taiCrypto.TaiPrivateKey
+	members  []*types.CommitteeMember
 }
 
 func hexToECDSA(hexkey string) (*taiCrypto.TaiPrivateKey, error) {
@@ -552,13 +552,13 @@ func newFakeElection() *fakeElection {
 	}
 	//caoliang modify
 
-	priKeys := []*ecdsa.PrivateKey{&pk1.Private, &pk2.Private, &pk3.Private, &pk4.Private, &pk5.Private, &pk6.Private, &pk7.Private}
-	//priKeys := []*taiCrypto.TaiPrivateKey{pk1, pk2, pk3, pk4, pk5, pk6, pk7}
+	//priKeys := []*ecdsa.PrivateKey{&pk1.Private, &pk2.Private, &pk3.Private, &pk4.Private, &pk5.Private, &pk6.Private, &pk7.Private}
+	priKeys := []*taiCrypto.TaiPrivateKey{pk1, pk2, pk3, pk4, pk5, pk6, pk7}
 	for _, priKey := range priKeys {
 		//caoliang modify
 		//coinbase := crypto.PubkeyToAddress(priKey.PublicKey)
 		taipublic := new(taiCrypto.TaiPublicKey)
-		taipublic.Publickey = priKey.PublicKey
+		taipublic.Publickey = priKey.Private.PublicKey
 		coinbase := taipublic.PubkeyToAddress(*taipublic)
 		//m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: crypto.PubkeyToAddress(priKey.PublicKey), Publickey: crypto.FromECDSAPub(&priKey.PublicKey), Flag: types.StateUsedFlag, MType: types.TypeFixed}
 		m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: taipublic.PubkeyToAddress(*taipublic), Publickey: taipublic.FromECDSAPub(*taipublic), Flag: types.StateUsedFlag, MType: types.TypeFixed}
@@ -617,7 +617,7 @@ func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, er
 		signHash := voteSign.HashWithNoSign().Bytes()
 		//caoliang modify
 		//voteSign.Sign, err = crypto.Sign(signHash, privateKey)
-		taiprivate.Private = *privateKey
+		taiprivate.Private = privateKey.Private
 		voteSign.Sign, err = taiprivate.Sign(signHash, taiprivate)
 		if err != nil {
 			log.Error("fb GenerateSign error ", "err", err)
