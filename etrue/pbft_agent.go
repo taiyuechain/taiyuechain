@@ -17,7 +17,8 @@
 package etrue
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -30,7 +31,7 @@ import (
 
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -81,13 +82,13 @@ type Backend interface {
 
 // PbftAgent receive events from election and communicate with pbftServer
 type PbftAgent struct {
-	config     *params.ChainConfig
-	fastChain  *core.BlockChain
+	config    *params.ChainConfig
+	fastChain *core.BlockChain
 	//snailChain *snailchain.SnailBlockChain
-	engine     consensus.Engine
-	eth        Backend
-	signer     types.Signer
-	current    *AgentWork
+	engine  consensus.Engine
+	eth     Backend
+	signer  types.Signer
+	current *AgentWork
 
 	currentCommitteeInfo     *types.CommitteeInfo
 	nextCommitteeInfo        *types.CommitteeInfo
@@ -114,8 +115,9 @@ type PbftAgent struct {
 	chainHeadAgentSub event.Subscription
 
 	committeeNode *types.CommitteeNode
-	privateKey    *ecdsa.PrivateKey
-	vmConfig      vm.Config
+	//privateKey    *ecdsa.PrivateKey
+	privateKey *taiCrypto.TaiPrivateKey
+	vmConfig   vm.Config
 
 	cacheBlock map[*big.Int]*types.Block //prevent receive same block
 	singleNode bool
@@ -150,10 +152,10 @@ type AgentWork struct {
 // NewPbftAgent creates a new pbftAgent ,receive events from election and communicate with pbftServer
 func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.Engine, election *elect.Election, gasFloor, gasCeil uint64) *PbftAgent {
 	agent := &PbftAgent{
-		config:               config,
-		engine:               engine,
-		eth:                  etrue,
-		fastChain:            etrue.BlockChain(),
+		config:    config,
+		engine:    engine,
+		eth:       etrue,
+		fastChain: etrue.BlockChain(),
 		//snailChain:           etrue.SnailBlockChain(),
 		currentCommitteeInfo: new(types.CommitteeInfo),
 		nextCommitteeInfo:    new(types.CommitteeInfo),
@@ -184,7 +186,7 @@ func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.En
 
 //initialize node info
 func (agent *PbftAgent) initNodeInfo(etrue Backend) {
-	//var taipublic taiCrypto.TaiPublicKey
+	var taipublic taiCrypto.TaiPublicKey
 	//config *Config, coinbase common.Address
 	config := etrue.Config()
 	coinbase, _ := etrue.Etherbase()
@@ -198,8 +200,8 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 		Port2:    uint32(config.StandbyPort),
 		Coinbase: coinbase,
 		//caolaing modify
-		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
-		//Publickey: taipublic.FromECDSAPub(taipublic),
+		//Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
+		Publickey: taipublic.FromECDSAPub(taipublic),
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {
@@ -606,7 +608,8 @@ func (agent *PbftAgent) sendSign(receiveBlock *types.Block) error {
 	return nil
 }
 
-func (agent *PbftAgent) cryNodeInfoIsCommittee(encryptNode *types.EncryptNodeMessage) (bool, *nodeInfoWork, common.Hash, *ecdsa.PublicKey) {
+//func (agent *PbftAgent) cryNodeInfoIsCommittee(encryptNode *types.EncryptNodeMessage) (bool, *nodeInfoWork, common.Hash, *ecdsa.PublicKey) {
+func (agent *PbftAgent) cryNodeInfoIsCommittee(encryptNode *types.EncryptNodeMessage) (bool, *nodeInfoWork, common.Hash, *taiCrypto.TaiPublicKey) {
 	var taipublic taiCrypto.TaiPublicKey
 	members1 := agent.nodeInfoWorks[0].committeeInfo.Members
 	members2 := agent.nodeInfoWorks[1].committeeInfo.Members
@@ -636,13 +639,13 @@ func (agent *PbftAgent) cryNodeInfoIsCommittee(encryptNode *types.EncryptNodeMes
 		agent.IsUsedOrUnusedMember(agent.nodeInfoWorks[0].committeeInfo, pubKeyByte) {
 		//caoliang modify
 		//return true, agent.nodeInfoWorks[0], nodeTag.Hash(), pubKey
-		return true, agent.nodeInfoWorks[0], nodeTag.Hash(), &pubKey.Publickey
+		return true, agent.nodeInfoWorks[0], nodeTag.Hash(), pubKey
 	}
 	if committeeID2 != nil && committeeID2.Cmp(encryptNode.CommitteeID) == 0 &&
 		agent.IsUsedOrUnusedMember(agent.nodeInfoWorks[1].committeeInfo, pubKeyByte) {
 		//caoliang modify
 		//return true, agent.nodeInfoWorks[1], nodeTag.Hash(), pubKey
-		return true, agent.nodeInfoWorks[1], nodeTag.Hash(), &pubKey.Publickey
+		return true, agent.nodeInfoWorks[1], nodeTag.Hash(), pubKey
 	}
 	return false, nil, common.Hash{}, nil
 }
@@ -659,7 +662,8 @@ func (agent *PbftAgent) sendAndMarkNode(cryptoNodeInfo *types.EncryptNodeMessage
 	go agent.nodeInfoFeed.Send(types.NodeInfoEvent{NodeInfo: *new_cryptoNodeInfo})
 }
 
-func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.CommitteeNode, privateKey *ecdsa.PrivateKey) *types.EncryptNodeMessage {
+//func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.CommitteeNode, privateKey *ecdsa.PrivateKey) *types.EncryptNodeMessage {
+func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.CommitteeNode, privateKey *taiCrypto.TaiPrivateKey) *types.EncryptNodeMessage {
 	var taipublic taiCrypto.TaiPublicKey
 	var taiprivate taiCrypto.TaiPrivateKey
 	cryNodeInfo := &types.EncryptNodeMessage{
@@ -686,7 +690,7 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	hash := cryNodeInfo.HashWithoutSign().Bytes()
 	//caoliang modify
 	//cryNodeInfo.Sign, err = crypto.Sign(hash, privateKey)
-	taiprivate.Private = *privateKey
+	taiprivate = *privateKey
 	cryNodeInfo.Sign, err = taiprivate.Sign(hash, taiprivate)
 	if err != nil {
 		log.Error("sign node error", "err", err)
@@ -694,7 +698,8 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	return cryNodeInfo
 }
 
-func (agent *PbftAgent) handlePbftNode(cryNodeInfo *types.EncryptNodeMessage, nodeWork *nodeInfoWork, pubKey *ecdsa.PublicKey) {
+//func (agent *PbftAgent) handlePbftNode(cryNodeInfo *types.EncryptNodeMessage, nodeWork *nodeInfoWork, pubKey *ecdsa.PublicKey) {
+func (agent *PbftAgent) handlePbftNode(cryNodeInfo *types.EncryptNodeMessage, nodeWork *nodeInfoWork, pubKey *taiCrypto.TaiPublicKey) {
 	committeeNode := decryptNodeInfo(cryNodeInfo, agent.privateKey, pubKey)
 	if committeeNode != nil {
 		help.CheckAndPrintError(agent.server.PutNodes(cryNodeInfo.CommitteeID, []*types.CommitteeNode{committeeNode}))
@@ -723,9 +728,10 @@ func (agent *PbftAgent) AddRemoteNodeInfo(cryNodeInfo *types.EncryptNodeMessage)
 	return nil
 }
 
-func decryptNodeInfo(cryNodeInfo *types.EncryptNodeMessage, privateKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) *types.CommitteeNode {
-	//ecdsa.PrivateKey convert to ecies.PrivateKey
-	priKey := ecies.ImportECDSA(privateKey)
+//func decryptNodeInfo(cryNodeInfo *types.EncryptNodeMessage, privateKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) *types.CommitteeNode {
+//ecdsa.PrivateKey convert to ecies.PrivateKey
+func decryptNodeInfo(cryNodeInfo *types.EncryptNodeMessage, privateKey *taiCrypto.TaiPrivateKey, pubKey *taiCrypto.TaiPublicKey) *types.CommitteeNode {
+	priKey := ecies.ImportECDSA(&privateKey.Private)
 	for _, encryptNode := range cryNodeInfo.Nodes {
 		decryptNode, err := priKey.Decrypt(encryptNode, nil, nil)
 		if err == nil { // can Decrypt by priKey
@@ -918,7 +924,7 @@ func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, resul
 	signHash := voteSign.HashWithNoSign().Bytes()
 	//caoliang modify
 	//voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
-	taiprivate.Private = *agent.privateKey
+	taiprivate = *agent.privateKey
 	voteSign.Sign, err = taiprivate.Sign(signHash, taiprivate)
 	if err != nil {
 		log.Error("fb GenerateSign error ", "err", err)
