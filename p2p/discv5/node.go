@@ -22,6 +22,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"math/rand"
 	"net"
@@ -31,7 +34,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // Node represents a host on the network.
@@ -50,15 +53,18 @@ type Node struct {
 // NewNode creates a new node. It is mostly meant to be used for
 // testing purposes.
 func NewNode(id NodeID, ip net.IP, udpPort, tcpPort uint16) *Node {
+	var thash taiCrypto.THash
 	if ipv4 := ip.To4(); ipv4 != nil {
 		ip = ipv4
 	}
 	return &Node{
-		IP:          ip,
-		UDP:         udpPort,
-		TCP:         tcpPort,
-		ID:          id,
-		nodeNetGuts: nodeNetGuts{sha: crypto.Keccak256Hash(id[:])},
+		IP:  ip,
+		UDP: udpPort,
+		TCP: tcpPort,
+		ID:  id,
+
+		//nodeNetGuts: nodeNetGuts{sha: crypto.Keccak256Hash(id[:])},
+		nodeNetGuts: nodeNetGuts{sha: thash.Keccak256Hash(id[:])},
 	}
 }
 
@@ -303,30 +309,63 @@ func MustHexID(in string) NodeID {
 }
 
 // PubkeyID returns a marshaled representation of the given public key.
-func PubkeyID(pub *ecdsa.PublicKey) NodeID {
+//func PubkeyID(pub *ecdsa.PublicKey) NodeID {
+func PubkeyID(pub *taiCrypto.TaiPublicKey) NodeID {
 	var id NodeID
-	pbytes := elliptic.Marshal(pub.Curve, pub.X, pub.Y)
-	if len(pbytes)-1 != len(id) {
-		panic(fmt.Errorf("need %d bit pubkey, got %d bits", (len(id)+1)*8, len(pbytes)))
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		pbytes := elliptic.Marshal(pub.Publickey.Curve, pub.Publickey.X, pub.Publickey.Y)
+		if len(pbytes)-1 != len(id) {
+			panic(fmt.Errorf("need %d bit pubkey, got %d bits", (len(id)+1)*8, len(pbytes)))
+		}
+		copy(id[:], pbytes[1:])
+		return id
 	}
-	copy(id[:], pbytes[1:])
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		pbytes := elliptic.Marshal(pub.SmPublickey.Curve, pub.SmPublickey.X, pub.SmPublickey.Y)
+		if len(pbytes)-1 != len(id) {
+			panic(fmt.Errorf("need %d bit pubkey, got %d bits", (len(id)+1)*8, len(pbytes)))
+		}
+		copy(id[:], pbytes[1:])
+		return id
+	}
 	return id
 }
 
 // Pubkey returns the public key represented by the node ID.
 // It returns an error if the ID is not a point on the curve.
-func (n NodeID) Pubkey() (*ecdsa.PublicKey, error) {
-	p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
-	half := len(n) / 2
-	p.X.SetBytes(n[:half])
-	p.Y.SetBytes(n[half:])
-	if !p.Curve.IsOnCurve(p.X, p.Y) {
-		return nil, errors.New("id is invalid secp256k1 curve point")
+//func (n NodeID) Pubkey() (*ecdsa.PublicKey, error) {
+func (n NodeID) Pubkey() (*taiCrypto.TaiPublicKey, error) {
+	var taipublic taiCrypto.TaiPublicKey
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
+		half := len(n) / 2
+		p.X.SetBytes(n[:half])
+
+		p.Y.SetBytes(n[half:])
+		if !p.Curve.IsOnCurve(p.X, p.Y) {
+			return nil, errors.New("id is invalid secp256k1 curve point")
+		}
+		taipublic.Publickey = *p
+		return &taipublic, nil
 	}
-	return p, nil
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		p := &sm2.PublicKey{Curve: sm2.GetSm2P256V1(), X: new(big.Int), Y: new(big.Int)}
+		half := len(n) / 2
+		p.X.SetBytes(n[:half])
+
+		p.Y.SetBytes(n[half:])
+		if !p.Curve.IsOnCurve(p.X, p.Y) {
+			return nil, errors.New("id is invalid secp256k1 curve point")
+		}
+		taipublic.SmPublickey = *p
+		return &taipublic, nil
+	}
+	return &taipublic, nil
+
 }
 
-func (id NodeID) mustPubkey() ecdsa.PublicKey {
+//func (id NodeID) mustPubkey() ecdsa.PublicKey {
+func (id NodeID) mustPubkey() taiCrypto.TaiPublicKey {
 	pk, err := id.Pubkey()
 	if err != nil {
 		panic(err)
@@ -337,7 +376,9 @@ func (id NodeID) mustPubkey() ecdsa.PublicKey {
 // recoverNodeID computes the public key used to sign the
 // given hash from the signature.
 func recoverNodeID(hash, sig []byte) (id NodeID, err error) {
-	pubkey, err := crypto.Ecrecover(hash, sig)
+	var taipublic taiCrypto.TaiPublicKey
+	//pubkey, err := crypto.Ecrecover(hash, sig)
+	pubkey, err := taipublic.Ecrecover(hash, sig)
 	if err != nil {
 		return id, err
 	}
