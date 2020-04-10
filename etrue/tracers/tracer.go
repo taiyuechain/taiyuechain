@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -28,7 +29,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	duktape "gopkg.in/olebedev/go-duktape.v3"
 )
@@ -362,8 +363,9 @@ func New(code string) (*Tracer, error) {
 		}
 		nonce := uint64(ctx.GetInt(-1))
 		ctx.Pop2()
-
-		contract := crypto.CreateAddress(from, nonce)
+		var thash taiCrypto.THash
+		//contract := crypto.CreateAddress(from, nonce)
+		contract := thash.CreateAddress(from, nonce)
 		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])
 		return 1
 	})
