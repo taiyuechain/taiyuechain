@@ -19,16 +19,16 @@ package bind
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/accounts/abi"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"reflect"
-
-	"github.com/taiyuechain/taiyuechain/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // makeTopics converts a filter query argument list into a filter topic set.
 func makeTopics(query ...[]interface{}) ([][]common.Hash, error) {
+	var thash taiCrypto.THash
 	topics := make([][]common.Hash, len(query))
 	for i, filter := range query {
 		for _, rule := range filter {
@@ -72,10 +72,12 @@ func makeTopics(query ...[]interface{}) ([][]common.Hash, error) {
 				blob := new(big.Int).SetUint64(rule).Bytes()
 				copy(topic[common.HashLength-len(blob):], blob)
 			case string:
-				hash := crypto.Keccak256Hash([]byte(rule))
+				//hash := crypto.Keccak256Hash([]byte(rule))
+				hash := thash.Keccak256Hash([]byte(rule))
 				copy(topic[:], hash[:])
 			case []byte:
-				hash := crypto.Keccak256Hash(rule)
+				//hash := crypto.Keccak256Hash(rule)
+				hash := thash.Keccak256Hash(rule)
 				copy(topic[:], hash[:])
 
 			default:
