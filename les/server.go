@@ -18,7 +18,10 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"crypto/ecdsa"
 	"encoding/binary"
 	"math"
 	"sync"
@@ -44,8 +47,9 @@ type LesServer struct {
 	fcCostStats     *requestCostStats
 	defParams       *flowcontrol.ServerParams
 	lesTopics       []discv5.Topic
-	privateKey      *ecdsa.PrivateKey
-	quitSync        chan struct{}
+	//privateKey      *ecdsa.PrivateKey
+	privateKey *taiCrypto.TaiPrivateKey
+	quitSync   chan struct{}
 
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 }
