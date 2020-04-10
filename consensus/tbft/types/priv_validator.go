@@ -2,10 +2,11 @@ package types
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/metrics"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"sync"
 	"time"
@@ -68,7 +69,8 @@ type KeepBlockSign struct {
 }
 
 //NewPrivValidator return new private Validator
-func NewPrivValidator(priv ecdsa.PrivateKey) PrivValidator {
+//func NewPrivValidator(priv ecdsa.PrivateKey) PrivValidator {
+func NewPrivValidator(priv taiCrypto.TaiPrivateKey) PrivValidator {
 	return &privValidator{
 		PrivKey:  tcrypto.PrivKeyTrue(priv),
 		LastStep: stepNone,
