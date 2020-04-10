@@ -80,7 +80,7 @@ type Truechain struct {
 	agent    *PbftAgent
 	election *elect.Election
 
-	blockchain      *core.BlockChain
+	blockchain *core.BlockChain
 	//snailblockchain *chain.SnailBlockChain
 	protocolManager *ProtocolManager
 	lesServer       LesServer
@@ -225,8 +225,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		config.SnailPool.Journal = ctx.ResolvePath(config.SnailPool.Journal)
 	}*/
 
-
-
 	etrue.txPool = core.NewTxPool(config.TxPool, etrue.chainConfig, etrue.blockchain)
 
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine, sv)
@@ -237,7 +235,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {
-		log.Info("cart List ","is",caCert)
+		log.Info("cart List ", "is", caCert)
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			return nil, err
@@ -261,10 +259,9 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}*/
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode,config.NetworkId,etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist); err != nil {
+	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist); err != nil {
 		return nil, err
 	}
-
 
 	//etrue.miner = miner.New(etrue, etrue.chainConfig, etrue.EventMux(), etrue.engine, etrue.election, etrue.Config().MineFruit, etrue.Config().NodeType, etrue.Config().RemoteMine, etrue.Config().Mine)
 	//etrue.miner.SetExtra(makeExtraData(config.ExtraData))
@@ -483,7 +480,7 @@ func (s *Truechain) BlockChain() *core.BlockChain      { return s.blockchain }
 func (s *Truechain) Config() *Config                   { return s.config }
 
 //func (s *Truechain) SnailBlockChain() *chain.SnailBlockChain { return s.snailblockchain }
-func (s *Truechain) TxPool() *core.TxPool                    { return s.txPool }
+func (s *Truechain) TxPool() *core.TxPool { return s.txPool }
 
 //func (s *Truechain) SnailPool() *chain.SnailPool { return s.snailPool }
 
@@ -494,7 +491,6 @@ func (s *Truechain) IsListening() bool                  { return true } // Alway
 func (s *Truechain) EthVersion() int                    { return int(s.protocolManager.SubProtocols[0].Version) }
 func (s *Truechain) NetVersion() uint64                 { return s.networkID }
 func (s *Truechain) Downloader() *downloader.Downloader { return s.protocolManager.downloader }
-
 
 // Protocols implements node.Service, returning all the currently configured
 // network protocols to start.
@@ -597,7 +593,7 @@ func (s *Truechain) startPbftServer() error {
 	cfg.P2P.ListenAddress1 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.Port)
 	cfg.P2P.ListenAddress2 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.StandbyPort)
 
-	n1, err := tbft.NewNode(cfg, "1", &priv.Private, s.agent)
+	n1, err := tbft.NewNode(cfg, "1", priv, s.agent)
 	if err != nil {
 		return err
 	}
