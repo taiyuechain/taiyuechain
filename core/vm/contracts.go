@@ -19,14 +19,15 @@ package vm
 import (
 	"crypto/sha256"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto/bn256"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/core/types"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -34,7 +35,7 @@ import (
 // requires a deterministic gas count based on the input size of the Run method of the
 // contract.
 type PrecompiledContract interface {
-	RequiredGas(input []byte) uint64  // RequiredPrice calculates the contract gas use
+	RequiredGas(input []byte) uint64                                // RequiredPrice calculates the contract gas use
 	Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) // Run runs the precompiled contract
 }
 
@@ -75,7 +76,7 @@ var PrecompiledContractsCA = map[common.Address]PrecompiledContract{
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
-func RunPrecompiledContract(evm *EVM, p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error)  {
+func RunPrecompiledContract(evm *EVM, p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
 	gas := p.RequiredGas(input)
 	if contract.UseGas(gas) {
 		return p.Run(evm, contract, input)
@@ -90,7 +91,7 @@ func (c *ecrecover) RequiredGas(input []byte) uint64 {
 	return params.EcrecoverGas
 }
 
-func (c *ecrecover) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error){
+func (c *ecrecover) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	const ecRecoverInputLength = 128
 
 	input = common.RightPadBytes(input, ecRecoverInputLength)
@@ -100,20 +101,24 @@ func (c *ecrecover) Run(evm *EVM, contract *Contract, input []byte) ([]byte, err
 	r := new(big.Int).SetBytes(input[64:96])
 	s := new(big.Int).SetBytes(input[96:128])
 	v := input[63] - 27
-
+	var taipublic taiCrypto.TaiPublicKey
+	var thash taiCrypto.THash
 	// tighter sig s values input homestead only apply to tx sigs
-	if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
+	//if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
+	if !allZero(input[32:63]) || !taiCrypto.ValidateSignatureValues(v, r, s, false) {
 		return nil, nil
 	}
 	// v needs to be at the end for libsecp256k1
-	pubKey, err := crypto.Ecrecover(input[:32], append(input[64:128], v))
+	//pubKey, err := crypto.Ecrecover(input[:32], append(input[64:128], v))
+	pubKey, err := taipublic.Ecrecover(input[:32], append(input[64:128], v))
 	// make sure the public key is a valid one
 	if err != nil {
 		return nil, nil
 	}
 
 	// the first byte of pubkey is bitcoin heritage
-	return common.LeftPadBytes(crypto.Keccak256(pubKey[1:])[12:], 32), nil
+	//return common.LeftPadBytes(crypto.Keccak256(pubKey[1:])[12:], 32), nil
+	return common.LeftPadBytes(thash.Keccak256(pubKey[1:])[12:], 32), nil
 }
 
 // SHA256 implemented as a native contract.
@@ -238,7 +243,7 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 	return gas.Uint64()
 }
 
-func (c *bigModExp)Run(evm *EVM, contract *Contract, input []byte) ([]byte, error){
+func (c *bigModExp) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	var (
 		baseLen = new(big.Int).SetBytes(getData(input, 0, 32)).Uint64()
 		expLen  = new(big.Int).SetBytes(getData(input, 32, 32)).Uint64()
@@ -294,7 +299,7 @@ func (c *bn256Add) RequiredGas(input []byte) uint64 {
 	return params.Bn256AddGas
 }
 
-func (c *bn256Add) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error){
+func (c *bn256Add) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
 	x, err := newCurvePoint(getData(input, 0, 64))
 	if err != nil {
 		return nil, err
