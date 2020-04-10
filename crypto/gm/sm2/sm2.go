@@ -299,7 +299,24 @@ func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byt
 	}
 	return result, nil
 }
+func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []byte, err error) {
+	if prv.PublicKey.Curve != pub.Curve {
+		return nil, errors.New("ErrInvalidCurve")
+	}
+	if skLen+macLen > KeyBytes {
+		return nil, errors.New("ErrSharedKeyTooBig")
+	}
 
+	x, _ := pub.Curve.ScalarMult(pub.X, pub.Y, prv.D.Bytes())
+	if x == nil {
+		return nil, errors.New("ErrSharedKeyIsPointAtInfinity")
+	}
+
+	sk = make([]byte, skLen+macLen)
+	skBytes := x.Bytes()
+	copy(sk[len(sk)-len(skBytes):], skBytes)
+	return sk, nil
+}
 func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	c1Len := ((priv.Curve.BitSize+7)/8)*2 + 1
 	c1 := make([]byte, c1Len)
