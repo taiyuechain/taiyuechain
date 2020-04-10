@@ -18,6 +18,7 @@ package params
 
 import (
 	"encoding/json"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
 	"encoding/binary"
 	"fmt"
@@ -25,8 +26,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
-
+	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 // Genesis hashes to enforce below configs on.
@@ -36,10 +36,9 @@ var (
 
 	TestnetGenesisHash      = common.HexToHash("0x4b82a68ebbf32f2e816754f2b50eda0ae2c0a71dd5f4e0ecd93ccbfb7dba00b8")
 	TestnetSnailGenesisHash = common.HexToHash("0x4ab1748c057b744de202d6ebea64e8d3a0b2ec4c19abbc59e8639967b14b7c96")
-	RinkebyGenesisHash = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
-	GoerliGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
+	RinkebyGenesisHash      = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
+	GoerliGenesisHash       = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
 )
-
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
 // the chain it belongs to.
@@ -122,14 +121,14 @@ var (
 	chainId = big.NewInt(9223372036854775790)
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId, Minerva: new(MinervaConfig), 
-		TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil,TIP9: nil}
+	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId, Minerva: new(MinervaConfig),
+		TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil, TIP9: nil}
 
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
 
-	TestChainConfig = &ChainConfig{ChainID: chainId, Minerva: &MinervaConfig{MinimumDifficulty, MinimumFruitDifficulty, DurationLimit}, 
-	TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil,TIP9: nil}
+	TestChainConfig = &ChainConfig{ChainID: chainId, Minerva: &MinervaConfig{MinimumDifficulty, MinimumFruitDifficulty, DurationLimit},
+		TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil, TIP9: nil}
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -149,8 +148,6 @@ type ChainConfig struct {
 	TIP5 *BlockConfig `json:"tip5"`
 	TIP9 *BlockConfig `json:"tip9"`
 }
-
-
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
 // BloomTrie) associated with the appropriate section index and head hash. It is
@@ -173,19 +170,20 @@ func (c *TrustedCheckpoint) HashEqual(hash common.Hash) bool {
 
 // Hash returns the hash of checkpoint's four key fields(index, sectionHead, chtRoot and bloomTrieRoot).
 func (c *TrustedCheckpoint) Hash() common.Hash {
+	var thash taiCrypto.THash
 	buf := make([]byte, 8+3*common.HashLength)
 	binary.BigEndian.PutUint64(buf, c.SectionIndex)
 	copy(buf[8:], c.SectionHead.Bytes())
 	copy(buf[8+common.HashLength:], c.CHTRoot.Bytes())
 	copy(buf[8+2*common.HashLength:], c.BloomRoot.Bytes())
-	return crypto.Keccak256Hash(buf)
+	//return crypto.Keccak256Hash(buf)
+	return thash.Keccak256Hash(buf)
 }
 
 // Empty returns an indicator whether the checkpoint is regarded as empty.
 func (c *TrustedCheckpoint) Empty() bool {
 	return c.SectionHead == (common.Hash{}) || c.CHTRoot == (common.Hash{}) || c.BloomRoot == (common.Hash{})
 }
-
 
 type BlockConfig struct {
 	FastNumber  *big.Int
