@@ -18,7 +18,9 @@
 package les
 
 import (
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
+	//"crypto/ecdsa"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -51,11 +53,11 @@ const (
 
 type peer struct {
 	*p2p.Peer
-	pubKey *ecdsa.PublicKey
+	//pubKey *ecdsa.PublicKey
+	pubKey *taiCrypto.TaiPublicKey
+	rw     p2p.MsgReadWriter
 
-	rw p2p.MsgReadWriter
-
-	version int    // Protocol version negotiated
+	version int    // Protocol version negoiated
 	network uint64 // Network ID being on
 
 	announceType, requestAnnounceType uint64
