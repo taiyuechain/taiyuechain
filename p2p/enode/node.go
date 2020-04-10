@@ -17,7 +17,8 @@
 package enode
 
 import (
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
 	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
@@ -91,8 +92,9 @@ func (n *Node) TCP() int {
 }
 
 // Pubkey returns the secp256k1 public key of the node, if present.
-func (n *Node) Pubkey() *ecdsa.PublicKey {
-	var key ecdsa.PublicKey
+//func (n *Node) Pubkey() *ecdsa.PublicKey {
+func (n *Node) Pubkey() *taiCrypto.TaiPublicKey {
+	var key taiCrypto.TaiPublicKey
 	if n.Load((*Secp256k1)(&key)) != nil {
 		return nil
 	}
