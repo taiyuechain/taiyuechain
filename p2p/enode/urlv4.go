@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"net/url"
@@ -28,7 +29,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 )
 
@@ -80,7 +81,8 @@ func ParseV4(rawurl string) (*Node, error) {
 
 // NewV4 creates a node from discovery v4 node information. The record
 // contained in the node has a zero-length signature.
-func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+//func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
+func NewV4(pubkey *taiCrypto.TaiPublicKey, ip net.IP, tcp, udp int) *Node {
 	var r enr.Record
 	if ip != nil {
 		r.Set(enr.IP(ip))
@@ -101,7 +103,8 @@ func NewV4(pubkey *ecdsa.PublicKey, ip net.IP, tcp, udp int) *Node {
 
 func parseComplete(rawurl string) (*Node, error) {
 	var (
-		id               *ecdsa.PublicKey
+		//id               *ecdsa.PublicKey
+		id               *taiCrypto.TaiPublicKey
 		ip               net.IP
 		tcpPort, udpPort uint64
 	)
@@ -147,7 +150,8 @@ func parseComplete(rawurl string) (*Node, error) {
 }
 
 // parsePubkey parses a hex-encoded secp256k1 public key.
-func parsePubkey(in string) (*ecdsa.PublicKey, error) {
+//func parsePubkey(in string) (*ecdsa.PublicKey, error) {
+func parsePubkey(in string) (*taiCrypto.TaiPublicKey, error) {
 	var taipublic taiCrypto.TaiPublicKey
 	b, err := hex.DecodeString(in)
 	if err != nil {
@@ -163,23 +167,25 @@ func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 	if err != nil {
 		return nil, nil
 	}
-	return &public.Publickey, nil
+	return public, nil
 }
 
 func (n *Node) v4URL() string {
 	var (
-		scheme    enr.ID
-		nodeid    string
-		key       ecdsa.PublicKey
+		scheme enr.ID
+		nodeid string
+		//key       ecdsa.PublicKey
+		key       taiCrypto.TaiPublicKey
 		taipublic taiCrypto.TaiPublicKey
 	)
 	n.Load(&scheme)
 	n.Load((*Secp256k1)(&key))
 	switch {
-	case scheme == "v4" || key != ecdsa.PublicKey{}:
+	//case scheme == "v4" || key != ecdsa.PublicKey{}:
+	case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
 		//caoliang modify
 		//nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
-		taipublic.Publickey = key
+		taipublic = key
 		nodeid = fmt.Sprintf("%x", taipublic.FromECDSAPub(taipublic)[1:])
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
@@ -199,9 +205,21 @@ func (n *Node) v4URL() string {
 }
 
 // PubkeyToIDV4 derives the v4 node address from the given public key.
-func PubkeyToIDV4(key *ecdsa.PublicKey) ID {
-	e := make([]byte, 64)
-	math.ReadBits(key.X, e[:len(e)/2])
-	math.ReadBits(key.Y, e[len(e)/2:])
-	return ID(crypto.Keccak256Hash(e))
+//func PubkeyToIDV4(key *ecdsa.PublicKey) ID {
+func PubkeyToIDV4(key *taiCrypto.TaiPublicKey) ID {
+	var thash taiCrypto.THash
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		e := make([]byte, 64)
+		math.ReadBits(key.Publickey.X, e[:len(e)/2])
+		math.ReadBits(key.Publickey.Y, e[len(e)/2:])
+		//return ID(crypto.Keccak256Hash(e))
+		return ID(thash.Keccak256Hash(e))
+	}
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		e := make([]byte, 64)
+		math.ReadBits(key.SmPublickey.X, e[:len(e)/2])
+		math.ReadBits(key.SmPublickey.Y, e[len(e)/2:])
+		return ID(thash.Keccak256Hash(e))
+	}
+	return ID{}
 }
