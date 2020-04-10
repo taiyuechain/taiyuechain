@@ -17,7 +17,7 @@
 package etrue
 
 import (
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"os"
 	"os/user"
@@ -55,7 +55,7 @@ var DefaultConfig = Config{
 
 	GasPrice: big.NewInt(1 * params.Babbage),
 
-	TxPool:    core.DefaultTxPoolConfig,
+	TxPool: core.DefaultTxPoolConfig,
 	//SnailPool: snailchain.DefaultSnailPoolConfig,
 	GPO: gasprice.Config{
 		Blocks:     20,
@@ -65,8 +65,6 @@ var DefaultConfig = Config{
 	Port:         30310,
 	StandbyPort:  30311,
 }
-
-
 
 func init() {
 	home := os.Getenv("HOME")
@@ -118,8 +116,8 @@ type Config struct {
 	// If this filed is empty, can't be a committee member.
 	CommitteeKey []byte `toml:",omitempty"`
 	// caoliang modify
-	PrivateKey *ecdsa.PrivateKey `toml:"-"`
-	//PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
+	//PrivateKey *ecdsa.PrivateKey `toml:"-"`
+	PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
@@ -183,7 +181,6 @@ type Config struct {
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`
 }
-
 
 func (c *Config) GetNodeType() bool {
 	return c.NodeType
