@@ -43,7 +43,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -394,7 +394,7 @@ func (s *PrivateAccountAPI) ImportRawKey(privkey string, password string) (commo
 	if err != nil {
 		return common.Address{}, err
 	}
-	acc, err := fetchKeystore(s.am).ImportECDSA(&key.Private, password)
+	acc, err := fetchKeystore(s.am).ImportECDSA(key, password)
 	return acc.Address, err
 }
 
@@ -524,8 +524,10 @@ func (s *PrivateAccountAPI) SignTransaction(ctx context.Context, args SendTxArgs
 //
 // This gives context to the signed message and prevents signing of transactions.
 func signHash(data []byte) []byte {
+	var thash taiCrypto.THash
 	msg := fmt.Sprintf("\x19True Signed Message:\n%d%s", len(data), data)
-	return crypto.Keccak256([]byte(msg))
+	//return crypto.Keccak256([]byte(msg))
+	return thash.Keccak256([]byte(msg))
 }
 
 // Sign calculates an True ECDSA signature for:
@@ -572,12 +574,14 @@ func (s *PrivateAccountAPI) EcRecover(ctx context.Context, data, sig hexutil.Byt
 		return common.Address{}, fmt.Errorf("invalid True signature (V is not 27 or 28)")
 	}
 	sig[64] -= 27 // Transform yellow paper V from 27/28 to 0/1
-
-	rpk, err := crypto.SigToPub(signHash(data), sig)
+	var taipublic taiCrypto.TaiPublicKey
+	//rpk, err := crypto.SigToPub(signHash(data), sig)
+	rpk, err := taipublic.SigToPub(signHash(data), sig)
 	if err != nil {
 		return common.Address{}, err
 	}
-	return crypto.PubkeyToAddress(*rpk), nil
+	//return crypto.PubkeyToAddress(*rpk), nil
+	return taipublic.PubkeyToAddress(*rpk), nil
 }
 
 // SignAndSendTransaction was renamed to SendTransaction. This method is deprecated
@@ -1566,8 +1570,8 @@ func (args *SendTxArgs) toTransaction() *types.Transaction {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil{
-		cert  = *args.Cert
+	} else if args.Cert != nil {
+		cert = *args.Cert
 	}
 
 	if args.To == nil {
@@ -1618,7 +1622,9 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		if err != nil {
 			return common.Hash{}, err
 		}
-		addr := crypto.CreateAddress(from, tx.Nonce())
+		var thash taiCrypto.THash
+		//addr := crypto.CreateAddress(from, tx.Nonce())
+		addr := thash.CreateAddress(from, tx.Nonce())
 		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
 	} else {
 		//log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
