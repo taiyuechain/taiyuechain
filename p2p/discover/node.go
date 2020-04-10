@@ -19,12 +19,15 @@ package discover
 import (
 	"crypto/ecdsa"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"net"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )
@@ -39,26 +42,53 @@ type node struct {
 
 type encPubkey [64]byte
 
-func encodePubkey(key *ecdsa.PublicKey) encPubkey {
+//func encodePubkey(key *ecdsa.PublicKey) encPubkey {
+func encodePubkey(key *taiCrypto.TaiPublicKey) encPubkey {
 	var e encPubkey
-	math.ReadBits(key.X, e[:len(e)/2])
-	math.ReadBits(key.Y, e[len(e)/2:])
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		math.ReadBits(key.Publickey.X, e[:len(e)/2])
+		math.ReadBits(key.Publickey.Y, e[len(e)/2:])
+	}
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		math.ReadBits(key.SmPublickey.X, e[:len(e)/2])
+		math.ReadBits(key.SmPublickey.Y, e[len(e)/2:])
+	}
+
 	return e
 }
 
-func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
-	p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
-	half := len(e) / 2
-	p.X.SetBytes(e[:half])
-	p.Y.SetBytes(e[half:])
-	if !p.Curve.IsOnCurve(p.X, p.Y) {
-		return nil, errors.New("invalid secp256k1 curve point")
+//func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
+func decodePubkey(e encPubkey) (*taiCrypto.TaiPublicKey, error) {
+	var taipublic taiCrypto.TaiPublicKey
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
+		half := len(e) / 2
+		p.X.SetBytes(e[:half])
+		p.Y.SetBytes(e[half:])
+		if !p.Curve.IsOnCurve(p.X, p.Y) {
+			return nil, errors.New("invalid secp256k1 curve point")
+		}
+		taipublic.Publickey = *p
+		return &taipublic, nil
 	}
-	return p, nil
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		p := &sm2.PublicKey{Curve: sm2.GetSm2P256V1(), X: new(big.Int), Y: new(big.Int)}
+		half := len(e) / 2
+		p.X.SetBytes(e[:half])
+		p.Y.SetBytes(e[half:])
+		if !p.Curve.IsOnCurve(p.X, p.Y) {
+			return nil, errors.New("invalid secp256k1 curve point")
+		}
+		taipublic.SmPublickey = *p
+		return &taipublic, nil
+	}
+	return nil, nil
 }
 
 func (e encPubkey) id() enode.ID {
-	return enode.ID(crypto.Keccak256Hash(e[:]))
+	var thash taiCrypto.THash
+	//return enode.ID(crypto.Keccak256Hash(e[:]))
+	return enode.ID(thash.Keccak256Hash(e[:]))
 }
 
 // recoverNodeKey computes the public key used to sign the
