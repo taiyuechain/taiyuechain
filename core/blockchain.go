@@ -20,6 +20,8 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+
 	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/big"
@@ -38,7 +40,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -906,7 +908,9 @@ func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts ty
 			// Deriving the signer is expensive, only do if it's actually needed
 			from, _ := types.Sender(signer, transactions[j])
 			//caoliang modify
-			receipts[j].ContractAddress = crypto.CreateAddress(from, transactions[j].Nonce())
+			var thash taiCrypto.THash
+			//receipts[j].ContractAddress = crypto.CreateAddress(from, transactions[j].Nonce())
+			receipts[j].ContractAddress = thash.CreateAddress(from, transactions[j].Nonce())
 			//receipts[j].ContractAddress = taipublic.CreateAddress(from, transactions[j].Nonce())
 		}
 		// The used gas can be calculated based on previous receipts
@@ -938,7 +942,6 @@ func (bc *BlockChain) HasFastBlock(hash common.Hash, number uint64) bool {
 	}
 	return rawdb.HasReceipts(bc.db, hash, number)
 }
-
 
 // InsertReceiptChain attempts to complete an already existing header chain with
 // transaction and receipt data.
