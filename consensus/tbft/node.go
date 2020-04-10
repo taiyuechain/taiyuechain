@@ -1,7 +1,7 @@
 package tbft
 
 import (
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -203,9 +203,10 @@ func (s *service) putNodes(cid *big.Int, nodes []*types.CommitteeNode) {
 }
 
 //pkToP2pID pk to p2p id
-func pkToP2pID(pk *ecdsa.PublicKey) tp2p.ID {
+//func pkToP2pID(pk *ecdsa.PublicKey) tp2p.ID {
+func pkToP2pID(pk *taiCrypto.TaiPublicKey) tp2p.ID {
 	var taipublic taiCrypto.TaiPublicKey
-	taipublic.Publickey = *pk
+	taipublic = *pk
 	//caoliang modify
 	//publicKey := crypto.FromECDSAPub(pk)
 	publicKey := taipublic.FromECDSAPub(taipublic)
@@ -272,8 +273,8 @@ type Node struct {
 	// configt
 	config *cfg.TbftConfig
 	Agent  types.PbftAgentProxy
-	priv   *ecdsa.PrivateKey // local node's validator key
-
+	//priv   *ecdsa.PrivateKey // local node's validator key
+	priv *taiCrypto.TaiPrivateKey
 	// services
 	services   map[uint64]*service
 	nodekey    tp2p.NodeKey
@@ -284,7 +285,8 @@ type Node struct {
 }
 
 // NewNode returns a new, ready to go, truechain Node.
-func NewNode(config *cfg.TbftConfig, chainID string, priv *ecdsa.PrivateKey,
+//func NewNode(config *cfg.TbftConfig, chainID string, priv *ecdsa.PrivateKey,
+func NewNode(config *cfg.TbftConfig, chainID string, priv *taiCrypto.TaiPrivateKey,
 	agent types.PbftAgentProxy) (*Node, error) {
 
 	// Optionally, start the pex reactor
@@ -463,13 +465,13 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
 		//caoliang modify
-		id := pkToP2pID(&pk.Publickey)
+		id := pkToP2pID(pk)
 		//exclude self
 		self := false
-		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
+		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
 		}
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), 1, v.LocalCert)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1, v.LocalCert)
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
 		h.PutWorkHealth(health)
 	}
@@ -482,16 +484,16 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
 		//id := pkToP2pID(pk)
-		id := pkToP2pID(&pk.Publickey)
+		id := pkToP2pID(pk)
 		//caoliang	modify
 		/*	val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
 			self := false
 			if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 				self = true
 			}*/
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), 1, v.LocalCert)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1, v.LocalCert)
 		self := false
-		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
+		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
 		}
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
@@ -529,7 +531,7 @@ func (n *Node) checkValidatorSet(service *service, info *types.CommitteeInfo) (s
 			}
 			//caoliang modify
 			//if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
-			if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(pk.Publickey)) {
+			if service.consensusState.state.GetPubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 				selfStop = true
 			}
 			remove = append(remove, v)
@@ -559,7 +561,7 @@ func (n *Node) UpdateCommittee(info *types.CommitteeInfo) error {
 			}
 			//caoliang modify
 			//pID := pkToP2pID(pk)
-			pID := pkToP2pID(&pk.Publickey)
+			pID := pkToP2pID(pk)
 			p := service.sw.GetPeerForID(string(pID))
 			if p != nil {
 				service.sw.StopPeerForError(p, nil)
@@ -620,7 +622,7 @@ func MakeValidators(cmm *types.CommitteeInfo) *ttypes.ValidatorSet {
 		//certHash := types.RlpHash(m.LocalCert)
 		//caoliang modify
 		//v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power,m.LocalCert)
-		v := ttypes.NewValidator(tcrypto.PubKeyTrue(pk.Publickey), power, m.LocalCert)
+		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power, m.LocalCert)
 		vals = append(vals, v)
 	}
 	return ttypes.NewValidatorSet(vals)
