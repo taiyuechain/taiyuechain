@@ -18,21 +18,19 @@ package keystore
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/pborman/uuid"
+	"github.com/taiyuechain/taiyuechain/accounts"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/taiyuechain/taiyuechain/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/pborman/uuid"
 )
 
 const (
@@ -45,7 +43,8 @@ type Key struct {
 	Address common.Address
 	// we only store privkey as pubkey/address can be derived from it
 	// privkey in this struct is always in plaintext
-	PrivateKey *ecdsa.PrivateKey
+	//PrivateKey *ecdsa.PrivateKey
+	PrivateKey *taiCrypto.TaiPrivateKey
 }
 
 type keyStore interface {
@@ -92,9 +91,11 @@ type cipherparamsJSON struct {
 }
 
 func (k *Key) MarshalJSON() (j []byte, err error) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	jStruct := plainKeyJSON{
 		hex.EncodeToString(k.Address[:]),
-		hex.EncodeToString(crypto.FromECDSA(k.PrivateKey)),
+		//hex.EncodeToString(crypto.FromECDSA(k.PrivateKey)),
+		hex.EncodeToString(taiprivate.FromECDSA(*k.PrivateKey)),
 		k.Id.String(),
 		version,
 	}
@@ -103,6 +104,7 @@ func (k *Key) MarshalJSON() (j []byte, err error) {
 }
 
 func (k *Key) UnmarshalJSON(j []byte) (err error) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	keyJSON := new(plainKeyJSON)
 	err = json.Unmarshal(j, &keyJSON)
 	if err != nil {
@@ -116,7 +118,8 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	privkey, err := crypto.HexToECDSA(keyJSON.PrivateKey)
+	//privkey, err := crypto.HexToECDSA(keyJSON.PrivateKey)
+	privkey, err := taiprivate.HexToECDSA(keyJSON.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -127,11 +130,15 @@ func (k *Key) UnmarshalJSON(j []byte) (err error) {
 	return nil
 }
 
-func newKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *Key {
+//func newKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *Key {
+func newKeyFromECDSA(privateKeyECDSA *taiCrypto.TaiPrivateKey) *Key {
+	var taipublic taiCrypto.TaiPublicKey
 	id := uuid.NewRandom()
+	taipublic.Publickey = privateKeyECDSA.Private.PublicKey
 	key := &Key{
-		Id:         id,
-		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),
+		Id: id,
+		//Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),
+		Address:    taipublic.PubkeyToAddress(taipublic),
 		PrivateKey: privateKeyECDSA,
 	}
 	return key
@@ -141,13 +148,15 @@ func newKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *Key {
 // into the Direct ICAP spec. for simplicity and easier compatibility with other libs, we
 // retry until the first byte is 0.
 func NewKeyForDirectICAP(rand io.Reader) *Key {
+
 	randBytes := make([]byte, 64)
 	_, err := rand.Read(randBytes)
 	if err != nil {
 		panic("key generation: could not read from random source: " + err.Error())
 	}
 	reader := bytes.NewReader(randBytes)
-	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), reader)
+	//privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), reader)
+	privateKeyECDSA, err := taiCrypto.GenPrivKeyParam(reader)
 	if err != nil {
 		panic("key generation: ecdsa.GenerateKey failed: " + err.Error())
 	}
@@ -159,7 +168,8 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 }
 
 func newKey(rand io.Reader) (*Key, error) {
-	privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)
+	//privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), rand)
+	privateKeyECDSA, err := taiCrypto.GenPrivKeyParam(rand)
 	if err != nil {
 		return nil, err
 	}
