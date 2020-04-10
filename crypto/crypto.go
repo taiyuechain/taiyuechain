@@ -112,7 +112,8 @@ func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
 // it can also accept legacy encodings (0 prefixes).
 func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = S256()
+	//priv.PublicKey.Curve = S256()
+	priv.PublicKey.Curve = elliptic.P256()
 	if strict && 8*len(d) != priv.Params().BitSize {
 		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
 	}
@@ -173,7 +174,7 @@ func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 	}
 	return &ecdsa.PublicKey{Curve: S256(), X: x, Y: y}, nil
 }
-func UnmarshalPubkey1(pub []byte) (*ecdsa.PublicKey, error) {
+func UnmarshalPubkeyCA(pub []byte) (*ecdsa.PublicKey, error) {
 	x, y := elliptic.Unmarshal(elliptic.P256(), pub)
 	if x == nil {
 		return nil, errInvalidPubkey
