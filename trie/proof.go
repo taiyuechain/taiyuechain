@@ -19,9 +19,10 @@ package trie
 import (
 	"bytes"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/etruedb"
@@ -67,7 +68,7 @@ func (t *Trie) Prove(key []byte, fromLevel uint, proofDb etruedb.Putter) error {
 	}
 	hasher := newHasher(0, 0, nil)
 	defer returnHasherToPool(hasher)
-
+	var thash taiCrypto.THash
 	for i, n := range nodes {
 		// Don't bother checking for errors here since hasher panics
 		// if encoding doesn't work and we're not writing to any database.
@@ -81,7 +82,8 @@ func (t *Trie) Prove(key []byte, fromLevel uint, proofDb etruedb.Putter) error {
 			} else {
 				enc, _ := rlp.EncodeToBytes(n)
 				if !ok {
-					hash = crypto.Keccak256(enc)
+					//hash = crypto.Keccak256(enc)
+					hash = thash.Keccak256(enc)
 				}
 				proofDb.Put(hash, enc)
 			}
