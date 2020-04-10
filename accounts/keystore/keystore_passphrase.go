@@ -33,6 +33,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"io/ioutil"
 	"os"
@@ -40,7 +41,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/pborman/uuid"
 	"golang.org/x/crypto/pbkdf2"
@@ -138,7 +139,7 @@ func (ks keyStorePassphrase) JoinPath(filename string) string {
 
 // Encryptdata encrypts the data given as 'data' with the password 'auth'.
 func EncryptDataV3(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) {
-
+	var thash taiCrypto.THash
 	salt := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
 		panic("reading from crypto/rand failed: " + err.Error())
@@ -157,8 +158,8 @@ func EncryptDataV3(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) 
 	if err != nil {
 		return CryptoJSON{}, err
 	}
-	mac := crypto.Keccak256(derivedKey[16:32], cipherText)
-
+	//mac := crypto.Keccak256(derivedKey[16:32], cipherText)
+	mac := thash.Keccak256(derivedKey[16:32], cipherText)
 	scryptParamsJSON := make(map[string]interface{}, 5)
 	scryptParamsJSON["n"] = scryptN
 	scryptParamsJSON["r"] = scryptR
@@ -183,7 +184,15 @@ func EncryptDataV3(data, auth []byte, scryptN, scryptP int) (CryptoJSON, error) 
 // EncryptKey encrypts a key using the specified scrypt parameters into a json
 // blob that can be decrypted later on.
 func EncryptKey(key *Key, auth string, scryptN, scryptP int) ([]byte, error) {
-	keyBytes := math.PaddedBigBytes(key.PrivateKey.D, 32)
+	var keyBytes []byte
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+		//keyBytes := math.PaddedBigBytes(key.PrivateKey.D, 32)
+		keyBytes = math.PaddedBigBytes(key.PrivateKey.Private.D, 32)
+	}
+	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+		keyBytes = math.PaddedBigBytes(key.PrivateKey.GmPrivate.D, 32)
+	}
+
 	cryptoStruct, err := EncryptDataV3(keyBytes, []byte(auth), scryptN, scryptP)
 	if err != nil {
 		return nil, err
@@ -200,6 +209,8 @@ func EncryptKey(key *Key, auth string, scryptN, scryptP int) ([]byte, error) {
 // DecryptKey decrypts a key from a json blob, returning the private key itself.
 func DecryptKey(keyjson []byte, auth string) (*Key, error) {
 	// Parse the json into a simple map to fetch the key version
+	var taiprivate taiCrypto.TaiPrivateKey
+	var taipublic taiCrypto.TaiPublicKey
 	m := make(map[string]interface{})
 	if err := json.Unmarshal(keyjson, &m); err != nil {
 		return nil, err
@@ -226,15 +237,18 @@ func DecryptKey(keyjson []byte, auth string) (*Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	key := crypto.ToECDSAUnsafe(keyBytes)
-
+	//key := crypto.ToECDSAUnsafe(keyBytes)
+	key := taiprivate.ToECDSAUnsafe(keyBytes)
+	key.TaiPubKey.Publickey = key.Private.PublicKey
 	return &Key{
-		Id:         uuid.UUID(keyId),
-		Address:    crypto.PubkeyToAddress(key.PublicKey),
+		Id: uuid.UUID(keyId),
+		//Address:    crypto.PubkeyToAddress(key.PublicKey),
+		Address:    taipublic.PubkeyToAddress(key.TaiPubKey),
 		PrivateKey: key,
 	}, nil
 }
 func DecryptDataV3(cryptoJson CryptoJSON, auth string) ([]byte, error) {
+	var thash taiCrypto.THash
 	if cryptoJson.Cipher != "aes-128-ctr" {
 		return nil, fmt.Errorf("Cipher not supported: %v", cryptoJson.Cipher)
 	}
@@ -258,7 +272,8 @@ func DecryptDataV3(cryptoJson CryptoJSON, auth string) ([]byte, error) {
 		return nil, err
 	}
 
-	calculatedMAC := crypto.Keccak256(derivedKey[16:32], cipherText)
+	//calculatedMAC := crypto.Keccak256(derivedKey[16:32], cipherText)
+	calculatedMAC := thash.Keccak256(derivedKey[16:32], cipherText)
 	if !bytes.Equal(calculatedMAC, mac) {
 		return nil, ErrDecrypt
 	}
@@ -283,6 +298,7 @@ func decryptKeyV3(keyProtected *encryptedKeyJSONV3, auth string) (keyBytes []byt
 }
 
 func decryptKeyV1(keyProtected *encryptedKeyJSONV1, auth string) (keyBytes []byte, keyId []byte, err error) {
+	var thash taiCrypto.THash
 	keyId = uuid.Parse(keyProtected.Id)
 	mac, err := hex.DecodeString(keyProtected.Crypto.MAC)
 	if err != nil {
@@ -304,12 +320,14 @@ func decryptKeyV1(keyProtected *encryptedKeyJSONV1, auth string) (keyBytes []byt
 		return nil, nil, err
 	}
 
-	calculatedMAC := crypto.Keccak256(derivedKey[16:32], cipherText)
+	//calculatedMAC := crypto.Keccak256(derivedKey[16:32], cipherText)
+	calculatedMAC := thash.Keccak256(derivedKey[16:32], cipherText)
 	if !bytes.Equal(calculatedMAC, mac) {
 		return nil, nil, ErrDecrypt
 	}
 
-	plainText, err := aesCBCDecrypt(crypto.Keccak256(derivedKey[:16])[:16], cipherText, iv)
+	//plainText, err := aesCBCDecrypt(crypto.Keccak256(derivedKey[:16])[:16], cipherText, iv)
+	plainText, err := aesCBCDecrypt(thash.Keccak256(derivedKey[:16])[:16], cipherText, iv)
 	if err != nil {
 		return nil, nil, err
 	}
