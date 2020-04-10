@@ -18,16 +18,14 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/consensus/minerva"
-	"math/big"
-	"sync"
-
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"math/big"
 )
 
 // Test chain parameters.
@@ -40,19 +38,6 @@ var (
 
 // The common prefix of all test chains:
 var testChainBase = newTestChain(blockCacheItems+200, testGenesis)
-
-// Different forks on top of the base chain:
-var testChainForkLightA, testChainForkLightB, testChainForkHeavy *testChain
-
-func init() {
-	var forkLen = int(maxForkAncestry + 50)
-	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() { testChainForkLightA = testChainBase.makeFork(forkLen, false, 1); wg.Done() }()
-	go func() { testChainForkLightB = testChainBase.makeFork(forkLen, false, 2); wg.Done() }()
-	go func() { testChainForkHeavy = testChainBase.makeFork(forkLen, true, 3); wg.Done() }()
-	wg.Wait()
-}
 
 type testChain struct {
 	genesis  *types.Block
