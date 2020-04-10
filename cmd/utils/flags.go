@@ -18,12 +18,12 @@
 package utils
 
 import (
-	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 
-	//"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
+	//"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -42,11 +42,12 @@ import (
 	"bytes"
 
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
@@ -63,7 +64,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 var (
@@ -626,22 +626,26 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
+	var taiprivate taiCrypto.TaiPrivateKey
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
-		key  *ecdsa.PrivateKey
-		err  error
+		//key  *ecdsa.PrivateKey
+		key *taiCrypto.TaiPrivateKey
+		err error
 	)
 	switch {
 	case file != "" && hex != "":
 		Fatalf("Options %q and %q are mutually exclusive", NodeKeyFileFlag.Name, NodeKeyHexFlag.Name)
 	case file != "":
-		if key, err = crypto.LoadECDSA(file); err != nil {
+		//if key, err = crypto.LoadECDSA(file); err != nil {
+		if key, err = taiprivate.LoadECDSA(file); err != nil {
 			Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
 		}
 		cfg.PrivateKey = key
 	case hex != "":
-		if key, err = crypto.HexToECDSA(hex); err != nil {
+		//if key, err = crypto.HexToECDSA(hex); err != nil {
+		if key, err = taiprivate.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
 		}
 		cfg.PrivateKey = key
@@ -654,8 +658,9 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *etrue.Config) {
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
 		file = ctx.GlobalString(BftKeyFileFlag.Name)
 		//caoliang modify
-		key *ecdsa.PrivateKey
-		//key  *taiCrypto.TaiPrivateKey
+		//key *ecdsa.PrivateKey
+		key *taiCrypto.TaiPrivateKey
+
 		//err  error
 	)
 	log.Debug("", "file:", file, "hex:", hex)
@@ -670,8 +675,10 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *etrue.Config) {
 		if err != nil {
 			Fatalf("Option %q: %v", BftKeyFileFlag.Name, err)
 		}
-		key = &key1.Private
-		cfg.PrivateKey = key
+		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+			key = key1
+			cfg.PrivateKey = key
+		}
 
 	case hex != "":
 		//caoliang modify
@@ -680,7 +687,7 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *etrue.Config) {
 		if err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
-		key = &key1.Private
+		key = key1
 		cfg.PrivateKey = key
 	}
 }
@@ -1132,13 +1139,17 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 
 	//TODO
 	// need do verfiy the private key and cert
-	privatekey ,_:=crypto.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
-	if cim.VarifyCertByPrivateKey(privatekey,cfg.NodeCert) != nil{
+	//privatekey ,_:=crypto.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
+	var taiprivate taiCrypto.TaiPrivateKey
+	var taipublic taiCrypto.TaiPublicKey
+	privatekey, _ := taiprivate.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
+	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
 		log.Error("cert not the varify cert by private key")
 		return
 	}
 
-	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
+	//cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
+	cfg.CommitteeKey = taiprivate.FromECDSA(*cfg.PrivateKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
 		Fatalf("init load CommitteeKey  nil.")
 	}
@@ -1159,7 +1170,9 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 			Fatalf("election set true,Option %q and %q must be different.", BFTPortFlag.Name, BFTStandbyPortFlag.Name)
 		}
 	}
-	log.Info("Committee Node info:", "publickey", hex.EncodeToString(crypto.FromECDSAPub(&cfg.PrivateKey.PublicKey)),
+	/*	log.Info("Committee Node info:", "publickey", hex.EncodeToString(crypto.FromECDSAPub(&cfg.PrivateKey.PublicKey)),
+		"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)*/
+	log.Info("Committee Node info:", "publickey", hex.EncodeToString(taipublic.FromECDSAPub(cfg.PrivateKey.TaiPubKey)),
 		"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)
 
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
@@ -1172,7 +1185,7 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 	cfg.NoPruning = ctx.GlobalString(GCModeFlag.Name) == "archive"
 
-	if ctx.GlobalIsSet(StateGCFlag.Name)  {
+	if ctx.GlobalIsSet(StateGCFlag.Name) {
 		cfg.DeletedState = true
 	}
 
@@ -1333,7 +1346,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain,  chainDb etruedb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, chainDb etruedb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
