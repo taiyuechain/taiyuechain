@@ -217,7 +217,7 @@ func (TPK *TaiPublicKey) FromECDSAPub(pubkey TaiPublicKey) []byte {
 		//TODO need add SM2 to change hexKey
 		return pubkey.SmPublickey.GetRawBytes()
 	case ASYMMETRICCRYPTOECDSA:
-		return tycrpto.FromECDSAPub(&pubkey.Publickey)
+		return tycrpto.FromECDSAPubCA(&pubkey.Publickey)
 	}
 	return nil
 }
@@ -234,7 +234,7 @@ func (TPK *TaiPublicKey) UnmarshalPubkey(pub []byte) (*TaiPublicKey, error) {
 		return TPK, nil
 
 	case ASYMMETRICCRYPTOECDSA:
-		public, err := tycrpto.UnmarshalPubkey(pub)
+		public, err := tycrpto.UnmarshalPubkeyCA(pub)
 		if err != nil {
 			return nil, err
 		}
