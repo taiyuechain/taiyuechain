@@ -20,7 +20,7 @@ package utils
 import (
 	"compress/gzip"
 	"fmt"
-	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"os"
 	"os/signal"
@@ -34,7 +34,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -241,6 +240,7 @@ func ExportAppendChain(blockchain *core.BlockChain, fn string, first uint64, las
 
 // ImportPreimages imports a batch of exported hash preimages into the database.
 func ImportPreimages(db *etruedb.LDBDatabase, fn string) error {
+	var taihash taiCrypto.THash
 	log.Info("Importing preimages", "file", fn)
 
 	// Open the file handle and potentially unwrap the gzip stream
@@ -273,8 +273,8 @@ func ImportPreimages(db *etruedb.LDBDatabase, fn string) error {
 		}
 		// Accumulate the preimages and flush when enough ws gathered
 		//caoliang modify
-		preimages[crypto.Keccak256Hash(blob)] = common.CopyBytes(blob)
-		//preimages[taihash.Keccak256Hash(blob)] = common.CopyBytes(blob)
+		//preimages[crypto.Keccak256Hash(blob)] = common.CopyBytes(blob)
+		preimages[taihash.Keccak256Hash(blob)] = common.CopyBytes(blob)
 		if len(preimages) > 1024 {
 			rawdb.WritePreimages(db, 0, preimages)
 			preimages = make(map[common.Hash][]byte)
