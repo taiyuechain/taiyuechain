@@ -23,7 +23,9 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/p2p/discover"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
@@ -49,9 +51,10 @@ func main() {
 		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
 		//caoliang modify
-		nodeKey *ecdsa.PrivateKey
-		//nodeKey *taiCrypto.TaiPrivateKey
-		err error
+		//nodeKey *ecdsa.PrivateKey
+		nodeKey   *ecdsa.PrivateKey
+		smnodeKey *sm2.PrivateKey
+		err       error
 	)
 	flag.Parse()
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))
@@ -66,16 +69,22 @@ func main() {
 	switch {
 	case *genKey != "":
 		//caoliang modify
-
-		nodeKey, err = crypto.GenerateKey()
-
-		//nodeKey = taiCrypto.GenPrivKey()
+		//nodeKey, err = crypto.GenerateKey()
+		nodekeytype, err := taiCrypto.GenPrivKey()
+		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+			nodeKey = &nodekeytype.Private
+			taiprivate.Private = *nodeKey
+		}
+		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+			smnodeKey = &nodekeytype.GmPrivate
+			taiprivate.GmPrivate = *smnodeKey
+		}
 		if err != nil {
 			utils.Fatalf("could not generate key: %v", err)
 		}
 		//caolaing modify
 		//if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
-		taiprivate.Private = *nodeKey
+
 		if err = taiprivate.SaveECDSA(*genKey, taiprivate); err != nil {
 			utils.Fatalf("%v", err)
 		}
@@ -144,14 +153,14 @@ func main() {
 	}
 
 	if *runv5 {
-		if _, err := discv5.ListenUDP(nodeKey, conn, "", restrictList); err != nil {
+		if _, err := discv5.ListenUDP(&taiprivate, conn, "", restrictList); err != nil {
 			utils.Fatalf("%v", err)
 		}
 	} else {
 		db, _ := enode.OpenDB("")
-		ln := enode.NewLocalNode(db, nodeKey)
+		ln := enode.NewLocalNode(db, &taiprivate)
 		cfg := discover.Config{
-			PrivateKey:  nodeKey,
+			PrivateKey:  &taiprivate,
 			NetRestrict: restrictList,
 		}
 		if _, err := discover.ListenUDP(conn, ln, cfg); err != nil {
