@@ -18,8 +18,8 @@ package election
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"crypto/ecdsa"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
@@ -67,9 +67,10 @@ var (
 )
 
 type candidateMember struct {
-	coinbase   common.Address
-	address    common.Address
-	publickey  *ecdsa.PublicKey
+	coinbase common.Address
+	address  common.Address
+	//publickey  *ecdsa.PublicKey
+	publickey  *taiCrypto.TaiPublicKey
 	difficulty *big.Int
 	upper      *big.Int
 	lower      *big.Int
@@ -130,11 +131,12 @@ type Election struct {
 
 	commiteeCache *lru.Cache
 
-	electionMode    ElectMode
-	committee       *committee
-	nextCommittee   *committee
-	mu              sync.RWMutex
-	testPrivateKeys []*ecdsa.PrivateKey
+	electionMode  ElectMode
+	committee     *committee
+	nextCommittee *committee
+	mu            sync.RWMutex
+	//testPrivateKeys []*ecdsa.PrivateKey
+	testPrivateKeys []*taiCrypto.TaiPrivateKey
 	startSwitchover bool //Flag bit for handling event switching
 	singleNode      bool
 
@@ -147,7 +149,7 @@ type Election struct {
 	//snailChainEventCh  chan types.SnailChainEvent
 	//snailChainEventSub event.Subscription
 
-	fastchain  *core.BlockChain
+	fastchain *core.BlockChain
 	//snailchain SnailBlockChain
 
 	engine consensus.Engine
@@ -159,23 +161,21 @@ type SnailLightChain interface {
 	CurrentHeader() *types.SnailHeader
 }
 
-
-
 type Config interface {
 	GetNodeType() bool
 }
 
 // NewElection create election processor and load genesis committee
-func NewElection(fastBlockChain *core.BlockChain,config Config) *Election {
+func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 	// init
 	election := &Election{
-		fastchain:         fastBlockChain,
+		fastchain: fastBlockChain,
 		//snailchain:        snailBlockChain,
 		//snailChainEventCh: make(chan types.SnailChainEvent, snailchainHeadSize),
-		prepare:           false,
-		switchNext:        make(chan struct{}),
-		singleNode:        config.GetNodeType(),
-		electionMode:      ElectModeEtrue,
+		prepare:      false,
+		switchNext:   make(chan struct{}),
+		singleNode:   config.GetNodeType(),
+		electionMode: ElectModeEtrue,
 	}
 
 	// get genesis committee
@@ -209,22 +209,23 @@ func NewElection(fastBlockChain *core.BlockChain,config Config) *Election {
 // NewFakeElection create fake mode election only for testing
 func NewFakeElection() *Election {
 	//caoliang modify
-	var priKeys []*ecdsa.PrivateKey
+	//var priKeys []*ecdsa.PrivateKey
+	var priKeys []*taiCrypto.TaiPrivateKey
 	var taipublic taiCrypto.TaiPublicKey
 	//var priKeys [] *taiCrypto.TaiPrivateKey
 	var members []*types.CommitteeMember
 
 	for i := 0; i < params.MinimumCommitteeNumber; i++ {
 		//caoliang modify
-		priKey, err := crypto.GenerateKey()
-		//priKey:= taiCrypto.GenPrivKey()
+		//priKey, err := crypto.GenerateKey()
+		priKey, err := taiCrypto.GenPrivKey()
 		priKeys = append(priKeys, priKey)
 		if err != nil {
 			log.Error("initMembers", "error", err)
 		}
 		//caoliang modify
 		//coinbase := crypto.PubkeyToAddress(priKey.PublicKey)
-		taipublic.Publickey = priKey.PublicKey
+		//taipublic.Publickey = priKey.PublicKey
 		coinbase := taipublic.PubkeyToAddress(taipublic)
 		//caoliang modify
 		//m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: coinbase, Publickey: crypto.FromECDSAPub(&priKey.PublicKey), Flag: types.StateUsedFlag, MType: types.TypeFixed}
@@ -244,13 +245,13 @@ func NewFakeElection() *Election {
 	}
 
 	election := &Election{
-		fastchain:         nil,
+		fastchain: nil,
 		//snailchain:        nil,
 		//snailChainEventCh: make(chan types.SnailChainEvent, snailchainHeadSize),
-		singleNode:        false,
-		committee:         elected,
-		electionMode:      ElectModeFake,
-		testPrivateKeys:   priKeys,
+		singleNode:      false,
+		committee:       elected,
+		electionMode:    ElectModeFake,
+		testPrivateKeys: priKeys,
 	}
 	return election
 }
@@ -268,7 +269,7 @@ func (e *Election) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, error)
 		signHash := voteSign.HashWithNoSign().Bytes()
 		//caoliang modify
 		//voteSign.Sign, err = crypto.Sign(signHash, privateKey)
-		taiprivate.Private = *privateKey
+		taiprivate = *privateKey
 		voteSign.Sign, err = taiprivate.Sign(signHash, taiprivate)
 		if err != nil {
 			log.Error("fb GenerateSign error ", "err", err)
@@ -478,7 +479,6 @@ func (e *Election) getCommitteeBuyContract() *committee {
 		lastElectionNumber:  new(big.Int).Set(common.Big0),
 		switchCheckNumber:   params.ElectionPeriodNumber,
 		members:             e.genesisCommittee,
-
 	}
 }
 
@@ -622,7 +622,7 @@ func (e *Election) electedCommittee(fastNumber *big.Int) *committee {
 		snailNumber = snailBlock.Number()
 	}*/
 
-	committee := e.getCommitteeBuyContract()//e.getCommittee(fastNumber, snailNumber)
+	committee := e.getCommitteeBuyContract() //e.getCommittee(fastNumber, snailNumber)
 	if committee == nil {
 		return nil
 	}
@@ -886,7 +886,6 @@ func (e *Election) getLastNumber(beginSnail, endSnail *big.Int) *big.Int {
 	lastFruitNumber := fruits[len(fruits)-1].FastNumber()
 	lastFastNumber := new(big.Int).Add(lastFruitNumber, params.ElectionSwitchoverNumber)*/
 
-
 	return big.NewInt(0)
 }
 
@@ -944,7 +943,8 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 			}
 			addrs[cm.address] = 1
 			//caolaing modfiy
-			taipublic.Publickey = *cm.publickey
+			//taipublic.Publickey = *cm.publickey
+			taipublic = *cm.publickey
 			member := &types.CommitteeMember{
 				Coinbase: cm.coinbase,
 				//caoliang modify
@@ -1209,7 +1209,7 @@ func (e *Election) Start() error {
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
 	//snailHeadNumber := e.snailchain.CurrentBlock().Number()
 
-	currentCommittee := e.getCommitteeBuyContract()//e.getCommittee(fastHeadNumber, snailHeadNumber)
+	currentCommittee := e.getCommitteeBuyContract() //e.getCommittee(fastHeadNumber, snailHeadNumber)
 	if currentCommittee == nil {
 		log.Crit("Election faiiled to get committee on start")
 		return nil
@@ -1306,38 +1306,38 @@ func (e *Election) loop() {
 	for {
 		select {
 		/*case se := <-e.snailChainEventCh:
-			if se.Block != nil && e.committee.switchCheckNumber.Cmp(se.Block.Number()) == 0 {
-				//Record Numbers to open elections
-				e.committee.endFastNumber = e.getEndFast(e.committee.id)
-				e.electionFeed.Send(types.ElectionEvent{
-					Option:           types.CommitteeOver, //only update committee end fast black
-					CommitteeID:      e.committee.id,
-					CommitteeMembers: e.committee.Members(),
-					BeginFastNumber:  e.committee.beginFastNumber,
-					EndFastNumber:    e.committee.endFastNumber,
-				})
-				log.Info("Election BFT committee election start..", "snail", se.Block.Number(), "endfast", e.committee.endFastNumber)
+		if se.Block != nil && e.committee.switchCheckNumber.Cmp(se.Block.Number()) == 0 {
+			//Record Numbers to open elections
+			e.committee.endFastNumber = e.getEndFast(e.committee.id)
+			e.electionFeed.Send(types.ElectionEvent{
+				Option:           types.CommitteeOver, //only update committee end fast black
+				CommitteeID:      e.committee.id,
+				CommitteeMembers: e.committee.Members(),
+				BeginFastNumber:  e.committee.beginFastNumber,
+				EndFastNumber:    e.committee.endFastNumber,
+			})
+			log.Info("Election BFT committee election start..", "snail", se.Block.Number(), "endfast", e.committee.endFastNumber)
 
-				nextCommittee := e.calcCommittee(new(big.Int).Add(e.committee.id, common.Big1))
-				if e.nextCommittee != nil && e.nextCommittee.id.Cmp(nextCommittee.id) == 0 {
-					// May make a duplicate committee switchover if snail forks
-					continue
-				}
-				e.mu.Lock()
-				e.nextCommittee = nextCommittee
-				e.startSwitchover = true
-				e.mu.Unlock()
+			nextCommittee := e.calcCommittee(new(big.Int).Add(e.committee.id, common.Big1))
+			if e.nextCommittee != nil && e.nextCommittee.id.Cmp(nextCommittee.id) == 0 {
+				// May make a duplicate committee switchover if snail forks
+				continue
+			}
+			e.mu.Lock()
+			e.nextCommittee = nextCommittee
+			e.startSwitchover = true
+			e.mu.Unlock()
 
-				log.Info("Election switchover new committee", "id", e.nextCommittee.id, "startNumber", e.nextCommittee.beginFastNumber)
-				printCommittee(e.nextCommittee)
-				e.electionFeed.Send(types.ElectionEvent{
-					Option:           types.CommitteeSwitchover, //update next committee
-					CommitteeID:      e.nextCommittee.id,
-					CommitteeMembers: e.nextCommittee.Members(),
-					BackupMembers:    e.nextCommittee.BackupMembers(),
-					BeginFastNumber:  e.nextCommittee.beginFastNumber,
-				})
-			}*/
+			log.Info("Election switchover new committee", "id", e.nextCommittee.id, "startNumber", e.nextCommittee.beginFastNumber)
+			printCommittee(e.nextCommittee)
+			e.electionFeed.Send(types.ElectionEvent{
+				Option:           types.CommitteeSwitchover, //update next committee
+				CommitteeID:      e.nextCommittee.id,
+				CommitteeMembers: e.nextCommittee.Members(),
+				BackupMembers:    e.nextCommittee.BackupMembers(),
+				BeginFastNumber:  e.nextCommittee.beginFastNumber,
+			})
+		}*/
 		case <-e.switchNext:
 			if e.startSwitchover {
 				log.Info("Election stop committee..", "id", e.committee.id)
