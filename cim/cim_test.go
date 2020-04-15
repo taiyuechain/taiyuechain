@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -132,6 +133,16 @@ func TestCreatePubk(t *testing.T) {
 	pkbyte4 := crypto.FromECDSAPubCA(&prv4.PublicKey)
 	pkstring4 := hexutil.Encode(pkbyte4)
 	fmt.Println(pkstring4)
+
+	var taipublic taiCrypto.TaiPublicKey
+
+	b, err := hexutil.Decode(pkstring1)
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+	_, err = taipublic.UnmarshalPubkey(b)
+	if err != nil {
+		fmt.Println("errr","is",err)
+	}
+
 
 }
 
