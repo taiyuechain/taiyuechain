@@ -20,7 +20,7 @@ package utils
 import (
 	//"github.com/taiyuechain/taiyuechain/crypto"
 
-	"encoding/hex"
+	//"encoding/hex"
 	"fmt"
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
@@ -42,7 +42,7 @@ import (
 	"bytes"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/cim"
+	//"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -1141,12 +1141,12 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	// need do verfiy the private key and cert
 	//privatekey ,_:=crypto.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
 	var taiprivate taiCrypto.TaiPrivateKey
-	var taipublic taiCrypto.TaiPublicKey
-	privatekey, _ := taiprivate.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
-	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
-		log.Error("cert not the varify cert by private key")
-		return
-	}
+	//var taipublic taiCrypto.TaiPublicKey
+	//privatekey, _ := taiprivate.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
+//	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
+		//log.Error("cert not the varify cert by private key")
+		//return
+//	}
 
 	//cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
 	cfg.CommitteeKey = taiprivate.FromECDSA(*cfg.PrivateKey)
@@ -1172,8 +1172,8 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 	/*	log.Info("Committee Node info:", "publickey", hex.EncodeToString(crypto.FromECDSAPub(&cfg.PrivateKey.PublicKey)),
 		"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)*/
-	log.Info("Committee Node info:", "publickey", hex.EncodeToString(taipublic.FromECDSAPub(cfg.PrivateKey.TaiPubKey)),
-		"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)
+	//log.Info("Committee Node info:", "publickey", hex.EncodeToString(taipublic.FromECDSAPub(cfg.PrivateKey.TaiPubKey)),
+	//	"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)
 
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100

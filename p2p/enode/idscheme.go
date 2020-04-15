@@ -31,10 +31,10 @@ import (
 	"io"
 
 	"github.com/ethereum/go-ethereum/common/math"
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"golang.org/x/crypto/sha3"
+
 )
 
 // List of known secure identity schemes.
@@ -62,7 +62,7 @@ func (e EcdsaSecp256k1) EncodeRLP(w io.Writer) error {
 }
 
 // DecodeRLP implements rlp.Decoder.
-func (e EcdsaSecp256k1) DecodeRLP(s *rlp.Stream) error {
+func (e *EcdsaSecp256k1) DecodeRLP(s *rlp.Stream) error {
 	var taipublic taiCrypto.TaiPublicKey
 	buf, err := s.Bytes()
 	if err != nil {
@@ -73,7 +73,7 @@ func (e EcdsaSecp256k1) DecodeRLP(s *rlp.Stream) error {
 	if err != nil {
 		return err
 	}
-	e = (EcdsaSecp256k1)(pk.Publickey)
+	*e = (EcdsaSecp256k1)(pk.Publickey)
 	return nil
 }
 
@@ -235,7 +235,7 @@ func sqrt(s string) *big.Int {
 }
 
 func (V4ID) NodeAddr(r *enr.Record) []byte {
-	var pubkey Secp256k1
+	var pubkey EcdsaSecp256k1
 	var thash taiCrypto.THash
 	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
 		err := r.Load(&pubkey)
@@ -243,8 +243,8 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 			return nil
 		}
 		buf := make([]byte, 64)
-		math.ReadBits(pubkey.Publickey.X, buf[:32])
-		math.ReadBits(pubkey.Publickey.Y, buf[32:])
+		math.ReadBits(pubkey.X, buf[:32])
+		math.ReadBits(pubkey.Y, buf[32:])
 		return thash.Keccak256(buf)
 	}
 	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
@@ -253,8 +253,8 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 			return nil
 		}
 		buf := make([]byte, 64)
-		math.ReadBits(pubkey.SmPublickey.X, buf[:32])
-		math.ReadBits(pubkey.SmPublickey.Y, buf[32:])
+		math.ReadBits(pubkey.X, buf[:32])
+		math.ReadBits(pubkey.Y, buf[32:])
 		return thash.Keccak256(buf)
 	}
 	return nil
