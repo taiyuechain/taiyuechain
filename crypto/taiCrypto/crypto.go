@@ -72,7 +72,25 @@ func (TPK *TaiPublicKey) DecompressPubkey(pubkey []byte) (*TaiPublicKey, error) 
 	}
 	return nil, nil
 }
-
+func (TPK *TaiPublicKey) DecompressPubkey1(pubkey []byte) (*TaiPublicKey, error) {
+	switch AsymmetricCryptoType {
+	case ASYMMETRICCRYPTOSM2:
+		smPublickey, err := sm2.RawBytesToPublicKey(pubkey)
+		if err != nil {
+			return nil, err
+		}
+		TPK.SmPublickey = *smPublickey
+		return TPK, nil
+	case ASYMMETRICCRYPTOECDSA:
+		tpkpublic, err := tycrpto.DecompressPubkey1(pubkey)
+		if err != nil {
+			return nil, err
+		}
+		TPK.Publickey = *tpkpublic
+		return TPK, nil
+	}
+	return nil, nil
+}
 func (TPK *TaiPrivateKey) ExportECDSA() *TaiPrivateKey {
 	TPK.Private = *TPK.EciesPrivate.ExportECDSA()
 	return TPK
@@ -428,7 +446,7 @@ func (TPK *TaiPublicKey) VerifySignature(digestHash, signature []byte) bool {
 	case ASYMMETRICCRYPTOECDSA:
 		//pk,err:=crypto.HexToECDSA(hexKey)
 		//b, err := hex.DecodeString(hexKey)
-		//TPK.HexBytesPublic = TPK.CompressPubkey(*TPK)
+		/*TPK.HexBytesPublic = TPK.CompressPubkey(*TPK)*/
 		return tycrpto.VerifySignature(TPK.HexBytesPublic, digestHash, signature)
 	}
 	return false
