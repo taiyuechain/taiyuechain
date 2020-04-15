@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"net/url"
@@ -30,7 +29,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/math"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 )
 
@@ -177,19 +176,19 @@ func (n *Node) v4URL() string {
 	var (
 		scheme enr.ID
 		nodeid string
-		//key       ecdsa.PublicKey
-		key       taiCrypto.TaiPublicKey
-		taipublic taiCrypto.TaiPublicKey
+		key       ecdsa.PublicKey
+		//key       taiCrypto.TaiPublicKey
+		//taipublic taiCrypto.TaiPublicKey
 	)
 	n.Load(&scheme)
-	n.Load((*Secp256k1)(&key))
+	n.Load((*EcdsaSecp256k1)(&key))
 	switch {
-	//case scheme == "v4" || key != ecdsa.PublicKey{}:
-	case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
+	case scheme == "v4" || key != ecdsa.PublicKey{}:
+	//case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
 		//caoliang modify
 		//nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
-		taipublic = key
-		nodeid = fmt.Sprintf("%x", taipublic.FromECDSAPub(taipublic)[1:])
+		//taipublic = key
+		nodeid = fmt.Sprintf("%x", crypto.FromECDSAPubCA(&key)[1:])
 	default:
 		nodeid = fmt.Sprintf("%s.%x", scheme, n.id[:])
 	}
