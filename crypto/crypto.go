@@ -240,7 +240,7 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 }
 
 func GenerateKey() (*ecdsa.PrivateKey, error) {
-	return ecdsa.GenerateKey(S256(), rand.Reader)
+	return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with
