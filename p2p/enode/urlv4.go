@@ -18,9 +18,10 @@ package enode
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
+	//"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
@@ -108,6 +109,7 @@ func parseComplete(rawurl string) (*Node, error) {
 		ip               net.IP
 		tcpPort, udpPort uint64
 	)
+	//fmt.Println(id.Publickey)
 	u, err := url.Parse(rawurl)
 	if err != nil {
 		return nil, err
@@ -153,16 +155,17 @@ func parseComplete(rawurl string) (*Node, error) {
 //func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 func parsePubkey(in string) (*taiCrypto.TaiPublicKey, error) {
 	var taipublic taiCrypto.TaiPublicKey
-	b, err := hex.DecodeString(in)
+
+	b, err := hexutil.Decode(in)
 	if err != nil {
 		return nil, err
-	} else if len(b) != 64 {
+	} else if len(b) != 65 {
 		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
 	}
-	b = append([]byte{0x4}, b...)
+	//b = append([]byte{0x04}, b...)
 	//caoliang modify
 	//return crypto.UnmarshalPubkey(b)
-	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+	//taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	public, err := taipublic.UnmarshalPubkey(b)
 	if err != nil {
 		return nil, nil
