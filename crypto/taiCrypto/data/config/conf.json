@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+ "ecdsapath" :"../../crypto/taiCrypto/data/cert/ecdsacert/",
+  "gmpath": "../taiCrypto/data/cert/gmcert/"
+}
+
