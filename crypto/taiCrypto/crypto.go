@@ -247,7 +247,8 @@ func (TPK *TaiPrivateKey) ToECDSA(d []byte) (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		TPK.GmPrivate = *gmPrivate
-		TPK.GmPrivate.PublicKey = gmPrivate.PublicKey
+		taipub := togmpublickey(*TPK)
+		TPK.GmPrivate.PublicKey = taipub.SmPublickey
 		return TPK, nil
 
 	case ASYMMETRICCRYPTOECDSA:
@@ -483,4 +484,12 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 }
 func S256() elliptic.Curve {
 	return secp256k1.S256()
+}
+func togmpublickey(pri TaiPrivateKey) TaiPublicKey {
+	var taipublic TaiPublicKey
+	pub := new(sm2.PublicKey)
+	pub.Curve = pri.GmPrivate.Curve
+	pub.X, pub.Y = pri.GmPrivate.Curve.ScalarBaseMult(pri.GmPrivate.D.Bytes())
+	taipublic.SmPublickey = *pub
+	return taipublic
 }
