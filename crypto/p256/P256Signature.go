@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/asn1"
 	"fmt"
-	"io"
 	"math/big"
 )
 
@@ -26,21 +25,11 @@ func (p P256Signature) ProtoMessage() {
 	panic("implement me")
 }
 
-func SignP256(reader io.Reader, priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
+func SignP256(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	r, s, err := ecdsa.Sign(rand.Reader, priv, hash)
-	/*	sign:=make([]byte,65)
-		fmt.Println(r.Bytes())
-		fmt.Println(s.Bytes())*/
 	if err != nil {
 		return nil, err
 	}
-	//fmt.Println(asn1.Marshal(P256Signature{r, s}))
-	/*	copy(sign[:31],r.Bytes())
-		copy(sign[32:63],s.Bytes())
-		x := int32(4)
-		bytesBuffer := bytes.NewBuffer([]byte{})
-		binary.Write(bytesBuffer, binary.BigEndian, x)
-		copy(sign[64:],bytesBuffer.Bytes())*/
 	return asn1.Marshal(P256Signature{r, s})
 }
 
