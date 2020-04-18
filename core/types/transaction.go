@@ -201,6 +201,46 @@ func newTransaction(nonce uint64, to *common.Address, payer *common.Address, amo
 	return &Transaction{data: d}
 }
 
+func NewP256Transaction(nonce uint64, to *common.Address, payer *common.Address, amount *big.Int, fee *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, cert []byte,chainID *big.Int,sig []byte) *Transaction {
+	if len(data) > 0 {
+		data = common.CopyBytes(data)
+	}
+	d := txdata{
+		AccountNonce: nonce,
+		Recipient:    to,
+		Payer:        payer,
+		Payload:      data,
+		Amount:       new(big.Int),
+		//Fee:          new(big.Int),
+		Cert:     cert,
+		ChainID:  chainID,
+		Sig:      sig,
+		GasLimit: gasLimit,
+		Price:    new(big.Int),
+		V:        new(big.Int),
+		R:        new(big.Int),
+		S:        new(big.Int),
+		PV:       new(big.Int),
+		PR:       new(big.Int),
+		PS:       new(big.Int),
+	}
+	if amount != nil {
+		d.Amount.Set(amount)
+	}
+	if fee != nil {
+		d.Fee = new(big.Int)
+		d.Fee.Set(fee)
+	}
+	if gasPrice != nil {
+		d.Price.Set(gasPrice)
+	}
+
+	return &Transaction{data: d}
+}
+
+
+
+
 func NewRawTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, cert []byte) *RawTransaction {
 	return newRawTransaction(nonce, &to, amount, gasLimit, gasPrice, data, cert)
 }
