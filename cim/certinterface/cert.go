@@ -44,7 +44,7 @@ func (TPK *taicrypto) ReadPemFileByPath(path string) ([]byte, error) {
 	return nil, errors.New("path is wrong")
 }
 func (TPK *taicrypto) GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
-	switch taiCrypto.CertType {
+	/*switch taiCrypto.CertType {
 	case taiCrypto.CERTGM:
 		certquest, err := cert.ParseCertificateRequest(idBytes)
 		if err != nil {
@@ -54,6 +54,6 @@ func (TPK *taicrypto) GetCertFromPem(idBytes []byte) (*x509.Certificate, error) 
 	case taiCrypto.CERTECDSA:
 		//cim,err:=cim.NewCIM()
 		return cim.GetCertFromPem(idBytes)
-	}
+	}*/
 	return nil, errors.New("path is wrong")
 }
