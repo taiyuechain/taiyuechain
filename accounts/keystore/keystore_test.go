@@ -17,7 +17,7 @@
 package keystore
 
 import (
-	"io/ioutil"
+	//"io/ioutil"
 	"math/rand"
 	"os"
 	"runtime"
@@ -29,6 +29,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/event"
+	"io/ioutil"
 )
 
 var testSigData = make([]byte, 32)
@@ -385,3 +386,5 @@ func tmpKeyStore(t *testing.T, encrypted bool) (string, *KeyStore) {
 	}
 	return d, new(d)
 }
+
+
