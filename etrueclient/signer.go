@@ -66,3 +66,7 @@ func (s *senderFromServer) SignatureValues(tx *types.Transaction, sig []byte) (R
 func (s *senderFromServer) Hash_Payment(tx *types.Transaction) common.Hash {
 	panic("can't Hash_Payment with senderFromServer")
 }
+
+func (s *senderFromServer)GetChainID() *big.Int {
+	panic("can't Hash_Payment with senderFromServer")
+}
