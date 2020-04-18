@@ -96,6 +96,11 @@ func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	return toECDSA(d, true)
 }
 
+// ToECDSA creates a private key with the given D value.
+func ToECDSAP256(d []byte) (*ecdsa.PrivateKey, error) {
+	return toECDSAP256(d, true)
+}
+
 // ToECDSAUnsafe blindly converts a binary blob to a private key. It should almost
 // never be used unless you are sure the input is valid and want to avoid hitting
 // errors due to bad origin encoding (0 prefixes cut off).
@@ -110,6 +115,34 @@ func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
 func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	priv := new(ecdsa.PrivateKey)
 	priv.PublicKey.Curve = S256()
+	if strict && 8*len(d) != priv.Params().BitSize {
+		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
+	}
+	priv.D = new(big.Int).SetBytes(d)
+
+	// The priv.D must < N
+	if priv.D.Cmp(secp256k1N) >= 0 {
+		return nil, fmt.Errorf("invalid private key, >=N")
+	}
+	// The priv.D must not be zero or negative.
+	if priv.D.Sign() <= 0 {
+		return nil, fmt.Errorf("invalid private key, zero or negative")
+	}
+
+	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d)
+	if priv.PublicKey.X == nil {
+		return nil, errors.New("invalid private key")
+	}
+	return priv, nil
+}
+
+
+// toECDSA creates a private key with the given D value. The strict parameter
+// controls whether the key's length should be enforced at the curve size or
+// it can also accept legacy encodings (0 prefixes).
+func toECDSAP256(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
+	priv := new(ecdsa.PrivateKey)
+	priv.PublicKey.Curve = elliptic.P256()
 	if strict && 8*len(d) != priv.Params().BitSize {
 		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
 	}
@@ -161,6 +194,12 @@ func FromECDSAPubCA(pub *ecdsa.PublicKey) []byte {
 	}
 	return elliptic.Marshal(S256(), pub.X, pub.Y)
 }
+func FromECDSAPubP256(pub *ecdsa.PublicKey) []byte {
+	if pub == nil || pub.X == nil || pub.Y == nil {
+		return nil
+	}
+	return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
+}
 
 // HexToECDSA parses a secp256k1 private key.
 func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
@@ -169,6 +208,15 @@ func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 		return nil, errors.New("invalid hex string")
 	}
 	return ToECDSA(b)
+}
+
+// HexToECDSA parses a secp256k1 private key.
+func HexToECDSAP256(hexkey string) (*ecdsa.PrivateKey, error) {
+	b, err := hex.DecodeString(hexkey)
+	if err != nil {
+		return nil, errors.New("invalid hex string")
+	}
+	return ToECDSAP256(b)
 }
 
 // LoadECDSA loads a secp256k1 private key from the given file.
@@ -220,6 +268,13 @@ func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPubCA(&p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
+
+func PubkeyToAddressP256(p ecdsa.PublicKey) common.Address {
+	pubBytes := FromECDSAPubP256(&p)
+	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+}
+
+
 
 func zeroBytes(bytes []byte) {
 	for i := range bytes {
