@@ -6,11 +6,10 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/base64"
-	"encoding/pem"
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"log"
 	"math/big"
 	"os"
@@ -46,15 +45,15 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
 
-	// Decode the pem bytes
-	pemCert, _ := pem.Decode(idBytes)
-	if pemCert == nil {
-		return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
-	}
+	/*	// Decode the pem bytes
+		pemCert, _ := pem.Decode(idBytes)
+		if pemCert == nil {
+			return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
+		}*/
 
 	// get a cert
 	var cert *x509.Certificate
-	cert, err := x509.ParseCertificate(pemCert.Bytes)
+	cert, err := x509.ParseCertificate(idBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
 	}
@@ -63,7 +62,7 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 }
 
 func CreateIdentity(priv string) bool {
-	var private taiCrypto.TaiPrivateKey
+	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 	ca := &x509.Certificate{
 		SerialNumber: big.NewInt(1653),
@@ -83,12 +82,12 @@ func CreateIdentity(priv string) bool {
 	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
 	//var thash taiCrypto.THash
 	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	caecda, err := private.ToECDSACA([]byte(priv))
+	caecda, err := crypto.ToECDSA([]byte(priv))
 	if err != nil {
 		log.Println("create ca failed", err)
 		return false
 	}
-	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.Private.PublicKey, &caecda.Private)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.PublicKey, &caecda)
 	if err != nil {
 		log.Println("create ca failed", err)
 		return false
@@ -102,7 +101,7 @@ func CreateIdentity(priv string) bool {
 		return false
 	}
 	defer dstFile.Close()
-	priv_b, _ := x509.MarshalECPrivateKey(&caecda.Private)
+	priv_b, _ := x509.MarshalECPrivateKey(caecda)
 	encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
 	if err != nil {
 		fmt.Println(err)
@@ -195,7 +194,7 @@ func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	}*/
 
 	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	fileName := "./testdata/testcert/" + name + "ca.pem"
+	fileName := "../../crypto/taiCrypto/data/cert/ecdsacert/" + name + "ca.pem"
 	dstFile, err := os.Create(fileName)
 	if err != nil {
 		return false
@@ -219,12 +218,12 @@ func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	return true
 }
 
-func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey, cert []byte) error {
+func VarifyCertByPubKey(pubkey *ecdsa.PublicKey, cert []byte) error {
 	if cert == nil {
 		return errors.New("cert is nil")
 	}
-	if priv == nil {
-		return errors.New("priv is nil")
+	if pubkey == nil {
+		return errors.New("pubkey is nil")
 	}
 
 	bytes, _ := base64.StdEncoding.DecodeString(string(cert))
@@ -240,7 +239,7 @@ func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey, cert []byte) error {
 		publicKeyBytes = elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y)
 	}
 
-	if string(publicKeyBytes) == string(crypto.FromECDSAPub(&priv.PublicKey)) {
+	if string(publicKeyBytes) == string(crypto.FromECDSAPub(pubkey)) {
 		return nil
 	} else {
 		return errors.New("cert pubk not same with cert")
@@ -248,11 +247,26 @@ func VarifyCertByPrivateKey(priv *ecdsa.PrivateKey, cert []byte) error {
 
 }
 
+type Configuration struct {
+	Enabled   bool
+	EcdsaPath string
+	GmPath    string
+}
+
 func ReadPemFileByPath(path string) ([]byte, error) {
+	file, _ := os.Open("../../crypto/taiCrypto/data/config/conf.json")
+	defer file.Close()
+	decoder := json.NewDecoder(file)
+	conf := Configuration{}
+	err := decoder.Decode(&conf)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	fmt.Println(conf.EcdsaPath)
+
 	if len(path) == 0 {
 		return nil, errors.New("ReadPemFileByPath path is nil")
 	}
 	//data, err := ioutil.ReadFile(path)
-	return ioutil.ReadFile(path)
-
+	return ioutil.ReadFile(conf.EcdsaPath + path)
 }

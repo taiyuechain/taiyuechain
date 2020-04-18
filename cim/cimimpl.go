@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"log"
 	"math/big"
 	"os"
@@ -125,7 +125,7 @@ func (cim *cimimpl) Validate(id Identity) error {
 	}
 }
 func (cim *cimimpl) CreateIdentity(priv string) bool {
-	var private taiCrypto.TaiPrivateKey
+	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 	ca := &x509.Certificate{
 		SerialNumber: big.NewInt(1653),
@@ -142,14 +142,14 @@ func (cim *cimimpl) CreateIdentity(priv string) bool {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	ecdsa, err := crypto.HexToECDSA(priv)
 	//var thash taiCrypto.THash
-	caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	caecda, err := crypto.ToECDSA(crypto.FromECDSA(ecdsa))
 	if err != nil {
 		log.Println("create ca failed", err)
 		return false
 	}
-	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.Private.PublicKey, &caecda.Private)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.PublicKey, &caecda)
 	if err != nil {
 		log.Println("create ca failed", err)
 		return false
@@ -161,7 +161,7 @@ func (cim *cimimpl) CreateIdentity(priv string) bool {
 		return false
 	}
 	defer dstFile.Close()
-	priv_b, _ := x509.MarshalECPrivateKey(&caecda.Private)
+	priv_b, _ := x509.MarshalECPrivateKey(caecda)
 	encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
 	if err != nil {
 		fmt.Println(err)
