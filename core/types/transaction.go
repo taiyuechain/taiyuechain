@@ -65,6 +65,8 @@ type txdata struct {
 	Payer        *common.Address `json:"payer"    rlp:"nil"`
 	Fee          *big.Int        `json:"fee"   rlp:"nil"`
 	Cert         []byte          `json:"cert"   gencodec:"required"`
+	Sig          []byte          `json:"sig"   gencodec:"required"`
+	ChainID       *big.Int        `json:"chainID"   gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
