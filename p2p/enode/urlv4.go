@@ -18,10 +18,12 @@ package enode
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
+
 	//"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	//"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"net/url"
@@ -154,17 +156,13 @@ func parseComplete(rawurl string) (*Node, error) {
 //func parsePubkey(in string) (*ecdsa.PublicKey, error) {
 func parsePubkey(in string) (*taiCrypto.TaiPublicKey, error) {
 	var taipublic taiCrypto.TaiPublicKey
-
-	b, err := hexutil.Decode(in)
+	b, err := hex.DecodeString(in)
 	if err != nil {
 		return nil, err
-	} else if len(b) != 65 {
+	} else if len(b) != 64 {
 		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
 	}
-	//b = append([]byte{0x04}, b...)
-	//caoliang modify
-	//return crypto.UnmarshalPubkey(b)
-	//taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+	b = append([]byte{0x04}, b...)
 	public, err := taipublic.UnmarshalPubkey(b)
 	if err != nil {
 		return nil, nil
@@ -176,7 +174,7 @@ func (n *Node) v4URL() string {
 	var (
 		scheme enr.ID
 		nodeid string
-		key       ecdsa.PublicKey
+		key    ecdsa.PublicKey
 		//key       taiCrypto.TaiPublicKey
 		//taipublic taiCrypto.TaiPublicKey
 	)
@@ -184,7 +182,7 @@ func (n *Node) v4URL() string {
 	n.Load((*EcdsaSecp256k1)(&key))
 	switch {
 	case scheme == "v4" || key != ecdsa.PublicKey{}:
-	//case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
+		//case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
 		//caoliang modify
 		//nodeid = fmt.Sprintf("%x", crypto.FromECDSAPub(&key)[1:])
 		//taipublic = key

@@ -70,7 +70,7 @@ type Genesis struct {
 	Coinbase   common.Address           `json:"coinbase"`
 	Alloc      types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
 	Committee  []*types.CommitteeMember `json:"committee"      gencodec:"required"`
-	CertList  [][]byte 					`json:"CertList"      gencodec:"required"`
+	CertList   [][]byte                 `json:"CertList"      gencodec:"required"`
 
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
@@ -159,7 +159,6 @@ func SetupGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.ChainConf
 	}
 
 	fastConfig, fastHash, fastErr := setupFastGenesisBlock(db, genesis)
-
 
 	return fastConfig, fastHash, common.Hash{}, fastErr
 
@@ -273,7 +272,7 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 		}
 	}
 
-	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number),g.CertList)
+	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number), g.CertList)
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
@@ -296,6 +295,8 @@ func (g *Genesis) ToFastBlock(db etruedb.Database) *types.Block {
 	for _, member := range committee.Members {
 		//caolaing modify
 		//pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
+		cc := hex.EncodeToString(member.Publickey)
+		fmt.Sprintln("cccccc" + cc)
 		pubkey, _ := taipublic.UnmarshalPubkey(member.Publickey)
 		//log.Info("member.Publickey","is",member.Publickey)
 		member.Flag = types.StateUsedFlag
@@ -529,11 +530,12 @@ func GenesisSnailBlockForTesting(db etruedb.Database, addr common.Address, balan
 // DefaultDevGenesisBlock returns the Rinkeby network genesis block.
 func DefaultDevGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
-	key1 := hexutil.MustDecode("0x04d341c94a16b02cee86a627d0f6bc6e814741af4cab5065637aa013c9a7d9f26051bb6546030cd67e440d6df741cb65debaaba6c0835579f88a282193795ed369")
-	key2 := hexutil.MustDecode("0x0496e0f18d4bf38e0b0de161edd2aa168adaf6842706e5ebf31e1d46cb79fe7b720c750a9e7a3e1a528482b0da723b5dfae739379e555a2893e8693747559f83cd")
-	key3 := hexutil.MustDecode("0x0418196ee090081bdec01e8840941b9f6a141a713dd3461b78825edf0d8a7f8cdf3f612832dc9d94249c10c72629ea59fbe0bdd09bea872ddab2799748964c93a8")
-	key4 := hexutil.MustDecode("0x04c4935993a3ce206318ab884871fbe2d4dce32a022795c674784f58e7faf3239631b6952b82471fe1e93ef999108a18d028e5d456cd88bb367d610c5e57c7e443")
-	key5 := hexutil.MustDecode("0x048b76d25cfe53bdf98c81d962b0455f8cf7862143802f834d7ea8416ebd6196486bb4f2dec2c94d760c1be7a524c4b94dabfb71b62e56287e663de78bf282273b")
+
+	key1 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	key2 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	key3 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	key4 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	key5 := hexutil.MustDecode("0x04b2be096ebd8fe4829e204c76f4ea36132df2f0705110193c1940ca44632511a0c33d2d605e99802efa625051729240c5508b63d4b06b366a18a673f71c9d0dbc")
 	key6 := hexutil.MustDecode("0x043e0f5ad76101625deb568e03ff7a09b2bfdfd47211192d2b55f45888881fa37890ccdf64c7c382d34527d9bd938b58fa78a461bfc364cc8e5ac54c0e3d41637c")
 	key7 := hexutil.MustDecode("0x043979431a588e09d9a2811d9e8fc73c4d2b341030d18ba02e387651fcb3e3dd7b362fcb396894156f44cb36729278b3907c9afa74210635a88d9d9920dc84f198")
 
@@ -564,17 +566,17 @@ func DefaultDevGenesisBlock() *Genesis {
 
 // DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
 func DefaultTestnetGenesisBlock() *Genesis {
-	seedkey1 := hexutil.MustDecode("0x04099cc614f68d4449db86cdcb26ec9712a41425ac7b3b17ea2532125067f52cc81d3c56ee85d038a90239d29ffb2ce9564888a64ce649219aab8a4a05cd492650")
-	seedkey2 := hexutil.MustDecode("0x043f5a08d552f0c908818c5fe332ec396e220aa44bfe293a5d16e0b4a58ee4b8ec574577968ff79d2ba7d8f472e13e98d83f7b58179c925c28c68831dd72aaeac2")
-	seedkey3 := hexutil.MustDecode("0x047da92dff72ee8b12cf1027bd5a94e5ba486635a39afda4dbd876a5a91a3edfe783eeed3ec9c28c77c05314d83652b696d681ad80f6e79bc406f1cd6ae8024b01")
-	seedkey4 := hexutil.MustDecode("0x0419b3957ebfa4afb5eacb1a40a9c27f10293a23e9af10093e1e73f6bce9bf501c118ff7fd7399aeebb32f2ef469de0e5cda99e8adea2c241e2ea4e8ea22a213a4")
+	seedkey1 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	seedkey2 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	seedkey3 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
+	seedkey4 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
 
-	cert4 :=[]byte("MIIBrTCCAVSgAwIBAgIQYolHzqHnGSjp0MSUYOjubDAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQZs5V+v6SvterLGkCpwn8QKToj6a8QCT4ec/a86b9QHBGP9/1zma7rsy8u9GneDlzameit6iwkHi6k6OoiohOko1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0cAMEQCIC6gl/Hbhqca/1o+bw5PXcKBTqk9hpyka4wGvLpO6tdDAiBqeTK1PVo0kB9TiZC7310k6+4PC7nCawMF5LDuk/cpqQ==")
-	cert1 :=[]byte("MIIBrjCCAVSgAwIBAgIQDmN9g4Njrljeax9ZbkqtVzAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQJnMYU9o1ESduGzcsm7JcSpBQlrHs7F+olMhJQZ/UsyB08Vu6F0DipAjnSn/ss6VZIiKZM5kkhmquKSgXNSSZQo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIAc3l3EEMV3GjrqQEIfqEyahUAL2LU1kxzFmKlASxLjUAiEA89AI0uJalX5ms0mNwhCbBdMaxNzyjtB4SKfieA+cBxM=")
-	cert3 :=[]byte("MIIBrjCCAVSgAwIBAgIQB/vMrawE+Fq16TcT3/2iYjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR9qS3/cu6LEs8QJ71alOW6SGY1o5r9pNvYdqWpGj7f54Pu7T7Jwox3wFMU2DZStpbWga2A9uebxAbxzWroAksBo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIEvw0dFYOOlpTzGiUfCRrAY2I6yIRb7xZcEViNepgCkhAiEAiRxA7tSdmgOUtpEypQ9NqePAWJb1J7C6YOx4nWO1gS8=")
-	cert2 :=[]byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
+	cert4 := []byte("MIIBrTCCAVSgAwIBAgIQYolHzqHnGSjp0MSUYOjubDAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQZs5V+v6SvterLGkCpwn8QKToj6a8QCT4ec/a86b9QHBGP9/1zma7rsy8u9GneDlzameit6iwkHi6k6OoiohOko1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0cAMEQCIC6gl/Hbhqca/1o+bw5PXcKBTqk9hpyka4wGvLpO6tdDAiBqeTK1PVo0kB9TiZC7310k6+4PC7nCawMF5LDuk/cpqQ==")
+	cert1 := []byte("MIIBrjCCAVSgAwIBAgIQDmN9g4Njrljeax9ZbkqtVzAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQJnMYU9o1ESduGzcsm7JcSpBQlrHs7F+olMhJQZ/UsyB08Vu6F0DipAjnSn/ss6VZIiKZM5kkhmquKSgXNSSZQo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIAc3l3EEMV3GjrqQEIfqEyahUAL2LU1kxzFmKlASxLjUAiEA89AI0uJalX5ms0mNwhCbBdMaxNzyjtB4SKfieA+cBxM=")
+	cert3 := []byte("MIIBrjCCAVSgAwIBAgIQB/vMrawE+Fq16TcT3/2iYjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR9qS3/cu6LEs8QJ71alOW6SGY1o5r9pNvYdqWpGj7f54Pu7T7Jwox3wFMU2DZStpbWga2A9uebxAbxzWroAksBo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0gAMEUCIEvw0dFYOOlpTzGiUfCRrAY2I6yIRb7xZcEViNepgCkhAiEAiRxA7tSdmgOUtpEypQ9NqePAWJb1J7C6YOx4nWO1gS8=")
+	cert2 := []byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
 
-	var certList =[][]byte{cert1,cert2,cert3,cert4}
+	var certList = [][]byte{cert1, cert2, cert3, cert4}
 	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
@@ -591,11 +593,11 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey1,LocalCert:cert1},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey2,LocalCert:cert2},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey3,LocalCert:cert3},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4,LocalCert:cert4},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey1, LocalCert: cert1},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey2, LocalCert: cert2},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey3, LocalCert: cert3},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4, LocalCert: cert4},
 		},
-		CertList:certList,
+		CertList: certList,
 	}
 }

@@ -95,7 +95,7 @@ func (n *Node) TCP() int {
 //func (n *Node) Pubkey() *ecdsa.PublicKey {
 func (n *Node) Pubkey() *taiCrypto.TaiPublicKey {
 	var key taiCrypto.TaiPublicKey
-	if n.Load((*Secp256k1)(&key)) != nil {
+	if n.Load((*EcdsaSecp256k1)(&key.Publickey)) != nil {
 		return nil
 	}
 	return &key
@@ -121,7 +121,7 @@ func (n *Node) ValidateComplete() error {
 		return errors.New("invalid IP (multicast/unspecified)")
 	}
 	// Validate the node key (on curve, etc.).
-	var key Secp256k1
+	var key EcdsaSecp256k1
 	return n.Load(&key)
 }
 

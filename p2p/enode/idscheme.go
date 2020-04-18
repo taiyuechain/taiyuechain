@@ -18,12 +18,8 @@ package enode
 
 import (
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
-	"github.com/taiyuechain/taiyuechain/crypto/p256"
-	"math/big"
 	//"crypto/ecdsa"
 	//"crypto/ecdsa"
 	"fmt"
@@ -34,7 +30,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"golang.org/x/crypto/sha3"
-
 )
 
 // List of known secure identity schemes.
@@ -117,25 +112,8 @@ func SignV4(r *enr.Record, privkey *taiCrypto.TaiPrivateKey) error {
 		cpy.Set(EcdsaSecp256k1(privkey.Private.PublicKey))
 		h := sha3.NewLegacyKeccak256()
 		rlp.Encode(h, cpy.AppendElements(nil))
-		hash := h.Sum(nil)
-
-		/*	r1,s1,_:=ecdsa.Sign(rand.Reader,&privkey.Private,hash)
-				err1:=ecdsa.Verify(&privkey.Private.PublicKey,hash,r1,s1)
-		         fmt.Println(err1)*/
-		sig, err := p256.SignP256(rand.Reader, &privkey.Private, hash)
-		//err1 := p256.VerifyP256(privkey.Private.PublicKey, hash, sign1)
-
-		//sig, err := crypto.Sign(h.Sum(nil), privkey.Private)
-		//sig, err := taiprivate.Sign(h.Sum(nil), *privkey)
-		/*	taipublic.Publickey = privkey.Private.PublicKey
-			taipublic.HexBytesPublic = taipublic.CompressPubkey(taipublic)*/
-		/*	sig = sig[:len(sig)-1]
-			t := taipublic.VerifySignature(h.Sum(nil), sig)
-			fmt.Println(t)*/
-		/*	if err != nil {
-			return err
-		}*/
-		//sig = sig[:len(sig)-1] // remove v
+		sig, err := taiprivate.Sign(h.Sum(nil), *privkey)
+		sig = sig[:len(sig)-1]
 		if err = cpy.SetSig(V4ID{}, sig); err == nil {
 			*r = cpy
 		}
@@ -167,71 +145,17 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 	var entry s256raw
 	if err := r.Load(&entry); err != nil {
 		return err
-	} else if len(entry) != 65 {
+	} else if len(entry) != 33 {
 		return fmt.Errorf("invalid public key")
 	}
 
 	h := sha3.NewLegacyKeccak256()
 	rlp.Encode(h, r.AppendElements(nil))
-	//if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
-	//if !taiprivate.VerifySignature(entry, h.Sum(nil), sig) {}
-	//taipublic.HexBytesPublic = entry
-	//if !taipublic.VerifySignature(h.Sum(nil), sig[:len(sig)-1]) {
-	//	return enr.ErrInvalidSig
-	//}
-	publickey, err := taipublic.DecompressPubkey(entry)
-	//publickey.Publickey.Y = y2(publickey.Publickey.Params(), publickey.Publickey.X)
-	//publickey.Publickey.Y=elliptic.S256Y(publickey.Publickey.Params(), publickey.Publickey.X)
-	if err != nil {
-		return err
-	}
-	if !p256.VerifyP256(publickey.Publickey, h.Sum(nil), sig) {
+	taipublic.HexBytesPublic = entry
+	if !taipublic.VerifySignature(h.Sum(nil), sig) {
 		return enr.ErrInvalidSig
 	}
 	return nil
-}
-func y2(curve *elliptic.CurveParams, x *big.Int) *big.Int {
-
-	/*	y2 := new(big.Int).Mul(y, y)
-		y2.Mod(y2, curve.P)*/
-
-	x3 := new(big.Int).Mul(x, x)
-	x3.Mul(x3, x)
-	threeX := new(big.Int).Lsh(x, 1)
-	threeX.Add(threeX, x)
-	x3.Sub(x3, threeX)
-	x3.Add(x3, curve.B)
-	/*	y.Div(x3,curve.P)
-		x3.Mod(x3,curve.P)
-		y.Mul(y,curve.P)
-		y.Add(y,x3)*/
-	x3.Sqrt(x3)
-	return x3
-}
-func sqrt(s string) *big.Int {
-	var n, a, b, m, m2 big.Int
-
-	n.SetString(s, 10)
-
-	a.SetInt64(int64(1))
-	b.Set(&n)
-
-	for {
-		m.Add(&a, &b).Div(&m, big.NewInt(2))
-
-		if m.Cmp(&a) == 0 || m.Cmp(&b) == 0 {
-			break
-		}
-
-		m2.Mul(&m, &m)
-		if m2.Cmp(&n) > 0 {
-			b.Set(&m)
-		} else {
-			a.Set(&m)
-		}
-	}
-
-	return &m
 }
 
 func (V4ID) NodeAddr(r *enr.Record) []byte {
