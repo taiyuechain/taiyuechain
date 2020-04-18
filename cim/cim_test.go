@@ -75,10 +75,10 @@ func TestSignAndVerify(t *testing.T) {
 
 func TestCreateCertByPrivate(t *testing.T) {
 
-	var prv ,_ = crypto.HexToECDSACA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var prv2 ,_ = crypto.HexToECDSACA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var prv3 ,_ = crypto.HexToECDSACA("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
-	var prv4 ,_ = crypto.HexToECDSACA("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+	var prv ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2 ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3 ,_ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4 ,_ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
 	//var prvB :=
 
 	fmt.Println(crypto.FromECDSA(prv))

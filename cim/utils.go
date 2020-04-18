@@ -117,6 +117,38 @@ func CreateIdentity(priv string) bool {
 	return true
 }
 
+func CreateCertP256(priv *ecdsa.PrivateKey)( cert []byte)  {
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	ca := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &priv.PublicKey, priv)
+	if err != nil {
+		log.Println("create ca failed", err)
+		return nil
+	}
+	cert = ca_b
+	return cert;
+}
+
 func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
@@ -194,12 +226,14 @@ func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	}*/
 
 	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	fileName := "../../crypto/taiCrypto/data/cert/ecdsacert/" + name + "ca.pem"
+	//fileName := "../../crypto/taiCrypto/data/cert/ecdsacert/" + name + "ca.pem"
+	fileName := "../../accounts/keystore/testdata/" + name + "ca.pem"
 	dstFile, err := os.Create(fileName)
 	if err != nil {
 		return false
 	}
-	dstFile.WriteString(encodeString + "\n")
+	//dstFile.WriteString(encodeString + "\n")
+	dstFile.WriteString(encodeString )
 	defer dstFile.Close()
 	/*
 		priv_b, _ := x509.MarshalECPrivateKey(priv)
@@ -269,4 +303,10 @@ func ReadPemFileByPath(path string) ([]byte, error) {
 	}
 	//data, err := ioutil.ReadFile(path)
 	return ioutil.ReadFile(conf.EcdsaPath + path)
+}
+
+func ReadPemFileUsePath(path string) ([]byte, error) {
+
+
+	return ioutil.ReadFile(path)
 }
