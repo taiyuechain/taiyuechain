@@ -13,6 +13,10 @@ import (
 	"hash"
 	"io"
 	"math/big"
+	"encoding/hex"
+
+	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -135,6 +139,14 @@ func RawBytesToPrivateKey(bytes []byte) (*PrivateKey, error) {
 	privateKey.Curve = sm2P256V1
 	privateKey.D = new(big.Int).SetBytes(bytes)
 	return privateKey, nil
+}
+func PrivteToPublickey(pri PrivateKey) (pubk *PublicKey) {
+
+	pub := new(PublicKey)
+	pub.Curve = pri.Curve
+	pub.X, pub.Y = pri.Curve.ScalarBaseMult(pri.D.Bytes())
+	pubk = pub
+	return pubk
 }
 
 func (pub *PublicKey) GetUnCompressBytes() []byte {
@@ -625,4 +637,31 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 		return false
 	}
 	return true
+}
+
+func HexToGM2(hexkey string) ( *PrivateKey, error){
+	b, err := hex.DecodeString(hexkey)
+	if err != nil {
+		return nil, errors.New("invalid hex string")
+	}
+
+	gmPrivate, err := RawBytesToPrivateKey(b)
+	if err != nil {
+		return nil, err
+	}
+	return gmPrivate,nil
+}
+
+
+func Keccak256(data ...[]byte) []byte {
+	d := sha3.NewLegacyKeccak256()
+	for _, b := range data {
+		d.Write(b)
+	}
+	return d.Sum(nil)
+}
+
+func GMPubkeyToAddress(pubkey PublicKey) common.Address {
+	pubBytes := pubkey.GetRawBytes()
+	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
