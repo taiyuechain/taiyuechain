@@ -17,6 +17,7 @@ import (
 
 	"crypto/elliptic"
 	"io/ioutil"
+	"encoding/pem"
 )
 
 func GetIdentityFromByte(idBytes []byte) (Identity, error) {
@@ -45,15 +46,15 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
 
-	/*	// Decode the pem bytes
-		pemCert, _ := pem.Decode(idBytes)
-		if pemCert == nil {
-			return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
-		}*/
+	// Decode the pem bytes
+	pemCert, _ := pem.Decode(idBytes)
+	if pemCert == nil {
+		return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
+	}
 
 	// get a cert
 	var cert *x509.Certificate
-	cert, err := x509.ParseCertificate(idBytes)
+	cert, err := x509.ParseCertificate(pemCert.Bytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
 	}
