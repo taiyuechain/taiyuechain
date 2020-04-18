@@ -417,6 +417,7 @@ func (tx *Transaction) Fee() *big.Int {
 }
 func (tx *Transaction) Nonce() uint64    { return tx.data.AccountNonce }
 func (tx *Transaction) CheckNonce() bool { return true }
+func (tx *Transaction) Cert() []byte { return tx.data.Cert }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
