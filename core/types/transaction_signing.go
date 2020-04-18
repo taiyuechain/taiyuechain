@@ -30,6 +30,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/params"
 	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	"crypto/x509"
 )
 
@@ -80,7 +82,7 @@ func SignTxBy266(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction
 		return nil, err
 	}
 	tx.data.Sig = sig
-	tx.data.ChainID  = s.GetChainID()
+	//tx.data.ChainID  = s.GetChainID()
 	cpy := &Transaction{data: tx.data}
 	return cpy,nil
 }
@@ -104,6 +106,41 @@ func VerfiySignTxBy266(tx *Transaction, s Signer) ( error) {
 		return nil
 	}
 	return errors.New("verfiy p256 err")
+}
+
+func SignTxBySM(tx *Transaction, s Signer, prv *sm2.PrivateKey) (*Transaction, error) {
+	h := s.Hash(tx)
+	//sig, err := crypto.Sign(h[:], prv)
+	sig, err := sm2.Sign(prv, nil, h[:])
+	if err != nil {
+		return nil, err
+	}
+	tx.data.Sig = sig
+	//tx.data.ChainID  = s.GetChainID()
+	cpy := &Transaction{data: tx.data}
+	return cpy,nil
+}
+
+
+func VerfiySignTxBySM(tx *Transaction, s Signer) ( error) {
+	h := s.Hash(tx)
+	//VerifyP256(public ecdsa.PublicKey, hash []byte, sign []byte) bool
+	cert ,err:= sm2_cert.ParseCertificateRequest(tx.data.Cert)
+	if(err != nil){
+		return err;
+	}
+	var topubk sm2.PublicKey
+	switch pub := cert.PublicKey.(type) {
+	case *sm2.PublicKey:
+		topubk.Curve = pub.Curve
+		topubk.X = pub.X
+		topubk.Y = pub.Y
+	}
+
+	if(sm2.Verify(&topubk, nil, h[:], tx.data.Sig)){
+		return nil
+	}
+	return errors.New("verfiy tx sm2 err")
 }
 
 
