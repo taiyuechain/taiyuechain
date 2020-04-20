@@ -538,9 +538,12 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 		return buf, err
 	}
 	// Attempt decoding pre-EIP-8 "plain" format.
+	log.Trace("decrypt is key is:", prv)
 	key := ecies.ImportECDSA(prv)
+	log.Trace("decrypt is key is:", key)
 	//key := prv.ImportECDSA(prv)
-	if dec, err := key.Decrypt(buf, nil, nil); err == nil {
+	log.Trace("decrypt is buf is:", buf)
+	if dec, err := key.Decrypt(buf, nil, nil); err != nil {
 		msg.decodePlain(dec)
 		return buf, nil
 	}
