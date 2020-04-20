@@ -72,6 +72,7 @@ type Table struct {
 	rand    *mrand.Rand       // source of randomness, periodically reseeded
 	ips     netutil.DistinctNetSet
 
+	log        log.Logger
 	db         *enode.DB // database of known nodes
 	net        transport
 	refreshReq chan chan struct{}
@@ -434,7 +435,7 @@ func (tab *Table) doRefresh(done chan struct{}) {
 	// We can only do this if we have a secp256k1 identity.
 	//var key ecdsa.PublicKey
 	var key taiCrypto.TaiPublicKey
-	if err := tab.self().Load((*enode.Secp256k1)(&key)); err == nil {
+	if err := tab.self().Load((*enode.Secp256k1)(&key.Publickey)); err == nil {
 		tab.lookup(encodePubkey(&key), false)
 	}
 
