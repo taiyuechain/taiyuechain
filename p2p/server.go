@@ -785,7 +785,6 @@ running:
 			}
 		}
 	}
-
 	srv.log.Trace("P2P networking is spinning down")
 
 	// Terminate discovery. If there is a running lookup it will terminate soon.
@@ -933,7 +932,8 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	if dialDest != nil {
 		/*pubkey:=new(ecdsa.PublicKey)*/
 		dialPubkey.Publickey = *new(ecdsa.PublicKey)
-		if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey)); err != nil {
+		//if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey)); err != nil {
+		if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey.Publickey)); err != nil {
 			return errors.New("dial destination doesn't have a secp256k1 public key")
 		}
 	}

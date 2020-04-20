@@ -179,7 +179,7 @@ func (n *Node) v4URL() string {
 		//taipublic taiCrypto.TaiPublicKey
 	)
 	n.Load(&scheme)
-	n.Load((*EcdsaSecp256k1)(&key))
+	n.Load((*Secp256k1)(&key))
 	switch {
 	case scheme == "v4" || key != ecdsa.PublicKey{}:
 		//case scheme == "v4" || key.Publickey != ecdsa.PublicKey{} || key.SmPublickey != sm2.PublicKey{}:
