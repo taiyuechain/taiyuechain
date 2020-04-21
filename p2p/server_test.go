@@ -17,16 +17,16 @@
 package p2p
 
 import (
-	"crypto/ecdsa"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/rand"
 	"net"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"golang.org/x/crypto/sha3"
@@ -37,13 +37,13 @@ import (
 // }
 
 type testTransport struct {
-	rpub *ecdsa.PublicKey
+	rpub *taiCrypto.TaiPublicKey
 	*rlpx
 
 	closeErr error
 }
 
-func newTestTransport(rpub *ecdsa.PublicKey, fd net.Conn) transport {
+func newTestTransport(rpub *taiCrypto.TaiPublicKey, fd net.Conn) transport {
 	wrapped := newRLPX(fd).(*rlpx)
 	wrapped.rw = newRLPXFrameRW(fd, secrets{
 		MAC:        zero16,
@@ -54,12 +54,12 @@ func newTestTransport(rpub *ecdsa.PublicKey, fd net.Conn) transport {
 	return &testTransport{rpub: rpub, rlpx: wrapped}
 }
 
-func (c *testTransport) doEncHandshake(prv *ecdsa.PrivateKey, dialDest *ecdsa.PublicKey) (*ecdsa.PublicKey, error) {
+func (c *testTransport) doEncHandshake(prv *taiCrypto.TaiPrivateKey, dialDest *taiCrypto.TaiPublicKey) (*taiCrypto.TaiPublicKey, error) {
 	return c.rpub, nil
 }
 
 func (c *testTransport) doProtoHandshake(our *protoHandshake) (*protoHandshake, error) {
-	pubkey := crypto.FromECDSAPub(c.rpub)[1:]
+	pubkey := crypto.FromECDSAPub(&c.rpub.Publickey)[1:]
 	return &protoHandshake{ID: pubkey, Name: "test"}, nil
 }
 
@@ -68,7 +68,7 @@ func (c *testTransport) close(err error) {
 	c.closeErr = err
 }
 
-func startTestServer(t *testing.T, remoteKey *ecdsa.PublicKey, pf func(*Peer)) *Server {
+func startTestServer(t *testing.T, remoteKey *taiCrypto.TaiPublicKey, pf func(*Peer)) *Server {
 	config := Config{
 		Name:       "test",
 		MaxPeers:   10,
@@ -89,7 +89,7 @@ func startTestServer(t *testing.T, remoteKey *ecdsa.PublicKey, pf func(*Peer)) *
 func TestServerListen(t *testing.T) {
 	// start the test server
 	connected := make(chan *Peer)
-	remid := &newkey().PublicKey
+	remid := &newkey().TaiPubKey
 	srv := startTestServer(t, remid, func(p *Peer) {
 		if p.ID() != enode.PubkeyToIDV4(remid) {
 			t.Error("peer func called with wrong node id")
@@ -140,7 +140,7 @@ func TestServerDial(t *testing.T) {
 
 	// start the server
 	connected := make(chan *Peer)
-	remid := &newkey().PublicKey
+	remid := &newkey().TaiPubKey
 	srv := startTestServer(t, remid, func(p *Peer) { connected <- p })
 	defer close(connected)
 	defer srv.Stop()
@@ -353,7 +353,7 @@ func (t *testTask) Do(srv *Server) {
 // at capacity. Trusted connections should still be accepted.
 func TestServerAtCap(t *testing.T) {
 	trustedNode := newkey()
-	trustedID := enode.PubkeyToIDV4(&trustedNode.PublicKey)
+	trustedID := enode.PubkeyToIDV4(&trustedNode.TaiPubKey)
 	srv := &Server{
 		Config: Config{
 			PrivateKey:   newkey(),
@@ -369,7 +369,7 @@ func TestServerAtCap(t *testing.T) {
 
 	newconn := func(id enode.ID) *conn {
 		fd, _ := net.Pipe()
-		tx := newTestTransport(&trustedNode.PublicKey, fd)
+		tx := newTestTransport(&trustedNode.TaiPubKey, fd)
 		node := enode.SignNull(new(enr.Record), id)
 		return &conn{fd: fd, transport: tx, flags: inboundConn, node: node, cont: make(chan error)}
 	}
@@ -417,12 +417,12 @@ func TestServerAtCap(t *testing.T) {
 func TestServerPeerLimits(t *testing.T) {
 	srvkey := newkey()
 	clientkey := newkey()
-	clientnode := enode.NewV4(&clientkey.PublicKey, nil, 0, 0)
+	clientnode := enode.NewV4(&clientkey.TaiPubKey, nil, 0, 0)
 
 	var tp = &setupTransport{
-		pubkey: &clientkey.PublicKey,
+		pubkey: &clientkey.TaiPubKey,
 		phs: protoHandshake{
-			ID: crypto.FromECDSAPub(&clientkey.PublicKey)[1:],
+			ID: crypto.FromECDSAPub(&clientkey.TaiPubKey.Publickey)[1:],
 			// Force "DiscUselessPeer" due to unmatching caps
 			// Caps: []Cap{discard.cap()},
 		},
@@ -481,8 +481,8 @@ func TestServerPeerLimits(t *testing.T) {
 func TestServerSetupConn(t *testing.T) {
 	var (
 		clientkey, srvkey = newkey(), newkey()
-		clientpub         = &clientkey.PublicKey
-		srvpub            = &srvkey.PublicKey
+		clientpub         = &clientkey.TaiPubKey
+		srvpub            = &srvkey.TaiPubKey
 	)
 	tests := []struct {
 		dontstart bool
@@ -507,7 +507,7 @@ func TestServerSetupConn(t *testing.T) {
 		},
 		{
 			tt:           &setupTransport{pubkey: clientpub},
-			dialDest:     enode.NewV4(&newkey().PublicKey, nil, 0, 0),
+			dialDest:     enode.NewV4(&newkey().TaiPubKey, nil, 0, 0),
 			flags:        dynDialedConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: DiscUnexpectedIdentity,
@@ -527,13 +527,13 @@ func TestServerSetupConn(t *testing.T) {
 			wantCloseErr: errors.New("foo"),
 		},
 		{
-			tt:           &setupTransport{pubkey: srvpub, phs: protoHandshake{ID: crypto.FromECDSAPub(srvpub)[1:]}},
+			tt:           &setupTransport{pubkey: srvpub, phs: protoHandshake{ID: crypto.FromECDSAPub(&srvpub.Publickey)[1:]}},
 			flags:        inboundConn,
 			wantCalls:    "doEncHandshake,close,",
 			wantCloseErr: DiscSelf,
 		},
 		{
-			tt:           &setupTransport{pubkey: clientpub, phs: protoHandshake{ID: crypto.FromECDSAPub(clientpub)[1:]}},
+			tt:           &setupTransport{pubkey: clientpub, phs: protoHandshake{ID: crypto.FromECDSAPub(&clientpub.Publickey)[1:]}},
 			flags:        inboundConn,
 			wantCalls:    "doEncHandshake,doProtoHandshake,close,",
 			wantCloseErr: DiscUselessPeer,
@@ -568,7 +568,7 @@ func TestServerSetupConn(t *testing.T) {
 }
 
 type setupTransport struct {
-	pubkey            *ecdsa.PublicKey
+	pubkey            *taiCrypto.TaiPublicKey
 	encHandshakeErr   error
 	phs               protoHandshake
 	protoHandshakeErr error
@@ -577,7 +577,7 @@ type setupTransport struct {
 	closeErr error
 }
 
-func (c *setupTransport) doEncHandshake(prv *ecdsa.PrivateKey, dialDest *ecdsa.PublicKey) (*ecdsa.PublicKey, error) {
+func (c *setupTransport) doEncHandshake(prv *taiCrypto.TaiPrivateKey, dialDest *taiCrypto.TaiPublicKey) (*taiCrypto.TaiPublicKey, error) {
 	c.calls += "doEncHandshake,"
 	return c.pubkey, c.encHandshakeErr
 }
@@ -602,8 +602,10 @@ func (c *setupTransport) ReadMsg() (Msg, error) {
 	panic("ReadMsg called on setupTransport")
 }
 
-func newkey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
+//var taiprivate taiCrypto.TaiPrivateKey
+//prv0, err := taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+func newkey() *taiCrypto.TaiPrivateKey {
+	key, err := taiCrypto.GenPrivKey()
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}

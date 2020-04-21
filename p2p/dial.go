@@ -150,7 +150,7 @@ func (s *dialstate) addStatic(n *enode.Node) {
 	// This overwrites the task instead of updating an existing
 	// entry, giving users the opportunity to force a resolve operation.
 	s.static[n.ID()] = &dialTask{flags: staticDialedConn, dest: n}
-	log.Trace("n.Id is", n.ID(), n.Pubkey().Publickey)
+	log.Trace("n.Id is", n.ID(), n.Pubkey())
 }
 
 func (s *dialstate) removeStatic(n *enode.Node) {

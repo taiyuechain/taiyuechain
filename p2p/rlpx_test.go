@@ -18,10 +18,14 @@ package p2p
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/p2p/simulations/pipes"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"net"
@@ -31,12 +35,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/taiyuechain/taiyuechain/p2p/simulations/pipes"
-	"golang.org/x/crypto/sha3"
 )
 
 func TestSharedSecret(t *testing.T) {
@@ -81,15 +81,17 @@ func TestEncHandshake(t *testing.T) {
 func testEncHandshake(token []byte) error {
 	type result struct {
 		side   string
-		pubkey *ecdsa.PublicKey
+		pubkey *taiCrypto.TaiPublicKey
 		err    error
 	}
 	var (
-		prv0, _  = crypto.GenerateKey()
-		prv1, _  = crypto.GenerateKey()
-		fd0, fd1 = net.Pipe()
-		c0, c1   = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
-		output   = make(chan result)
+		taiprivate  taiCrypto.TaiPrivateKey
+		prv0, _     = taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+		taiprivate1 taiCrypto.TaiPrivateKey
+		prv1, _     = taiprivate1.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
+		fd0, fd1    = net.Pipe()
+		c0, c1      = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
+		output      = make(chan result)
 	)
 
 	go func() {
@@ -97,12 +99,12 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd0.Close()
 
-		r.pubkey, r.err = c0.doEncHandshake(prv0, &prv1.PublicKey)
+		r.pubkey, r.err = c0.doEncHandshake(prv0, &prv1.TaiPubKey)
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv1.PublicKey) {
-			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &prv1.PublicKey)
+		if !reflect.DeepEqual(r.pubkey, &prv1.TaiPubKey) {
+			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &prv1.TaiPubKey)
 		}
 	}()
 	go func() {
@@ -114,8 +116,8 @@ func testEncHandshake(token []byte) error {
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv0.PublicKey) {
-			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &prv0.PublicKey)
+		if !reflect.DeepEqual(r.pubkey, &prv0.TaiPubKey) {
+			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &prv0.TaiPubKey)
 		}
 	}()
 
@@ -146,13 +148,15 @@ func testEncHandshake(token []byte) error {
 
 func TestProtocolHandshake(t *testing.T) {
 	var (
-		prv0, _ = crypto.GenerateKey()
-		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)[1:]
-		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
+		taiprivate taiCrypto.TaiPrivateKey
+		prv0, _    = taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+		pub0       = crypto.FromECDSAPub(&prv0.TaiPubKey.Publickey)[1:]
+		hs0        = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
-		prv1, _ = crypto.GenerateKey()
-		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)[1:]
-		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
+		taiprivate1 taiCrypto.TaiPrivateKey
+		prv1, _     = taiprivate1.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
+		pub1        = crypto.FromECDSAPub(&prv1.TaiPubKey.Publickey)[1:]
+		hs1         = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
 	)
@@ -167,13 +171,13 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd0.Close()
 		rlpx := newRLPX(fd0)
-		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.PublicKey)
+		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.TaiPubKey)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &prv1.PublicKey) {
-			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &prv1.PublicKey)
+		if !reflect.DeepEqual(rpubkey.Publickey, prv1.TaiPubKey.Publickey) {
+			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey.Publickey, &prv1.TaiPubKey.Publickey)
 			return
 		}
 
@@ -198,8 +202,8 @@ func TestProtocolHandshake(t *testing.T) {
 			t.Errorf("listen side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey, &prv0.PublicKey) {
-			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &prv0.PublicKey)
+		if !reflect.DeepEqual(rpubkey.Publickey, prv0.TaiPubKey.Publickey) {
+			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey.Publickey, &prv0.TaiPubKey.Publickey)
 			return
 		}
 
@@ -500,14 +504,19 @@ var eip8HandshakeRespTests = []handshakeAckTest{
 
 func TestHandshakeForwardCompatibility(t *testing.T) {
 	var (
-		keyA, _       = crypto.HexToECDSA("49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee")
-		keyB, _       = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-		pubA          = crypto.FromECDSAPub(&keyA.PublicKey)[1:]
-		pubB          = crypto.FromECDSAPub(&keyB.PublicKey)[1:]
-		ephA, _       = crypto.HexToECDSA("869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d")
-		ephB, _       = crypto.HexToECDSA("e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4")
+		keyA, _ = crypto.HexToECDSA("49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee")
+		keyBB   taiCrypto.TaiPrivateKey
+		keyB, _ = keyBB.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+
+		pubA    = crypto.FromECDSAPub(&keyA.PublicKey)[1:]
+		pubB    = crypto.FromECDSAPub(&keyB.TaiPubKey.Publickey)[1:]
+		ephA, _ = crypto.HexToECDSA("869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d")
+
+		ephBP   taiCrypto.TaiPrivateKey
+		ephB, _ = ephBP.HexToECDSA("e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4")
+
 		ephPubA       = crypto.FromECDSAPub(&ephA.PublicKey)[1:]
-		ephPubB       = crypto.FromECDSAPub(&ephB.PublicKey)[1:]
+		ephPubB       = crypto.FromECDSAPub(&ephB.TaiPubKey.Publickey)[1:]
 		nonceA        = unhex("7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6")
 		nonceB        = unhex("559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd")
 		_, _, _, _    = pubA, pubB, ephPubA, ephPubB
@@ -524,10 +533,11 @@ func TestHandshakeForwardCompatibility(t *testing.T) {
 
 	// check derivation for (Auth₂, Ack₂) on recipient side
 	var (
-		hs = &encHandshake{
+		ephBPP taiCrypto.TaiPrivateKey
+		hs     = &encHandshake{
 			initiator:     false,
 			respNonce:     nonceB,
-			randomPrivKey: ecies.ImportECDSA(ephB),
+			randomPrivKey: ephBPP.ImportECDSA(ephB),
 		}
 		authCiphertext     = unhex(eip8HandshakeAuthTests[1].input)
 		authRespCiphertext = unhex(eip8HandshakeRespTests[1].input)
