@@ -36,9 +36,11 @@ import (
 	"crypto/hmac"
 	"crypto/subtle"
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
 	"hash"
 	"io"
 	"math/big"
+	"runtime/debug"
 )
 
 var (
@@ -120,6 +122,8 @@ func MaxSharedKeyLength(pub *PublicKey) int {
 // ECDH key agreement method used to establish secret keys for encryption.
 func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []byte, err error) {
 	if prv.PublicKey.Curve != pub.Curve {
+		log.Info("GenerateShared", "", prv.PublicKey.Curve, "pub.Curve", pub.Curve)
+		debug.PrintStack()
 		return nil, ErrInvalidCurve
 	}
 	if skLen+macLen > MaxSharedKeyLength(pub) {
