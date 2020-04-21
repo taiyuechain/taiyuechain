@@ -72,7 +72,9 @@ func (TPK *TaiPublicKey) DecompressPubkey(pubkey []byte) (*TaiPublicKey, error) 
 	return nil, nil
 }
 func (TPK *TaiPrivateKey) ExportECDSA() *TaiPrivateKey {
-	TPK.Private = *TPK.EciesPrivate.ExportECDSA()
+	priv := *TPK.EciesPrivate.ExportECDSA()
+	TPK.Private = priv
+	TPK.TaiPubKey.Publickey = priv.PublicKey
 	return TPK
 
 }
@@ -86,7 +88,9 @@ func (TPK *TaiPrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
 	return nil, nil
 }
 func (TPK *TaiPrivateKey) ImportECDSA(prv *TaiPrivateKey) *TaiPrivateKey {
-	TPK.EciesPrivate = *ecies.ImportECDSA(&prv.Private)
+	privEcies := *ecies.ImportECDSA(&prv.Private)
+	TPK.EciesPrivate = privEcies
+	TPK.TaiPubKey.EciesPublickey = privEcies.PublicKey
 	return TPK
 }
 func (TPK *TaiPublicKey) ExportECDSA() *TaiPublicKey {
@@ -155,6 +159,7 @@ func (TPK *TaiPrivateKey) LoadECDSA(file string) (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		TPK.Private = *private
+		TPK.TaiPubKey.Publickey = private.PublicKey
 		return TPK, nil
 	}
 	return TPK, nil
@@ -174,6 +179,7 @@ func (TPK *TaiPrivateKey) HexToECDSA(hexkey string) (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		TPK.Private = *private
+		TPK.TaiPubKey.Publickey = private.PublicKey
 		return TPK, nil
 	}
 	return TPK, nil
@@ -233,6 +239,7 @@ func (TPK *TaiPrivateKey) ToECDSAUnsafe(d []byte) *TaiPrivateKey {
 	case ASYMMETRICCRYPTOECDSA:
 		private := tycrpto.ToECDSAUnsafe(d)
 		TPK.Private = *private
+		TPK.TaiPubKey.Publickey = private.PublicKey
 		return TPK
 	}
 	return TPK
@@ -257,6 +264,7 @@ func (TPK *TaiPrivateKey) ToECDSA(d []byte) (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		TPK.Private = *private
+		TPK.TaiPubKey.Publickey = private.PublicKey
 		return TPK, nil
 	}
 	return TPK, nil
@@ -351,6 +359,7 @@ func (TPK *TaiPrivateKey) Public() *TaiPrivateKey {
 		//b, err := hex.DecodeString(hexKey)
 		pubk, _ := tycrpto.ToECDSA(TPK.HexBytesPrivate)
 		TPK.Private = *pubk
+		TPK.TaiPubKey.Publickey = pubk.PublicKey
 		return TPK
 	}
 	return nil
@@ -433,6 +442,7 @@ func GenPrivKey() (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		tai.Private = *prik
+		tai.TaiPubKey.Publickey = prik.PublicKey
 		return &tai, nil
 	}
 	return nil, nil
@@ -457,6 +467,7 @@ func GenPrivKeyParam(reader io.Reader) (*TaiPrivateKey, error) {
 			return nil, err
 		}
 		tai.Private = *prik
+		tai.TaiPubKey.Publickey = prik.PublicKey
 		return &tai, nil
 	}
 	return nil, nil
@@ -468,6 +479,7 @@ func GenerateKey(rand io.Reader, curve elliptic.Curve, params *ecies.ECIESParams
 		return nil, err
 	}
 	private.EciesPrivate = *eciestpriv
+	private.TaiPubKey.EciesPublickey = eciestpriv.PublicKey
 	return &private, nil
 }
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {

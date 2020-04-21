@@ -544,7 +544,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *taiCrypto.TaiPrivate
 	//key := ecies.ImportECDSA(prv)
 	key := prv.ImportECDSA(prv)
 	log.Debug("decrypt is buf is:", buf)
-	if dec, err := key.Decrypt(buf, nil, nil); err != nil {
+	if dec, err := key.Decrypt(buf, nil, nil); err == nil {
 		msg.decodePlain(dec)
 		return buf, nil
 	}
@@ -594,12 +594,15 @@ func importPublicKey(pubKey []byte) (*taiCrypto.TaiPublicKey, error) {
 
 //func exportPubkey(pub *ecies.PublicKey) []byte {
 func exportPubkey(pub *taiCrypto.TaiPublicKey) []byte {
-	/*	if pub == nil {
-			panic("nil pubkey")
-		}
-		if pub.X != nil {
-			return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
-		}*/
+	if pub == nil {
+		panic("nil pubkey")
+	}
+	/*if pub.X != nil {
+		return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
+	}*/
+	if pub.EciesPublickey.X != nil {
+		return elliptic.Marshal(pub.EciesPublickey.Curve, pub.EciesPublickey.X, pub.EciesPublickey.Y)[1:]
+	}
 	if pub.Publickey.X != nil {
 		return elliptic.Marshal(taiCrypto.S256(), pub.Publickey.X, pub.Publickey.Y)[1:]
 	}
