@@ -1124,10 +1124,12 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 
 	//set node cert
-	cfg.NodeCert = stack.Config().BftCommitteeCert()
-	if cfg.NodeCert == nil {
-		log.Error("not cert file ")
-		//return
+	if !ctx.GlobalBool(SingleNodeFlag.Name) {
+		cfg.NodeCert = stack.Config().BftCommitteeCert()
+		if cfg.NodeCert == nil {
+			log.Error("not cert file ")
+			//return
+		}
 	}
 
 	//set PrivateKey by config,file or hex
@@ -1143,10 +1145,10 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	var taiprivate taiCrypto.TaiPrivateKey
 	//var taipublic taiCrypto.TaiPublicKey
 	//privatekey, _ := taiprivate.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
-//	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
-		//log.Error("cert not the varify cert by private key")
-		//return
-//	}
+	//	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
+	//log.Error("cert not the varify cert by private key")
+	//return
+	//	}
 
 	//cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
 	cfg.CommitteeKey = taiprivate.FromECDSA(*cfg.PrivateKey)

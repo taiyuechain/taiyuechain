@@ -502,7 +502,6 @@ func (c *Config) BftCommitteeCert() []byte {
 	// Generate ephemeral key if no datadir is being used.
 	cert := []byte{}
 	if c.DataDir == "" {
-
 		return cert
 	}
 	certfile := c.ResolvePath(datadirLocalCert)

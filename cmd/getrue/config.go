@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"os"
 	"reflect"
@@ -92,9 +93,29 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		Etrue:     etrue.DefaultConfig,
-		Node:      defaultNodeConfig(),
+		Etrue: etrue.DefaultConfig,
+		Node:  defaultNodeConfig(),
 		//Dashboard: dashboard.DefaultConfig,
+	}
+
+	if ctx.GlobalBool(utils.SingleNodeFlag.Name) {
+		var taiprivate taiCrypto.TaiPrivateKey
+		//var taipublic taiCrypto.TaiPublicKey
+
+		prikey, _ := taiprivate.HexToECDSA("c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc")
+		cfg.Etrue.PrivateKey = prikey
+		cfg.Etrue.CommitteeKey = taiprivate.FromECDSA(*cfg.Etrue.PrivateKey)
+		//cfg.Etrue.Etherbase = taipublic.PubkeyToAddress(cfg.Etrue.PrivateKey.TaiPubKey)
+
+		//cfg.Etrue.MineFruit = true
+		cfg.Etrue.Mine = true
+		//cfg.Etrue.NetworkId =400
+		//set node config
+		cfg.Node.HTTPPort = 8888
+		cfg.Node.HTTPHost = "127.0.0.1"
+		cfg.Node.HTTPModules = []string{"db", "etrue", "net", "web3", "personal", "admin", "miner", "eth"}
+
+		ctx.GlobalSet("datadir", "./data")
 	}
 
 	// Load config file.
