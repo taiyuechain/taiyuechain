@@ -287,7 +287,7 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 	} else {
 		s.EgressMAC, s.IngressMAC = mac2, mac1
 	}
-
+	log.Info("secrets", "secrets", s)
 	return s, nil
 }
 
@@ -319,6 +319,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey, rem
 	if err != nil {
 		return s, err
 	}
+	log.Info("initiatorEncHandshake", "authMsg", authMsg)
 	if _, err = conn.Write(authPacket); err != nil {
 		return s, err
 	}
@@ -328,6 +329,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey, rem
 	if err != nil {
 		return s, err
 	}
+	log.Info("initiatorEncHandshake", "authRespMsg", authRespMsg)
 	if err := h.handleAuthResp(authRespMsg); err != nil {
 		return s, err
 	}
@@ -395,6 +397,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey) (s s
 		return s, err
 	}
 	h := new(encHandshake)
+	log.Info("receiverEncHandshake", "authMsg", authMsg)
 	if err := h.handleAuthMsg(authMsg, prv); err != nil {
 		return s, err
 	}
@@ -412,6 +415,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey) (s s
 	if err != nil {
 		return s, err
 	}
+	log.Info("receiverEncHandshake", "authRespMsg 11", authRespMsg)
 	if _, err = conn.Write(authRespPacket); err != nil {
 		return s, err
 	}
