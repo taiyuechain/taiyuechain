@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/log"
+
 	//"github.com/ethereum/go-ethereum/crypto"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
@@ -83,6 +85,7 @@ func (TPK *TaiPrivateKey) Decrypt(c, s1, s2 []byte) (m []byte, err error) {
 	case ASYMMETRICCRYPTOSM2:
 		return sm2.Decrypt(&TPK.GmPrivate, c, sm2.C1C2C3)
 	case ASYMMETRICCRYPTOECDSA:
+		log.Info("TaiPublicKey Decrypt")
 		return TPK.EciesPrivate.Decrypt(c, s1, s2)
 	}
 	return nil, nil
@@ -102,6 +105,7 @@ func (TPK *TaiPrivateKey) GenerateShared(pub *TaiPublicKey, skLen, macLen int) (
 	case ASYMMETRICCRYPTOSM2:
 		return TPK.GmPrivate.GenerateShared(&pub.SmPublickey, skLen, macLen)
 	case ASYMMETRICCRYPTOECDSA:
+		log.Info("GenerateShared", "GenerateShared", pub.EciesPublickey)
 		return TPK.EciesPrivate.GenerateShared(&pub.EciesPublickey, skLen, macLen)
 	}
 	return nil, nil
@@ -119,6 +123,7 @@ func (TPK *TaiPublicKey) Encrypt(rand io.Reader, pub *TaiPublicKey, m, s1, s2 []
 	case ASYMMETRICCRYPTOSM2:
 		return sm2.Encrypt(&pub.SmPublickey, m, sm2.C1C2C3)
 	case ASYMMETRICCRYPTOECDSA:
+		log.Info("TaiPublicKey Encrypt", "EciesPublickey", pub.EciesPublickey)
 		return ecies.Encrypt(rand, &pub.EciesPublickey, m, s1, s2)
 	}
 	return nil, nil
