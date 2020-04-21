@@ -213,7 +213,6 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 		bootnode := s.bootnodes[0]
 		s.bootnodes = append(s.bootnodes[:0], s.bootnodes[1:]...)
 		s.bootnodes = append(s.bootnodes, bootnode)
-		log.Trace("add bootnodes is success!!!")
 		if addDial(dynDialedConn, bootnode) {
 			needDynDials--
 		}
@@ -243,7 +242,7 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 	// Launch a discovery lookup if more candidates are needed.
 	if len(s.lookupBuf) < needDynDials && !s.lookupRunning {
 		s.lookupRunning = true
-		newtasks = append(newtasks, &discoverTask{})
+		//newtasks = append(newtasks, &discoverTask{})
 	}
 	//log.Trace("New tasks discover", "context", fmt.Sprintf("newtasks %d i %d lookupBuf %d needDynDials %d ", len(newtasks), i, len(s.lookupBuf), needDynDials))
 	// Launch a timer to wait for the next node to expire if all
