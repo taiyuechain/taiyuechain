@@ -928,8 +928,9 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 		return errServerStopped
 	}
 	// If dialing, figure out the remote public key.
-	var dialPubkey taiCrypto.TaiPublicKey
+	var dialPubkey *taiCrypto.TaiPublicKey
 	if dialDest != nil {
+		dialPubkey = new(taiCrypto.TaiPublicKey)
 		/*pubkey:=new(ecdsa.PublicKey)*/
 		dialPubkey.Publickey = *new(ecdsa.PublicKey)
 		//if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey)); err != nil {
@@ -938,7 +939,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 		}
 	}
 	// Run the encryption handshake.
-	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, &dialPubkey)
+	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)
 	if err != nil {
 		srv.log.Trace("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		return err
