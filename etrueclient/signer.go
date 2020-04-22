@@ -51,6 +51,13 @@ func (s *senderFromServer) Sender(tx *types.Transaction) (common.Address, error)
 	return s.addr, nil
 }
 
+func (s *senderFromServer) SenderP256(tx *types.Transaction) (common.Address, error) {
+	if s.blockhash == (common.Hash{}) {
+		return common.Address{}, errNotCached
+	}
+	return s.addr, nil
+}
+
 func (s *senderFromServer) Payer(tx *types.Transaction) (common.Address, error) {
 	return common.Address{}, nil
 }
