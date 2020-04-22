@@ -162,7 +162,7 @@ func parsePubkey(in string) (*taiCrypto.TaiPublicKey, error) {
 	} else if len(b) != 64 {
 		return nil, fmt.Errorf("wrong length, want %d hex chars", 128)
 	}
-	b = append([]byte{0x04}, b...)
+	b = append([]byte{0x4}, b...)
 	public, err := taipublic.UnmarshalPubkey(b)
 	if err != nil {
 		return nil, nil
