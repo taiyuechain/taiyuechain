@@ -42,8 +42,9 @@ import (
 )
 
 const (
-	snailchainHeadSize  = 64
-	committeeCacheLimit = 256
+	snailchainHeadSize      = 64
+	committeeCacheLimit     = 256
+	committeeMemberChanSize = 20
 )
 
 type ElectMode uint
@@ -149,6 +150,9 @@ type Election struct {
 	//snailChainEventCh  chan types.SnailChainEvent
 	//snailChainEventSub event.Subscription
 
+	committeeMemberCh  chan types.CommitteeMemberEvent
+	committeeMemberSub event.Subscription
+
 	fastchain *core.BlockChain
 	//snailchain SnailBlockChain
 
@@ -172,11 +176,14 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		fastchain: fastBlockChain,
 		//snailchain:        snailBlockChain,
 		//snailChainEventCh: make(chan types.SnailChainEvent, snailchainHeadSize),
-		prepare:      false,
-		switchNext:   make(chan struct{}),
-		singleNode:   config.GetNodeType(),
-		electionMode: ElectModeEtrue,
+		prepare:           false,
+		switchNext:        make(chan struct{}),
+		singleNode:        config.GetNodeType(),
+		electionMode:      ElectModeEtrue,
+		committeeMemberCh: make(chan types.CommitteeMemberEvent, committeeMemberChanSize),
 	}
+	//subscrib handle committeeMember event
+	election.subScribehandleCommitteeMemberEvent()
 
 	// get genesis committee
 	election.genesisCommittee = election.getGenesisCommittee()
@@ -204,6 +211,10 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 	}
 
 	return election
+}
+
+func (election *Election) subScribehandleCommitteeMemberEvent() {
+	//election.committeeMemberSub = election.*.SubscribeCommitteeMemberEvent(election.committeeMemberCh)
 }
 
 // NewFakeElection create fake mode election only for testing
@@ -1364,6 +1375,18 @@ func (e *Election) loop() {
 					BackupMembers:    e.committee.BackupMembers(),
 					BeginFastNumber:  e.committee.beginFastNumber,
 				})
+			}
+		case ch := <-e.committeeMemberCh:
+			switch ch.Option {
+			case types.AddCommitteeMember:
+				//todo
+				e.nextCommittee.members = append(e.nextCommittee.members, ch.CommitteeMember)
+				log.Info("AddCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
+			case types.RemoveCommitteeMember:
+				//todo
+				log.Info("RemoveCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
+			default:
+				log.Error("unknown handle committeeMember option:", "option", ch.Option)
 			}
 		}
 	}

@@ -24,7 +24,6 @@ import (
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*Transaction }
 
-
 //NewFruitsEvent is posted when a fruit has been imported.
 type NewFruitsEvent struct{ Fruits []*SnailBlock }
 
@@ -95,3 +94,8 @@ type NewMinedBlockEvent struct{ Block *SnailBlock }
 
 // NodeInfoEvent is posted when nodeInfo send
 type NodeInfoEvent struct{ NodeInfo *EncryptNodeMessage }
+
+type CommitteeMemberEvent struct {
+	Option          uint
+	CommitteeMember *CommitteeMember
+}

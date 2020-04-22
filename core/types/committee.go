@@ -30,6 +30,11 @@ const (
 	// CommitteeOver notify current pbft committee end fastBlock
 	CommitteeOver
 
+	//add committeeMember into committee
+	AddCommitteeMember = iota
+	//remove committeeMember from committee
+	RemoveCommitteeMember
+
 	StateUnusedFlag    = 0xa0
 	StateUsedFlag      = 0xa1
 	StateSwitchingFlag = 0xa2
