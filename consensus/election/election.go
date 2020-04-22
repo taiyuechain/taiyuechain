@@ -1379,12 +1379,11 @@ func (e *Election) loop() {
 		case ch := <-e.committeeMemberCh:
 			switch ch.Option {
 			case types.AddCommitteeMember:
-				//todo
-				e.nextCommittee.members = append(e.nextCommittee.members, ch.CommitteeMember)
 				log.Info("AddCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
+				e.nextCommittee.members = append(e.nextCommittee.members, ch.CommitteeMember)
 			case types.RemoveCommitteeMember:
-				//todo
 				log.Info("RemoveCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
+				e.removeCommitteeMember(ch.CommitteeMember)
 			default:
 				log.Error("unknown handle committeeMember option:", "option", ch.Option)
 			}
@@ -1395,6 +1394,19 @@ func (e *Election) loop() {
 // SubscribeElectionEvent adds a channel to feed on committee change event
 func (e *Election) SubscribeElectionEvent(ch chan<- types.ElectionEvent) event.Subscription {
 	return e.scope.Track(e.electionFeed.Subscribe(ch))
+}
+
+func (e *Election) removeCommitteeMember(removeCommitteeMember *types.CommitteeMember) {
+	for i, member := range e.nextCommittee.members {
+		if member.Coinbase == removeCommitteeMember.Coinbase {
+			e.nextCommittee.members = append(e.nextCommittee.members[:i], e.nextCommittee.members[i+1:]...)
+		}
+	}
+}
+
+func main() {
+	a := []int{1, 2, 3}
+	a = append(a[:0], a[1:]...) // 删除开头1个元素
 }
 
 // SetEngine set election backend consesus
