@@ -411,6 +411,8 @@ func HexToTaiPrivateKey(hexKey string) (*TaiPrivateKey, error) {
 	case ASYMMETRICCRYPTOSM2:
 		//TODO need add SM2 to change hexKey
 		b, err := hex.DecodeString(hexKey)
+		taiprivate, _ := tai.ToECDSA(b)
+		tai.GmPrivate = taiprivate.GmPrivate
 		if err != nil {
 			return nil, errors.New("invalid hex string")
 		}
