@@ -90,6 +90,8 @@ type raw_txdata struct {
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Cert         []byte          `json:"cert"   gencodec:"required"`
+	Sig         []byte          `json:"sig"   gencodec:"required"`
+	ChainID       *big.Int        `json:"chainID"   gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -110,6 +112,28 @@ func (rawTransaction *RawTransaction) ConvertTransaction() *Transaction {
 		tx = NewContractCreation(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload, cpy_data.Cert)
 	} else {
 		tx = NewTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload, cpy_data.Cert)
+	}
+	tx.data.V = cpy_data.V
+	tx.data.R = cpy_data.R
+	tx.data.S = cpy_data.S
+	return tx
+}
+
+func (rawTransaction *RawTransaction) ConvertP256Transaction() *Transaction {
+	cpy := &RawTransaction{data: rawTransaction.data}
+	cpy_data := cpy.data
+
+	tx := new(Transaction)
+	//fmt.Println("data.Recipient", cpy_data.Recipient)
+	if cpy_data.Recipient == nil {
+		//tx = NewContractCreation(cpy_data.AccountNonce, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload, cpy_data.Cert)
+		//NewP256Transaction(nonce,&to,nil,amount,new(big.Int).SetInt64(0),params.TxGas,new(big.Int).SetInt64(0),nil,fromcert,chainID,nil)
+		tx = NewP256Transaction(cpy_data.AccountNonce, nil, nil,cpy_data.Amount,new(big.Int).SetInt64(0),cpy_data.GasLimit,cpy_data.Price,cpy_data.Payload,cpy_data.Cert,cpy_data.ChainID,cpy_data.Sig);
+		//NewP256Transaction(nonce , to , payer , amount, fee *big.Int, gasLimit , gasPrice, data []byte, cert []byte,chainID *big.Int,sig []byte)
+		//tx = NewTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload, cpy_data.Cert)
+	}else{
+		tx = NewP256Transaction(cpy_data.AccountNonce, cpy_data.Recipient, nil,cpy_data.Amount,new(big.Int).SetInt64(0),cpy_data.GasLimit,cpy_data.Price,cpy_data.Payload,cpy_data.Cert,cpy_data.ChainID,cpy_data.Sig);
+
 	}
 	tx.data.V = cpy_data.V
 	tx.data.R = cpy_data.R
@@ -277,6 +301,10 @@ func newRawTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLim
 // ChainId returns which chain id this transaction was signed for (if at all)
 func (tx *Transaction) ChainId() *big.Int {
 	return deriveChainId(tx.data.V)
+}
+
+func (tx *Transaction) ChainId256() *big.Int {
+	return tx.data.ChainID;
 }
 
 // Protected returns whether the transaction is protected from replay protection.
