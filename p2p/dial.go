@@ -150,7 +150,7 @@ func (s *dialstate) addStatic(n *enode.Node) {
 	// This overwrites the task instead of updating an existing
 	// entry, giving users the opportunity to force a resolve operation.
 	s.static[n.ID()] = &dialTask{flags: staticDialedConn, dest: n}
-	log.Trace("n.Id is", n.ID(), n.Pubkey().Publickey)
+	log.Trace("n.Id is", n.ID(), n.Pubkey())
 }
 
 func (s *dialstate) removeStatic(n *enode.Node) {
@@ -162,7 +162,6 @@ func (s *dialstate) removeStatic(n *enode.Node) {
 }
 
 func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Time) []task {
-	log.Trace("newTasks is runing")
 	if s.start.IsZero() {
 		s.start = now
 	}
@@ -213,7 +212,6 @@ func (s *dialstate) newTasks(nRunning int, peers map[enode.ID]*Peer, now time.Ti
 		bootnode := s.bootnodes[0]
 		s.bootnodes = append(s.bootnodes[:0], s.bootnodes[1:]...)
 		s.bootnodes = append(s.bootnodes, bootnode)
-		log.Trace("add bootnodes is success!!!")
 		if addDial(dynDialedConn, bootnode) {
 			needDynDials--
 		}

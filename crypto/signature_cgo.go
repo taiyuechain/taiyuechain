@@ -73,7 +73,7 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 	if x == nil {
 		return nil, fmt.Errorf("invalid public key")
 	}
-	return &ecdsa.PublicKey{X: x, Y: y, Curve: elliptic.P256()}, nil
+	return &ecdsa.PublicKey{X: x, Y: y, Curve: S256()}, nil
 }
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.

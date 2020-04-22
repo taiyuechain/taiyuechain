@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"encoding/hex"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"testing"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,8 +31,9 @@ import (
 )
 
 var (
-	privkey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-	pubkey     = &privkey.PublicKey
+	privkeyP   taiCrypto.TaiPrivateKey
+	privkey, _ = privkeyP.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+	pubkey     = &privkey.TaiPubKey.Publickey
 )
 
 func TestEmptyNodeID(t *testing.T) {
@@ -50,9 +51,13 @@ func TestEmptyNodeID(t *testing.T) {
 func TestSignError(t *testing.T) {
 	invalidKey := &ecdsa.PrivateKey{D: new(big.Int), PublicKey: *pubkey}
 
+	var privkeyinvalidKey taiCrypto.TaiPrivateKey
+	privkeyinvalidKey.Private = *invalidKey
+	privkeyinvalidKey.TaiPubKey.Publickey = *pubkey
+
 	var r enr.Record
 	emptyEnc, _ := rlp.EncodeToBytes(&r)
-	if err := SignV4(&r, invalidKey); err == nil {
+	if err := SignV4(&r, &privkeyinvalidKey); err == nil {
 		t.Fatal("expected error from SignV4")
 	}
 	newEnc, _ := rlp.EncodeToBytes(&r)
