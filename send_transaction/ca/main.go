@@ -1,9 +1,17 @@
 package main
 
 import (
+	"context"
+	"crypto/ecdsa"
+	"crypto/x509"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-
+	"github.com/taiyuechain/taiyuechain/etrueclient"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -12,14 +20,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/cim"
-	"crypto/x509"
-	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/params"
-"github.com/taiyuechain/taiyuechain/etrueclient"
-	"context"
 	//"crypto/x509"
 	//"fmt"
 	//"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
@@ -99,7 +99,7 @@ func main() {
 		ip = ip + "8888"
 	}
 
-	SendP256Transtion(ip);
+	SendP256Transtion(ip)
 	/*go send(count, ip)*/
 
 	for {
@@ -120,7 +120,7 @@ func SendP256Transtion(ip string) {
 
 	fmt.Println("send Transaction num is:", num)
 	//client, err := rpc.Dial("http://" + ip)
-	url :="http://" + ip
+	url := "http://" + ip
 	client, err := etrueclient.Dial(url)
 	defer client.Close()
 	if err != nil {
@@ -130,21 +130,19 @@ func SendP256Transtion(ip string) {
 	}
 
 	//sendRawTransaction(client *rpc.Client, from string, to string, value string) (string, error)
-	var toPrive ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var fromPrive ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-
+	var toPrive, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var fromPrive, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 
 	//from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
-	amount := new(big.Int).SetInt64(0)
-	nonce := uint64(1);
+	amount := new(big.Int).SetInt64(1000000000000000000)
+	fmt.Println("amount", amount)
+	nonce := uint64(6)
 
-	// to
-
+	//to
 	tocertbyte := cim.CreateCertP256(toPrive)
 
-	toCert,err := x509.ParseCertificate(tocertbyte)
-	if(err != nil){
-		//t.Fatalf("ParseCertificate err")
+	toCert, err := x509.ParseCertificate(tocertbyte)
+	if err != nil {
 		return
 	}
 	//fmt.Println(tocert.Version)
@@ -155,13 +153,9 @@ func SendP256Transtion(ip string) {
 		topubk.X = pub.X
 		topubk.Y = pub.Y
 	}
-	to := crypto.PubkeyToAddressP256(topubk)
-	//fmt.Println("to","is",to)
-	// from
-	fromcert :=cim.CreateCertP256(fromPrive)
 
-	//gasLimit := uint64(2100000) // in units
-	//gasPrice, err := client.SuggestGasPrice(context.Background())
+	// from
+	fromcert := cim.CreateCertP256(fromPrive)
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
@@ -169,24 +163,53 @@ func SendP256Transtion(ip string) {
 		return
 	}
 
-	fmt.Println("the chain id ","is",chainID)
+	fmt.Println("the chain id ", "is", chainID)
+	from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
+	to := crypto.PubkeyToAddressP256(topubk)
+	fmt.Println("--from address", hexutil.Encode(from.Bytes()), "--to address", hexutil.Encode(to.Bytes()))
 
-	tx := types.NewP256Transaction(nonce,&to,nil,amount,new(big.Int).SetInt64(0),params.TxGas,new(big.Int).SetInt64(0),nil,fromcert,chainID,nil)
+	//send true transfer
+	//tx := types.NewP256Transaction(nonce, &to, nil, amount,
+	//	new(big.Int).SetInt64(0),params.TxGas, new(big.Int).SetInt64(10000), nil,fromcert, chainID, nil)
 
+	//send create contract transaction
+	//tx := generateCreateContractTx(nonce, amount, fromcert, chainID)
+
+	//send erc20 transfer tx
+	tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
 	signer := types.NewTIP1Signer(chainID)
-	signTx,_ := types.SignTxBy266(tx,signer,fromPrive);
+	signTx, _ := types.SignTxBy266(tx, signer, fromPrive)
 
 	fmt.Println("--start send ")
 	err = client.SendPayTransaction(context.Background(), signTx)
 	if err != nil {
 		msg <- false
-		fmt.Println("err","is",err)
-		return//log.Fatal(err)
+		fmt.Println("err", "is", err)
+		return //log.Fatal(err)
 	}
 	fmt.Println("--end send ")
 
-	fmt.Println("tx Hash","is",signTx.Hash())
+	fmt.Println("tx Hash", "is", hexutil.Encode(signTx.Hash().Bytes()))
+
+}
+
+func generateCreateContractTx(nonce uint64, amount *big.Int, fromcert []byte, chainID *big.Int) *types.Transaction {
+	data := "0x608060405260008060006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550600060015534801561005657600080fd5b506012600a0a6402540be40002600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550610da0806100b56000396000f300608060405260043610610099576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff16806306fdde031461009e578063095ea7b31461012e57806318160ddd1461019357806323b872dd146101be578063313ce5671461024357806370a082311461026e57806395d89b41146102c5578063a9059cbb14610355578063dd62ed3e146103ba575b600080fd5b3480156100aa57600080fd5b506100b3610431565b6040518080602001828103825283818151815260200191508051906020019080838360005b838110156100f35780820151818401526020810190506100d8565b50505050905090810190601f1680156101205780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561013a57600080fd5b50610179600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291908035906020019092919050505061046a565b604051808215151515815260200191505060405180910390f35b34801561019f57600080fd5b506101a861055c565b6040518082815260200191505060405180910390f35b3480156101ca57600080fd5b50610229600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff1690602001909291908035906020019092919050505061056b565b604051808215151515815260200191505060405180910390f35b34801561024f57600080fd5b50610258610999565b6040518082815260200191505060405180910390f35b34801561027a57600080fd5b506102af600480360381019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919050505061099e565b6040518082815260200191505060405180910390f35b3480156102d157600080fd5b506102da6109e7565b6040518080602001828103825283818151815260200191508051906020019080838360005b8381101561031a5780820151818401526020810190506102ff565b50505050905090810190601f1680156103475780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b34801561036157600080fd5b506103a0600480360381019080803573ffffffffffffffffffffffffffffffffffffffff16906020019092919080359060200190929190505050610a20565b604051808215151515815260200191505060405180910390f35b3480156103c657600080fd5b5061041b600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803573ffffffffffffffffffffffffffffffffffffffff169060200190929190505050610cb6565b6040518082815260200191505060405180910390f35b6040805190810160405280600981526020017f4d6172636f506f6c6f000000000000000000000000000000000000000000000081525081565b600081600360003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925846040518082815260200191505060405180910390a36001905092915050565b6012600a0a6402540be4000281565b6000808373ffffffffffffffffffffffffffffffffffffffff16141515156105d6576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526000815260200160200191505060405180910390fd5b81600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054101580156106a1575081600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205410155b15156106f0576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526000815260200160200191505060405180910390fd5b61077f82600360008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610d3d90919063ffffffff16565b600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208190555061085182600260008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610d3d90919063ffffffff16565b600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055506108e682600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610d5690919063ffffffff16565b600260008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff168473ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a3600190509392505050565b601281565b6000600260008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020549050919050565b6040805190810160405280600381526020017f4d4150000000000000000000000000000000000000000000000000000000000081525081565b6000808373ffffffffffffffffffffffffffffffffffffffff1614151515610a8b576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526000815260200160200191505060405180910390fd5b81600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000205410151515610b1d576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401808060200182810382526000815260200160200191505060405180910390fd5b610b6f82600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610d3d90919063ffffffff16565b600260003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081905550610c0482600260008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054610d5690919063ffffffff16565b600260008573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040518082815260200191505060405180910390a36001905092915050565b6000600360008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054905092915050565b6000828211151515610d4b57fe5b818303905092915050565b6000808284019050838110151515610d6a57fe5b80915050929150505600a165627a7a723058201345897f32ad02e42a2ac96e6516a45ad7e34eb5f1b129be86e17739d50dd8a50029"
+	Databytes, _ := hexutil.Decode(data)
+	return types.NewP256Transaction(nonce, nil, nil, amount, new(big.Int).SetInt64(0),
+		6000000, new(big.Int).SetInt64(0), Databytes,
+		fromcert, chainID, nil)
+}
+func sendErc20TokenTx(nonce uint64, fromcert []byte, chainID *big.Int) *types.Transaction {
+	data := "0xa9059cbb0000000000000000000000008926a8d6c4480205a73dbc7712e8578827ce84fb0000000000000000000000000000000000000000000000000de0b6b3a7640000"
+	toByte, _ := hexutil.Decode("0xdc465e830637c9d50098a3d0b8245294c4091064")
+	to := common.BytesToAddress(toByte)
+	Databytes, _ := hexutil.Decode(data)
+	return types.NewP256Transaction(nonce, &to, nil, new(big.Int).SetInt64(0),
+		new(big.Int).SetInt64(1000000),
+		6000000, new(big.Int).SetInt64(1000), Databytes,
+		fromcert, chainID, nil)
 }
 
 //send transaction init
