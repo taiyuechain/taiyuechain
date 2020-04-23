@@ -235,7 +235,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {
-		log.Info("cart List ", "is", caCert)
+		//log.Info("cart List ", "is", caCert)
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			return nil, err

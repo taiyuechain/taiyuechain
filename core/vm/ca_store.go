@@ -251,7 +251,7 @@ func (ca *CACertList) addCertToList(caCert []byte) (bool, error) {
 		return false, errors.New("ca cert len is zeor")
 	}
 	ok, _ := ca.IsInList(caCert)
-	log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
+	//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
 	if ok {
 		return false, errors.New("ca cert is alread exit")
 	}
@@ -261,7 +261,7 @@ func (ca *CACertList) addCertToList(caCert []byte) (bool, error) {
 		caCert,
 		true,
 	}
-	log.Info("ccc", "caamount", cac.cACert)
+	//log.Info("ccc", "caamount", cac.cACert)
 	//ca.caCertMap = make(map[uint64]*CACert)
 	/*if(amount == 0){
 		ca.caCertMap[uint64(0)] = cac
