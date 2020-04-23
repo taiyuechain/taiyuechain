@@ -193,7 +193,7 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 	agent.initNodeWork()
 	agent.singleNode = config.NodeType
 	agent.privateKey = config.PrivateKey
-	//taipublic.Publickey = agent.privateKey.PublicKey
+	taipublic.Publickey = agent.privateKey.Private.PublicKey
 	agent.committeeNode = &types.CommitteeNode{
 		IP:       config.Host,
 		Port:     uint32(config.Port),
