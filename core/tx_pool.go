@@ -643,7 +643,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrGasLimit
 	}
 	// Make sure the transaction is signed properly
-	from, err := types.Sender(pool.signer, tx)
+	//from, err := types.Sender(pool.signer, tx)
+	from, err := types.SenderP256(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
 	}
@@ -655,9 +656,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
-	if pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
+	/*if pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
 		return ErrUnderpriced
-	}
+	}*/
 	// Ensure the transaction adheres to nonce ordering
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
@@ -678,13 +679,13 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return ErrInsufficientFunds
 		}
 	}
-	intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
+	/*intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
 	if err != nil {
 		return err
 	}
 	if tx.Gas() < intrGas {
 		return ErrIntrinsicGas
-	}
+	}*/
 	return nil
 }
 
@@ -698,7 +699,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// If the transaction is already known, discard it
+
 	hash := tx.Hash()
+	fmt.Println("----------------add tx","is",hash)
 	if pool.all.Get(hash) != nil {
 		log.Trace("Discarding already known transaction", "hash", hash)
 		return false, fmt.Errorf("known transaction: %x", hash)
