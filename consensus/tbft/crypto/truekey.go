@@ -50,6 +50,7 @@ func (priv PrivKeyTrue) Sign(msg []byte) ([]byte, error) {
 	//caoliang modify
 	//taiprivate= priv1
 	//return tcrypyo.Sign(msg, &priv1)
+	taiprivate.Private = priv.Private
 	return taiprivate.Sign(msg, taiprivate)
 }
 
