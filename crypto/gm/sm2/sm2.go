@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/asn1"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
@@ -13,7 +14,6 @@ import (
 	"hash"
 	"io"
 	"math/big"
-	"encoding/hex"
 
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/crypto/sha3"
@@ -130,7 +130,16 @@ func RawBytesToPublicKey(bytes []byte) (*PublicKey, error) {
 	publicKey.Y = new(big.Int).SetBytes(bytes[KeyBytes:])
 	return publicKey, nil
 }
-
+func RawBytesToPublicKey1(bytes []byte) (*PublicKey, error) {
+	if len(bytes[2:]) != KeyBytes*2 {
+		return nil, errors.New("Public key raw bytes length must be " + string(KeyBytes*2))
+	}
+	publicKey := new(PublicKey)
+	publicKey.Curve = sm2P256V1
+	publicKey.X = new(big.Int).SetBytes(bytes[2 : KeyBytes+2])
+	publicKey.Y = new(big.Int).SetBytes(bytes[KeyBytes+2:])
+	return publicKey, nil
+}
 func RawBytesToPrivateKey(bytes []byte) (*PrivateKey, error) {
 	if len(bytes) != KeyBytes {
 		return nil, errors.New("Private key raw bytes length must be " + string(KeyBytes))
@@ -138,6 +147,15 @@ func RawBytesToPrivateKey(bytes []byte) (*PrivateKey, error) {
 	privateKey := new(PrivateKey)
 	privateKey.Curve = sm2P256V1
 	privateKey.D = new(big.Int).SetBytes(bytes)
+	return privateKey, nil
+}
+func RawBytesToPrivateKey1(bytes []byte) (*PrivateKey, error) {
+	if len(bytes[1:]) != KeyBytes {
+		return nil, errors.New("Private key raw bytes length must be " + string(KeyBytes))
+	}
+	privateKey := new(PrivateKey)
+	privateKey.Curve = sm2P256V1
+	privateKey.D = new(big.Int).SetBytes(bytes[1:])
 	return privateKey, nil
 }
 func PrivteToPublickey(pri PrivateKey) (pubk *PublicKey) {
@@ -179,7 +197,11 @@ func (pub *PublicKey) GetRawBytes() []byte {
 	raw := pub.GetUnCompressBytes()
 	return raw[1:]
 }
-
+func (pub *PublicKey) GetRawBytes1() []byte {
+	raw := pub.GetUnCompressBytes()
+	raw = append([]byte{2}, raw[0:]...)
+	return raw
+}
 func (pri *PrivateKey) GetRawBytes() []byte {
 	dBytes := pri.D.Bytes()
 	dl := len(dBytes)
@@ -193,6 +215,24 @@ func (pri *PrivateKey) GetRawBytes() []byte {
 		return raw
 	} else {
 
+		return dBytes
+	}
+}
+func (pri *PrivateKey) GetRawBytes1() []byte {
+	dBytes := pri.D.Bytes()
+	dl := len(dBytes)
+	if dl > KeyBytes {
+		raw := make([]byte, KeyBytes)
+		copy(raw, dBytes[dl-KeyBytes:])
+		raw = append([]byte{2}, raw...)
+		return raw
+	} else if dl < KeyBytes {
+		raw := make([]byte, KeyBytes)
+		copy(raw[KeyBytes-dl:], dBytes)
+		raw = append([]byte{2}, raw...)
+		return raw
+	} else {
+		dBytes = append([]byte{2}, dBytes...)
 		return dBytes
 	}
 }
@@ -639,7 +679,7 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	return true
 }
 
-func HexToGM2(hexkey string) ( *PrivateKey, error){
+func HexToGM2(hexkey string) (*PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
 		return nil, errors.New("invalid hex string")
@@ -649,9 +689,8 @@ func HexToGM2(hexkey string) ( *PrivateKey, error){
 	if err != nil {
 		return nil, err
 	}
-	return gmPrivate,nil
+	return gmPrivate, nil
 }
-
 
 func Keccak256(data ...[]byte) []byte {
 	d := sha3.NewLegacyKeccak256()
