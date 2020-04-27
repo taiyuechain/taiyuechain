@@ -556,6 +556,10 @@ func (pool *TxPool) State() *state.ManagedState {
 	return pool.pendingState
 }
 
+func (pool *TxPool) IsNoGasUsageModel() bool {
+	return pool.config.NoGasUsage
+}
+
 // Stats retrieves the current pool stats, namely the number of pending and the
 // number of queued (non-executable) transactions.
 func (pool *TxPool) Stats() (int, int) {

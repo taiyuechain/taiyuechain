@@ -74,6 +74,11 @@ func (s *PublicTrueAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) {
 	return (*hexutil.Big)(price), err
 }
 
+// IsNoGasUsageModel returns transaction execute use gas to limit compute resource
+func (s *PublicTrueAPI) IsNoGasUsageModel() bool {
+	return s.b.IsNoGasUsageModel()
+}
+
 // ProtocolVersion returns the current True protocol version this node supports
 func (s *PublicTrueAPI) ProtocolVersion() hexutil.Uint {
 	return hexutil.Uint(s.b.ProtocolVersion())

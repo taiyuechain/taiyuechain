@@ -162,6 +162,10 @@ func (b *LesApiBackend) Stats() (pending int, queued int) {
 	return b.etrue.txPool.Stats(), 0
 }
 
+func (b *LesApiBackend) IsNoGasUsageModel() bool {
+	return false
+}
+
 func (b *LesApiBackend) TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions) {
 	return b.etrue.txPool.Content()
 }

@@ -265,6 +265,10 @@ func (b *TrueAPIBackend) Stats() (pending int, queued int) {
 	return b.etrue.txPool.Stats()
 }
 
+func (b *TrueAPIBackend) IsNoGasUsageModel() bool {
+	return b.etrue.txPool.IsNoGasUsageModel()
+}
+
 func (b *TrueAPIBackend) TxPoolContent() (map[common.Address]types.Transactions, map[common.Address]types.Transactions) {
 	return b.etrue.TxPool().Content()
 }
