@@ -32,6 +32,11 @@ func (Tapub *EcdsaPublicKey) ToHex() string {
 func (Tapub *EcdsaPublicKey) Encrypt(m []byte) (ct []byte, err error) {
 	return ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic((*ecdsa.PublicKey)(Tapub)), m, nil, nil)
 }
+func (Tapub *EcdsaPublicKey) CompressPubkey() []byte {
+	ret := tycrpto.CompressPubkey((*ecdsa.PublicKey)(Tapub))
+	ret = append([]byte{1}, ret...)
+	return ret
+}
 
 /*
 sm method
@@ -53,6 +58,11 @@ func (Tapub *Sm2PublicKey) ToHex() string {
 func (Tapub *Sm2PublicKey) Encrypt(m []byte) (ct []byte, err error) {
 	return sm2.Encrypt((*sm2.PublicKey)(Tapub), m, sm2.C1C2C3)
 }
+func (Tapub *Sm2PublicKey) CompressPubkey() []byte {
+	ret := sm2.Compress((*sm2.PublicKey)(Tapub))
+	ret = append([]byte{2}, ret...)
+	return ret
+}
 
 /*
 P256 method
@@ -63,7 +73,7 @@ func (Tapub *P256PublicKey) Verify(hash, sig []byte) bool {
 }
 
 func (Tapub *P256PublicKey) ToBytes() []byte {
-	return tycrpto.FromECDSAPub((*ecies.PublicKey)(Tapub).ExportECDSA())
+	return tycrpto.FromECDSAPubP2561((*ecies.PublicKey)(Tapub).ExportECDSA())
 }
 func (Tapub *P256PublicKey) ToAddress() common.Address {
 	var t taiCrypto.THash
@@ -77,12 +87,32 @@ func (Tapub *P256PublicKey) ToHex() string {
 func (Tapub *P256PublicKey) Encrypt(m []byte) (ct []byte, err error) {
 	return ecies.Encrypt(rand.Reader, (*ecies.PublicKey)(Tapub), m, nil, nil)
 }
+func (Tapub *P256PublicKey) CompressPubkey() []byte {
+	ret := p256.CompressPubkey((*ecies.PublicKey)(Tapub).ExportECDSA())
+	ret = append([]byte{3}, ret...)
+	return ret
+}
 func ToPublickey(pubkey []byte) (interface{}, error) {
 	if pubkey[0] == 1 {
 		return tycrpto.UnmarshalPubkey1(pubkey)
 	}
 	if pubkey[0] == 2 {
 		return sm2.RawBytesToPublicKey1(pubkey)
+	}
+	if pubkey[0] == 3 {
+		return tycrpto.ToECDSAP2561(pubkey)
+	}
+	return nil, nil
+}
+func DecompressPublickey(pubkey []byte) (interface{}, error) {
+	if pubkey[0] == 1 {
+		return tycrpto.DecompressPubkey(pubkey[1:])
+	}
+	if pubkey[0] == 2 {
+		return sm2.Decompress(pubkey[1:]), nil
+	}
+	if pubkey[0] == 3 {
+		return p256.DecompressPubkey(pubkey[1:])
 	}
 	return nil, nil
 }

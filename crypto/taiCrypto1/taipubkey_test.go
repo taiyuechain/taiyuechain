@@ -2,9 +2,11 @@ package taiCrypto1
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
@@ -29,6 +31,7 @@ func TestEcdsaTaiPublicKey_ToBytes(t *testing.T) {
 	ecdpri, _ := tycrpto.GenerateKey()
 	ecdpub := (*EcdsaPublicKey)(&ecdpri.PublicKey)
 	pubbytes := ecdpub.ToBytes()
+	fmt.Println(pubbytes)
 	fmt.Println(pubbytes)
 }
 
@@ -69,6 +72,7 @@ func TestSm2TaiPublicKey_ToBytes(t *testing.T) {
 	smtaipub := (*Sm2PublicKey)(smpub)
 	smbytes := smtaipub.ToBytes()
 	fmt.Println(smbytes)
+	fmt.Println(len(smbytes))
 
 }
 
@@ -96,5 +100,92 @@ func TestSm2TaiPublicKey_Verify(t *testing.T) {
 }
 
 func TestToPublickey(t *testing.T) {
+	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	p256pub := (P256PublicKey)(pri.PublicKey)
+	p256bytes := p256pub.ToBytes()
+	fmt.Println(p256bytes)
+	fmt.Println(len(p256bytes))
+
+}
+
+func TestP256PublicKey_Verify(t *testing.T) {
+
+}
+
+func TestP256PublicKey_ToBytes(t *testing.T) {
+	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	fmt.Println(pri)
+}
+
+func TestP256PublicKey_ToAddress(t *testing.T) {
+
+}
+
+func TestP256PublicKey_ToHex(t *testing.T) {
+
+}
+
+func TestP256PublicKey_Encrypt(t *testing.T) {
+
+}
+
+func TestDecompressPublickey(t *testing.T) {
+	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	fmt.Println(pri)
+	compressbyte := (*P256PublicKey)(&pri.PublicKey).CompressPubkey()
+	fmt.Println(compressbyte)
+	p256publicket, _ := DecompressPublickey(compressbyte)
+	tt := p256publicket.(*ecdsa.PublicKey)
+	fmt.Println(tt)
+}
+
+func TestP256PublicKey_CompressPubkey(t *testing.T) {
+	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	fmt.Println(pri)
+	compressbyte := (*P256PublicKey)(&pri.PublicKey).CompressPubkey()
+	fmt.Println(compressbyte)
+}
+
+func TestSm2PublicKey_CompressPubkey(t *testing.T) {
+	smpri, smpub, _ := sm2.GenerateKey(rand.Reader)
+	smpri.PublicKey = *smpub
+	smtaipub := (*Sm2PublicKey)(smpub)
+	pubbyte := smtaipub.CompressPubkey()
+	fmt.Println(pubbyte)
+	smpublickey, _ := DecompressPublickey(pubbyte)
+	tt := smpublickey.(*sm2.PublicKey)
+	fmt.Println(tt)
+
+}
+
+func TestEcdsaPublicKey_Encrypt(t *testing.T) {
+	ecdpri, _ := tycrpto.GenerateKey()
+	ecdpub := (*EcdsaPublicKey)(&ecdpri.PublicKey)
+	src := "caoliang"
+	data := []byte(src)
+	ct, _ := ecdpub.Encrypt(data)
+	fmt.Println(ct)
+	//ecdpri, _ := tycrpto.GenerateKey()
+	ecdprikey := (*EcdsaPrivateKey)(ecdpri)
+	m, _ := ecdprikey.Decrypt(ct)
+	fmt.Println(string(m))
+}
+
+func TestSm2PublicKey_Encrypt(t *testing.T) {
+	smpri, smpub, _ := sm2.GenerateKey(rand.Reader)
+	smpri.PublicKey = *smpub
+	src := "caoliang"
+	data := []byte(src)
+	smp := (*Sm2PrivateKey)(smpri)
+	//fmt.Println(smsign)
+	smtaipub := (*Sm2PublicKey)(smpub)
+	ct, _ := smtaipub.Encrypt(data)
+	fmt.Println(ct)
+	m, _ := smp.Decrypt(ct)
+	fmt.Println(string(m))
+
+}
+
+func TestP256PublicKey_Encrypt1(t *testing.T) {
 
 }

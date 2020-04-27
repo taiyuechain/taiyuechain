@@ -1,5 +1,6 @@
 package sm2
 
+import "C"
 import (
 	"bytes"
 	"crypto/elliptic"
@@ -9,20 +10,41 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
+	"golang.org/x/crypto/sha3"
 	"hash"
 	"io"
 	"math/big"
-
-	"github.com/ethereum/go-ethereum/common"
-	"golang.org/x/crypto/sha3"
 )
 
 const (
 	BitSize    = 256
 	KeyBytes   = (BitSize + 7) / 8
 	UnCompress = 0x04
+)
+const (
+	// DefaultUID The default user id as specified in GM/T 0009-2012
+	DefaultUID = "1234567812345678"
+)
+const (
+	pubkeyCompressed   byte = 0x2  // y_bit + x coord
+	pubkeyASN1         byte = 0x30 // asn1
+	pubkeyUncompressed byte = 0x4  // x coord + y coord
+)
+
+// These constants define the lengths of serialized public keys.
+const (
+	pubKeyBytesLenCompressed   = 33
+	pubKeyBytesLenASN1         = 91
+	pubKeyBytesLenUncompressed = 65
+)
+
+// These constants define the lengths of serialized signature. 70-72
+const (
+	minSigLen = 64
+	maxSigLen = 72
 )
 
 type Sm2CipherTextType int32
@@ -703,4 +725,71 @@ func Keccak256(data ...[]byte) []byte {
 func GMPubkeyToAddress(pubkey PublicKey) common.Address {
 	pubBytes := pubkey.GetRawBytes()
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+}
+
+func getLastBit(a *big.Int) uint {
+	return a.Bit(0)
+}
+
+// 32byte
+func zeroByteSlice() []byte {
+	return []byte{
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+	}
+}
+func Compress(a *PublicKey) []byte {
+	buf := []byte{}
+	yp := getLastBit(a.Y)
+	buf = append(buf, a.X.Bytes()...)
+	if n := len(a.X.Bytes()); n < 32 {
+		buf = append(zeroByteSlice()[:(32-n)], buf...)
+	}
+	// RFC: GB/T 32918.1-2016 4.2.9
+	// if yp = 0, buf = 02||x
+	// if yp = 0, buf = 03||x
+	if yp == uint(0) {
+		buf = append([]byte{byte(2)}, buf...)
+	}
+	if yp == uint(1) {
+		buf = append([]byte{byte(3)}, buf...)
+	}
+	return buf
+}
+
+// Decompress transform  33 bytes publickey to publickey point struct.
+func Decompress(a []byte) *PublicKey {
+	var aa, xx, xx3 sm2P256FieldElement
+
+	P256Sm2()
+	x := new(big.Int).SetBytes(a[1:])
+	curve := sm2P256
+	sm2P256FromBig(&xx, x)
+	sm2P256Square(&xx3, &xx)       // x3 = x ^ 2
+	sm2P256Mul(&xx3, &xx3, &xx)    // x3 = x ^ 2 * x
+	sm2P256Mul(&aa, &curve.a, &xx) // a = a * x
+	sm2P256Add(&xx3, &xx3, &aa)
+	sm2P256Add(&xx3, &xx3, &curve.b)
+
+	y2 := sm2P256ToBig(&xx3)
+	y := new(big.Int).ModSqrt(y2, sm2P256.P)
+
+	// RFC: GB/T 32918.1-2016 4.2.10
+	// if a[0] = 02, getLastBit(y) = 0
+	// if a[0] = 03, getLastBit(y) = 1
+	// if yp = 0, buf = 03||x
+	if getLastBit(y) != uint(a[0])-2 {
+		y.Sub(sm2P256.P, y)
+	}
+	return &PublicKey{
+		Curve: sm2P256V1,
+		X:     x,
+		Y:     y,
+	}
 }

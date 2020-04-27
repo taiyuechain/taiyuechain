@@ -103,6 +103,9 @@ func ToECDSA1(d []byte) (*ecdsa.PrivateKey, error) {
 func ToECDSAP256(d []byte) (*ecdsa.PrivateKey, error) {
 	return toECDSAP256(d, true)
 }
+func ToECDSAP2561(d []byte) (*ecdsa.PrivateKey, error) {
+	return toECDSAP2561(d, true)
+}
 
 // ToECDSAUnsafe blindly converts a binary blob to a private key. It should almost
 // never be used unless you are sure the input is valid and want to avoid hitting
@@ -189,6 +192,29 @@ func toECDSAP256(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	}
 	return priv, nil
 }
+func toECDSAP2561(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
+	priv := new(ecdsa.PrivateKey)
+	priv.PublicKey.Curve = elliptic.P256()
+	if strict && 8*len(d[1:]) != priv.Params().BitSize {
+		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
+	}
+	priv.D = new(big.Int).SetBytes(d[1:])
+
+	// The priv.D must < N
+	if priv.D.Cmp(secp256k1N) >= 0 {
+		return nil, fmt.Errorf("invalid private key, >=N")
+	}
+	// The priv.D must not be zero or negative.
+	if priv.D.Sign() <= 0 {
+		return nil, fmt.Errorf("invalid private key, zero or negative")
+	}
+
+	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d[1:])
+	if priv.PublicKey.X == nil {
+		return nil, errors.New("invalid private key")
+	}
+	return priv, nil
+}
 
 // FromECDSA exports a private key into a binary dump.
 func FromECDSA(priv *ecdsa.PrivateKey) []byte {
@@ -247,6 +273,14 @@ func FromECDSAPubP256(pub *ecdsa.PublicKey) []byte {
 		return nil
 	}
 	return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
+}
+func FromECDSAPubP2561(pub *ecdsa.PublicKey) []byte {
+	if pub == nil || pub.X == nil || pub.Y == nil {
+		return nil
+	}
+	ret := elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
+	ret = append([]byte{3}, ret...)
+	return ret
 }
 
 // HexToECDSA parses a secp256k1 private key.

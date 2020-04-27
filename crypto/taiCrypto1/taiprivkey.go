@@ -3,7 +3,6 @@ package taiCrypto1
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"github.com/ethereum/go-ethereum/go-ethereum/crypto"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
@@ -49,7 +48,7 @@ func (Taipri *Sm2PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 P256 method
 */
 func (Taipri *P256PrivateKey) Public() []byte {
-	return crypto.FromECDSA((*ecies.PrivateKey)(Taipri).ExportECDSA())
+	return tycrpto.FromECDSA((*ecies.PrivateKey)(Taipri).ExportECDSA())
 }
 func (Taipri *P256PrivateKey) Sign(digestHash []byte) ([]byte, error) {
 	return p256.SignP256((*ecies.PrivateKey)(Taipri).ExportECDSA(), digestHash)

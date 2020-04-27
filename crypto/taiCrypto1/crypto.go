@@ -19,6 +19,7 @@ type TaiPubKey interface {
 	ToAddress() common.Address
 	ToHex() string
 	Encrypt(m []byte) (ct []byte, err error)
+	CompressPubkey() []byte
 }
 type EcdsaPrivateKey ecdsa.PrivateKey
 type EcdsaPublicKey ecdsa.PublicKey

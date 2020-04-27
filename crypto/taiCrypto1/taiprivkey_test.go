@@ -7,6 +7,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"golang.org/x/crypto/sha3"
+	"reflect"
 	"testing"
 )
 
@@ -71,4 +72,65 @@ func TestToPrivateKey(t *testing.T) {
 	smpribyte, _ := ToPrivateKey(key)
 	prikey := smpribyte.(*sm2.PrivateKey)
 	fmt.Println(prikey)
+}
+
+func TestEcdsaPrivateKey_Decrypt(t *testing.T) {
+	//ecdpri, _ := tycrpto.GenerateKey()
+	//ecdp := (*EcdsaPrivateKey)(ecdpri)
+	////ecdp.Decrypt()
+	////fmt.Println(sign)
+}
+
+func TestSm2PrivateKey_Decrypt(t *testing.T) {
+	type args struct {
+		ct []byte
+	}
+	tests := []struct {
+		name    string
+		Taipri  Sm2PrivateKey
+		args    args
+		wantM   []byte
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotM, err := tt.Taipri.Decrypt(tt.args.ct)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotM, tt.wantM) {
+				t.Errorf("Decrypt() gotM = %v, want %v", gotM, tt.wantM)
+			}
+		})
+	}
+}
+
+func TestP256PrivateKey_Decrypt(t *testing.T) {
+	type args struct {
+		ct []byte
+	}
+	tests := []struct {
+		name    string
+		Taipri  P256PrivateKey
+		args    args
+		wantM   []byte
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotM, err := tt.Taipri.Decrypt(tt.args.ct)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotM, tt.wantM) {
+				t.Errorf("Decrypt() gotM = %v, want %v", gotM, tt.wantM)
+			}
+		})
+	}
 }
