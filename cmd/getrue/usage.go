@@ -107,6 +107,7 @@ var AppHelpFlagGroups = []flagGroup{
 		Name: "TRANSACTION POOL",
 		Flags: []cli.Flag{
 			utils.TxPoolNoLocalsFlag,
+			utils.GasUsageFlag,
 			utils.TxPoolJournalFlag,
 			utils.TxPoolRejournalFlag,
 			utils.TxPoolPriceLimitFlag,

@@ -12,6 +12,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/etrueclient"
+	"github.com/taiyuechain/taiyuechain/params"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -133,10 +135,11 @@ func SendP256Transtion(ip string) {
 	var toPrive, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 	var fromPrive, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 
-	//from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
+	from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
 	amount := new(big.Int).SetInt64(1000000000000000000)
 	fmt.Println("amount", amount)
-	nonce := uint64(6)
+	nonce := uint64(2)
+	//nonce := client.GetNonceAtBlockNumber(context.Background(),from,)
 
 	//to
 	tocertbyte := cim.CreateCertP256(toPrive)
@@ -164,19 +167,19 @@ func SendP256Transtion(ip string) {
 	}
 
 	fmt.Println("the chain id ", "is", chainID)
-	from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
+	//from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
 	to := crypto.PubkeyToAddressP256(topubk)
 	fmt.Println("--from address", hexutil.Encode(from.Bytes()), "--to address", hexutil.Encode(to.Bytes()))
 
 	//send true transfer
-	//tx := types.NewP256Transaction(nonce, &to, nil, amount,
-	//	new(big.Int).SetInt64(0),params.TxGas, new(big.Int).SetInt64(10000), nil,fromcert, chainID, nil)
+	tx := types.NewP256Transaction(nonce, &to, nil, amount,
+		new(big.Int).SetInt64(0), params.TxGas, new(big.Int).SetInt64(0), nil, fromcert, chainID, nil)
 
 	//send create contract transaction
 	//tx := generateCreateContractTx(nonce, amount, fromcert, chainID)
 
 	//send erc20 transfer tx
-	tx := sendErc20TokenTx(nonce, fromcert, chainID)
+	//tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
 	signer := types.NewTIP1Signer(chainID)
 	signTx, _ := types.SignTxBy266(tx, signer, fromPrive)

@@ -19,6 +19,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"math"
 	"math/big"
@@ -39,10 +40,10 @@ import (
 
 const (
 	// chainHeadChanSize is the size of channel listening to ChainHeadEvent.
-	chainHeadChanSize     = 10
-	defaultGasPrice       = 1000000
-	txChanSize            = 2048
-	MinimumGasPrice_local = 0
+	chainHeadChanSize = 10
+	defaultGasPrice   = 1000000
+	txChanSize        = 2048
+	MinimumGasPrice   = 0
 )
 
 var (
@@ -96,6 +97,8 @@ var (
 	// than some meaningful limit a user might use. This is not a consensus error
 	// making the transaction invalid, rather a DOS protection.
 	ErrOversizedData = errors.New("oversized data")
+
+	ErrGasPriceGtZero = errors.New("no gasusage model,gasprice  greater than zero")
 )
 
 var (
@@ -150,9 +153,10 @@ type blockChain interface {
 
 // TxPoolConfig are the configuration parameters of the transaction pool.
 type TxPoolConfig struct {
-	NoLocals  bool          // Whether local transaction handling should be disabled
-	Journal   string        // Journal of local transactions to survive node restarts
-	Rejournal time.Duration // Time interval to regenerate the local transaction journal
+	NoGasUsage bool          // Whether to use gas or not
+	NoLocals   bool          // Whether local transaction handling should be disabled
+	Journal    string        // Journal of local transactions to survive node restarts
+	Rejournal  time.Duration // Time interval to regenerate the local transaction journal
 
 	PriceLimit uint64 // Minimum gas price to enforce for acceptance into the pool
 	PriceBump  uint64 // Minimum price bump percentage to replace an already existing transaction (nonce)
@@ -190,7 +194,7 @@ func (config *TxPoolConfig) sanitize() TxPoolConfig {
 		log.Warn("Sanitizing invalid txpool journal time", "provided", conf.Rejournal, "updated", time.Second)
 		conf.Rejournal = time.Second
 	}
-	if conf.PriceLimit < defaultGasPrice {
+	if !conf.NoGasUsage && conf.PriceLimit < defaultGasPrice {
 		log.Warn("Sanitizing invalid txpool price limit", "provided", conf.PriceLimit, "updated", DefaultTxPoolConfig.PriceLimit)
 		conf.PriceLimit = DefaultTxPoolConfig.PriceLimit
 	}
@@ -400,7 +404,6 @@ func (pool *TxPool) loop() {
 		}
 	}
 }
-
 
 // Has returns an indicator whether txpool has a transaction cached with the
 // given hash.
@@ -626,6 +629,10 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
+	// NoGasUsage model , gasprice cannot greater than zero
+	if pool.config.NoGasUsage && tx.GasPriceGtZero() {
+		return ErrGasPriceGtZero
+	}
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
 	if tx.Size() > 32*1024 {
 		return ErrOversizedData
@@ -643,7 +650,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 		return ErrGasLimit
 	}
 	// Make sure the transaction is signed properly
-	//from, err := types.Sender(pool.signer, tx)
+	//from, err := types.Sender(pool.signer, tx) //todo
 	from, err := types.SenderP256(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
@@ -656,9 +663,9 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
-	/*if pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
+	if pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
 		return ErrUnderpriced
-	}*/
+	}
 	// Ensure the transaction adheres to nonce ordering
 	if pool.currentState.GetNonce(from) > tx.Nonce() {
 		return ErrNonceTooLow
@@ -679,13 +686,13 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return ErrInsufficientFunds
 		}
 	}
-	/*intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
+	intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
 	if err != nil {
 		return err
 	}
 	if tx.Gas() < intrGas {
 		return ErrIntrinsicGas
-	}*/
+	}
 	return nil
 }
 
@@ -699,9 +706,8 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
 	// If the transaction is already known, discard it
-
 	hash := tx.Hash()
-	fmt.Println("----------------add tx","is",hash)
+	fmt.Println("----------------add tx hash", "is", hexutil.Encode(hash[:]))
 	if pool.all.Get(hash) != nil {
 		log.Trace("Discarding already known transaction", "hash", hash)
 		return false, fmt.Errorf("known transaction: %x", hash)
@@ -910,6 +916,7 @@ func (pool *TxPool) addTx(tx *types.Transaction, local bool) error {
 	// Try to inject the transaction and update any state
 	replace, err := pool.add(tx, local)
 	if err != nil {
+		log.Error("pool add tx  error", "error", err)
 		return err
 	}
 	// If we added a new transaction, run promotion checks and return

@@ -20,20 +20,20 @@ import (
 	//"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 
+	"crypto/ecdsa"
+	"crypto/x509"
 	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"math/big"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
-	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto/p256"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
-	"crypto/x509"
 )
 
 var (
@@ -74,26 +74,25 @@ func SignTx(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*Transacti
 	return tx.WithSignature(s, sig)
 }
 
-
 func SignTxBy266(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
 	//sig, err := crypto.Sign(h[:], prv)
-	sig, err := p256.SignP256(prv,h[:])
+	sig, err := p256.SignP256(prv, h[:])
 	if err != nil {
 		return nil, err
 	}
 	tx.data.Sig = sig
 	//tx.data.ChainID  = s.GetChainID()
 	cpy := &Transaction{data: tx.data}
-	return cpy,nil
+	return cpy, nil
 }
 
-func VerfiySignTxBy266(tx *Transaction, s Signer) ( error) {
+func VerfiySignTxBy266(tx *Transaction, s Signer) error {
 	h := s.Hash(tx)
 	//VerifyP256(public ecdsa.PublicKey, hash []byte, sign []byte) bool
-	cert ,err:= x509.ParseCertificate(tx.data.Cert)
-	if(err != nil){
-		return err;
+	cert, err := x509.ParseCertificate(tx.data.Cert)
+	if err != nil {
+		return err
 	}
 	var pubk ecdsa.PublicKey
 	switch pub := cert.PublicKey.(type) {
@@ -103,7 +102,7 @@ func VerfiySignTxBy266(tx *Transaction, s Signer) ( error) {
 		pubk.Y = pub.Y
 	}
 
-	if(p256.VerifyP256(pubk,h[:],tx.data.Sig)){
+	if p256.VerifyP256(pubk, h[:], tx.data.Sig) {
 		return nil
 	}
 	return errors.New("verfiy p256 err")
@@ -119,16 +118,15 @@ func SignTxBySM(tx *Transaction, s Signer, prv *sm2.PrivateKey) (*Transaction, e
 	tx.data.Sig = sig
 	//tx.data.ChainID  = s.GetChainID()
 	cpy := &Transaction{data: tx.data}
-	return cpy,nil
+	return cpy, nil
 }
 
-
-func VerfiySignTxBySM(tx *Transaction, s Signer) ( error) {
+func VerfiySignTxBySM(tx *Transaction, s Signer) error {
 	h := s.Hash(tx)
 	//VerifyP256(public ecdsa.PublicKey, hash []byte, sign []byte) bool
-	cert ,err:= sm2_cert.ParseCertificateRequest(tx.data.Cert)
-	if(err != nil){
-		return err;
+	cert, err := sm2_cert.ParseCertificateRequest(tx.data.Cert)
+	if err != nil {
+		return err
 	}
 	var topubk sm2.PublicKey
 	switch pub := cert.PublicKey.(type) {
@@ -138,12 +136,11 @@ func VerfiySignTxBySM(tx *Transaction, s Signer) ( error) {
 		topubk.Y = pub.Y
 	}
 
-	if(sm2.Verify(&topubk, nil, h[:], tx.data.Sig)){
+	if sm2.Verify(&topubk, nil, h[:], tx.data.Sig) {
 		return nil
 	}
 	return errors.New("verfiy tx sm2 err")
 }
-
 
 //caolaing modify
 //func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
@@ -158,8 +155,6 @@ func SignTx_Payment(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*T
 	}
 	return tx.WithSignature_Payment(s, sig)
 }
-
-
 
 // PSender returns the address derived from the signature (PV, PR, PS) using secp256k1
 // elliptic curve and an error if it failed deriving or upon an incorrect
@@ -212,7 +207,7 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 	return addr, nil
 }
 
-func SenderP256(signer Signer, tx *Transaction) (common.Address, error){
+func SenderP256(signer Signer, tx *Transaction) (common.Address, error) {
 	if sc := tx.from.Load(); sc != nil {
 		sigCache := sc.(sigCache)
 		// If the signer used to derive from in a previous
@@ -222,6 +217,12 @@ func SenderP256(signer Signer, tx *Transaction) (common.Address, error){
 			return sigCache.from, nil
 		}
 	}
+	//verify tx sign
+	err := VerfiySignTxBy266(tx, signer)
+	if err != nil {
+		return common.Address{}, err
+	}
+
 	addr, err := signer.SenderP256(tx)
 	if err != nil {
 		return common.Address{}, err
@@ -312,12 +313,12 @@ func (s TIP1Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.I
 	return R, S, V, nil
 }
 
-
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (s TIP1Signer) GetChainID() *big.Int {
 	return s.chainId
 }
+
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (s TIP1Signer) Hash(tx *Transaction) common.Hash {
@@ -490,11 +491,11 @@ func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) 
 
 //type FrontierSigner struct{}
 
-func recoverPlainP256(tx *Transaction)(common.Address,error)  {
+func recoverPlainP256(tx *Transaction) (common.Address, error) {
 	fromCertByte := tx.Cert()
-	fromCert,err := x509.ParseCertificate(fromCertByte)
-	if(err != nil){
-		return common.Address{},err
+	fromCert, err := x509.ParseCertificate(fromCertByte)
+	if err != nil {
+		return common.Address{}, err
 	}
 	//fmt.Println(tocert.Version)
 	var frompubkTx ecdsa.PublicKey
@@ -505,10 +506,9 @@ func recoverPlainP256(tx *Transaction)(common.Address,error)  {
 		frompubkTx.Y = pub.Y
 	}
 
-	from :=crypto.PubkeyToAddress(frompubkTx)
+	from := crypto.PubkeyToAddress(frompubkTx)
 
-
-	return from,nil
+	return from, nil
 
 }
 

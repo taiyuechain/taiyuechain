@@ -50,6 +50,7 @@ var (
 		utils.DashboardRefreshFlag,*/
 
 		utils.TxPoolNoLocalsFlag,
+		utils.GasUsageFlag,
 		utils.TxPoolJournalFlag,
 		utils.TxPoolRejournalFlag,
 		utils.TxPoolPriceLimitFlag,

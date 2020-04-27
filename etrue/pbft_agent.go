@@ -1019,7 +1019,7 @@ func validateTxInCommittee(fb *types.Block) error {
 			err = core.ErrNegativeValue
 		} else if tx.Fee() != nil && tx.Fee().Sign() < 0 {
 			err = core.ErrNegativeFee
-		} else if tx.GasPrice().Cmp(big.NewInt(core.MinimumGasPrice_local)) < 1 {
+		} else if big.NewInt(core.MinimumGasPrice).Cmp(tx.GasPrice()) > 0 {
 			err = core.ErrUnderpriced
 		}
 		if err != nil {
