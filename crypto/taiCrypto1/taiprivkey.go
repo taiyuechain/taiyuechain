@@ -17,7 +17,12 @@ func (Taipri *EcdsaPrivateKey) Public() []byte {
 	return tycrpto.FromECDSA1((*ecdsa.PrivateKey)(Taipri))
 }
 func (Taipri *EcdsaPrivateKey) Sign(digestHash []byte) ([]byte, error) {
-	return tycrpto.Sign(digestHash, (*ecdsa.PrivateKey)(Taipri))
+	ret, err := tycrpto.Sign(digestHash, (*ecdsa.PrivateKey)(Taipri))
+	if err != nil {
+		return nil, err
+	}
+	ret = append([]byte{1}, ret...)
+	return ret, nil
 }
 func (Taipri *EcdsaPrivateKey) ToHex() string {
 	pribyte := Taipri.Public()
@@ -34,7 +39,12 @@ func (Taipri *Sm2PrivateKey) Public() []byte {
 	return ((*sm2.PrivateKey)(Taipri)).GetRawBytes1()
 }
 func (Taipri *Sm2PrivateKey) Sign(digestHash []byte) ([]byte, error) {
-	return sm2.Sign((*sm2.PrivateKey)(Taipri), nil, digestHash)
+	ret, err := sm2.Sign((*sm2.PrivateKey)(Taipri), nil, digestHash)
+	if err != nil {
+		return nil, err
+	}
+	ret = append([]byte{2}, ret...)
+	return ret, nil
 }
 func (Taipri *Sm2PrivateKey) ToHex() string {
 	pribyte := Taipri.Public()
@@ -51,7 +61,12 @@ func (Taipri *P256PrivateKey) Public() []byte {
 	return tycrpto.FromECDSA((*ecies.PrivateKey)(Taipri).ExportECDSA())
 }
 func (Taipri *P256PrivateKey) Sign(digestHash []byte) ([]byte, error) {
-	return p256.SignP256((*ecies.PrivateKey)(Taipri).ExportECDSA(), digestHash)
+	ret, err := p256.Sign(digestHash, (*ecies.PrivateKey)(Taipri).ExportECDSA())
+	if err != nil {
+		return nil, err
+	}
+	ret = append([]byte{3}, ret...)
+	return ret, nil
 }
 func (Taipri *P256PrivateKey) ToHex() string {
 	pribyte := Taipri.Public()

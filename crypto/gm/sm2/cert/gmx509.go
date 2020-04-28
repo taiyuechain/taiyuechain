@@ -77,8 +77,7 @@ type certificateRequest struct {
 	SignatureValue     asn1.BitString
 }
 
-
-func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub sm2.PublicKey)(cert []byte){
+func CreateCertBySMPrivte(pri *sm2.PrivateKey, pub sm2.PublicKey) (cert []byte) {
 
 	//pub :=pri.PublicKey
 	var publicKeyBytes []byte
@@ -219,7 +218,10 @@ func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub sm2.PublicKey)(cert []byte){
 	tbsCSR.Raw = tbsCSRContents
 
 	var signature []byte
+	/*	d := sm3.New()
+		d.Write(tbsCSRContents)*/
 	signature, err = sm2.Sign(pri, nil, tbsCSRContents)
+	//signature, err = sm2.Sign(pri, nil, d.Sum(nil))
 	if err != nil {
 		log.Println("create ca failed", err)
 		return nil

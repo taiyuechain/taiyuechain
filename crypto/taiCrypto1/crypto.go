@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
+
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 )
 
@@ -20,6 +21,7 @@ type TaiPubKey interface {
 	ToHex() string
 	Encrypt(m []byte) (ct []byte, err error)
 	CompressPubkey() []byte
+	PubkeyToAddress() common.Address
 }
 type EcdsaPrivateKey ecdsa.PrivateKey
 type EcdsaPublicKey ecdsa.PublicKey

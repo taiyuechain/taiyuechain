@@ -17,7 +17,7 @@ import (
 */
 
 func (Tapub *EcdsaPublicKey) Verify(hash, sig []byte) bool {
-	return tycrpto.VerifySignature(Tapub.ToBytes()[1:], hash, sig[:64])
+	return tycrpto.VerifySignature(Tapub.ToBytes()[1:], hash, sig[1:65])
 }
 func (Tapub *EcdsaPublicKey) ToBytes() []byte {
 	return tycrpto.FromECDSAPub1((*ecdsa.PublicKey)(Tapub))
@@ -37,12 +37,15 @@ func (Tapub *EcdsaPublicKey) CompressPubkey() []byte {
 	ret = append([]byte{1}, ret...)
 	return ret
 }
+func (Tapub *EcdsaPublicKey) PubkeyToAddress() common.Address {
+	return tycrpto.PubkeyToAddressP256(*(*ecdsa.PublicKey)(Tapub))
+}
 
 /*
 sm method
 */
 func (Tapub *Sm2PublicKey) Verify(hash, sig []byte) bool {
-	return sm2.Verify((*sm2.PublicKey)(Tapub), nil, hash, sig)
+	return sm2.Verify((*sm2.PublicKey)(Tapub), nil, hash, sig[1:])
 }
 func (Tapub *Sm2PublicKey) ToBytes() []byte {
 	return (*sm2.PublicKey)(Tapub).GetRawBytes1()
@@ -63,13 +66,16 @@ func (Tapub *Sm2PublicKey) CompressPubkey() []byte {
 	ret = append([]byte{2}, ret...)
 	return ret
 }
+func (Tapub *Sm2PublicKey) PubkeyToAddress() common.Address {
+
+}
 
 /*
 P256 method
 */
 func (Tapub *P256PublicKey) Verify(hash, sig []byte) bool {
 
-	return p256.VerifyP256((*ecies.PublicKey)(Tapub).ExportECDSA(), hash, sig)
+	return p256.Verify(hash, sig[1:], (*ecies.PublicKey)(Tapub).ExportECDSA())
 }
 
 func (Tapub *P256PublicKey) ToBytes() []byte {
@@ -91,6 +97,9 @@ func (Tapub *P256PublicKey) CompressPubkey() []byte {
 	ret := p256.CompressPubkey((*ecies.PublicKey)(Tapub).ExportECDSA())
 	ret = append([]byte{3}, ret...)
 	return ret
+}
+func (Tapub *P256PublicKey) PubkeyToAddress() common.Address {
+	return tycrpto.PubkeyToAddressP256(*(*ecies.PublicKey)(Tapub).ExportECDSA())
 }
 func ToPublickey(pubkey []byte) (interface{}, error) {
 	if pubkey[0] == 1 {
@@ -115,4 +124,25 @@ func DecompressPublickey(pubkey []byte) (interface{}, error) {
 		return p256.DecompressPubkey(pubkey[1:])
 	}
 	return nil, nil
+}
+func SigToPub(hash, sig []byte) (interface{}, interface{}, error) {
+	if sig[0] == 1 {
+		ecdsaPublickey, err := tycrpto.SigToPub(hash, sig[1:])
+		if err != nil {
+			return nil, nil, err
+		}
+		return ecdsaPublickey, nil, nil
+	}
+	if sig[0] == 2 {
+		sm2publickey, err := sm2.RecoverPubkey(hash, sig[1:])
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return sm2publickey, nil, nil
+	}
+	if sig[0] == 3 {
+		return p256.ECRecovery(hash, sig[1:])
+	}
+	return nil, nil, nil
 }

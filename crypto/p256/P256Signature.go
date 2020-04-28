@@ -4,10 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/asn1"
 	"fmt"
-	"log"
 	"math/big"
 )
 
@@ -55,10 +53,10 @@ func NewSigningKey() (*ecdsa.PrivateKey, error) {
 // Sign signs arbitrary data using ECDSA.
 func Sign(data []byte, privkey *ecdsa.PrivateKey) ([]byte, error) {
 	// hash message
-	digest := sha256.Sum256(data)
+	//digest := sha256.Sum256(data)
 
 	// sign the hash
-	r, s, err := ecdsa.Sign(rand.Reader, privkey, digest[:])
+	r, s, err := ecdsa.Sign(rand.Reader, privkey, data[:])
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +79,7 @@ func Sign(data []byte, privkey *ecdsa.PrivateKey) ([]byte, error) {
 // Returns true if it's valid and false if not.
 func Verify(data, signature []byte, pubkey *ecdsa.PublicKey) bool {
 	// hash message
-	digest := sha256.Sum256(data)
+	//digest := sha256.Sum256(data)
 
 	curveOrderByteSize := pubkey.Curve.Params().P.BitLen() / 8
 
@@ -89,7 +87,7 @@ func Verify(data, signature []byte, pubkey *ecdsa.PublicKey) bool {
 	r.SetBytes(signature[:curveOrderByteSize])
 	s.SetBytes(signature[curveOrderByteSize:])
 
-	return ecdsa.Verify(pubkey, digest[:], r, s)
+	return ecdsa.Verify(pubkey, data[:], r, s)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
@@ -158,7 +156,7 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 	return signature
 }
 
-func testCompressPublicKey() {
+/*func testCompressPublicKey() {
 	fmt.Println("--------------")
 	key, err := NewSigningKey()
 	if err != nil {
@@ -174,9 +172,10 @@ func testCompressPublicKey() {
 		log.Fatal("result does not match!")
 	}
 
-}
+}*/
 
-func ecRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
+func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
+	//func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
 	r := big.Int{}
 	s := big.Int{}
 	sigLen := len(rawSign)
@@ -225,6 +224,7 @@ func ecRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey
 	key1 := ecdsa.PublicKey{Curve: elliptic.P256(), X: q3, Y: q4}
 	key2 := ecdsa.PublicKey{Curve: elliptic.P256(), X: q7, Y: q8}
 	return &key1, &key2, nil
+
 }
 
 func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
@@ -237,7 +237,7 @@ func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
 	}
 }
 
-func testEcRecovery() {
+/*func testEcRecovery() {
 	fmt.Println("--------------")
 	key, err := NewSigningKey()
 	if err != nil {
@@ -272,4 +272,4 @@ func testEcRecovery() {
 		log.Fatal("key 2 verify failed.")
 	}
 	fmt.Println("verify ok.")
-}
+}*/

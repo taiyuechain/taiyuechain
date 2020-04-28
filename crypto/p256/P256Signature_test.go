@@ -1,11 +1,9 @@
 package p256
 
 import (
-	"crypto/elliptic"
-	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-	"golang.org/x/crypto/sha3"
+	"log"
 	"math/big"
 	"testing"
 )
@@ -45,11 +43,44 @@ func TestP256Signature_String(t *testing.T) {
 
 func TestSignP256(t *testing.T) {
 
-	taipriv, _ := taiCrypto.GenerateKey(rand.Reader, elliptic.P256(), nil)
-	ecdsaPri := taipriv.EciesPrivate.ExportECDSA()
-	h := sha3.NewLegacyKeccak256()
-	sign, _ := SignP256(ecdsaPri, h.Sum(nil))
-	fmt.Println(VerifyP256(ecdsaPri.PublicKey, h.Sum(nil), sign))
+	/*	taipriv, _ := taiCrypto.GenerateKey(rand.Reader, elliptic.P256(), nil)
+		ecdsaPri := taipriv.EciesPrivate.ExportECDSA()
+		h := sha3.NewLegacyKeccak256()
+		sign, _ := SignP256(ecdsaPri, h.Sum(nil))
+		fmt.Println(VerifyP256(ecdsaPri.PublicKey, h.Sum(nil), sign))*/
+	key, err := NewSigningKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data := []byte("hello world.")
+	sign, err := Sign(data, key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result := Verify(data, sign, &key.PublicKey)
+	if result == false {
+		log.Fatal("verify failed.")
+	}
+
+	hash := sha256.Sum256(data)
+
+	key1, key2, _ := ECRecovery(hash[:], sign)
+	if comparePublicKey(&key.PublicKey, key1) || comparePublicKey(&key.PublicKey, key2) {
+		fmt.Println("match found.")
+	} else {
+		log.Fatal("match not found!!!")
+	}
+	result = Verify(data, sign, key1)
+	if result == false {
+		log.Fatal("key 1 verify failed.")
+	}
+	result = Verify(data, sign, key2)
+	if result == false {
+		log.Fatal("key 2 verify failed.")
+	}
+	fmt.Println("verify ok.")
 }
 
 func TestVerifyP256(t *testing.T) {
