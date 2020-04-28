@@ -183,7 +183,7 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		committeeMemberCh: make(chan types.CommitteeMemberEvent, committeeMemberChanSize),
 	}
 	//subscrib handle committeeMember event
-	election.subScribehandleCommitteeMemberEvent()
+	election.subScribeHandleCommitteeMemberEvent()
 
 	// get genesis committee
 	election.genesisCommittee = election.getGenesisCommittee()
@@ -213,7 +213,7 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 	return election
 }
 
-func (election *Election) subScribehandleCommitteeMemberEvent() {
+func (e *Election) subScribeHandleCommitteeMemberEvent() {
 	//election.committeeMemberSub = election.*.SubscribeCommitteeMemberEvent(election.committeeMemberCh)
 }
 
@@ -299,13 +299,13 @@ func (e *Election) GetCurrentCommittee() *committee {
 }
 
 // GetMemberByPubkey returns committeeMember specified by public key bytes
-func (e *Election) GetMemberByPubkey(members []*types.CommitteeMember, publickey []byte) *types.CommitteeMember {
+func (e *Election) GetMemberByPubkey(members []*types.CommitteeMember, pubKey []byte) *types.CommitteeMember {
 	if len(members) == 0 {
-		log.Error("GetMemberByPubkey method len(members)= 0")
+		log.Error("GetMemberByPubKey method len(members)= 0")
 		return nil
 	}
 	for _, member := range members {
-		if bytes.Equal(publickey, member.Publickey) {
+		if bytes.Equal(pubKey, member.Publickey) {
 			return member
 		}
 	}

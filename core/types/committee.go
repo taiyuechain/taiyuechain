@@ -74,8 +74,8 @@ type CommitteeMembers []*CommitteeMember
 type CommitteeMember struct {
 	Coinbase      common.Address
 	CommitteeBase common.Address
-	Publickey     []byte
 	LocalCert     []byte
+	Publickey     []byte
 	Flag          uint32
 	MType         uint32
 }
