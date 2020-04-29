@@ -126,24 +126,24 @@ func DecompressPublickey(pubkey []byte) (interface{}, error) {
 	}
 	return nil, nil
 }
-func SigToPub(hash, sig []byte) (interface{}, interface{}, error) {
+func SigToPub(hash, sig []byte) (interface{}, error) {
 	if sig[0] == 1 {
-		ecdsaPublickey, err := tycrpto.SigToPub(hash, sig[1:])
-		if err != nil {
-			return nil, nil, err
-		}
-		return ecdsaPublickey, nil, nil
+		/*	ecdsaPublickey, err := tycrpto.SigToPub(hash, sig[1:])
+			if err != nil {
+				return nil, err
+			}*/
+		return tycrpto.SigToPub(hash, sig[1:])
 	}
 	if sig[0] == 2 {
-		sm2publickey, err := sm2.RecoverPubkey(hash, sig[1:])
+		/*sm2publickey, err := sm2.RecoverPubkey(hash, sig[1:])
 		if err != nil {
 			return nil, nil, err
-		}
+		}*/
 
-		return sm2publickey, nil, nil
+		return sm2.RecoverPubkey(hash, sig[1:])
 	}
 	if sig[0] == 3 {
 		return p256.ECRecovery(hash, sig[1:])
 	}
-	return nil, nil, nil
+	return nil, nil
 }
