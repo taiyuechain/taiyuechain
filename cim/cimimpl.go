@@ -6,24 +6,28 @@ import (
 	"crypto/x509/pkix"
 	"encoding/base64"
 	"fmt"
-	"github.com/pkg/errors"
+	//"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"log"
 	"math/big"
 	"os"
 	"time"
+	"errors"
 )
+
+
+
 
 type cimManagerImpl struct {
 	cimMap map[string]CIM
 }
 
-func InitCrypto(cimConfigDir, cimID string) error {
-	var err error
+func InitCrypto(cimConfigDir, cimID string) (error) {
+	//var err error
 	// Check whether CIM folder exists
 	fi, err := os.Stat(cimConfigDir)
 	if os.IsNotExist(err) || !fi.IsDir() {
-		return errors.Errorf("cannot init crypto, missing %s folder", cimConfigDir)
+		return errors.New("cannot init crypto, missing %s folder")
 	}
 	if cimID == "" {
 		return errors.New("the local cim must have an ID")
@@ -31,8 +35,59 @@ func InitCrypto(cimConfigDir, cimID string) error {
 
 	err = LoadLocalCIM(cimConfigDir, cimID)
 	if err != nil {
-		return errors.WithMessage(err, fmt.Sprintf("error when setting up from directory"))
+		return errors.New("error when setting up from directory")
 	}
+
+	return nil
+}
+
+type CimList struct {
+	CimMap []CIM
+}
+
+func NewCIMList() *CimList {
+	return &CimList{}
+}
+
+func (cl *CimList) AddCim(cimTemp CIM) error  {
+	for _,ci:= range cl.CimMap{
+		if ci == cimTemp{
+			return errors.New("have one CIM")
+		}
+	}
+
+	cl.CimMap = append(cl.CimMap, cimTemp)
+	return nil
+}
+
+func (cl *CimList) DelCim(cimTemp *CIM) error  {
+
+	 success := false
+	for i,ci:= range cl.CimMap{
+		if &ci == cimTemp{
+			cl.CimMap = append(cl.CimMap[:i],cl.CimMap[i+1:]...)
+			success = true
+		}
+	}
+
+	if !success{
+		return errors.New("not find CIM")
+	}
+
+	return nil
+}
+
+func (cl *CimList) VerifyCert(cert []byte) error  {
+
+	//var err error
+	for _,ci:= range cl.CimMap{
+		err := ci.ValidateByByte(cert)
+		if err != nil{
+			return err
+		}
+	}
+
+
 
 	return nil
 }
@@ -62,6 +117,7 @@ func NewCIM() (CIM, error) {
 	theCIM := &cimimpl{}
 	return theCIM, nil
 }
+
 
 func (cim *cimimpl) GetIdentifier() string {
 	panic("implement me")
@@ -124,6 +180,15 @@ func (cim *cimimpl) Validate(id Identity) error {
 		return errors.New("identity type not recognized")
 	}
 }
+
+
+func (cim *cimimpl) ValidateByByte(certByte []byte) error {
+	return cim.rootCert.VerifyByte(certByte)
+}
+
+
+
+
 func (cim *cimimpl) CreateIdentity(priv string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
