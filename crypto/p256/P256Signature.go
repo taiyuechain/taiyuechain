@@ -174,8 +174,8 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 
 }*/
 
-func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
-	//func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
+//func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
+func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
 	r := big.Int{}
 	s := big.Int{}
 	sigLen := len(rawSign)
@@ -198,19 +198,19 @@ func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey
 
 	y1 := new(big.Int).ModSqrt(yy, elliptic.P256().Params().P)
 	if y1 == nil {
-		return nil, nil, fmt.Errorf("can not revcovery public key")
+		return nil, fmt.Errorf("can not revcovery public key")
 	}
 
 	y2 := new(big.Int).Neg(y1)
 	y2.Mod(y2, elliptic.P256().Params().P)
-	p1, p2 := elliptic.P256().ScalarMult(&r, y1, s.Bytes())
-	p3, p4 := elliptic.P256().ScalarBaseMult(z.Bytes())
+	//p1, p2 := elliptic.P256().ScalarMult(&r, y1, s.Bytes())
+	//p3, p4 := elliptic.P256().ScalarBaseMult(z.Bytes())
 
-	p5 := new(big.Int).Neg(p4)
-	p5.Mod(p5, elliptic.P256().Params().P)
+	//p5 := new(big.Int).Neg(p4)
+	//p5.Mod(p5, elliptic.P256().Params().P)
 
-	q1, q2 := elliptic.P256().Add(p1, p2, p3, p5)
-	q3, q4 := elliptic.P256().ScalarMult(q1, q2, rinv.Bytes())
+	//q1, q2 := elliptic.P256().Add(p1, p2, p3, p5)
+	//q3, q4 := elliptic.P256().ScalarMult(q1, q2, rinv.Bytes())
 
 	n1, n2 := elliptic.P256().ScalarMult(&r, y2, s.Bytes())
 	n3, n4 := elliptic.P256().ScalarBaseMult(z.Bytes())
@@ -221,9 +221,9 @@ func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey
 	q5, q6 := elliptic.P256().Add(n1, n2, n3, n5)
 	q7, q8 := elliptic.P256().ScalarMult(q5, q6, rinv.Bytes())
 
-	key1 := ecdsa.PublicKey{Curve: elliptic.P256(), X: q3, Y: q4}
+	//key1 := ecdsa.PublicKey{Curve: elliptic.P256(), X: q3, Y: q4}
 	key2 := ecdsa.PublicKey{Curve: elliptic.P256(), X: q7, Y: q8}
-	return &key1, &key2, nil
+	return &key2, nil
 
 }
 
