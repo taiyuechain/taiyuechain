@@ -225,11 +225,10 @@ func TestSigToPub(t *testing.T) {
 	hash := p256d.Sum(nil)
 	p256p := (*P256PrivateKey)(ecies.ImportECDSA(pri))
 	p256sign, _ := p256p.Sign(hash)
-	p256pubkey1, p256pubkey2, _ := SigToPub(hash, p256sign)
+	p256pubkey1, _ := SigToPub(hash, p256sign)
 	//fmt.Println(ecies.ImportECDSAPublic(p256pubkey.(*ecdsa.PublicKey)))
 	fmt.Println(p256pubkey1.(*ecdsa.PublicKey))
-	fmt.Println(p256pubkey2.(*ecdsa.PublicKey))
-	p256publickey := (*P256PublicKey)(ecies.ImportECDSAPublic(p256pubkey2.(*ecdsa.PublicKey)))
+	p256publickey := (*P256PublicKey)(ecies.ImportECDSAPublic(p256pubkey1.(*ecdsa.PublicKey)))
 	bollsign := p256publickey.Verify(hash, p256sign)
 	fmt.Println(bollsign)
 }
