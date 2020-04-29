@@ -118,6 +118,7 @@ type Config struct {
 	// caoliang modify
 	//PrivateKey *ecdsa.PrivateKey `toml:"-"`
 	PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
+
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
@@ -166,6 +167,9 @@ type Config struct {
 
 	// true indicate singlenode start
 	NodeType bool `toml:",omitempty"`
+
+	//use crypto type 1 represent gm , 0 represent common crypto
+	CryptoType uint8
 
 	//true indicate only mine fruit
 	MineFruit bool `toml:",omitempty"`

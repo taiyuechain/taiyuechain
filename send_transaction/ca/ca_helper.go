@@ -33,7 +33,7 @@ var (
 	//abiStaking, _ = abi.JSON(strings.NewReader(vm.StakeABIJSON))
 	abiStaking, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
 	//abiCA, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
-	signer        = types.NewTIP1Signer(gspec.Config.ChainID)
+	signer        = types.CommonSigner(gspec.Config.ChainID)
 	priKey, _     = crypto.HexToECDSA("0260c952edc49037129d8cabbe4603d15185d83aa718291279937fb6db0fa7a2")
 	mAccount      = common.HexToAddress("0xC02f50f4F41f46b6a2f08036ae65039b2F9aCd69")
 	skey1, _      = crypto.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
@@ -96,7 +96,7 @@ func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, me
 	return nonce, stateDb
 }
 
-func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.TIP1Signer, txPool txPool, header *types.Header) {
+func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.CommonSigner, txPool txPool, header *types.Header) {
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
@@ -195,7 +195,7 @@ func rewardSnailBlock(chain consensus.SnailChainReader, fastChain *core.BlockCha
 
 
 //neo test
-func sendAddCaCertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+func sendAddCaCertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.CommonSigner, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 20 {
 		log.Info("sendAddCaCertTranscation","blockNumber",height)
 		nonce, _ := getNonce(gen, from, state, "sendAddCaCertTranscation", txPool)
@@ -208,7 +208,7 @@ func sendAddCaCertTranscation(height uint64, gen *core.BlockGen, from common.Add
 	}
 }
 //neo test
-func sendDelCaCertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+func sendDelCaCertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.CommonSigner, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendDelCaCertTranscation", txPool)
 		//pub := crypto.FromECDSAPub(&priKey.PublicKey)
@@ -220,7 +220,7 @@ func sendDelCaCertTranscation(height uint64, gen *core.BlockGen, from common.Add
 }
 
 //neo test
-func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.CommonSigner, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 30 {
 		input := packInput(abiStaking, "getCaAmount", "sendGetCaCertAmountTranscation")
 		var args uint64
@@ -230,7 +230,7 @@ func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from comm
 	}
 }
 //neo test
-func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte,isAdd bool ,priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte,isAdd bool ,priKey *ecdsa.PrivateKey, signer types.CommonSigner, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 30 {
 		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
 
@@ -241,7 +241,7 @@ func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common
 	}
 }
 //neo test
-func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
+func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.CommonSigner, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 || height == 45 {
 		input := packInput(abiStaking, "isApproveCaCert", "sendIsApproveCACertTranscation", cert)
 		var args bool
@@ -250,7 +250,7 @@ func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from comm
 	}
 }
 
-func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.TIP1Signer) {
+func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.CommonSigner) {
 	//2426392 1000000000
 	//866328  1000000
 	//2400000
@@ -264,7 +264,7 @@ func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value 
 	}
 }
 
-func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.TIP1Signer, abiMethod string, result interface{}) {
+func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.CommonSigner, abiMethod string, result interface{}) {
 	//tx, _ := types.SignTx(types.NewTransaction(nonce, types.StakingAddress, value, 866328, big.NewInt(1000000), input), signer, priKey)
 	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 866328, big.NewInt(1000000), input), signer, priKey)
 

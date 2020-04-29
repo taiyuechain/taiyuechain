@@ -32,10 +32,10 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
@@ -144,7 +144,7 @@ func (p *testTxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 	batches := make(map[common.Address]types.Transactions)
 	for _, tx := range p.pool {
-		from, _ := types.Sender(types.NewTIP1Signer(new(big.Int).Set(common.Big1)), tx)
+		from, _ := types.Sender(types.NewCommonSigner(new(big.Int).Set(common.Big1)), tx)
 		batches[from] = append(batches[from], tx)
 	}
 	for _, batch := range batches {
@@ -234,7 +234,7 @@ func (p *testAgentNetwork) AddRemoteNodeInfo(en *types.EncryptNodeMessage) error
 // newTestTransaction create a new dummy transaction.
 func newTestTransaction(from *ecdsa.PrivateKey, nonce uint64, datasize int) *types.Transaction {
 	tx := types.NewTransaction(nonce, common.Address{}, big.NewInt(0), 100000, big.NewInt(0), make([]byte, datasize), nil)
-	tx, _ = types.SignTx(tx, types.NewTIP1Signer(new(big.Int).Set(common.Big1)), from)
+	tx, _ = types.SignTx(tx, types.NewCommonSigner(new(big.Int).Set(common.Big1)), from)
 	return tx
 }
 
@@ -270,9 +270,9 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 	// Execute any implicitly requested handshakes and return
 	if shake {
 		var (
-			genesis    = pm.blockchain.Genesis()
-			fastHead   = pm.blockchain.CurrentHeader()
-			fastHash   = fastHead.Hash()
+			genesis  = pm.blockchain.Genesis()
+			fastHead = pm.blockchain.CurrentHeader()
+			fastHash = fastHead.Hash()
 		)
 		tp.handshake(nil, big.NewInt(0), fastHash, genesis.Hash(), pm.blockchain)
 	}
@@ -283,12 +283,12 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 // remote side as we are simulating locally.
 func (p *testPeer) handshake(t *testing.T, td *big.Int, head common.Hash, genesis common.Hash, chain *core.BlockChain) {
 	msg := &statusData{
-		ProtocolVersion:  uint32(p.version),
-		NetworkID:        DefaultConfig.NetworkId,
-		TD:               td,
-		Head:     head,
-		Genesis:     genesis,
-		ForkID: forkid.NewID(chain),
+		ProtocolVersion: uint32(p.version),
+		NetworkID:       DefaultConfig.NetworkId,
+		TD:              td,
+		Head:            head,
+		Genesis:         genesis,
+		ForkID:          forkid.NewID(chain),
 	}
 	if err := p2p.ExpectMsg(p.app, StatusMsg, msg); err != nil {
 		t.Fatalf("status recv: %v", err)

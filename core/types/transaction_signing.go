@@ -54,7 +54,7 @@ type sigCache_payment struct {
 
 // MakeSigner returns a Signer based on the given chain config and block number.
 func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
-	signer := NewTIP1Signer(config.ChainID)
+	signer := NewCommonSigner(config.ChainID)
 	return signer
 }
 
@@ -248,32 +248,52 @@ type Signer interface {
 	Hash_Payment(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
-	GetChainID() *big.Int
+
 	SenderP256(tx *Transaction) (common.Address, error)
 }
 
-type TIP1Signer struct {
-	chainId, chainIdMul *big.Int
-}
-
-func NewTIP1Signer(chainId *big.Int) TIP1Signer {
+func NewSigner(cryptoType uint8, chainId *big.Int) Signer {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
-	return TIP1Signer{
+	CommonSigner := CommonSigner{
+		chainId:    chainId,
+		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
+	}
+	switch cryptoType {
+	case 1:
+		return CommonSigner
+	case 2:
+		return GMSigner{
+			CommonSigner: &CommonSigner,
+		}
+	default:
+		return CommonSigner
+	}
+}
+
+type CommonSigner struct {
+	chainId, chainIdMul *big.Int
+}
+
+func NewCommonSigner(chainId *big.Int) CommonSigner {
+	if chainId == nil {
+		chainId = new(big.Int)
+	}
+	return CommonSigner{
 		chainId:    chainId,
 		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
 	}
 }
 
-func (s TIP1Signer) Equal(s2 Signer) bool {
-	tip1, ok := s2.(TIP1Signer)
+func (s CommonSigner) Equal(s2 Signer) bool {
+	tip1, ok := s2.(CommonSigner)
 	return ok && tip1.chainId.Cmp(s.chainId) == 0
 }
 
 var big8 = big.NewInt(8)
 
-func (s TIP1Signer) Sender(tx *Transaction) (common.Address, error) {
+func (s CommonSigner) Sender(tx *Transaction) (common.Address, error) {
 	if tx.ChainId().Cmp(s.chainId) != 0 {
 		return common.Address{}, ErrInvalidChainId
 	}
@@ -282,15 +302,7 @@ func (s TIP1Signer) Sender(tx *Transaction) (common.Address, error) {
 	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
 }
 
-func (s TIP1Signer) SenderP256(tx *Transaction) (common.Address, error) {
-	if tx.ChainId256().Cmp(s.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-
-	return recoverPlainP256(tx)
-}
-
-func (s TIP1Signer) Payer(tx *Transaction) (common.Address, error) {
+func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
 	if tx.ChainId().Cmp(s.chainId) != 0 {
 		return common.Address{}, ErrInvalidChainId
 	}
@@ -301,7 +313,7 @@ func (s TIP1Signer) Payer(tx *Transaction) (common.Address, error) {
 
 // WithSignature returns a new transaction with the given signature. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
-func (s TIP1Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
+func (s CommonSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
 	R, S, V, err = SignatureValues(tx, sig)
 	if err != nil {
 		return nil, nil, nil, err
@@ -315,13 +327,13 @@ func (s TIP1Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.I
 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
-func (s TIP1Signer) GetChainID() *big.Int {
+func (s CommonSigner) GetChainID() *big.Int {
 	return s.chainId
 }
 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
-func (s TIP1Signer) Hash(tx *Transaction) common.Hash {
+func (s CommonSigner) Hash(tx *Transaction) common.Hash {
 	//fmt.Println("Hash method,tx.data.Payer", tx.data.Payer)
 	var hash common.Hash
 	//payer and fee is nil or default value
@@ -354,7 +366,7 @@ func (s TIP1Signer) Hash(tx *Transaction) common.Hash {
 	return hash
 }
 
-func (s TIP1Signer) Hash_Payment(tx *Transaction) common.Hash {
+func (s CommonSigner) Hash_Payment(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
@@ -369,6 +381,62 @@ func (s TIP1Signer) Hash_Payment(tx *Transaction) common.Hash {
 		tx.data.S,
 		s.chainId, uint(0), uint(0),
 	})
+}
+
+type GMSigner struct {
+	CommonSigner *CommonSigner
+}
+
+func (s GMSigner) Equal(s2 Signer) bool {
+	singer, ok := s2.(GMSigner)
+	return ok && singer.CommonSigner.chainId.Cmp(s.CommonSigner.chainId) == 0
+}
+
+func (s GMSigner) Sender(tx *Transaction) (common.Address, error) {
+	if tx.ChainId256().Cmp(s.CommonSigner.chainId) != 0 {
+		return common.Address{}, ErrInvalidChainId
+	}
+	return recoverPlainP256(tx)
+}
+
+func (s CommonSigner) SenderP256(tx *Transaction) (common.Address, error) {
+	if tx.ChainId256().Cmp(s.chainId) != 0 {
+		return common.Address{}, ErrInvalidChainId
+	}
+	return recoverPlainP256(tx)
+}
+
+func (s GMSigner) SenderP256(tx *Transaction) (common.Address, error) {
+	return s.CommonSigner.SenderP256(tx)
+}
+
+func (s GMSigner) Payer(tx *Transaction) (common.Address, error) {
+	return s.CommonSigner.Payer(tx)
+}
+
+func (s GMSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
+	return nil, nil, nil, nil
+}
+
+func (s GMSigner) Hash(tx *Transaction) common.Hash {
+	return s.CommonSigner.Hash(tx)
+}
+
+func (s GMSigner) Hash_Payment(tx *Transaction) common.Hash {
+	return s.CommonSigner.Hash_Payment(tx)
+}
+
+func NewGMSigner(chainId *big.Int) GMSigner {
+	if chainId == nil {
+		chainId = new(big.Int)
+	}
+	CommonSigner := CommonSigner{
+		chainId:    chainId,
+		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
+	}
+	return GMSigner{
+		CommonSigner: &CommonSigner,
+	}
 }
 
 /*

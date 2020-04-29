@@ -88,6 +88,11 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.SingleNodeFlag,
 		},
 	},
+	{Name: "CRYPTO TYPE",
+		Flags: []cli.Flag{
+			utils.CryptoTypeFlag,
+		},
+	},
 	{Name: "ELECTION",
 		Flags: []cli.Flag{
 			utils.EnableElectionFlag,

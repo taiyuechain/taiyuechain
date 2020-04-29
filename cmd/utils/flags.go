@@ -63,6 +63,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -167,6 +168,13 @@ var (
 	SingleNodeFlag = cli.BoolFlag{
 		Name:  "singlenode",
 		Usage: "sing node model start",
+	}
+
+	//SingleNodeFlag is single node setting
+	CryptoTypeFlag = cli.Uint64Flag{
+		Name:  "cryptotype",
+		Usage: "crypto type",
+		Value: 1,
 	}
 
 	//election setting
@@ -1123,6 +1131,11 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
 		cfg.NodeType = true
+	}
+
+	if ctx.GlobalIsSet(CryptoTypeFlag.Name) {
+		//cfg.CryptoType = uint8(int(ctx.GlobalUint64(BFTPortFlag.Name)))
+		constant.CryptoType = int(ctx.GlobalUint64(BFTPortFlag.Name))
 	}
 
 	if ctx.GlobalIsSet(BFTIPFlag.Name) {

@@ -67,6 +67,7 @@ var (
 		utils.SyncModeFlag,
 
 		utils.SingleNodeFlag,
+		utils.CryptoTypeFlag,
 
 		utils.EnableElectionFlag,
 

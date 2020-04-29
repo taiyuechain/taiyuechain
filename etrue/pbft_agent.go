@@ -22,6 +22,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/utils"
@@ -210,7 +211,12 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 			log.Error("singlenode start,must init genesis_single.json")
 		}
 		agent.committeeNode.Coinbase = committees[0].Coinbase
-		agent.committeeNode.Publickey = committees[0].Publickey
+		xCertificate, _ := cim.GetCertFromPem(committees[0].LocalCert)
+		pk, ok := xCertificate.PublicKey.([]byte)
+		if ok {
+			agent.committeeNode.Publickey = pk
+		}
+		//agent.committeeNode.Publickey = committees[0].Publickey
 		agent.isCurrentCommitteeMember = true
 	}
 	log.Info("InitNodeInfo", "singleNode", agent.singleNode,
@@ -1077,7 +1083,7 @@ func (agent *PbftAgent) makeCurrent(parent *types.Block, header *types.Header) e
 	}
 	work := &AgentWork{
 		config:    agent.config,
-		signer:    types.NewTIP1Signer(agent.config.ChainID),
+		signer:    types.NewCommonSigner(agent.config.ChainID),
 		state:     state,
 		header:    header,
 		createdAt: time.Now(),

@@ -20,12 +20,12 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
 	"math/big"
@@ -54,7 +54,7 @@ func ExampleGenerateChain() {
 		}
 		genesis = gspec.MustFastCommit(db)
 		pow     = minerva.NewFaker()
-		signer  = types.NewTIP1Signer(gspec.Config.ChainID)
+		signer  = types.NewCommonSigner(gspec.Config.ChainID)
 	)
 
 	// This call generates a chain of 5 blocks. The function runs for
@@ -129,7 +129,7 @@ func TestTransactionCost(t *testing.T) {
 		}
 		genesis    = gspec.MustFastCommit(db)
 		fastParent = genesis
-		signer     = types.NewTIP1Signer(params.TestChainConfig.ChainID)
+		signer     = types.NewCommonSigner(params.TestChainConfig.ChainID)
 
 		/*balance_given = new(big.Int)
 		balance_get   = new(big.Int)*/
@@ -143,7 +143,7 @@ func TestTransactionCost(t *testing.T) {
 	blockchain, _ := NewBlockChain(db, nil, gspec.Config, pow, vm.Config{})
 	defer blockchain.Stop()
 
-	fastBlocks, _ := GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) () {
+	fastBlocks, _ := GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
 		tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addresses[0]), addresses[1], tx_amount, params.TxGas, tx_price, nil), signer, privateKeys[0])
 		gen.AddTx(tx1)
 	})
@@ -171,7 +171,7 @@ func TestTransactionCost(t *testing.T) {
 		log.Error("[TestTransactionCost error]:tx1 gas is not equal")
 	}
 	//test transaction2  payment
-	fastBlocks, _ = GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) () {
+	fastBlocks, _ = GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
 		signTx_sender, _ := types.SignTx(types.NewTransaction_Payment(gen.TxNonce(addresses[0]), addresses[1], tx_amount, tx_fee, params.TxGas, tx_price, nil, addresses[2]), signer, privateKeys[0])
 		tx2, _ := types.SignTx_Payment(signTx_sender, signer, privateKeys[2])
 		gen.AddTx(tx2)
@@ -194,7 +194,7 @@ func TestTransactionCost(t *testing.T) {
 	tx2_value := new(big.Int).Add(tx_amount, tx_fee)
 	tx2_gas := new(big.Int).Mul(tx_price, big.NewInt(int64(params.TxGas)))
 	if new(big.Int).Add(tx2_addr0_balance, tx2_value).Cmp(tx1_addr0_balance) != 0 {
-		log.Info("[TestTransactionCost info]:", " tx2_value", tx2_value, "addr0_balance", tx2_addr0_balance, )
+		log.Info("[TestTransactionCost info]:", " tx2_value", tx2_value, "addr0_balance", tx2_addr0_balance)
 		log.Error("[TestTransactionCost error]:tx2 tx2_addr0_balance execution error")
 	}
 	if new(big.Int).Sub(tx2_addr1_balance, tx_amount).Cmp(tx1_addr1_balance) != 0 {
@@ -232,16 +232,16 @@ func getCommitteeMemberReward(pow *minerva.Minerva, statedb *state.StateDB) (bal
 	balance_get = new(big.Int)
 	for _, member := range members {
 		balance := statedb.GetBalance(member.Coinbase)
-	if reward.Cmp(balance) != 0 {
-		return nil, false
+		if reward.Cmp(balance) != 0 {
+			return nil, false
+		}
+		balance_get = new(big.Int).Add(balance_get, balance)
+		log.Info("getBalance[committe member]", "addr", member.Coinbase, "balance", statedb.GetBalance(member.Coinbase))
 	}
-	balance_get = new(big.Int).Add(balance_get, balance)
-	log.Info("getBalance[committe member]", "addr", member.Coinbase, "balance", statedb.GetBalance(member.Coinbase))
-}
 	return balance_get, true
 }
 
-func getAddressBalance(addresses [] common.Address, statedb *state.StateDB) (balance_given *big.Int) {
+func getAddressBalance(addresses []common.Address, statedb *state.StateDB) (balance_given *big.Int) {
 	balance_given = new(big.Int)
 	for _, addr := range addresses {
 		balance_given = new(big.Int).Add(balance_given, statedb.GetBalance(addr))
@@ -278,7 +278,7 @@ func getAddressBalance(addresses [] common.Address, statedb *state.StateDB) (bal
 //	// This call generates a chain of 5 blocks. The function runs for
 //	// each block and adds different features to gen based on the
 //	// block index.
-//	signer := types.NewTIP1Signer(gspec.Config.ChainID)
+//	signer := types.NewCommonSigner(gspec.Config.ChainID)
 //	cnt := 4000 / 4
 //	finish := make(chan int)
 //	type tmp struct {

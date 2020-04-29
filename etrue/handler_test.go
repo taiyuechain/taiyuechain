@@ -25,12 +25,12 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
@@ -243,10 +243,10 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 		available []bool        // Availability of explicitly requested blocks
 		expected  int           // Total number of existing blocks to expect
 	}{
-		{1, nil, nil, 1},                                                         // A single random block should be retrievable
-		{10, nil, nil, 10},                                                       // Multiple random blocks should be retrievable
-		{limit, nil, nil, limit},                                                 // The maximum possible blocks should be retrievable
-		{limit + 1, nil, nil, limit},                                             // No more than the possible block count should be returned
+		{1, nil, nil, 1},             // A single random block should be retrievable
+		{10, nil, nil, 10},           // Multiple random blocks should be retrievable
+		{limit, nil, nil, limit},     // The maximum possible blocks should be retrievable
+		{limit + 1, nil, nil, limit}, // No more than the possible block count should be returned
 		{0, []common.Hash{pm.blockchain.Genesis().Hash()}, []bool{true}, 1},      // The genesis block should be retrievable
 		{0, []common.Hash{pm.blockchain.CurrentBlock().Hash()}, []bool{true}, 1}, // The chains head block should be retrievable
 		{0, []common.Hash{{}}, []bool{false}, 0},                                 // A non existent block should not be returned
@@ -278,7 +278,7 @@ func testGetBlockBodies(t *testing.T, protocol int) {
 					block := pm.blockchain.GetBlockByNumber(uint64(num))
 					datas = append(datas, block.Hash())
 					if len(bodyData) < tt.expected {
-						bodyData = append(bodyData,  &blockBody{Transactions: block.Transactions(), Signs: block.Signs(), Infos: block.SwitchInfos()})
+						bodyData = append(bodyData, &blockBody{Transactions: block.Transactions(), Signs: block.Signs(), Infos: block.SwitchInfos()})
 					}
 					break
 				}
@@ -309,7 +309,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	acc1Addr := crypto.PubkeyToAddress(acc1Key.PublicKey)
 	acc2Addr := crypto.PubkeyToAddress(acc2Key.PublicKey)
 
-	signer := types.NewTIP1Signer(params.AllMinervaProtocolChanges.ChainID)
+	signer := types.NewCommonSigner(params.AllMinervaProtocolChanges.ChainID)
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {
@@ -399,7 +399,7 @@ func testGetReceipt(t *testing.T, protocol int) {
 	acc1Addr := crypto.PubkeyToAddress(acc1Key.PublicKey)
 	acc2Addr := crypto.PubkeyToAddress(acc2Key.PublicKey)
 
-	signer := types.NewTIP1Signer(params.AllMinervaProtocolChanges.ChainID)
+	signer := types.NewCommonSigner(params.AllMinervaProtocolChanges.ChainID)
 	// Create a chain generator with some simple transactions (blatantly stolen from @fjl/chain_markets_test)
 	generator := func(i int, block *core.BlockGen) {
 		switch i {
@@ -476,7 +476,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 			Config:     params.TestChainConfig,
 			Difficulty: big.NewInt(20000),
 		}
-		genesis      = gspec.MustFastCommit(db)
+		genesis = gspec.MustFastCommit(db)
 
 		priKey, _     = crypto.GenerateKey()
 		coinbase      = crypto.PubkeyToAddress(priKey.PublicKey) //coinbase

@@ -267,7 +267,7 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call truechain.Call
 	// Execute the call.
 	msg := callmsg{call}
 
-	evmContext := core.NewEVMContext(msg, block.Header(), b.blockchain,nil,nil)
+	evmContext := core.NewEVMContext(msg, block.Header(), b.blockchain, nil, nil)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
 	vmenv := vm.NewEVM(evmContext, statedb, b.config, vm.Config{})
@@ -282,7 +282,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	sender, err := types.Sender(types.NewTIP1Signer(tx.ChainId()), tx)
+	sender, err := types.Sender(types.NewCommonSigner(tx.ChainId()), tx)
 	if err != nil {
 		panic(fmt.Errorf("invalid transaction: %v", err))
 	}

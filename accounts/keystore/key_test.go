@@ -17,7 +17,7 @@ import (
 
 var (
 	chainID = big.NewInt(11155)
-	signer  = types.NewTIP1Signer(chainID)
+	signer  = types.NewCommonSigner(chainID)
 )
 
 func TestP256Sin(t *testing.T) {

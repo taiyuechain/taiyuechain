@@ -181,7 +181,7 @@ func SendP256Transtion(ip string) {
 	//send erc20 transfer tx
 	//tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
-	signer := types.NewTIP1Signer(chainID)
+	signer := types.NewCommonSigner(chainID)
 	signTx, _ := types.SignTxBy266(tx, signer, fromPrive)
 
 	fmt.Println("--start send ")

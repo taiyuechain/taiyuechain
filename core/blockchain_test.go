@@ -18,13 +18,13 @@ package core
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
 	"math/big"
@@ -37,8 +37,6 @@ var (
 	canonicalSeed = 1
 	forkSeed      = 2
 )
-
-
 
 //The test block is inserted into the chain
 func TestInsertBlock(t *testing.T) {
@@ -154,7 +152,7 @@ func TestBadBlockHashes(t *testing.T)  { testBadHashes(t, true) }
 
 func testBadHashes(t *testing.T, full bool) {
 
-	engine 	  := ethash.NewFaker()
+	engine := ethash.NewFaker()
 	// Create a pristine chain and database
 	db, blockchain, err := newCanonical(engine, 0, full)
 	if err != nil {
@@ -198,10 +196,10 @@ func TestFastVsFullChains(t *testing.T) {
 			Alloc:  types.GenesisAlloc{address: {Balance: funds}},
 		}
 		genesis = gspec.MustFastCommit(gendb)
-		signer  = types.NewTIP1Signer(gspec.Config.ChainID)
-		engine = ethash.NewFaker()
+		signer  = types.NewCommonSigner(gspec.Config.ChainID)
+		engine  = ethash.NewFaker()
 	)
-	blocks, receipts := GenerateChain(gspec.Config, genesis,engine , gendb, 1024, func(i int, block *BlockGen) {
+	blocks, receipts := GenerateChain(gspec.Config, genesis, engine, gendb, 1024, func(i int, block *BlockGen) {
 		block.SetCoinbase(common.Address{0x00})
 
 		// If the block number is multiple of 3, send a few bonus transactions to the miner
@@ -357,7 +355,6 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	//log.Info("light", "state", archive.CurrentBlock().Root())
 }
 
-
 // Tests if the canonical block can be fetched from the database during chain insertion.
 func TestCanonicalBlockRetrieval(t *testing.T) {
 	engine := ethash.NewFaker()
@@ -403,7 +400,6 @@ func TestCanonicalBlockRetrieval(t *testing.T) {
 	}
 	pend.Wait()
 }
-
 
 // Tests that importing small side forks doesn't leave junk in the trie database
 // cache (which would eventually cause memory issues).
@@ -454,7 +450,7 @@ func TestTrieForkGC(t *testing.T) {
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
 	var (
-		signer          = types.NewTIP1Signer(nil)
+		signer          = types.NewCommonSigner(nil)
 		testBankKey, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 		testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
 		bankFunds       = big.NewInt(100000000000000000)
