@@ -18,6 +18,7 @@ package etrue
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math"
 	"math/big"
 	"math/rand"

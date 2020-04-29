@@ -26,6 +26,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/utils"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"sync"
 	"time"
@@ -210,6 +211,7 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 		if len(committees) != 1 {
 			log.Error("singlenode start,must init genesis_single.json")
 		}
+		fmt.Println("constant.CryptoType=", constant.CryptoType)
 		agent.committeeNode.Coinbase = committees[0].Coinbase
 		xCertificate, _ := cim.GetCertFromPem(committees[0].LocalCert)
 		pk, ok := xCertificate.PublicKey.([]byte)
@@ -1083,7 +1085,7 @@ func (agent *PbftAgent) makeCurrent(parent *types.Block, header *types.Header) e
 	}
 	work := &AgentWork{
 		config:    agent.config,
-		signer:    types.NewCommonSigner(agent.config.ChainID),
+		signer:    types.NewSigner(constant.CryptoType, agent.config.ChainID),
 		state:     state,
 		header:    header,
 		createdAt: time.Now(),

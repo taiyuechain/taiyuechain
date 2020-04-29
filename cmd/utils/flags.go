@@ -1134,8 +1134,8 @@ func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etrue.Config) {
 	}
 
 	if ctx.GlobalIsSet(CryptoTypeFlag.Name) {
-		//cfg.CryptoType = uint8(int(ctx.GlobalUint64(BFTPortFlag.Name)))
-		constant.CryptoType = int(ctx.GlobalUint64(BFTPortFlag.Name))
+		//cfg.CryptoType = uint8(int(ctx.GlobalUint64(CryptoTypeFlag.Name)))
+		constant.CryptoType = uint8(ctx.GlobalUint64(CryptoTypeFlag.Name))
 	}
 
 	if ctx.GlobalIsSet(BFTIPFlag.Name) {

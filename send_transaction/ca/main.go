@@ -13,6 +13,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/etrueclient"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -181,7 +182,7 @@ func SendP256Transtion(ip string) {
 	//send erc20 transfer tx
 	//tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
-	signer := types.NewCommonSigner(chainID)
+	signer := types.NewSigner(constant.CryptoType, chainID)
 	signTx, _ := types.SignTxBy266(tx, signer, fromPrive)
 
 	fmt.Println("--start send ")

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"sync"
 	"time"
@@ -282,7 +283,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	sender, err := types.Sender(types.NewCommonSigner(tx.ChainId()), tx)
+	sender, err := types.Sender(types.NewSigner(constant.CryptoType, tx.ChainId()), tx)
 	if err != nil {
 		panic(fmt.Errorf("invalid transaction: %v", err))
 	}

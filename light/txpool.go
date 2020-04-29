@@ -19,6 +19,7 @@ package light
 import (
 	"context"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"sync"
 	"time"
 
@@ -87,7 +88,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewCommonSigner(config.ChainID),
+		signer:      types.NewSigner(constant.CryptoType, config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),

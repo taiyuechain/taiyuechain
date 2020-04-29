@@ -28,6 +28,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"os"
 	"testing"
@@ -54,7 +55,7 @@ func ExampleGenerateChain() {
 		}
 		genesis = gspec.MustFastCommit(db)
 		pow     = minerva.NewFaker()
-		signer  = types.NewCommonSigner(gspec.Config.ChainID)
+		signer  = types.NewSigner(constant.CryptoType, gspec.Config.ChainID)
 	)
 
 	// This call generates a chain of 5 blocks. The function runs for
@@ -129,7 +130,7 @@ func TestTransactionCost(t *testing.T) {
 		}
 		genesis    = gspec.MustFastCommit(db)
 		fastParent = genesis
-		signer     = types.NewCommonSigner(params.TestChainConfig.ChainID)
+		signer     = types.NewSigner(constant.CryptoType, params.TestChainConfig.ChainID)
 
 		/*balance_given = new(big.Int)
 		balance_get   = new(big.Int)*/

@@ -11,13 +11,14 @@ import (
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"testing"
 )
 
 var (
 	chainID = big.NewInt(11155)
-	signer  = types.NewCommonSigner(chainID)
+	signer  = types.NewSigner(constant.CryptoType, chainID)
 )
 
 func TestP256Sin(t *testing.T) {

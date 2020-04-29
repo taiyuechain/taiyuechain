@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 
 	"crypto/ecdsa"
 	"crypto/x509"
@@ -276,14 +277,8 @@ type CommonSigner struct {
 	chainId, chainIdMul *big.Int
 }
 
-func NewCommonSigner(chainId *big.Int) CommonSigner {
-	if chainId == nil {
-		chainId = new(big.Int)
-	}
-	return CommonSigner{
-		chainId:    chainId,
-		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
-	}
+func NewCommonSigner(chainId *big.Int) Signer {
+	return NewSigner(constant.COMMON_CRYPTO, chainId)
 }
 
 func (s CommonSigner) Equal(s2 Signer) bool {
@@ -426,17 +421,8 @@ func (s GMSigner) Hash_Payment(tx *Transaction) common.Hash {
 	return s.CommonSigner.Hash_Payment(tx)
 }
 
-func NewGMSigner(chainId *big.Int) GMSigner {
-	if chainId == nil {
-		chainId = new(big.Int)
-	}
-	CommonSigner := CommonSigner{
-		chainId:    chainId,
-		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
-	}
-	return GMSigner{
-		CommonSigner: &CommonSigner,
-	}
+func NewGMSigner(chainId *big.Int) Signer {
+	return NewSigner(constant.GM_CRYPTO, chainId)
 }
 
 /*

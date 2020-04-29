@@ -19,6 +19,7 @@ package core
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"io/ioutil"
 	"math/big"
 	"math/rand"
@@ -79,7 +80,7 @@ func transaction(nonce uint64, gaslimit uint64, key *ecdsa.PrivateKey) *types.Tr
 
 func pricedTransaction(nonce uint64, gaslimit uint64, gasprice *big.Int, key *ecdsa.PrivateKey) *types.Transaction {
 	rawTx := types.NewTransaction(nonce, common.Address{}, big.NewInt(100), gaslimit, gasprice, nil)
-	tx, _ := types.SignTx(rawTx, types.NewCommonSigner(rawTx.ChainId()), key)
+	tx, _ := types.SignTx(rawTx, types.NewSigner(constant.CryptoType, rawTx.ChainId()), key)
 	return tx
 }
 
@@ -151,7 +152,7 @@ func validateEvents(events chan types.NewTxsEvent, count int) error {
 }
 
 func deriveSender(tx *types.Transaction) (common.Address, error) {
-	return types.Sender(types.NewCommonSigner(tx.ChainId()), tx)
+	return types.Sender(types.NewSigner(constant.CryptoType, tx.ChainId()), tx)
 }
 
 type testChain struct {
@@ -325,7 +326,8 @@ func TestTransactionNegativeValue(t *testing.T) {
 	pool, key := setupTxPool()
 	defer pool.Stop()
 	rawTx := types.NewTransaction(0, common.Address{}, big.NewInt(-1), 100, big.NewInt(1), nil)
-	tx, _ := types.SignTx(rawTx, types.NewCommonSigner(rawTx.ChainId()), key)
+	tx, _ := types.SignTx(rawTx, types.NewSigner(constant.CryptoType, rawTx.ChainId()), key)
+
 	from, _ := deriveSender(tx)
 	pool.currentState.AddBalance(from, big.NewInt(1))
 	if err := pool.AddRemote(tx); err != ErrNegativeValue {
@@ -377,8 +379,7 @@ func TestTransactionDoubleNonce(t *testing.T) {
 		pool.lockedReset(nil, nil)
 	}
 	resetState()
-
-	signer := types.NewCommonSigner(params.AllMinervaProtocolChanges.ChainID)
+	signer := types.NewSigner(constant.CryptoType, params.AllMinervaProtocolChanges.ChainID)
 	tx1, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 100000, big.NewInt(1000000), nil), signer, key)
 	tx2, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(2000000), nil), signer, key)
 	tx3, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(1000000), nil), signer, key)
@@ -1444,7 +1445,7 @@ func TestTxSignTime(t *testing.T) {
 	for i := 0; i < 50000; i++ {
 		txs = append(txs, pricedTransaction(uint64(i), 100000, big.NewInt(1000000), priKey))
 	}
-	signer := types.NewCommonSigner(nil)
+	signer := types.NewSigner(constant.CryptoType, nil)
 	t1 := time.Now()
 	sum := 0
 	for _, tx := range txs {

@@ -6,5 +6,5 @@ const (
 )
 
 var (
-	CryptoType = COMMON_CRYPTO
+	CryptoType uint8 = COMMON_CRYPTO
 )

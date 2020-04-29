@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math"
 	"math/big"
 	"sort"
@@ -274,7 +275,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		config:      config,
 		chainconfig: chainconfig,
 		chain:       chain,
-		signer:      types.NewCommonSigner(chainconfig.ChainID),
+		signer:      types.NewSigner(constant.CryptoType, chainconfig.ChainID),
 		pending:     make(map[common.Address]*txList),
 		queue:       make(map[common.Address]*txList),
 		beats:       make(map[common.Address]time.Time),
