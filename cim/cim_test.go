@@ -4,17 +4,23 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/taiyuechain/taiyuechain/cim/config"
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"encoding/base64"
+	"crypto/x509"
+	"crypto/rand"
+	"log"
+	"math/big"
+	"crypto/x509/pkix"
+	"time"
 )
 
 
-func TestMain(m *testing.M) {
+/*func TestMain(m *testing.M) {
 	cimConfigDir, _ := config.GetDevCIMDir()
 	cimID := "simpleCIM"
 	err := InitCrypto(cimConfigDir, cimID)
@@ -24,7 +30,7 @@ func TestMain(m *testing.M) {
 	}
 	retVal := m.Run()
 	os.Exit(retVal)
-}
+}*/
 
 func TestNewIdentity(t *testing.T) {
 	cimConfigDir, _ := config.GetDevCIMDir()
@@ -71,6 +77,115 @@ func TestSignAndVerify(t *testing.T) {
 	err = id.Verify(msg, sig[1:])
 	assert.Error(t, err)
 }
+
+func TestCertCIMAndVerfiyCert(t *testing.T)  {
+	cimList := NewCIMList();
+
+	var root ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+
+	//create root
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	ca := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("3")
+	}
+
+
+	//encodeca := base64.StdEncoding.EncodeToString(ca_b)
+	//encodeca :=pem.Encode()
+	rootCert, err := x509.ParseCertificate(ca_b)
+	if err != nil{
+		t.Fatalf("cert error")
+	}
+
+	cimCa, err := NewCIM()
+	if err != nil {
+		t.Fatalf("error for new cim")
+	}
+
+	err =cimCa.SetUpFromCA(ca_b)
+	if err != nil{
+		//fmt.Println(err)
+		t.Fatalf("set cimCa error")
+	}
+
+	cimList.AddCim(cimCa)
+
+
+	// son
+	//bytes, _ := base64.StdEncoding.DecodeString(encodeca)
+
+	/*rootCert, err := x509.ParseCertificate(bytes)
+	if err != nil{
+		t.Fatalf("cert error")
+	}*/
+	var son ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
+	ca2 := &x509.Certificate{
+		SerialNumber: serialNumber2,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("2")
+	}
+
+
+	encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
+
+	if len(encodeca2) == 0{
+		t.Fatalf("len is zero")
+	}
+	err =cimList.VerifyCert(ca_b2)
+	if err != nil{
+		t.Fatalf("verfiy error")
+	}
+
+
+}
+
 
 func TestCreateCertByPrivate(t *testing.T) {
 
@@ -145,4 +260,182 @@ func TestCreatePubk(t *testing.T) {
 
 }
 
+func TestCreateAndVerifyRoot(t *testing.T) {
+	var root ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var son ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var last ,_ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
 
+	//create root
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	ca := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("3")
+	}
+
+
+	encodeca := base64.StdEncoding.EncodeToString(ca_b)
+	//fmt.Println(encodeca)
+	bytes, _ := base64.StdEncoding.DecodeString(encodeca)
+	/*var data []byte
+	if strings.Contains(string(bytes), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(ca_b)
+		if block == nil {
+			fmt.Println("that ca not right")
+		}
+		data = block.Bytes
+	}*/
+
+	//theCert, err := x509.ParseCertificate(data)
+
+	//t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+
+	rootCert, err := x509.ParseCertificate(bytes)
+	if err != nil{
+		t.Fatalf("root error")
+	}
+	//create son
+
+	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
+	ca2 := &x509.Certificate{
+		SerialNumber: serialNumber2,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("2")
+	}
+
+
+	encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
+	//fmt.Println(encodeca)
+	bytes2, _ := base64.StdEncoding.DecodeString(encodeca2)
+	/*var data []byte
+	if strings.Contains(string(bytes), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(ca_b)
+		if block == nil {
+			fmt.Println("that ca not right")
+		}
+		data = block.Bytes
+	}*/
+
+	//theCert, err := x509.ParseCertificate(data)
+
+	//t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+
+	sonCert, err := x509.ParseCertificate(bytes2)
+
+	//create******************************************************************//
+
+	serialNumberLimit3 := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber3, err := rand.Int(rand.Reader, serialNumberLimit3)
+	ca3 := &x509.Certificate{
+		SerialNumber: serialNumber3,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b3, err := x509.CreateCertificate(rand.Reader, ca3, sonCert, &last.PublicKey, son)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("1")
+	}
+
+
+	encodeca3 := base64.StdEncoding.EncodeToString(ca_b3)
+	//fmt.Println(encodeca)
+	bytes3, _ := base64.StdEncoding.DecodeString(encodeca3)
+	/*var data []byte
+	if strings.Contains(string(bytes), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(ca_b)
+		if block == nil {
+			fmt.Println("that ca not right")
+		}
+		data = block.Bytes
+	}*/
+
+	//theCert, err := x509.ParseCertificate(data)
+
+	//t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+
+	lastCert, err := x509.ParseCertificate(bytes3)
+
+	///verify cert
+		err1 :=lastCert.CheckSignatureFrom(rootCert)
+
+	if(err1 != nil){
+		t.Fatalf("check CheckSignatureFrom")
+	}
+
+}
+
+//func (c *Certificate) Verify(opts VerifyOptions) (chains [][]*Certificate, err error)
+
+func TestCreateAndVerifyRoot22(t *testing.T) {
+	cert2 := []byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
+	//var certList= [][]byte{cert1, cert2, cert3, cert4}
+
+	//startTime := time.Now().UnixNano()
+	//var certificate *x509.Certificate
+	_, err := x509.ParseCertificate(cert2)
+	if(err != nil){
+		t.Fatalf("1")
+	}
+	//fmt.Println(certificate == nil)
+}
