@@ -20,7 +20,6 @@ package etrue
 import (
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	config "github.com/taiyuechain/taiyuechain/params"
@@ -55,6 +54,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 type LesServer interface {
@@ -231,7 +231,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-
+	NewCIMList := cim.NewCIMList();
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {
@@ -240,8 +240,10 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		cimCa.SetUpFromCA(caCert.GetByte())
 		cim.CimMap[string(i)] = cimCa
+		NewCIMList.AddCim(cimCa)
 	}
 
 	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
