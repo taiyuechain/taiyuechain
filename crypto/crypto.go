@@ -231,6 +231,14 @@ func FromECDSA1(priv *ecdsa.PrivateKey) []byte {
 	ret = append([]byte{1}, ret...)
 	return ret
 }
+func FromECDSAP256(priv *ecdsa.PrivateKey) []byte {
+	if priv == nil {
+		return nil
+	}
+	ret := math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
+	ret = append([]byte{3}, ret...)
+	return ret
+}
 
 // UnmarshalPubkey converts bytes to a secp256k1 public key.
 func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
@@ -261,6 +269,13 @@ func UnmarshalPubkey1(pub []byte) (*ecdsa.PublicKey, error) {
 		return nil, errInvalidPubkey
 	}
 	return &ecdsa.PublicKey{Curve: S256(), X: x, Y: y}, nil
+}
+func UnmarshalPubkeyP256(pub []byte) (*ecdsa.PublicKey, error) {
+	x, y := elliptic.Unmarshal(elliptic.P256(), pub[1:])
+	if x == nil {
+		return nil, errInvalidPubkey
+	}
+	return &ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
 }
 func FromECDSAPubCA(pub *ecdsa.PublicKey) []byte {
 	if pub == nil || pub.X == nil || pub.Y == nil {

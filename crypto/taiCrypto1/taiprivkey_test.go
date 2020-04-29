@@ -72,7 +72,7 @@ func TestToPrivateKey(t *testing.T) {
 	smp := (*Sm2PrivateKey)(smpri)
 	key := smp.Public()
 	smpribyte, _ := ToPrivateKey(key)
-	prikey := smpribyte.(*sm2.PrivateKey)
+	prikey := smpribyte.(*Sm2PrivateKey)
 	fmt.Println(prikey)
 }
 

@@ -102,48 +102,73 @@ func (Tapub *P256PublicKey) CompressPubkey() []byte {
 func (Tapub *P256PublicKey) PubkeyToAddress() common.Address {
 	return tycrpto.PubkeyToAddressP256(*(*ecies.PublicKey)(Tapub).ExportECDSA())
 }
-func ToPublickey(pubkey []byte) (interface{}, error) {
+func ToPublickey(pubkey []byte) (TaiPubKey, error) {
 	if pubkey[0] == 1 {
-		return tycrpto.UnmarshalPubkey1(pubkey)
+		ecdp, err := tycrpto.UnmarshalPubkey1(pubkey)
+		if err != nil {
+			return nil, err
+		}
+		return (*EcdsaPublicKey)(ecdp), nil
 	}
 	if pubkey[0] == 2 {
-		return sm2.RawBytesToPublicKey1(pubkey)
+		smp, err := sm2.RawBytesToPublicKey1(pubkey)
+		if err != nil {
+			return nil, err
+		}
+		return (*Sm2PublicKey)(smp), nil
 	}
 	if pubkey[0] == 3 {
-		return tycrpto.ToECDSAP2561(pubkey)
+		p256p, err := tycrpto.UnmarshalPubkeyP256(pubkey)
+		if err != nil {
+			return nil, err
+		}
+		return (*P256PublicKey)(ecies.ImportECDSAPublic(p256p)), nil
 	}
 	return nil, nil
 }
-func DecompressPublickey(pubkey []byte) (interface{}, error) {
+func DecompressPublickey(pubkey []byte) (TaiPubKey, error) {
 	if pubkey[0] == 1 {
-		return tycrpto.DecompressPubkey(pubkey[1:])
+		ecdsap, err := tycrpto.DecompressPubkey(pubkey[1:])
+		if err != nil {
+			return nil, err
+		}
+		return (*EcdsaPublicKey)(ecdsap), err
 	}
 	if pubkey[0] == 2 {
-		return sm2.Decompress(pubkey[1:]), nil
+		smp := sm2.Decompress(pubkey[1:])
+		return (*Sm2PublicKey)(smp), nil
 	}
 	if pubkey[0] == 3 {
-		return p256.DecompressPubkey(pubkey[1:])
+		p256p, err := p256.DecompressPubkey(pubkey[1:])
+		if err != nil {
+			return nil, err
+		}
+		return (*P256PublicKey)(ecies.ImportECDSAPublic(p256p)), nil
 	}
 	return nil, nil
 }
-func SigToPub(hash, sig []byte) (interface{}, error) {
+func SigToPub(hash, sig []byte) (TaiPubKey, error) {
 	if sig[0] == 1 {
-		/*	ecdsaPublickey, err := tycrpto.SigToPub(hash, sig[1:])
-			if err != nil {
-				return nil, err
-			}*/
-		return tycrpto.SigToPub(hash, sig[1:])
+		ecdsaPublickey, err := tycrpto.SigToPub(hash, sig[1:])
+		if err != nil {
+			return nil, err
+		}
+		return (*EcdsaPublicKey)(ecdsaPublickey), nil
 	}
 	if sig[0] == 2 {
-		/*sm2publickey, err := sm2.RecoverPubkey(hash, sig[1:])
+		sm2publickey, err := sm2.RecoverPubkey(hash, sig[1:])
 		if err != nil {
-			return nil, nil, err
-		}*/
+			return nil, err
+		}
 
-		return sm2.RecoverPubkey(hash, sig[1:])
+		return (*Sm2PublicKey)(sm2publickey), nil
 	}
 	if sig[0] == 3 {
-		return p256.ECRecovery(hash, sig[1:])
+		p256publickey, err := p256.ECRecovery(hash, sig[1:])
+		if err != nil {
+			return nil, err
+		}
+		return (*P256PublicKey)(ecies.ImportECDSAPublic(p256publickey)), nil
 	}
 	return nil, nil
 }

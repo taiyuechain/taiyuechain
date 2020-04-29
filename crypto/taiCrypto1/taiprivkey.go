@@ -58,7 +58,7 @@ func (Taipri *Sm2PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 P256 method
 */
 func (Taipri *P256PrivateKey) Public() []byte {
-	return tycrpto.FromECDSA((*ecies.PrivateKey)(Taipri).ExportECDSA())
+	return tycrpto.FromECDSAP256((*ecies.PrivateKey)(Taipri).ExportECDSA())
 }
 func (Taipri *P256PrivateKey) Sign(digestHash []byte) ([]byte, error) {
 	ret, err := p256.Sign(digestHash, (*ecies.PrivateKey)(Taipri).ExportECDSA())
@@ -75,13 +75,13 @@ func (Taipri *P256PrivateKey) ToHex() string {
 func (Taipri *P256PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 	return (*ecies.PrivateKey)(Taipri).Decrypt(ct, nil, nil)
 }
-func ToPrivateKey(prikey []byte) (interface{}, error) {
+func ToPrivateKey(prikey []byte) (TaiPrivKey, error) {
 	if prikey[0] == 1 {
 		ecdsapri, err := tycrpto.ToECDSA1(prikey)
 		if err != nil {
 			return nil, err
 		}
-		return ecdsapri, nil
+		return (*EcdsaPrivateKey)(ecdsapri), nil
 	}
 	if prikey[0] == 2 {
 
@@ -89,7 +89,15 @@ func ToPrivateKey(prikey []byte) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return smapri, nil
+		return (*Sm2PrivateKey)(smapri), nil
+	}
+	if prikey[0] == 3 {
+
+		p256pri, err := tycrpto.ToECDSAP256(prikey)
+		if err != nil {
+			return nil, err
+		}
+		return (*P256PrivateKey)(ecies.ImportECDSA(p256pri)), nil
 	}
 	return nil, nil
 }

@@ -1,10 +1,10 @@
 package taiCrypto1
 
 import (
-	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/math"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
@@ -21,9 +21,9 @@ func TestEcdsaTaiPublicKey_ToAddress(t *testing.T) {
 	pubbytes := ecdpub.ToBytes()
 	fmt.Println(pubbytes)
 	inpub, _ := ToPublickey(pubbytes)
-	ecdsaPub := inpub.(*ecdsa.PublicKey)
-	ecdsaTaiPublicKey := (*EcdsaPublicKey)(ecdsaPub)
-	address := ecdsaTaiPublicKey.ToAddress()
+	ecdsaPub := inpub.(*EcdsaPublicKey)
+	//ecdsaTaiPublicKey := (*EcdsaPublicKey)(ecdsaPub)
+	address := ecdsaPub.ToAddress()
 	fmt.Println(address)
 
 }
@@ -62,9 +62,9 @@ func TestSm2TaiPublicKey_ToAddress(t *testing.T) {
 	pubbytes := sm2pub.ToBytes()
 	fmt.Println(pubbytes)
 	inpub, _ := ToPublickey(pubbytes)
-	ecdsaPub := inpub.(*sm2.PublicKey)
-	ecdsaTaiPublicKey := (*Sm2PublicKey)(ecdsaPub)
-	address := ecdsaTaiPublicKey.ToAddress()
+	ecdsaPub := inpub.(*Sm2PublicKey)
+	//ecdsaTaiPublicKey := (*Sm2PublicKey)(ecdsaPub)
+	address := ecdsaPub.ToAddress()
 	fmt.Println(address)
 }
 
@@ -144,7 +144,7 @@ func TestDecompressPublickey(t *testing.T) {
 	compressbyte := (*P256PublicKey)(&pri.PublicKey).CompressPubkey()
 	fmt.Println(compressbyte)
 	p256publicket, _ := DecompressPublickey(compressbyte)
-	tt := p256publicket.(*ecdsa.PublicKey)
+	tt := p256publicket.(*P256PublicKey)
 	fmt.Println(tt)
 }
 
@@ -162,7 +162,7 @@ func TestSm2PublicKey_CompressPubkey(t *testing.T) {
 	pubbyte := smtaipub.CompressPubkey()
 	fmt.Println(pubbyte)
 	smpublickey, _ := DecompressPublickey(pubbyte)
-	tt := smpublickey.(*sm2.PublicKey)
+	tt := smpublickey.(*Sm2PublicKey)
 	fmt.Println(tt)
 
 }
@@ -196,7 +196,11 @@ func TestSm2PublicKey_Encrypt(t *testing.T) {
 }
 
 func TestP256PublicKey_Encrypt1(t *testing.T) {
-
+	//ecdpri, _ := tycrpto.GenerateKey()
+	ecdpri, _ := tycrpto.GenerateKey()
+	ecdpublickey := (*EcdsaPublicKey)(&ecdpri.PublicKey)
+	e := encodePubkey1(ecdpublickey)
+	fmt.Println(e)
 }
 
 func TestSigToPub(t *testing.T) {
@@ -218,17 +222,53 @@ func TestSigToPub(t *testing.T) {
 		fmt.Println(smsign)*/
 	//smpubkey,_:=SigToPub(smdigst,smsign)
 	//fmt.Println(smpubkey.(sm2.PublicKey))
-	//pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
-	pri, _ := p256.NewSigningKey()
+	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	//pri, _ := p256.NewSigningKey()
 	fmt.Println(pri.PublicKey)
 	p256d := sha3.NewLegacyKeccak256()
 	hash := p256d.Sum(nil)
-	p256p := (*P256PrivateKey)(ecies.ImportECDSA(pri))
+	p256p := (*P256PrivateKey)(ecies.ImportECDSA(pri.ExportECDSA()))
 	p256sign, _ := p256p.Sign(hash)
 	p256pubkey1, _ := SigToPub(hash, p256sign)
 	//fmt.Println(ecies.ImportECDSAPublic(p256pubkey.(*ecdsa.PublicKey)))
-	fmt.Println(p256pubkey1.(*ecdsa.PublicKey))
-	p256publickey := (*P256PublicKey)(ecies.ImportECDSAPublic(p256pubkey1.(*ecdsa.PublicKey)))
+	//fmt.Println(p256pubkey1.(*EcdsaPublicKey))
+	p256publickey := (p256pubkey1).(*P256PublicKey)
 	bollsign := p256publickey.Verify(hash, p256sign)
 	fmt.Println(bollsign)
+}
+
+type encPubkey [65]byte
+
+func encodePubkey1(key TaiPubKey) encPubkey {
+	var e encPubkey
+	switch pub := key.(type) {
+	case *EcdsaPublicKey:
+		e[0] = 1
+		math.ReadBits(pub.X, e[1:len(e)/2+1])
+		math.ReadBits(pub.Y, e[len(e)/2+1:])
+		return e
+	case *Sm2PublicKey:
+		e[0] = 2
+		math.ReadBits(pub.X, e[1:len(e)/2+1])
+		math.ReadBits(pub.Y, e[len(e)/2+1:])
+		return e
+	case *P256PublicKey:
+		{
+			e[0] = 3
+			math.ReadBits(pub.X, e[1:len(e)/2+1])
+			math.ReadBits(pub.Y, e[len(e)/2+1:])
+			return e
+		}
+	}
+	return e
+	/*	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
+			math.ReadBits(key.Publickey.X, e[:len(e)/2])
+			math.ReadBits(key.Publickey.Y, e[len(e)/2:])
+		}
+		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
+			math.ReadBits(key.SmPublickey.X, e[:len(e)/2])
+			math.ReadBits(key.SmPublickey.Y, e[len(e)/2:])
+		}
+
+		return e*/
 }
