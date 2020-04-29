@@ -67,7 +67,8 @@ func (Tapub *Sm2PublicKey) CompressPubkey() []byte {
 	return ret
 }
 func (Tapub *Sm2PublicKey) PubkeyToAddress() common.Address {
-
+	smpublickey := (*sm2.PublicKey)(Tapub)
+	return sm2.GMPubkeyToAddress(*smpublickey)
 }
 
 /*
