@@ -2,22 +2,21 @@ package cim
 
 import (
 	"crypto/ecdsa"
-	"crypto/rand"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"log"
-	"math/big"
 	"os"
-	"time"
-
 	"crypto/elliptic"
 	"io/ioutil"
-	"encoding/pem"
+	"math/big"
+	"crypto/x509/pkix"
+	"time"
+	"log"
+	"crypto/rand"
+	//"encoding/base64"
 )
 
 func GetIdentityFromByte(idBytes []byte) (Identity, error) {
@@ -47,14 +46,18 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 	}
 
 	// Decode the pem bytes
-	pemCert, _ := pem.Decode(idBytes)
+	/*pemCert, _ := pem.Decode(idBytes)
 	if pemCert == nil {
 		return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
 	}
 
 	// get a cert
 	var cert *x509.Certificate
-	cert, err := x509.ParseCertificate(pemCert.Bytes)
+	cert, err := x509.ParseCertificate(pemCert.Bytes)*/
+	//pemCert ,_:= base64.StdEncoding.DecodeString(string(idBytes))
+
+	//var cert *x509.Certificate
+	cert, err := x509.ParseCertificate(idBytes)
 	if err != nil {
 		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
 	}

@@ -53,6 +53,37 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 	}
 }
 
+func (id *identity) VerifyByte(cert []byte) error {
+
+	needVerfyCert,err :=GetCertFromPem(cert)
+	if err != nil{
+		return err
+	}
+
+
+	//verfiy cert time
+	now := time.Now()
+	if now.Before(needVerfyCert.NotBefore) || now.After(needVerfyCert.NotAfter) {
+		return errors.New("x509: certificate has expired or is not yet valid")
+	}
+
+	//verfiy cert sig
+	//TODO： sm2 and p256
+	//err = needVerfyCert.CheckSignature(needVerfyCert.SignatureAlgorithm,needVerfyCert.RawTBSCertificate, needVerfyCert.Signature)
+	//if err != nil{
+	//	return err
+	//}
+
+	//check from
+	//TODO sm2 and p256
+	err =needVerfyCert.CheckSignatureFrom(id.cert)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+
 func NewIdentity(cert *x509.Certificate, pk Key) (Identity, error) {
 	return &identity{cert: cert, pk: pk}, nil
 }
