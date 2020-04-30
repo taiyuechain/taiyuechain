@@ -17,8 +17,8 @@
 package discover
 
 import (
-	"crypto/ecdsa"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/rand"
 
 	"net"
@@ -27,7 +27,6 @@ import (
 	"testing/quick"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
@@ -57,8 +56,12 @@ func testPingReplace(t *testing.T, newNodeIsResponding, lastInBucketIsResponding
 	<-tab.initDone
 
 	// Fill up the sender's bucket.
-	pingKey, _ := crypto.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
-	pingSender := wrapNode(enode.NewV4(&pingKey.PublicKey, net.IP{}, 99, 99))
+	var taiprivate taiCrypto.TaiPrivateKey
+	pingKey, err := taiprivate.HexToECDSA("45a915e4d060149eb4365960e6a7a45f334393093061116b197e3240065ff2d8")
+	if err != nil {
+		fmt.Println("testPingReplace err", err)
+	}
+	pingSender := wrapNode(enode.NewV4(&pingKey.TaiPubKey, net.IP{}, 99, 99))
 	last := fillBucket(tab, pingSender)
 
 	// Add the sender as if it just pinged us. Revalidate should replace the last node in
@@ -634,7 +637,7 @@ func (tn *preminedTestnet) mine(target encPubkey) {
 	found := 0
 	for found < bucketSize*10 {
 		k := newkey()
-		key := encodePubkey(&k.PublicKey)
+		key := encodePubkey(&k.TaiPubKey)
 		ld := enode.LogDist(tn.targetSha, key.id())
 		if len(tn.dists[ld]) < bucketSize {
 			tn.dists[ld] = append(tn.dists[ld], key)
@@ -683,8 +686,8 @@ func quickcfg() *quick.Config {
 	}
 }
 
-func newkey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
+func newkey() *taiCrypto.TaiPrivateKey {
+	key, err := taiCrypto.GenPrivKey()
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}

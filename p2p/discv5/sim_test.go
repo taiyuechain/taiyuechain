@@ -17,9 +17,9 @@
 package discv5
 
 import (
-	"crypto/ecdsa"
 	"encoding/binary"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/rand"
 	"net"
 	"strconv"
@@ -273,7 +273,7 @@ func (s *simulation) launchNode(log bool) *Network {
 	var (
 		num = s.nodectr
 		key = newkey()
-		id  = PubkeyID(&key.PublicKey)
+		id  = PubkeyID(&key.TaiPubKey)
 		ip  = make(net.IP, 4)
 	)
 	s.nodectr++
@@ -282,7 +282,7 @@ func (s *simulation) launchNode(log bool) *Network {
 	addr := &net.UDPAddr{IP: ip, Port: 30303}
 
 	transport := &simTransport{joinTime: time.Now(), sender: id, senderAddr: addr, sim: s, priv: key}
-	net, err := newNetwork(transport, key.PublicKey, "<no database>", nil)
+	net, err := newNetwork(transport, key.TaiPubKey, "<no database>", nil)
 	if err != nil {
 		panic("cannot launch new node: " + err.Error())
 	}
@@ -309,7 +309,7 @@ type simTransport struct {
 	senderAddr *net.UDPAddr
 	sim        *simulation
 	hashctr    uint64
-	priv       *ecdsa.PrivateKey
+	priv       *taiCrypto.TaiPrivateKey
 }
 
 func (st *simTransport) localAddr() *net.UDPAddr {

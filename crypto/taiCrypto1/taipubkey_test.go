@@ -12,6 +12,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"golang.org/x/crypto/sha3"
+	"reflect"
 	"testing"
 )
 
@@ -142,10 +143,16 @@ func TestDecompressPublickey(t *testing.T) {
 	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
 	fmt.Println(pri)
 	compressbyte := (*P256PublicKey)(&pri.PublicKey).CompressPubkey()
-	fmt.Println(compressbyte)
+	fmt.Println(compressbyte, "", len(compressbyte))
 	p256publicket, _ := DecompressPublickey(compressbyte)
 	tt := p256publicket.(*P256PublicKey)
 	fmt.Println(tt)
+	pub := &pri.ExportECDSA().PublicKey
+	data := elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
+	fmt.Println(pub, "", len(data))
+	if !reflect.DeepEqual(pub, tt) {
+		t.Fatal("1111111111111111")
+	}
 }
 
 func TestP256PublicKey_CompressPubkey(t *testing.T) {

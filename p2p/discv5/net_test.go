@@ -18,6 +18,7 @@ package discv5
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"testing"
 	"time"
@@ -27,8 +28,8 @@ import (
 )
 
 func TestNetwork_Lookup(t *testing.T) {
-	key, _ := crypto.GenerateKey()
-	network, err := newNetwork(lookupTestnet, key.PublicKey, "", nil)
+	key, _ := taiCrypto.GenPrivKey()
+	network, err := newNetwork(lookupTestnet, key.TaiPubKey, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -342,7 +343,7 @@ func (tn *preminedTestnet) mine(target NodeID) {
 	found := 0
 	for found < bucketSize*10 {
 		k := newkey()
-		id := PubkeyID(&k.PublicKey)
+		id := PubkeyID(&k.TaiPubKey)
 		sha := crypto.Keccak256Hash(id[:])
 		ld := logdist(tn.targetSha, sha)
 		if len(tn.dists[ld]) < bucketSize {

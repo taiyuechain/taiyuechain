@@ -195,12 +195,12 @@ func TestHexID(t *testing.T) {
 func TestNodeID_recover(t *testing.T) {
 	prv := newkey()
 	hash := make([]byte, 32)
-	sig, err := crypto.Sign(hash, prv)
+	sig, err := crypto.Sign(hash, &prv.Private)
 	if err != nil {
 		t.Fatalf("signing error: %v", err)
 	}
 
-	pub := PubkeyID(&prv.PublicKey)
+	pub := PubkeyID(&prv.TaiPubKey)
 	recpub, err := recoverNodeID(hash, sig)
 	if err != nil {
 		t.Fatalf("recovery error: %v", err)
@@ -213,8 +213,8 @@ func TestNodeID_recover(t *testing.T) {
 	if err != nil {
 		t.Errorf("Pubkey error: %v", err)
 	}
-	if !reflect.DeepEqual(ecdsa, &prv.PublicKey) {
-		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", ecdsa, &prv.PublicKey)
+	if !reflect.DeepEqual(ecdsa, &prv.TaiPubKey) {
+		t.Errorf("Pubkey mismatch:\n  got:  %#v\n  want: %#v", ecdsa, &prv.TaiPubKey)
 	}
 }
 

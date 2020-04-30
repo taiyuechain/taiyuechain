@@ -19,6 +19,7 @@ package discv5
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"net"
 	"reflect"
@@ -27,7 +28,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -363,8 +363,10 @@ var testPackets = []struct {
 func TestForwardCompatibility(t *testing.T) {
 	t.Skip("skipped while working on discovery v5")
 
-	testkey, _ := crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-	wantNodeID := PubkeyID(&testkey.PublicKey)
+	var taiprivate taiCrypto.TaiPrivateKey
+	testkey, _ := taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
+
+	wantNodeID := PubkeyID(&testkey.TaiPubKey)
 
 	for _, test := range testPackets {
 		input, err := hex.DecodeString(test.input)

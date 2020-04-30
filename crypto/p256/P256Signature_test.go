@@ -66,8 +66,8 @@ func TestSignP256(t *testing.T) {
 
 	hash := sha256.Sum256(data)
 
-	key1, key2, _ := ECRecovery(hash[:], sign)
-	if comparePublicKey(&key.PublicKey, key1) || comparePublicKey(&key.PublicKey, key2) {
+	key1, _ := ECRecovery(hash[:], sign)
+	if comparePublicKey(&key.PublicKey, key1) {
 		fmt.Println("match found.")
 	} else {
 		log.Fatal("match not found!!!")
@@ -75,10 +75,6 @@ func TestSignP256(t *testing.T) {
 	result = Verify(data, sign, key1)
 	if result == false {
 		log.Fatal("key 1 verify failed.")
-	}
-	result = Verify(data, sign, key2)
-	if result == false {
-		log.Fatal("key 2 verify failed.")
 	}
 	fmt.Println("verify ok.")
 }

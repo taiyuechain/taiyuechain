@@ -17,8 +17,8 @@
 package discv5
 
 import (
-	"crypto/ecdsa"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/rand"
 
 	"net"
@@ -28,7 +28,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 type nullTransport struct{}
@@ -328,8 +327,8 @@ func gen(typ interface{}, rand *rand.Rand) interface{} {
 	return v.Interface()
 }
 
-func newkey() *ecdsa.PrivateKey {
-	key, err := crypto.GenerateKey()
+func newkey() *taiCrypto.TaiPrivateKey {
+	key, err := taiCrypto.GenPrivKey()
 	if err != nil {
 		panic("couldn't generate key: " + err.Error())
 	}

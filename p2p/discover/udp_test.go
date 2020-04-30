@@ -18,11 +18,11 @@ package discover
 
 import (
 	"bytes"
-	"crypto/ecdsa"
 	crand "crypto/rand"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 	"math/rand"
 	"net"
@@ -57,7 +57,7 @@ type udpTest struct {
 	db                  *enode.DB
 	udp                 *udp
 	sent                [][]byte
-	localkey, remotekey *ecdsa.PrivateKey
+	localkey, remotekey *taiCrypto.TaiPrivateKey
 	remoteaddr          *net.UDPAddr
 }
 
@@ -88,7 +88,7 @@ func (test *udpTest) packetIn(wantError error, ptype byte, data packet) error {
 }
 
 // handles a packet as if it had been sent to the transport by the key/endpoint.
-func (test *udpTest) packetInFrom(wantError error, key *ecdsa.PrivateKey, addr *net.UDPAddr, ptype byte, data packet) error {
+func (test *udpTest) packetInFrom(wantError error, key *taiCrypto.TaiPrivateKey, addr *net.UDPAddr, ptype byte, data packet) error {
 	enc, _, err := encodePacket(key, ptype, data)
 	if err != nil {
 		return test.errorf("packet (%d) encode error: %v", ptype, err)
@@ -255,7 +255,7 @@ func TestUDP_findnode(t *testing.T) {
 	for i := 0; i < numCandidates; i++ {
 		key := newkey()
 		ip := net.IP{10, 13, 0, byte(i)}
-		n := wrapNode(enode.NewV4(&key.PublicKey, ip, 0, 2000))
+		n := wrapNode(enode.NewV4(&key.TaiPubKey, ip, 0, 2000))
 		// Ensure half of table content isn't verified live yet.
 		if i > numCandidates/2 {
 			n.livenessChecks = 1
@@ -267,7 +267,7 @@ func TestUDP_findnode(t *testing.T) {
 
 	// ensure there's a bond with the test node,
 	// findnode won't be accepted otherwise.
-	remoteID := encodePubkey(&test.remotekey.PublicKey).id()
+	remoteID := encodePubkey(&test.remotekey.TaiPubKey).id()
 	test.table.db.UpdateLastPongReceived(remoteID, test.remoteaddr.IP, time.Now())
 
 	// check that closest neighbors are returned.
@@ -301,13 +301,13 @@ func TestUDP_findnodeMultiReply(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
 
-	rid := enode.PubkeyToIDV4(&test.remotekey.PublicKey)
+	rid := enode.PubkeyToIDV4(&test.remotekey.TaiPubKey)
 	test.table.db.UpdateLastPingReceived(rid, test.remoteaddr.IP, time.Now())
 
 	// queue a pending findnode request
 	resultc, errc := make(chan []*node), make(chan error)
 	go func() {
-		rid := encodePubkey(&test.remotekey.PublicKey).id()
+		rid := encodePubkey(&test.remotekey.TaiPubKey).id()
 		ns, err := test.udp.findnode(rid, test.remoteaddr, testTarget)
 		if err != nil && len(ns) == 0 {
 			errc <- err
@@ -429,7 +429,7 @@ func TestUDP_successfulPing(t *testing.T) {
 	// pong packet.
 	select {
 	case n := <-added:
-		rid := encodePubkey(&test.remotekey.PublicKey).id()
+		rid := encodePubkey(&test.remotekey.TaiPubKey).id()
 		if n.ID() != rid {
 			t.Errorf("node has wrong ID: got %v, want %v", n.ID(), rid)
 		}
