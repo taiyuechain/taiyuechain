@@ -253,3 +253,15 @@ func TestVerify(t *testing.T) {
 		}
 	}
 }
+
+func TestToECDSAPublickey(t *testing.T) {
+	_, pub, _ := GenerateKey(rand.Reader)
+	fmt.Println(pub)
+	ecdapub := ToECDSAPublickey(pub)
+	sm2pub := ToSm2Publickey(ecdapub)
+	fmt.Println(sm2pub)
+}
+
+func TestToSm2Publickey(t *testing.T) {
+
+}
