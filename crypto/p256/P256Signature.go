@@ -156,24 +156,6 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 	return signature
 }
 
-/*func testCompressPublicKey() {
-	fmt.Println("--------------")
-	key, err := NewSigningKey()
-	if err != nil {
-		log.Fatal(err)
-	}
-	compressed := CompressPubkey(&key.PublicKey)
-	uncompressed, err := DecompressPubkey(compressed)
-	if err != nil {
-		log.Fatal(err)
-	}
-	result := comparePublicKey(&key.PublicKey, uncompressed)
-	if result != true {
-		log.Fatal("result does not match!")
-	}
-
-}*/
-
 //func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
 func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
 	r := big.Int{}
@@ -236,40 +218,3 @@ func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
 		return false
 	}
 }
-
-/*func testEcRecovery() {
-	fmt.Println("--------------")
-	key, err := NewSigningKey()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	data := []byte("hello world.")
-	sign, err := Sign(data, key)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	result := Verify(data, sign, &key.PublicKey)
-	if result == false {
-		log.Fatal("verify failed.")
-	}
-
-	hash := sha256.Sum256(data)
-
-	key1, key2, _ := ecRecovery(hash[:], sign)
-	if comparePublicKey(&key.PublicKey, key1) || comparePublicKey(&key.PublicKey, key2) {
-		fmt.Println("match found.")
-	} else {
-		log.Fatal("match not found!!!")
-	}
-	result = Verify(data, sign, key1)
-	if result == false {
-		log.Fatal("key 1 verify failed.")
-	}
-	result = Verify(data, sign, key2)
-	if result == false {
-		log.Fatal("key 2 verify failed.")
-	}
-	fmt.Println("verify ok.")
-}*/
