@@ -3,6 +3,7 @@ package sm2
 import "C"
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/asn1"
@@ -791,5 +792,19 @@ func Decompress(a []byte) *PublicKey {
 		Curve: sm2P256V1,
 		X:     x,
 		Y:     y,
+	}
+}
+func ToECDSAPublickey(key *PublicKey) *ecdsa.PublicKey {
+	return &ecdsa.PublicKey{
+		Curve: key.Curve,
+		X:     key.X,
+		Y:     key.Y,
+	}
+}
+func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
+	return &PublicKey{
+		X:     key.X,
+		Y:     key.Y,
+		Curve: sm2P256V1,
 	}
 }
