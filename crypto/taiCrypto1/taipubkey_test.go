@@ -279,3 +279,15 @@ func encodePubkey1(key TaiPubKey) encPubkey {
 
 		return e*/
 }
+
+func TestHexToPublickey(t *testing.T) {
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOSM2
+	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOECIES
+	ecdsa := GenerateKey()
+	pri := (ecdsa).(*EcdsaPrivateKey)
+	ecdsapubkey := (*EcdsaPublicKey)(&pri.PublicKey)
+	stringpub := ecdsapubkey.ToHex()
+	ecdsapublic, _ := HexToPublickey(stringpub)
+	fmt.Println(ecdsapublic)
+}

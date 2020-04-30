@@ -172,3 +172,10 @@ func SigToPub(hash, sig []byte) (TaiPubKey, error) {
 	}
 	return nil, nil
 }
+func HexToPublickey(hexkey string) (TaiPubKey, error) {
+	publicbyte, err := hex.DecodeString(hexkey)
+	if err != nil {
+		return nil, err
+	}
+	return ToPublickey(publicbyte)
+}

@@ -2,11 +2,14 @@ package taiCrypto1
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/hex"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 )
 
 /*
@@ -93,11 +96,32 @@ func ToPrivateKey(prikey []byte) (TaiPrivKey, error) {
 	}
 	if prikey[0] == 3 {
 
-		p256pri, err := tycrpto.ToECDSAP256(prikey)
+		p256pri, err := tycrpto.ToECDSAP2561(prikey)
 		if err != nil {
 			return nil, err
 		}
 		return (*P256PrivateKey)(ecies.ImportECDSA(p256pri)), nil
 	}
 	return nil, nil
+}
+func GenerateKey() TaiPrivKey {
+	switch taiCrypto.AsymmetricCryptoType {
+	case taiCrypto.ASYMMETRICCRYPTOECDSA:
+		ecdsapri, _ := tycrpto.GenerateKey()
+		return (*EcdsaPrivateKey)(ecdsapri)
+	case taiCrypto.ASYMMETRICCRYPTOSM2:
+		smpri, _, _ := sm2.GenerateKey(rand.Reader)
+		return (*Sm2PrivateKey)(smpri)
+	case taiCrypto.ASYMMETRICCRYPTOECIES:
+		eciespri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+		return (*P256PrivateKey)(eciespri)
+	}
+	return nil
+}
+func HexToPrivate(hexkey string) (TaiPrivKey, error) {
+	pribyte, err := hex.DecodeString(hexkey)
+	if err != nil {
+		return nil, err
+	}
+	return ToPrivateKey(pribyte)
 }

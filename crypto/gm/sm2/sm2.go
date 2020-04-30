@@ -140,6 +140,7 @@ func GenerateKey(rand io.Reader) (*PrivateKey, *PublicKey, error) {
 	publicKey.Curve = sm2P256V1
 	publicKey.X = x
 	publicKey.Y = y
+	privateKey.PublicKey = *publicKey
 	return privateKey, publicKey, nil
 }
 

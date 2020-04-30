@@ -9,6 +9,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
+	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"golang.org/x/crypto/sha3"
 	"testing"
 )
@@ -95,4 +96,23 @@ func TestP256PrivateKey_Sign(t *testing.T) {
 	pri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
 	d := sm3.New()
 	p256.SignP256(pri.ExportECDSA(), d.Sum(nil))
+}
+
+func TestGenerateKey(t *testing.T) {
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+	ecdsa := GenerateKey()
+	d := sha3.NewLegacyKeccak256()
+	sign, _ := ecdsa.Sign(d.Sum(nil))
+	fmt.Println(sign)
+
+}
+
+func TestHexToPrivate(t *testing.T) {
+	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOECDSA
+	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOSM2
+	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECIES
+	ecdsa := GenerateKey()
+	pristr := ecdsa.ToHex()
+	ecdsaprivate, _ := HexToPrivate(pristr)
+	fmt.Println(ecdsaprivate)
 }
