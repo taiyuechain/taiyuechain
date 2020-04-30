@@ -1093,8 +1093,8 @@ func checkExclusive(ctx *cli.Context, args ...interface{}) {
 	}
 }
 
-// SetTruechainConfig applies etrue-related command line flags to the config.
-func SetTruechainConfig(ctx *cli.Context, stack *node.Node, cfg *etai.Config) {
+// SetTaichainConfig applies etrue-related command line flags to the config.
+func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *etai.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, TestnetFlag, DevnetFlag)
 	//checkExclusive(ctx, LightServFlag, LightModeFlag)

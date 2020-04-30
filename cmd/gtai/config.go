@@ -131,7 +131,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetTruechainConfig(ctx, stack, &cfg.Etrue)
+	utils.SetTaichainConfig(ctx, stack, &cfg.Etrue)
 	if ctx.GlobalIsSet(utils.EtrueStatsURLFlag.Name) {
 		cfg.Etruestats.URL = ctx.GlobalString(utils.EtrueStatsURLFlag.Name)
 	}

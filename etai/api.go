@@ -43,34 +43,34 @@ import (
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
-// PublicTruechainAPI provides an API to access Taiyuechain full node-related
+// PublicTaichainAPI provides an API to access Taiyuechain full node-related
 // information.
-type PublicTruechainAPI struct {
+type PublicTaichainAPI struct {
 	e *Taiyuechain
 }
 
-// NewPublicTruechainAPI creates a new Taiyuechain protocol API for full nodes.
-func NewPublicTruechainAPI(e *Taiyuechain) *PublicTruechainAPI {
-	return &PublicTruechainAPI{e}
+// NewPublicTaiyueChainAPI creates a new Taiyuechain protocol API for full nodes.
+func NewPublicTaiyueChainAPI(e *Taiyuechain) *PublicTaichainAPI {
+	return &PublicTaichainAPI{e}
 }
 
 // Etherbase is the address that mining rewards will be send to
-func (api *PublicTruechainAPI) Etherbase() (common.Address, error) {
+func (api *PublicTaichainAPI) Etherbase() (common.Address, error) {
 	return api.e.Etherbase()
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for Etherbase)
-func (api *PublicTruechainAPI) Coinbase() (common.Address, error) {
+func (api *PublicTaichainAPI) Coinbase() (common.Address, error) {
 	return api.Etherbase()
 }
 
 // Pubkey is the address that mining rewards will be send to (alias for Etherbase)
-func (api *PublicTruechainAPI) Pubkey() string {
+func (api *PublicTaichainAPI) Pubkey() string {
 	return common.Bytes2Hex(api.e.agent.committeeNode.Publickey)
 }
 
 // CommitteeBase is the address that generate by pubkey
-func (api *PublicTruechainAPI) CommitteeBase() common.Address {
+func (api *PublicTaichainAPI) CommitteeBase() common.Address {
 	//cao liang modify
 	var taipublic taiCrypto.TaiPublicKey
 	//pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
@@ -80,28 +80,28 @@ func (api *PublicTruechainAPI) CommitteeBase() common.Address {
 }
 
 //IsCommitteeMember return node whether current committee member
-func (api *PublicTruechainAPI) IsCommitteeMember() bool {
+func (api *PublicTaichainAPI) IsCommitteeMember() bool {
 	return api.e.agent.isCurrentCommitteeMember
 }
 
 //CommitteeNumber return number of current committee
-func (api *PublicTruechainAPI) CommitteeNumber() uint64 {
+func (api *PublicTaichainAPI) CommitteeNumber() uint64 {
 	return api.e.agent.CommitteeNumber()
 }
 
 //GetCurrentState get current committee state
-func (api *PublicTruechainAPI) GetCurrentState() map[string]interface{} {
+func (api *PublicTaichainAPI) GetCurrentState() map[string]interface{} {
 	return api.e.agent.GetCommitteeStatus()
 }
 
 // Hashrate returns the POW hashrate
-//func (api *PublicTruechainAPI) Hashrate() hexutil.Uint64 {
+//func (api *PublicTaichainAPI) Hashrate() hexutil.Uint64 {
 //return hexutil.Uint64(api.e.Miner().HashRate())
 //	return nil
 //}
 
 // ChainId retuurn current taiyuechain's chain config.
-func (api *PublicTruechainAPI) ChainId() hexutil.Uint64 {
+func (api *PublicTaichainAPI) ChainId() hexutil.Uint64 {
 	chainID := new(big.Int)
 	chainID = api.e.blockchain.Config().ChainID
 	return (hexutil.Uint64)(chainID.Uint64())

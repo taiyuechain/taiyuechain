@@ -118,10 +118,10 @@ func (s *Taiyuechain) AddLesServer(ls LesServer) {
 // initialisation of the common Taiyuechain object)
 func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run etrue.Taiyuechain in light sync mode, use les.LightTruechain")
+		return nil, errors.New("can't run etrue.Taiyuechain in light sync mode, use les.LightTaiYueChain")
 	}
 	//if config.SyncMode == downloader.SnapShotSync {
-	//	return nil, errors.New("can't run etrue.Taiyuechain in SnapShotSync sync mode, use les.LightTruechain")
+	//	return nil, errors.New("can't run etrue.Taiyuechain in SnapShotSync sync mode, use les.LightTaichain")
 	//}
 
 	if !config.SyncMode.IsValid() {
@@ -362,7 +362,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 			{
 				Namespace: name,
 				Version:   "1.0",
-				Service:   NewPublicTruechainAPI(s),
+				Service:   NewPublicTaiyueChainAPI(s),
 				Public:    true,
 			}, /*{
 				Namespace: name,
