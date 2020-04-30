@@ -7,11 +7,11 @@ import (
 
 	"bytes"
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"testing"
 )

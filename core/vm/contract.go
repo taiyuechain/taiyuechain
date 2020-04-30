@@ -19,8 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-
+	"github.com/taiyuechain/taiyuechain/common"
 )
 
 // ContractRef is a reference to the contract's backing object
@@ -183,5 +182,3 @@ func (c *Contract) SetCodeOptionalHash(addr *common.Address, codeAndHash *codeAn
 	c.CodeHash = codeAndHash.hash
 	c.CodeAddr = addr
 }
-
-

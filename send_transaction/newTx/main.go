@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
 	"strings"

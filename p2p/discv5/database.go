@@ -30,14 +30,14 @@ import (
 	"time"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 var (

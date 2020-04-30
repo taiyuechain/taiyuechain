@@ -3,11 +3,11 @@ package tbft
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/tendermint/go-amino"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/tp2p"
 	ttypes "github.com/taiyuechain/taiyuechain/consensus/tbft/types"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/tendermint/go-amino"
 	"reflect"
 	"sync"
 	"time"

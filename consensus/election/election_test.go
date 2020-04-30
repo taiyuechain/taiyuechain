@@ -17,11 +17,11 @@
 package election
 
 import (
-	"math/big"
 	"bytes"
+	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
@@ -102,7 +102,7 @@ func committeeEqual(left, right []*types.CommitteeMember) bool {
 
 func makeChain(n int) (*snailchain.SnailBlockChain, *core.BlockChain) {
 	var (
-	// 	testdb  = etruedb.NewMemDatabase()
+		// 	testdb  = etruedb.NewMemDatabase()
 		genesis = core.DefaultGenesisBlock()
 	// 	engine  = minerva.NewFaker()
 	)

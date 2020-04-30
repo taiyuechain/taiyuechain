@@ -13,13 +13,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
 	tcrypto "github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	ttypes "github.com/taiyuechain/taiyuechain/consensus/tbft/types"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
 	config "github.com/taiyuechain/taiyuechain/params"
 )
 

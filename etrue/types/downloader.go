@@ -2,10 +2,10 @@ package types
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"sort"
 	"sync"

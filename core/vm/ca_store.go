@@ -22,13 +22,13 @@ import (
 	//"time"
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"math/big"
 )
 
@@ -101,11 +101,11 @@ func NewCACertList() *CACertList {
 	}
 }
 
-func (ca *CACertList) InitCACertList(caList [][]byte)  {
+func (ca *CACertList) InitCACertList(caList [][]byte) {
 
-	len:= len(caList)
-	for i:=0; i<len; i++{
-		ca.addCertToList(caList[i]);
+	len := len(caList)
+	for i := 0; i < len; i++ {
+		ca.addCertToList(caList[i])
 	}
 }
 
@@ -275,8 +275,6 @@ func (ca *CACertList) addCertToList(caCert []byte) (bool, error) {
 	return true, nil
 
 }
-
-
 
 func (ca *CACertList) delCertToList(caCert []byte) (bool, error) {
 	if len(caCert) == 0 {

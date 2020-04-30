@@ -22,8 +22,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto/bn256"

@@ -25,10 +25,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/prometheus/tsdb/fileutil"
-
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
 var (

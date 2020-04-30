@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/robertkrimen/otto"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/internal/jsre/deps"
 )
 

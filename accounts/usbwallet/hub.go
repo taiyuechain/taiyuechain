@@ -22,10 +22,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/karalabe/hid"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/karalabe/hid"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 // LedgerScheme is the protocol scheme prefixing account and wallet URLs.

@@ -2,8 +2,8 @@ package tbft
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"testing"
 )
 

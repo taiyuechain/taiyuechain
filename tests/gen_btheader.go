@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
@@ -16,14 +16,14 @@ var _ = (*btHeaderMarshaling)(nil)
 
 func (b btHeader) MarshalJSON() ([]byte, error) {
 	type btHeader struct {
-		CommitteeHash		common.Hash
-		SnailHash			common.Hash
-		SnailNumber			 *math.HexOrDecimal256
+		CommitteeHash    common.Hash
+		SnailHash        common.Hash
+		SnailNumber      *math.HexOrDecimal256
 		Bloom            types.Bloom
 		Number           *math.HexOrDecimal256
 		Hash             common.Hash
 		ParentHash       common.Hash
-		ReceiptsRoot      common.Hash
+		ReceiptsRoot     common.Hash
 		StateRoot        common.Hash
 		TransactionsRoot common.Hash
 		ExtraData        hexutil.Bytes
@@ -34,7 +34,7 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 	var enc btHeader
 	enc.CommitteeHash = b.CommitteeHash
 	enc.SnailHash = b.SnailHash
-	enc.SnailNumber =  (*math.HexOrDecimal256)(b.SnailNumber)
+	enc.SnailNumber = (*math.HexOrDecimal256)(b.SnailNumber)
 	enc.Bloom = b.Bloom
 	enc.Number = (*math.HexOrDecimal256)(b.Number)
 	enc.Hash = b.Hash
@@ -51,14 +51,14 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 
 func (b *btHeader) UnmarshalJSON(input []byte) error {
 	type btHeader struct {
-		CommitteeHash		*common.Hash
-		SnailHash			*common.Hash
-		SnailNumber			*math.HexOrDecimal256
+		CommitteeHash    *common.Hash
+		SnailHash        *common.Hash
+		SnailNumber      *math.HexOrDecimal256
 		Bloom            *types.Bloom
 		Number           *math.HexOrDecimal256
 		Hash             *common.Hash
 		ParentHash       *common.Hash
-		ReceiptsRoot      *common.Hash
+		ReceiptsRoot     *common.Hash
 		StateRoot        *common.Hash
 		TransactionsRoot *common.Hash
 		ExtraData        *hexutil.Bytes

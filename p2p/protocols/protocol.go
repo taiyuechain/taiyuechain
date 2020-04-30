@@ -37,10 +37,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/p2p"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 // error codes used by this  protocol scheme

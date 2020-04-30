@@ -24,9 +24,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io"
 
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 )
 

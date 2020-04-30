@@ -21,10 +21,10 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 )
@@ -73,25 +73,8 @@ const (
 
 const (
 	// Protocol messages belonging to etrue/63
-
-	NewFastBlockHashesMsg  = 0x01
-	TxMsg                  = 0x02
-	GetFastBlockHeadersMsg = 0x03
-	FastBlockHeadersMsg    = 0x04
-	GetFastBlockBodiesMsg  = 0x05
-	FastBlockBodiesMsg     = 0x06
-	NewFastBlockMsg        = 0x07
-	TbftNodeInfoMsg        = 0x08
-
-	//snail sync
-	NewFruitMsg             = 0x09
-	GetSnailBlockHeadersMsg = 0x0a
-	SnailBlockHeadersMsg    = 0x0b
-	GetSnailBlockBodiesMsg  = 0x0c
-	SnailBlockBodiesMsg     = 0x0d
-	NewSnailBlockMsg        = 0x0e
-
-	NewSnailBlockHashesMsg = 0x13
+	TxMsg           = 0x02
+	TbftNodeInfoMsg = 0x08
 
 	TbftNodeInfoHashMsg = 0x15
 	GetTbftNodeInfoMsg  = 0x16
@@ -162,7 +145,6 @@ type txPool interface {
 	// NewTxsEvent and send events to the given channel.
 	SubscribeNewTxsEvent(chan<- types.NewTxsEvent) event.Subscription
 }
-
 
 type AgentNetworkProxy interface {
 	// SubscribeNewPbftSignEvent should return an event subscription of

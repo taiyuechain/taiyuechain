@@ -25,10 +25,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/prque"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/prque"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
@@ -61,7 +61,7 @@ type fetchResult struct {
 	Uncles       []*types.Header
 	Transactions types.Transactions
 	Receipts     types.Receipts
-	Signs   []*types.PbftSign
+	Signs        []*types.PbftSign
 	Infos        types.CommitteeMembers
 }
 

@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/elastic/gosigar"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
@@ -21,6 +20,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/etrueclient"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/node"
 	"gopkg.in/urfave/cli.v1"

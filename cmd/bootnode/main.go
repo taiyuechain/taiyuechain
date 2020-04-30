@@ -21,9 +21,9 @@ import (
 	"crypto/ecdsa"
 	"flag"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/log"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"

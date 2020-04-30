@@ -23,8 +23,8 @@ import (
 	"net"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"

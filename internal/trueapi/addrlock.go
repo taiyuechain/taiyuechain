@@ -19,7 +19,7 @@ package trueapi
 import (
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 )
 
 type AddrLocker struct {

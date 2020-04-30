@@ -39,11 +39,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/pborman/uuid"
+	"github.com/taiyuechain/taiyuechain/log"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/scrypt"
 )

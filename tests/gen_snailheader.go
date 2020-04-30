@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
@@ -16,22 +16,22 @@ var _ = (*snailHeaderMarshaling)(nil)
 
 func (b snailHeader) MarshalJSON() ([]byte, error) {
 	type snailHeader struct {
-		ParentHash       	common.Hash
-		Miner				common.Address
-		PointerHash			common.Hash
-		PointerNumber		*math.HexOrDecimal256
-		FruitsHash			common.Hash
-		FastHash			common.Hash
-		FastNumber			*math.HexOrDecimal256
-		SignHash			common.Hash
-		Difficulty			*math.HexOrDecimal256
-		FruitDifficulty		*math.HexOrDecimal256
-		Number				*math.HexOrDecimal256
-		PublicKey			hexutil.Bytes
-		Timestamp			*math.HexOrDecimal256
-		ExtraData			hexutil.Bytes
-		MixHash				common.Hash
-		Nonce				types.BlockNonce
+		ParentHash      common.Hash
+		Miner           common.Address
+		PointerHash     common.Hash
+		PointerNumber   *math.HexOrDecimal256
+		FruitsHash      common.Hash
+		FastHash        common.Hash
+		FastNumber      *math.HexOrDecimal256
+		SignHash        common.Hash
+		Difficulty      *math.HexOrDecimal256
+		FruitDifficulty *math.HexOrDecimal256
+		Number          *math.HexOrDecimal256
+		PublicKey       hexutil.Bytes
+		Timestamp       *math.HexOrDecimal256
+		ExtraData       hexutil.Bytes
+		MixHash         common.Hash
+		Nonce           types.BlockNonce
 	}
 
 	var enc snailHeader
@@ -57,24 +57,23 @@ func (b snailHeader) MarshalJSON() ([]byte, error) {
 
 func (b *snailHeader) UnmarshalJSON(input []byte) error {
 	type snailHeader struct {
-		ParentHash       	*common.Hash
-		Miner				*common.Address
-		PointerHash			*common.Hash
-		PointerNumber		*math.HexOrDecimal256
-		FruitsHash			*common.Hash
-		FastHash			*common.Hash
-		FastNumber			*math.HexOrDecimal256
-		SignHash			*common.Hash
-		Difficulty			*math.HexOrDecimal256
-		FruitDifficulty		*math.HexOrDecimal256
-		Number				*math.HexOrDecimal256
-		PublicKey			*hexutil.Bytes
-		Timestamp			*math.HexOrDecimal256
-		ExtraData			*hexutil.Bytes
-		MixHash				*common.Hash
-		Nonce				*types.BlockNonce
+		ParentHash      *common.Hash
+		Miner           *common.Address
+		PointerHash     *common.Hash
+		PointerNumber   *math.HexOrDecimal256
+		FruitsHash      *common.Hash
+		FastHash        *common.Hash
+		FastNumber      *math.HexOrDecimal256
+		SignHash        *common.Hash
+		Difficulty      *math.HexOrDecimal256
+		FruitDifficulty *math.HexOrDecimal256
+		Number          *math.HexOrDecimal256
+		PublicKey       *hexutil.Bytes
+		Timestamp       *math.HexOrDecimal256
+		ExtraData       *hexutil.Bytes
+		MixHash         *common.Hash
+		Nonce           *types.BlockNonce
 	}
-
 
 	var dec snailHeader
 	if err := json.Unmarshal(input, &dec); err != nil {

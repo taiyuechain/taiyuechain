@@ -19,8 +19,8 @@ package bind
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"reflect"

@@ -26,12 +26,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	//"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
+	//"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 )
 
@@ -368,6 +368,7 @@ func (m *Minerva) verifyHeader(chain consensus.ChainReader, header, parent *type
 
 	return nil
 }
+
 /*func (m *Minerva) verifySnailHeader(chain consensus.SnailChainReader, fastchain consensus.ChainReader, header, pointer *types.SnailHeader,
 	parents []*types.SnailHeader, uncle bool, seal bool, isFruit bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
@@ -807,7 +808,7 @@ func (m *Minerva) PrepareSnailWithParent(fastchain consensus.ChainReader, chain 
 func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB,
 	txs []*types.Transaction, receipts []*types.Receipt, feeAmount *big.Int) (*types.Block, error) {
 
-	consensus.OnceInitCAState(chain.Config(),state,new(big.Int).Set(header.Number),[][]byte{})
+	consensus.OnceInitCAState(chain.Config(), state, new(big.Int).Set(header.Number), [][]byte{})
 
 	if header != nil && header.SnailHash != (common.Hash{}) && header.SnailNumber != nil {
 		log.Info("Finalize:", "header.SnailHash", header.SnailHash, "header.SnailNumber", header.SnailNumber, "number", header.Number)
@@ -824,11 +825,11 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 		}
 		// not need reward
 		/*
-		err := accumulateRewardsFast(m.election, state, sBlock)
-		if err != nil {
-			log.Error("Finalize Error", "accumulateRewardsFast", err.Error())
-			return nil, err
-		}*/
+			err := accumulateRewardsFast(m.election, state, sBlock)
+			if err != nil {
+				log.Error("Finalize Error", "accumulateRewardsFast", err.Error())
+				return nil, err
+			}*/
 	}
 
 	//not need this

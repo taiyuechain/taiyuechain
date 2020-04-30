@@ -20,17 +20,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"strings"
@@ -54,7 +54,7 @@ func (t *StateTest) UnmarshalJSON(in []byte) error {
 
 type stJSON struct {
 	Env  stEnv                    `json:"env"`
-	Pre  types.GenesisAlloc        `json:"pre"`
+	Pre  types.GenesisAlloc       `json:"pre"`
 	Tx   stTransaction            `json:"transaction"`
 	Out  hexutil.Bytes            `json:"out"`
 	Post map[string][]stPostState `json:"post"`
@@ -131,14 +131,14 @@ func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config) (*state.StateD
 	if err != nil {
 		return nil, err
 	}
-	context := core.NewEVMContext(msg, block.Header(), nil,t.json.Env.Difficulty,&t.json.Env.Coinbase)
+	context := core.NewEVMContext(msg, block.Header(), nil, t.json.Env.Difficulty, &t.json.Env.Coinbase)
 	context.GetHash = vmTestBlockHash
 	evm := vm.NewEVM(context, statedb, config, vmconfig)
 	gaspool := new(core.GasPool)
 	gaspool.AddGas(block.GasLimit())
 	snapshot := statedb.Snapshot()
 	_, gasUsed, _, err := core.ApplyMessage(evm, msg, gaspool)
-	if  err != nil {
+	if err != nil {
 		statedb.RevertToSnapshot(snapshot)
 	}
 	statedb.AddBalance(t.json.Env.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(gasUsed), msg.GasPrice()))
@@ -243,7 +243,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 		return nil, fmt.Errorf("invalid tx data %q", dataHex)
 	}
 
-	msg := types.NewMessage(from, to,common.Address{}, tx.Nonce, value,nil, gasLimit, tx.GasPrice, data, true)
+	msg := types.NewMessage(from, to, common.Address{}, tx.Nonce, value, nil, gasLimit, tx.GasPrice, data, true)
 	return msg, nil
 }
 

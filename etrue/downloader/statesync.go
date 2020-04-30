@@ -22,11 +22,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/etruedb"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/trie"
 	"golang.org/x/crypto/sha3"
 )
@@ -347,7 +347,7 @@ func (s *stateSync) commit(force bool) error {
 	}
 	start := time.Now()
 	b := s.d.stateDB.NewBatch()
-	if _,err := s.sched.Commit(b); err != nil {
+	if _, err := s.sched.Commit(b); err != nil {
 		return err
 	}
 	if err := b.Write(); err != nil {

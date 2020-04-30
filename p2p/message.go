@@ -20,16 +20,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/log"
 	"io"
 	"io/ioutil"
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 // Msg defines the structure of a p2p message.

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 )
 
 var _ = (*headerMarshaling)(nil)
@@ -50,7 +50,6 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.Hash = h.Hash()
 	return json.Marshal(&enc)
 }
-
 
 // UnmarshalJSON unmarshals from JSON.
 func (h *Header) UnmarshalJSON(input []byte) error {

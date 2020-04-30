@@ -20,7 +20,7 @@ import (
 	"encoding/binary"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 
 	"github.com/syndtr/goleveldb/leveldb"

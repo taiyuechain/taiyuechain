@@ -19,7 +19,7 @@ package state
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 )
 
 // journalEntry is a modification entry in the state change journal that can be
@@ -136,7 +136,6 @@ type (
 		prev      bool
 		prevDirty bool
 	}
-
 )
 
 func (ch createObjectChange) revert(s *StateDB) {
@@ -200,7 +199,6 @@ func (ch codeChange) revert(s *StateDB) {
 func (ch codeChange) dirtied() *common.Address {
 	return ch.account
 }
-
 
 func (ch caStorageChange) revert(s *StateDB) {
 	s.getStateObject(*ch.account).setStateByteArray(ch.key, ch.prevalue)

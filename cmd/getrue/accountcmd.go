@@ -6,11 +6,11 @@ import (
 	"io/ioutil"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/console"
+	"github.com/taiyuechain/taiyuechain/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

@@ -23,9 +23,9 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 var thash taiCrypto.THash

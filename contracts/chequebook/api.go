@@ -1,12 +1,10 @@
-
-
 package chequebook
 
 import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 )
 
 const Version = "1.0"

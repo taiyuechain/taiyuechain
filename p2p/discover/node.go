@@ -26,7 +26,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common/math"
 
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )

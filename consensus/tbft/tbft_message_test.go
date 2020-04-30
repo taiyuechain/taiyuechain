@@ -2,11 +2,11 @@ package tbft
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/types"
 	types2 "github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"math/rand"
 	"testing"
 )

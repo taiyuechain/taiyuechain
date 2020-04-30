@@ -3,8 +3,8 @@ package pex
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/taiyuechain/taiyuechain/log"
 	"os"
 )
 

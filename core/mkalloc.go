@@ -35,7 +35,7 @@ import (
 	"strconv"
 
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 type allocItem struct{ Addr, Balance *big.Int }

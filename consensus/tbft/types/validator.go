@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 )
@@ -16,18 +16,18 @@ type Validator struct {
 	PubKey      crypto.PubKey `json:"pub_key"`
 	VotingPower int64         `json:"voting_power"`
 	Accum       int64         `json:"accum"`
-	Cert    []byte            `json:"cert"`
+	Cert        []byte        `json:"cert"`
 }
 
 //NewValidator is return a new Validator
-func NewValidator(pubKey crypto.PubKey, votingPower int64,cert  []byte) *Validator {
+func NewValidator(pubKey crypto.PubKey, votingPower int64, cert []byte) *Validator {
 
 	return &Validator{
 		Address:     pubKey.Address(),
 		PubKey:      pubKey,
 		VotingPower: votingPower,
 		Accum:       0,
-		Cert:	cert,
+		Cert:        cert,
 	}
 }
 

@@ -2,9 +2,9 @@ package types
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 //const defaultCapacity = 0

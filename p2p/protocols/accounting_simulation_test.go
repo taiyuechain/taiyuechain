@@ -31,7 +31,7 @@ import (
 
 	"github.com/mattn/go-colorable"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rpc"
 
 	"github.com/taiyuechain/taiyuechain/node"

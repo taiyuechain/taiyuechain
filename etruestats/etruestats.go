@@ -30,14 +30,14 @@ import (
 	"time"
 
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etrue"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/les"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"golang.org/x/net/websocket"
@@ -201,11 +201,11 @@ func (s *Service) loop() {
 
 				// Notify of chain snailHead events, but drop if too frequent
 			/*case snailHead := <-chainsnailHeadCh:
-				select {
-				case snailHeadCh <- snailHead.Block:
-				default:
-				}*/
-				// Notify of new transaction events, but drop if too frequent
+			select {
+			case snailHeadCh <- snailHead.Block:
+			default:
+			}*/
+			// Notify of new transaction events, but drop if too frequent
 			case <-txEventCh:
 				if time.Duration(mclock.Now()-lastTx) < time.Second {
 					continue
@@ -814,7 +814,7 @@ func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error 
 		log.Trace("No history to send to stats server")
 	}*/
 	stats := map[string]interface{}{
-		"id":      s.node,
+		"id": s.node,
 		//"history": history,
 	}
 	report := map[string][]interface{}{
@@ -855,15 +855,15 @@ func (s *Service) reportPending(conn *websocket.Conn) error {
 
 // nodeStats is the information to report about the local node.
 type nodeStats struct {
-	Active            bool `json:"active"`
-	Syncing           bool `json:"syncing"`
+	Active  bool `json:"active"`
+	Syncing bool `json:"syncing"`
 	//Mining            bool `json:"mining"`
 	IsCommitteeMember bool `json:"isCommitteeMember"`
 	IsLeader          bool `json:"isLeader"`
 	//Hashrate          int  `json:"hashrate"`
-	Peers             int  `json:"peers"`
-	GasPrice          int  `json:"gasPrice"`
-	Uptime            int  `json:"uptime"`
+	Peers    int `json:"peers"`
+	GasPrice int `json:"gasPrice"`
+	Uptime   int `json:"uptime"`
 }
 
 // reportPending retrieves various stats about the node at the networking and
@@ -875,8 +875,8 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		isCommitteeMember bool
 		isLeader          bool
 		//hashrate          int
-		syncing           bool
-		gasprice          int
+		syncing  bool
+		gasprice int
 	)
 	if s.etrue != nil {
 		//mining = s.etrue.Miner().Mining()
@@ -897,7 +897,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	// Assemble the node stats and send it to the server
 	log.Trace("Sending node details to etruestats")
 	nodeStats := &nodeStats{
-		Active:            true,
+		Active: true,
 		//Mining:            mining,
 		//Hashrate:          hashrate,
 		Peers:             s.server.PeerCount(),
@@ -916,6 +916,3 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	}
 	return websocket.JSON.Send(conn, report)
 }
-
-
-

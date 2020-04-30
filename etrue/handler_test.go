@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -520,7 +520,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	doneCh := make(chan struct{}, totalPeers)
 	for _, peer := range peers {
 		go func(p *testPeer) {
-			if err := p2p.ExpectMsg(p.app, NewFastBlockMsg, &newBlockData{Block: chain[0]}); err != nil {
+			if err := p2p.ExpectMsg(p.app, NewBlockMsg, &newBlockData{Block: chain[0]}); err != nil {
 				errCh <- err
 			} else {
 				doneCh <- struct{}{}

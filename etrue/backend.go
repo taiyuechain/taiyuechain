@@ -29,11 +29,9 @@ import (
 	"sync"
 	//"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	elect "github.com/taiyuechain/taiyuechain/consensus/election"
@@ -42,6 +40,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/etrue/filters"
@@ -50,11 +50,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	//"github.com/taiyuechain/taiyuechain/miner"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 type LesServer interface {
@@ -231,7 +231,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-	NewCIMList := cim.NewCIMList();
+	NewCIMList := cim.NewCIMList()
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {

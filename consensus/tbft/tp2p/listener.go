@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/tp2p/upnp"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 // Listener is a network listener for stream-oriented protocols, providing

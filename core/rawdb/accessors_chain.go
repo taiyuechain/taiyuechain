@@ -19,10 +19,10 @@ package rawdb
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"math/big"
 )
 
@@ -122,8 +122,6 @@ func WriteLastBlockHash(db DatabaseWriter, hash common.Hash) {
 		log.Crit("Failed to store last block's hash", "err", err)
 	}
 }
-
-
 
 // ReadHeadFastBlockHash retrieves the hash of the current fast-sync head block.
 func ReadHeadFastBlockHash(db DatabaseReader) common.Hash {
@@ -315,7 +313,6 @@ func WriteTd(db DatabaseWriter, hash common.Hash, number uint64, td *big.Int) {
 		log.Crit("Failed to store block total difficulty", "err", err)
 	}
 }
-
 
 // HasReceipts verifies the existence of all the transaction receipts belonging
 // to a block.

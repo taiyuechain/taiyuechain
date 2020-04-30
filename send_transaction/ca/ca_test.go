@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/state"
 )

@@ -26,7 +26,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
@@ -35,11 +35,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/etrue/fetcher"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -101,12 +101,12 @@ type ProtocolManager struct {
 
 	// wait group is used for graceful shutdowns during downloading
 	// and processing
-	wg sync.WaitGroup
+	wg         sync.WaitGroup
 	agentProxy AgentNetworkProxy
 
 	// Test fields or hooks
 	broadcastTxAnnouncesOnly bool // Testing field, disable transaction propagation
-	SubProtocols []p2p.Protocol
+	SubProtocols             []p2p.Protocol
 
 	chainconfig *params.ChainConfig
 
@@ -115,12 +115,11 @@ type ProtocolManager struct {
 
 	pbNodeInfoCh  chan types.NodeInfoEvent
 	pbNodeInfoSub event.Subscription
-
 }
 
 // NewProtocolManager returns a new Ethereum sub protocol manager. The Ethereum sub protocol manages peers capable
 // with the Ethereum network.
-func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb etruedb.Database, agent *PbftAgent,cacheLimit int, whitelist map[uint64]common.Hash) (*ProtocolManager, error) {
+func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb etruedb.Database, agent *PbftAgent, cacheLimit int, whitelist map[uint64]common.Hash) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkID:   networkID,
@@ -195,7 +194,6 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 	if len(manager.SubProtocols) == 0 {
 		return nil, errIncompatibleConfig
 	}
-
 
 	// If we have trusted checkpoints, enforce them on the chain
 	if checkpoint != nil {
@@ -327,7 +325,6 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent{})
 	go pm.minedBroadcastLoop()
 
-
 	// broadcast fastBlocks
 	pm.minedFastCh = make(chan types.PbftSignEvent, blockChanSize)
 	pm.minedFastSub = pm.agentProxy.SubscribeNewPbftSignEvent(pm.minedFastCh)
@@ -348,7 +345,7 @@ func (pm *ProtocolManager) Stop() {
 
 	pm.txsSub.Unsubscribe()        // quits txBroadcastLoop
 	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
-	pm.minedFastSub.Unsubscribe() // quits minedFastBroadcastLoop
+	pm.minedFastSub.Unsubscribe()  // quits minedFastBroadcastLoop
 	pm.pbNodeInfoSub.Unsubscribe()
 
 	// Quit the sync loop.
@@ -373,10 +370,10 @@ func (pm *ProtocolManager) Stop() {
 func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(hash common.Hash) *types.Transaction) *peer {
 	return newPeer(pv, p, rw, getPooledTx)
 }
+
 /*func (pm *ProtocolManager) newPeer(pv int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 	return newPeer(pv, p, newMeteredMsgWriter(rw), pm.removePeer)
 }*/
-
 
 // handle is the callback invoked to manage the life cycle of an eth peer. When
 // this function terminates, the peer is disconnected.
@@ -399,7 +396,6 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}
-
 
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
@@ -1025,6 +1021,7 @@ func (pm *ProtocolManager) BroadcastTransactions(txs types.Transactions, propaga
 		}
 	}
 }
+
 // PeersWithoutBlock retrieves a list of peers that do not have a given block in
 // their set of known hashes.
 func (ps *peerSet) PeersWithoutFastBlock(hash common.Hash) []*peer {
@@ -1077,7 +1074,6 @@ func (pm *ProtocolManager) BroadcastFastBlock(block *types.Block, propagate bool
 	}
 }
 
-
 // BroadcastPbNodeInfo will propagate a batch of EncryptNodeMessage to all peers which are not known to
 // already have the given CryNodeInfo.
 func (pm *ProtocolManager) BroadcastPbNodeInfo(nodeInfo *types.EncryptNodeMessage) {
@@ -1103,7 +1099,6 @@ func (pm *ProtocolManager) BroadcastPbNodeInfo(nodeInfo *types.EncryptNodeMessag
 	}
 	log.Info("Broadcast node info ", "hash", nodeInfo.Hash(), "sendNodeHash.peer", len(peers), "sendNode.peer", len(transfer), "pm.peers.peers", len(pm.peers.peers))
 }
-
 
 // Mined broadcast loop
 func (pm *ProtocolManager) minedFastBroadcastLoop() {

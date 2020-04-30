@@ -26,10 +26,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/golang/snappy"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
 var (
@@ -190,7 +190,7 @@ func newCustomTable(path string, name string, readMeter metrics.Meter, writeMete
 		return nil, err
 	}
 	//tab.sizeGauge.Inc(int64(size))
-*/
+	*/
 	return tab, nil
 }
 

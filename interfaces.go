@@ -3,7 +3,7 @@ package truechain
 import (
 	"context"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"math/big"
 )
@@ -196,5 +196,3 @@ type GasEstimator interface {
 type PendingStateEventer interface {
 	SubscribePendingTransactions(ctx context.Context, ch chan<- *types.Transaction) (Subscription, error)
 }
-
-

@@ -3,7 +3,7 @@ package certinterface
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"

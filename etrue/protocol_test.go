@@ -18,19 +18,19 @@ package etrue
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/etrue/downloader"
 	"github.com/taiyuechain/taiyuechain/p2p"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 func init() {
@@ -47,9 +47,9 @@ func testStatusMsgErrors(t *testing.T, protocol int) {
 	defer log.CloseLogDebug()
 	pm, _ := newTestProtocolManagerMust(t, downloader.FullSync, 0, 0, nil, nil)
 	var (
-		genesis       = pm.blockchain.Genesis()
-		head          = pm.blockchain.CurrentHeader()
-		td            = big.NewInt(0)
+		genesis = pm.blockchain.Genesis()
+		head    = pm.blockchain.CurrentHeader()
+		td      = big.NewInt(0)
 	)
 	defer pm.Stop()
 	if protocol == eth63 {

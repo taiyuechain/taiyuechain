@@ -24,7 +24,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	truechain "github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"

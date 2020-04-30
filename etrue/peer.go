@@ -21,17 +21,17 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"math/big"
+	"strings"
 	"sync"
 	"time"
-	"strings"
 
 	"github.com/deckarep/golang-set"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 var (
@@ -65,7 +65,7 @@ const (
 
 	handshakeTimeout = 5 * time.Second
 
-	maxKnownNodeInfo    = 2048
+	maxKnownNodeInfo = 2048
 
 	// maxQueuedNodeInfo is the maximum number of node info propagations to queue up before
 	// dropping broadcasts. There's not much point in queueing stale blocks, so a few
@@ -74,7 +74,7 @@ const (
 
 	maxQueuedNodeInfoHash = 256
 
-	maxKnownFastBlocks  = 1024  // Maximum block hashes to keep in the known list (prevent DOS)
+	maxKnownFastBlocks = 1024 // Maximum block hashes to keep in the known list (prevent DOS)
 )
 
 // max is a helper function which returns the larger of the two given integers.
@@ -98,7 +98,6 @@ type propEvent struct {
 	block *types.Block
 	td    *big.Int
 }
-
 
 // propEvent is a fast block propagation, waiting for its turn in the broadcast queue.
 type propHashEvent struct {
@@ -130,38 +129,38 @@ type peer struct {
 	queuedBlocks    chan *propEvent   // Queue of blocks to broadcast to the peer
 	queuedBlockAnns chan *types.Block // Queue of blocks to announce to the peer
 
-	knownTxs    mapset.Set                           // Set of transaction hashes known to be known by this peer
-	knownNodeInfos     mapset.Set
-	txBroadcast chan []common.Hash                   // Channel used to queue transaction propagation requests
-	txAnnounce  chan []common.Hash                   // Channel used to queue transaction announcement requests
-	getPooledTx func(common.Hash) *types.Transaction // Callback used to retrieve transaction from txpool
+	knownTxs       mapset.Set // Set of transaction hashes known to be known by this peer
+	knownNodeInfos mapset.Set
+	txBroadcast    chan []common.Hash                   // Channel used to queue transaction propagation requests
+	txAnnounce     chan []common.Hash                   // Channel used to queue transaction announcement requests
+	getPooledTx    func(common.Hash) *types.Transaction // Callback used to retrieve transaction from txpool
 
 	term chan struct{} // Termination channel to stop the broadcaster
 
-	dropEvent chan *dropPeerEvent // Queue of drop error peer
+	dropEvent          chan *dropPeerEvent            // Queue of drop error peer
 	queuedNodeInfo     chan *types.EncryptNodeMessage // a node info to broadcast to the peer
 	queuedNodeInfoHash chan *types.EncryptNodeMessage // a node info to broadcast to the peer
-	knownFastBlocks    mapset.Set // Set of fast block hashes known to be known by this peer
+	knownFastBlocks    mapset.Set                     // Set of fast block hashes known to be known by this peer
 }
 
 func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(hash common.Hash) *types.Transaction) *peer {
 	return &peer{
-		Peer:            p,
-		rw:              rw,
-		version:         version,
-		id:              fmt.Sprintf("%x", p.ID().Bytes()[:8]),
-		knownTxs:        mapset.NewSet(),
+		Peer:               p,
+		rw:                 rw,
+		version:            version,
+		id:                 fmt.Sprintf("%x", p.ID().Bytes()[:8]),
+		knownTxs:           mapset.NewSet(),
 		knownNodeInfos:     mapset.NewSet(),
-		knownBlocks:     mapset.NewSet(),
-		queuedBlocks:    make(chan *propEvent, maxQueuedBlocks),
-		queuedBlockAnns: make(chan *types.Block, maxQueuedBlockAnns),
+		knownBlocks:        mapset.NewSet(),
+		queuedBlocks:       make(chan *propEvent, maxQueuedBlocks),
+		queuedBlockAnns:    make(chan *types.Block, maxQueuedBlockAnns),
 		queuedNodeInfo:     make(chan *types.EncryptNodeMessage, maxQueuedNodeInfo),
 		queuedNodeInfoHash: make(chan *types.EncryptNodeMessage, maxQueuedNodeInfoHash),
 		knownFastBlocks:    mapset.NewSet(),
-		txBroadcast:     make(chan []common.Hash),
-		txAnnounce:      make(chan []common.Hash),
-		getPooledTx:     getPooledTx,
-		term:            make(chan struct{}),
+		txBroadcast:        make(chan []common.Hash),
+		txAnnounce:         make(chan []common.Hash),
+		getPooledTx:        getPooledTx,
+		term:               make(chan struct{}),
 	}
 }
 
@@ -313,8 +312,6 @@ func (p *peer) announceTransactions() {
 	}
 }
 
-
-
 func (p *peer) broadcast() {
 	for {
 		select {
@@ -352,6 +349,7 @@ func (p *peer) Info() *PeerInfo {
 		Head:       hash.Hex(),
 	}
 }
+
 // MarkFastBlock marks a block as known for the peer, ensuring that the block will
 // never be propagated to this particular peer.
 func (p *peer) MarkFastBlock(hash common.Hash) {
@@ -419,7 +417,6 @@ func (p *peer) MarkNodeInfo(hash common.Hash) {
 func (p *peer) SendTransactions64(txs types.Transactions) error {
 	return p.sendTransactions(txs)
 }
-
 
 // PeersWithoutNodeInfo retrieves a list of peers that do not have a given node info
 // in their set of known hashes.
@@ -521,7 +518,6 @@ func (p *peer) SendPooledTransactionsRLP(hashes []common.Hash, txs []rlp.RawValu
 	}
 	return p2p.Send(p.rw, PooledTransactionsMsg, txs)
 }
-
 
 //SendNodeInfo sends node info to the peer and includes the hashes
 // in its signs hash set for future reference.
@@ -711,7 +707,6 @@ func (p *peer) Send(msgcode uint64, data interface{}) error {
 	}
 	return err
 }
-
 
 // Handshake executes the eth protocol handshake, negotiating version number,
 // network IDs, difficulties, head and genesis blocks.

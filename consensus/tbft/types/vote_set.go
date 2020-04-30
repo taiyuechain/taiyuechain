@@ -3,9 +3,9 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	ttypes "github.com/taiyuechain/taiyuechain/core/types"
 	"math/big"

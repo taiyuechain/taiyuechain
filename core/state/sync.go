@@ -19,8 +19,8 @@ package state
 import (
 	"bytes"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 

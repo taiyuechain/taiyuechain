@@ -20,7 +20,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
@@ -74,6 +74,6 @@ func (s *senderFromServer) Hash_Payment(tx *types.Transaction) common.Hash {
 	panic("can't Hash_Payment with senderFromServer")
 }
 
-func (s *senderFromServer)GetChainID() *big.Int {
+func (s *senderFromServer) GetChainID() *big.Int {
 	panic("can't Hash_Payment with senderFromServer")
 }

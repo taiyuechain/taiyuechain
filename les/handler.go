@@ -26,9 +26,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
@@ -38,10 +36,12 @@ import (
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/light"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -1201,11 +1201,11 @@ func (self *ProtocolManager) NodeInfo() *NodeInfo {
 	hash := head.Hash()
 
 	return &NodeInfo{
-		Network:    self.networkId,
+		Network: self.networkId,
 		//Difficulty: self.blockchain.GetTd(hash, head.Number.Uint64()),
-		Genesis:    self.blockchain.Genesis().Hash(),
-		Config:     self.blockchain.Config(),
-		Head:       hash,
+		Genesis: self.blockchain.Genesis().Hash(),
+		Config:  self.blockchain.Config(),
+		Head:    hash,
 	}
 }
 

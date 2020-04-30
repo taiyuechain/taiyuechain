@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -50,11 +50,11 @@ type difficultyTestMarshaling struct {
 func (test *DifficultyTest) Run(config *params.ChainConfig) error {
 	parentNumber := big.NewInt(int64(test.CurrentBlockNumber - 1))
 	parent := &types.SnailHeader{
-		Time:       test.ParentTimestamp,
-		Number:     parentNumber,
+		Time:   test.ParentTimestamp,
+		Number: parentNumber,
 	}
 
-	actual := minerva.CalcFruitDifficulty(config, test.CurrentTimestamp.Uint64(),0 ,parent)
+	actual := minerva.CalcFruitDifficulty(config, test.CurrentTimestamp.Uint64(), 0, parent)
 	exp := test.CurrentDifficulty
 
 	if actual.Cmp(exp) != 0 {

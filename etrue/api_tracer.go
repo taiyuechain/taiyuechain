@@ -26,10 +26,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -37,6 +35,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/etrue/tracers"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
@@ -98,7 +98,7 @@ func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.Block
 
 	switch start {
 	/*case rpc.PendingBlockNumber:
-		from = api.etrue.miner.PendingBlock()*/
+	from = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		from = api.etrue.blockchain.CurrentBlock()
 	default:
@@ -106,7 +106,7 @@ func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.Block
 	}
 	switch end {
 	/*case rpc.PendingBlockNumber:
-		to = api.etrue.miner.PendingBlock()*/
+	to = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		to = api.etrue.blockchain.CurrentBlock()
 	default:
@@ -194,7 +194,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				// Trace all the transactions contained within
 				for i, tx := range task.block.Transactions() {
 					msg, _ := tx.AsMessage(signer)
-					vmctx := core.NewEVMContext(msg, task.block.Header(), api.etrue.blockchain,nil,nil)
+					vmctx := core.NewEVMContext(msg, task.block.Header(), api.etrue.blockchain, nil, nil)
 
 					res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 					if err != nil {
@@ -343,7 +343,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.B
 
 	switch number {
 	/*case rpc.PendingBlockNumber:
-		block = api.etrue.miner.PendingBlock()*/
+	block = api.etrue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
 		block = api.etrue.blockchain.CurrentBlock()
 	default:
@@ -428,7 +428,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 			// Fetch and execute the next transaction trace tasks
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer)
-				vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain,nil,nil)
+				vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
 
 				res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 				if err != nil {
@@ -447,7 +447,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 
 		// Generate the next state snapshot fast without tracing
 		msg, _ := tx.AsMessage(signer)
-		vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain,nil,nil)
+		vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
 
 		vmenv := vm.NewEVM(vmctx, statedb, api.config, vm.Config{})
 		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(msg.Gas())); err != nil {
@@ -636,7 +636,7 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
-		context := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain,nil,nil)
+		context := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
 		if idx == txIndex {
 			return msg, context, statedb, nil
 		}

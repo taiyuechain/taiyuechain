@@ -8,7 +8,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 )
 

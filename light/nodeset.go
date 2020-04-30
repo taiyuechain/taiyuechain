@@ -21,10 +21,10 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 // NodeSet stores a set of trie nodes. It implements trie.Database and can also

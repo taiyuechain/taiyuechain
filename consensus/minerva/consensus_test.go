@@ -18,14 +18,14 @@ package minerva
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"fmt"
-	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/params"
 	osMath "math"

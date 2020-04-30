@@ -32,7 +32,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -41,9 +41,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/bitutil"
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/golang/snappy"
+	"github.com/taiyuechain/taiyuechain/common/bitutil"
+	"github.com/taiyuechain/taiyuechain/rlp"
 
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"golang.org/x/crypto/sha3"

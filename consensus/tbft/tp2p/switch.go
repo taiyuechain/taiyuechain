@@ -2,9 +2,9 @@ package tp2p
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/tp2p/conn"
+	"github.com/taiyuechain/taiyuechain/log"
 	config "github.com/taiyuechain/taiyuechain/params"
 	"math"
 	"net"

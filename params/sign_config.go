@@ -1,6 +1,6 @@
 package params
 
-import "github.com/ethereum/go-ethereum/common"
+import "github.com/taiyuechain/taiyuechain/common"
 
 var (
 	//

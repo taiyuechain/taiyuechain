@@ -1,5 +1,3 @@
-
-
 package console
 
 import (
@@ -9,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/accounts/usbwallet"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/rpc"
 	"github.com/robertkrimen/otto"
+	"github.com/taiyuechain/taiyuechain/accounts/usbwallet"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rpc"
 )
 
 // bridge is a collection of JavaScript utility methods to bride the .js runtime
@@ -31,8 +29,6 @@ func newBridge(client *rpc.Client, prompter UserPrompter, printer io.Writer) *br
 		printer:  printer,
 	}
 }
-
-
 
 // NewAccount is a wrapper around the personal.newAccount RPC method that uses a
 // non-echoing password prompt to acquire the passphrase and executes the original

@@ -1,10 +1,10 @@
 package taiCrypto
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"math/big"
 	"reflect"
 )

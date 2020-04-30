@@ -20,7 +20,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 )
 

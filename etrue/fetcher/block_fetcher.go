@@ -19,17 +19,17 @@ package fetcher
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"time"
-	"fmt"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/prque"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/prque"
 	"github.com/taiyuechain/taiyuechain/consensus"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
 const (
@@ -117,11 +117,11 @@ type headerFilterTask struct {
 // bodyFilterTask represents a batch of block bodies (transactions and uncles)
 // needing fetcher filtering.
 type bodyFilterTask struct {
-	peer         string                 // The source peer of block bodies
-	transactions [][]*types.Transaction // Collection of transactions per block bodies
+	peer         string                     // The source peer of block bodies
+	transactions [][]*types.Transaction     // Collection of transactions per block bodies
 	signs        [][]*types.PbftSign        // Collection of sign per block bodies
 	infos        [][]*types.CommitteeMember // committee change
-	time         time.Time              // Arrival time of the blocks' contents
+	time         time.Time                  // Arrival time of the blocks' contents
 }
 
 // blockInject represents a schedules import operation.
@@ -282,20 +282,20 @@ func (f *BlockFetcher) FilterBodies(peer string, transactions [][]*types.Transac
 	select {
 	case f.bodyFilter <- filter:
 	case <-f.quit:
-		return nil, nil,nil
+		return nil, nil, nil
 	}
 	// Request the filtering of the body list
 	select {
 	case filter <- &bodyFilterTask{peer: peer, transactions: transactions, signs: signs, infos: infos, time: time}:
 	case <-f.quit:
-		return nil, nil,nil
+		return nil, nil, nil
 	}
 	// Retrieve the bodies remaining after filtering
 	select {
 	case task := <-filter:
-		return task.transactions,  task.signs, task.infos
+		return task.transactions, task.signs, task.infos
 	case <-f.quit:
-		return nil, nil,nil
+		return nil, nil, nil
 	}
 }
 
@@ -581,7 +581,7 @@ func (f *BlockFetcher) loop() {
 			case <-f.quit:
 				return
 			}
-				// Schedule the retrieved blocks for ordered import
+			// Schedule the retrieved blocks for ordered import
 			for _, block := range blocks {
 				log.Debug("Loop filter end", "transactions", len(task.transactions), "blocks", len(blocks), "number", block.Number(), "sign", len(block.Signs()))
 				if announce := f.completing[block.Hash()]; announce != nil {

@@ -27,7 +27,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/bitutil"
+	"github.com/taiyuechain/taiyuechain/common/bitutil"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 

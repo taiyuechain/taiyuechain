@@ -15,7 +15,7 @@ import (
 	"math/big"
 	"encoding/hex"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"golang.org/x/crypto/sha3"
 )
 

@@ -7,18 +7,17 @@ import (
 	"path/filepath"
 	"testing"
 
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/base64"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"encoding/base64"
-	"crypto/x509"
-	"crypto/rand"
 	"log"
 	"math/big"
-	"crypto/x509/pkix"
 	"time"
 )
-
 
 /*func TestMain(m *testing.M) {
 	cimConfigDir, _ := config.GetDevCIMDir()
@@ -78,10 +77,10 @@ func TestSignAndVerify(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestCertCIMAndVerfiyCert(t *testing.T)  {
-	cimList := NewCIMList();
+func TestCertCIMAndVerfiyCert(t *testing.T) {
+	cimList := NewCIMList()
 
-	var root ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
 	//create root
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -113,11 +112,10 @@ func TestCertCIMAndVerfiyCert(t *testing.T)  {
 		t.Fatalf("3")
 	}
 
-
 	//encodeca := base64.StdEncoding.EncodeToString(ca_b)
 	//encodeca :=pem.Encode()
 	rootCert, err := x509.ParseCertificate(ca_b)
-	if err != nil{
+	if err != nil {
 		t.Fatalf("cert error")
 	}
 
@@ -126,14 +124,13 @@ func TestCertCIMAndVerfiyCert(t *testing.T)  {
 		t.Fatalf("error for new cim")
 	}
 
-	err =cimCa.SetUpFromCA(ca_b)
-	if err != nil{
+	err = cimCa.SetUpFromCA(ca_b)
+	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
 	}
 
 	cimList.AddCim(cimCa)
-
 
 	// son
 	//bytes, _ := base64.StdEncoding.DecodeString(encodeca)
@@ -142,7 +139,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T)  {
 	if err != nil{
 		t.Fatalf("cert error")
 	}*/
-	var son ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
 	ca2 := &x509.Certificate{
@@ -172,27 +169,24 @@ func TestCertCIMAndVerfiyCert(t *testing.T)  {
 		t.Fatalf("2")
 	}
 
-
 	encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
 
-	if len(encodeca2) == 0{
+	if len(encodeca2) == 0 {
 		t.Fatalf("len is zero")
 	}
-	err =cimList.VerifyCert(ca_b2)
-	if err != nil{
+	err = cimList.VerifyCert(ca_b2)
+	if err != nil {
 		t.Fatalf("verfiy error")
 	}
 
-
 }
-
 
 func TestCreateCertByPrivate(t *testing.T) {
 
-	var prv ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var prv2 ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var prv3 ,_ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
-	var prv4 ,_ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+	var prv, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4, _ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
 	//var prvB :=
 
 	fmt.Println(crypto.FromECDSA(prv))
@@ -200,10 +194,10 @@ func TestCreateCertByPrivate(t *testing.T) {
 	fmt.Println(crypto.FromECDSA(prv3))
 	fmt.Println(crypto.FromECDSA(prv4))
 	//varpriKey, _     = crypto.HexToECDSA("0260c952edc49037129d8cabbe4603d15185d83aa718291279937fb6db0fa7a2")
-	CreateIdentity2(prv,prv2,"696b")
-	CreateIdentity2(prv2,prv2,"c109")
-	CreateIdentity2(prv3,prv2,"9653")
-	CreateIdentity2(prv4,prv2,"0477")
+	CreateIdentity2(prv, prv2, "696b")
+	CreateIdentity2(prv2, prv2, "c109")
+	CreateIdentity2(prv3, prv2, "9653")
+	CreateIdentity2(prv4, prv2, "0477")
 	//CreateIdentity2(prv4,prv2,"0477")
 }
 
@@ -226,10 +220,10 @@ func TestVerifyCertByPrivate(t *testing.T) {
 }
 
 func TestCreatePubk(t *testing.T) {
-	var prv ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var prv2 ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var prv3 ,_ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
-	var prv4 ,_ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+	var prv, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4, _ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
 
 	//pk :=
 	pkbyte1 := crypto.FromECDSAPubCA(&prv.PublicKey)
@@ -254,16 +248,15 @@ func TestCreatePubk(t *testing.T) {
 	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	_, err = taipublic.UnmarshalPubkey(b)
 	if err != nil {
-		fmt.Println("errr","is",err)
+		fmt.Println("errr", "is", err)
 	}
-
 
 }
 
 func TestCreateAndVerifyRoot(t *testing.T) {
-	var root ,_ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var son ,_ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var last ,_ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var last, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
 
 	//create root
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -295,7 +288,6 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		t.Fatalf("3")
 	}
 
-
 	encodeca := base64.StdEncoding.EncodeToString(ca_b)
 	//fmt.Println(encodeca)
 	bytes, _ := base64.StdEncoding.DecodeString(encodeca)
@@ -313,7 +305,7 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 	//t  :="696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
 
 	rootCert, err := x509.ParseCertificate(bytes)
-	if err != nil{
+	if err != nil {
 		t.Fatalf("root error")
 	}
 	//create son
@@ -346,7 +338,6 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		//return false
 		t.Fatalf("2")
 	}
-
 
 	encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
 	//fmt.Println(encodeca)
@@ -397,7 +388,6 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		t.Fatalf("1")
 	}
 
-
 	encodeca3 := base64.StdEncoding.EncodeToString(ca_b3)
 	//fmt.Println(encodeca)
 	bytes3, _ := base64.StdEncoding.DecodeString(encodeca3)
@@ -417,9 +407,9 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 	lastCert, err := x509.ParseCertificate(bytes3)
 
 	///verify cert
-		err1 :=lastCert.CheckSignatureFrom(rootCert)
+	err1 := lastCert.CheckSignatureFrom(rootCert)
 
-	if(err1 != nil){
+	if err1 != nil {
 		t.Fatalf("check CheckSignatureFrom")
 	}
 
@@ -434,7 +424,7 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 	//startTime := time.Now().UnixNano()
 	//var certificate *x509.Certificate
 	_, err := x509.ParseCertificate(cert2)
-	if(err != nil){
+	if err != nil {
 		t.Fatalf("1")
 	}
 	//fmt.Println(certificate == nil)

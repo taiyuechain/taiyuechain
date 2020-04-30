@@ -19,9 +19,9 @@ package protocols
 import (
 	"testing"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/simulations/adapters"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 //dummy Balance implementation

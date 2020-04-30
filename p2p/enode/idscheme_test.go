@@ -24,10 +24,10 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 var (

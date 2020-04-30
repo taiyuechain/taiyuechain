@@ -24,12 +24,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/etruedb"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/steakknife/bloomfilter"
-
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/metrics"
 )
 
 var (

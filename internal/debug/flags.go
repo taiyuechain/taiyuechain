@@ -26,10 +26,10 @@ import (
 
 	"github.com/fjl/memsize/memsizeui"
 	colorable "github.com/mattn/go-colorable"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/mattn/go-isatty"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/exp"
-	"github.com/mattn/go-isatty"
 	"gopkg.in/urfave/cli.v1"
 )
 

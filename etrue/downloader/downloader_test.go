@@ -19,8 +19,8 @@ package downloader
 import (
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	truechain "github.com/taiyuechain/taiyuechain"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"strings"
 	"sync"
@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
@@ -46,7 +46,7 @@ func init() {
 type downloadTester struct {
 	downloader *Downloader
 
-	genesis *types.Block   // Genesis blocks used by the tester and peers
+	genesis *types.Block     // Genesis blocks used by the tester and peers
 	stateDb etruedb.Database // Database used by the tester for syncing from peers
 	peerDb  etruedb.Database // Database of the peers containing all data
 	peers   map[string]*downloadTesterPeer
@@ -293,6 +293,7 @@ func (dl *downloadTester) InsertChain(blocks types.Blocks) (i int, err error) {
 func (dl *downloadTester) InsertReceiptChain(blocks types.Blocks, receipts []types.Receipts) (i int, err error) {
 	return dl.insertReceiptChain(blocks, receipts, 0)
 }
+
 // InsertReceiptChain injects a new batch of receipts into the simulated chain.
 func (dl *downloadTester) insertReceiptChain(blocks types.Blocks, receipts []types.Receipts, ancientLimit uint64) (i int, err error) {
 	dl.lock.Lock()
@@ -370,7 +371,7 @@ type downloadTesterPeer struct {
 	id            string
 	lock          sync.RWMutex
 	chain         *testChain
-	delay time.Duration
+	delay         time.Duration
 	missingStates map[common.Hash]bool // State entries that fast sync should not return
 }
 

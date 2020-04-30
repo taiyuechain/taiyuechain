@@ -1,18 +1,18 @@
 package help
 
 import (
-	"fmt"
 	"bytes"
-	"time"
 	"encoding/binary"
-	"math/rand"
-	"strings"
-	"os"
-	"io"
-	"syscall"
+	"fmt"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/common"
+	"io"
+	"math/rand"
+	"os"
+	"strings"
+	"syscall"
+	"time"
 )
 
 type HexBytes []byte
@@ -84,6 +84,7 @@ func PrefixEndBytes(prefix []byte) []byte {
 	}
 	return end
 }
+
 //-----------------------------------------------------------------------------
 func MaxInt(a, b int) int {
 	if a > b {
@@ -111,6 +112,7 @@ func MinUint(a, b uint) uint {
 	}
 	return b
 }
+
 //-----------------------------------------------------------------------------
 const (
 	strChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" // 62 characters
@@ -164,14 +166,15 @@ MAIN_LOOP:
 			}
 		}
 	}
-return string(chars)
+	return string(chars)
 }
-func EqualHashes(hash1,hash2 []byte) bool {
-	if len(hash1) == 0 || len(hash2) == 0{
+func EqualHashes(hash1, hash2 []byte) bool {
+	if len(hash1) == 0 || len(hash2) == 0 {
 		return false
 	}
 	return bytes.Equal(hash1, hash2)
 }
+
 // ProtocolAndAddress splits an address into the protocol and address components.
 // For instance, "tcp://127.0.0.1:8080" will be split into "tcp" and "127.0.0.1:8080".
 // If the address has no protocol prefix, the default is "tcp".
@@ -183,6 +186,7 @@ func ProtocolAndAddress(listenAddr string) (string, string) {
 	}
 	return protocol, address
 }
+
 // SplitAndTrim slices s into all subslices separated by sep and returns a
 // slice of the string s with all leading and trailing Unicode code points
 // contained in cutset removed. If sep is empty, SplitAndTrim splits after each
@@ -199,6 +203,7 @@ func SplitAndTrim(s, sep, cutset string) []string {
 	}
 	return spl
 }
+
 // Returns true if s is a non-empty printable non-tab ascii character.
 func IsASCIIText(s string) bool {
 	if len(s) == 0 {
@@ -234,6 +239,7 @@ func EncodeUvarint(w io.Writer, u uint64) (err error) {
 	_, err = w.Write(buf[0:n])
 	return
 }
+
 //-----------------------------------------------------------------------------
 func RandInt() int {
 	random := rand.New(rand.NewSource(time.Now().Unix()))
@@ -243,7 +249,7 @@ func RandIntn(n int) int {
 	random := rand.New(rand.NewSource(time.Now().Unix()))
 	return random.Intn(n)
 }
-func RandFloat64() float64  {
+func RandFloat64() float64 {
 	random := rand.New(rand.NewSource(time.Now().Unix()))
 	return random.Float64()
 }
@@ -267,4 +273,3 @@ func RandInt63n(n int64) int64 {
 type PeerInValidators interface {
 	HasPeerID(id string) error
 }
-

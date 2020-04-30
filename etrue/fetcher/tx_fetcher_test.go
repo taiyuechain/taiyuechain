@@ -18,15 +18,14 @@ package fetcher
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"math/big"
 	"math/rand"
 	"testing"
 	"time"
-
 )
 
 var (

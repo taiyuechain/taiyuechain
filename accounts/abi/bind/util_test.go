@@ -17,9 +17,9 @@
 package bind_test
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var testKey, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
@@ -42,4 +42,3 @@ var waitDeployedTests = map[string]struct {
 		wantAddress: common.HexToAddress("0x3a220f351252089d385b29beca14e27f204c296a"),
 	},
 }
-

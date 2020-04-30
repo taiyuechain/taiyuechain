@@ -19,7 +19,7 @@ package les
 import (
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/bitutil"
+	"github.com/taiyuechain/taiyuechain/common/bitutil"
 	"github.com/taiyuechain/taiyuechain/light"
 )
 

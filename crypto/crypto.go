@@ -28,9 +28,9 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -135,7 +135,6 @@ func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	}
 	return priv, nil
 }
-
 
 // toECDSA creates a private key with the given D value. The strict parameter
 // controls whether the key's length should be enforced at the curve size or
@@ -273,8 +272,6 @@ func PubkeyToAddressP256(p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPubP256(&p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
-
-
 
 func zeroBytes(bytes []byte) {
 	for i := range bytes {

@@ -19,7 +19,7 @@ package les
 import (
 	"sync"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 )
 

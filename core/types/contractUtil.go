@@ -1,20 +1,19 @@
 package types
 
 import (
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 
 	"bytes"
 	"errors"
 	"fmt"
 )
 
-
 var (
 	CACertListAddress = common.BytesToAddress([]byte("CACertList"))
 )
 
-var(
-	ErrForbidAddress     = errors.New("Forbidding Address")
+var (
+	ErrForbidAddress = errors.New("Forbidding Address")
 )
 
 func ForbidAddress(addr common.Address) error {

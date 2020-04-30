@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"io/ioutil"
@@ -274,23 +274,23 @@ func TestTHash_CreateAddress2(t *testing.T) {
 	fmt.Println(len(tt))
 	//	guoji CreateAddress2 test
 	/*	core.AsymmetricCryptoType=core.ASYMMETRICCRYPTOECDSA
-		core.HashCryptoType=core.HASHCRYPTOHAS3
-		privateKey:=GenPrivKey()
-		pub:=privateKey.private.PublicKey
-		var tai TaiPublicKey
-		tai.publickey=pub
-		pp:=tai.FromECDSAPub(tai)
-		p:=pp[:20]
-		for i:=0;i<20;i++{
-			address[i]=p[i]
-		}
-	    for j:=0;j<20;j++{
-			salt[j]=p[j]
-		}
+			core.HashCryptoType=core.HASHCRYPTOHAS3
+			privateKey:=GenPrivKey()
+			pub:=privateKey.private.PublicKey
+			var tai TaiPublicKey
+			tai.publickey=pub
+			pp:=tai.FromECDSAPub(tai)
+			p:=pp[:20]
+			for i:=0;i<20;i++{
+				address[i]=p[i]
+			}
+		    for j:=0;j<20;j++{
+				salt[j]=p[j]
+			}
 
-		tt:=thash.CreateAddress2(address,salt,pp)
-		fmt.Println(tt)
-		fmt.Println(len(tt))*/
+			tt:=thash.CreateAddress2(address,salt,pp)
+			fmt.Println(tt)
+			fmt.Println(len(tt))*/
 }
 
 func TestTHash_Keccak256(t *testing.T) {
