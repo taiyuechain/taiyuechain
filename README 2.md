@@ -18,38 +18,38 @@ and operators of DApps, and provide better infrastructure for decentralized eco-
 ## Building the source
 
 
-Building getrue requires both a Go (version 1.9 or later) and a C compiler.
+Building gtai requires both a Go (version 1.9 or later) and a C compiler.
 You can install them using your favourite package manager.
 Once the dependencies are installed, run
 
-    make getrue
+    make gtai
 
 or, to build the full suite of utilities:
 
     make all
 
-The execuable command getrue will be found in the `cmd` directory.
+The execuable command gtai will be found in the `cmd` directory.
 
-## Running getrue
+## Running gtai
 
 Going through all the possible command line flags is out of scope here (please consult our
 [CLI Wiki page](https://github.com/taiyuechain/taiyuechain/wiki/Command-Line-Options)), 
-also you can quickly run your own getrue instance with a few common parameter combos.
+also you can quickly run your own gtai instance with a few common parameter combos.
 
 ### Running on the Truechain main network
 
 ```
-$ getrue console
+$ gtai console
 ```
 
 This command will:
 
- * Start getrue with network ID `19330` in full node mode(default, can be changed with the `--syncmode` flag after version 1.1).
- * Start up Getrue's built-in interactive console,
+ * Start gtai with network ID `19330` in full node mode(default, can be changed with the `--syncmode` flag after version 1.1).
+ * Start up Gtai's built-in interactive console,
    (via the trailing `console` subcommand) through which you can invoke all official [`web3` methods](https://github.com/taiyuechain/taiyuechain/wiki/RPC-API)
    as well as Geth's own [management APIs](https://github.com/taiyuechain/taiyuechain/wiki/Management-API).
-   This too is optional and if you leave it out you can always attach to an already running Getrue instance
-   with `getrue attach`.
+   This too is optional and if you leave it out you can always attach to an already running Gtai instance
+   with `gtai attach`.
 
 
 ### Running on the Truechain test network
@@ -57,7 +57,7 @@ This command will:
 To test your contracts, you can join the test network with your node.
 
 ```
-$ getrue --testnet console
+$ gtai --testnet console
 ```
 
 The `console` subcommand has the exact same meaning as above and they are equally useful on the
@@ -71,16 +71,16 @@ Specifying the `--testnet` flag, however, will reconfigure your Geth instance a 
 
 ### Configuration
 
-As an alternative to passing the numerous flags to the `getrue` binary, you can also pass a configuration file via:
+As an alternative to passing the numerous flags to the `gtai` binary, you can also pass a configuration file via:
 
 ```
-$ getrue --config /path/to/your_config.toml
+$ gtai --config /path/to/your_config.toml
 ```
 
 To get an idea how the file should look like you can use the `dumpconfig` subcommand to export your existing configuration:
 
 ```
-$ getrue --your-favourite-flags dumpconfig
+$ gtai --your-favourite-flags dumpconfig
 ```
 
 ### Operating a private network
@@ -91,7 +91,7 @@ the official networks need to be manually set up.
 #### Defining the private genesis state
 
 First, you'll need to create the genesis state of your networks, which all nodes need to be aware of
-and agree upon. We provide a single node JSON file at cmd/getrue/genesis_single.json:
+and agree upon. We provide a single node JSON file at cmd/gtai/genesis_single.json:
 
 ```json
 {
@@ -124,20 +124,20 @@ and agree upon. We provide a single node JSON file at cmd/getrue/genesis_single.
 }
 ```
 
-With the genesis state defined in the above JSON file, you'll need to initialize **every** Getrue node
+With the genesis state defined in the above JSON file, you'll need to initialize **every** Gtai node
 with it prior to starting it up to ensure all blockchain parameters are correctly set:
 
 ```
-$ getrue init path/to/genesis.json
+$ gtai init path/to/genesis.json
 ```
 
 
 #### Running a private miner
 
-To start a getrue instance for single node, use genesis as above, and run it with these flags:
+To start a gtai instance for single node, use genesis as above, and run it with these flags:
 
 ```
-$ getrue --nodiscover --singlenode --mine --coinbase 0x8a45d70f096d3581866ed27a5017a4eeec0db2a1 --bftkeyhex "c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc" --bftip "192.168.68.43" console
+$ gtai --nodiscover --singlenode --mine --coinbase 0x8a45d70f096d3581866ed27a5017a4eeec0db2a1 --bftkeyhex "c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc" --bftip "192.168.68.43" console
 ```
 
 Which will start sending transactions periodly to this node and mining fruits and blocks.

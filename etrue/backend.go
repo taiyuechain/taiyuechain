@@ -165,7 +165,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Truechain, error) {
 	/*if !config.SkipBcVersionCheck {
 		bcVersion := rawdb.ReadDatabaseVersion(chainDb)
 		if bcVersion != core.BlockChainVersion && bcVersion != 0 {
-			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run getrue upgradedb.\n", bcVersion, core.BlockChainVersion)
+			return nil, fmt.Errorf("Blockchain DB version mismatch (%d / %d). Run gtai upgradedb.\n", bcVersion, core.BlockChainVersion)
 		}
 		rawdb.WriteDatabaseVersion(chainDb, core.BlockChainVersion)
 	}*/
@@ -287,7 +287,7 @@ func makeExtraData(extra []byte) []byte {
 		// create default extradata
 		extra, _ = rlp.EncodeToBytes([]interface{}{
 			uint(params.VersionMajor<<16 | params.VersionMinor<<8 | params.VersionPatch),
-			"getrue",
+			"gtai",
 			runtime.Version(),
 			runtime.GOOS,
 		})

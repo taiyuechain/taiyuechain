@@ -54,7 +54,7 @@ const (
 // all registered services.
 type Config struct {
 	// Name sets the instance name of the node. It must not contain the / character and is
-	// used in the devp2p node identifier. The instance name of getrue is "getrue". If no
+	// used in the devp2p node identifier. The instance name of gtai is "gtai". If no
 	// value is specified, the basename of the current executable is used.
 	Name string `toml:"-"`
 
@@ -233,9 +233,9 @@ func DefaultWSEndpoint() string {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Getrue", keep that.
-	if name == "getrue" || name == "getrue-testnet" {
-		name = "Getrue"
+	// Backwards compatibility: previous versions used title-cased "Gtai", keep that.
+	if name == "gtai" || name == "gtai-testnet" {
+		name = "Gtai"
 	}
 	if c.UserIdent != "" {
 		name += "/" + c.UserIdent
@@ -259,7 +259,7 @@ func (c *Config) name() string {
 	return c.Name
 }
 
-// These resources are resolved differently for "getrue" instances.
+// These resources are resolved differently for "gtai" instances.
 var isOldGethResource = map[string]bool{
 	"chaindata":          true,
 	"nodes":              true,
@@ -277,10 +277,10 @@ func (c *Config) ResolvePath(path string) string {
 		return ""
 	}
 	// Backwards-compatibility: ensure that data directory files created
-	// by getrue 1.4 are used if they exist.
-	if c.name() == "getrue" && isOldGethResource[path] {
+	// by gtai 1.4 are used if they exist.
+	if c.name() == "gtai" && isOldGethResource[path] {
 		oldpath := ""
-		if c.Name == "getrue" {
+		if c.Name == "gtai" {
 			oldpath = filepath.Join(c.DataDir, path)
 		}
 		if oldpath != "" && common.FileExist(oldpath) {
@@ -424,7 +424,7 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	var ephemeral string
 	if keydir == "" {
 		// There is no datadir.
-		keydir, err = ioutil.TempDir("", "getrue-keystore")
+		keydir, err = ioutil.TempDir("", "gtai-keystore")
 		ephemeral = keydir
 	}
 

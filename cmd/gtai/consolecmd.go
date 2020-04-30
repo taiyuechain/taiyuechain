@@ -1,5 +1,3 @@
-
-
 package main
 
 import (
@@ -27,7 +25,7 @@ var (
 		Flags:    append(append(append(nodeFlags, rpcFlags...), consoleFlags...)),
 		Category: "CONSOLE COMMANDS",
 		Description: `
-The Getrue console is an interactive shell for the JavaScript runtime environment
+The Gtai console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
 See https://github.com/taiyuechain/taiyuechain/wiki/JavaScript-Console.`,
 	}
@@ -40,10 +38,10 @@ See https://github.com/taiyuechain/taiyuechain/wiki/JavaScript-Console.`,
 		Flags:     append(consoleFlags, utils.DataDirFlag),
 		Category:  "CONSOLE COMMANDS",
 		Description: `
-The Getrue console is an interactive shell for the JavaScript runtime environment
+The Gtai console is an interactive shell for the JavaScript runtime environment
 which exposes a node admin interface as well as the Ðapp JavaScript API.
 See https://github.com/taiyuechain/taiyuechain/wiki/JavaScript-Console.
-This command allows to open a console on a running getrue node.`,
+This command allows to open a console on a running gtai node.`,
 	}
 
 	javascriptCommand = cli.Command{
@@ -59,7 +57,7 @@ JavaScript API. See https://github.com/taiyuechain/taiyuechain/wiki/JavaScript-C
 	}
 )
 
-// localConsole starts a new getrue node, attaching a JavaScript console to it at the
+// localConsole starts a new gtai node, attaching a JavaScript console to it at the
 // same time.
 func localConsole(ctx *cli.Context) error {
 	// Create and start the node based on the CLI flags
@@ -70,7 +68,7 @@ func localConsole(ctx *cli.Context) error {
 	// Attach to the newly started node and start the JavaScript console
 	client, err := node.Attach()
 	if err != nil {
-		utils.Fatalf("Failed to attach to the inproc getrue: %v", err)
+		utils.Fatalf("Failed to attach to the inproc gtai: %v", err)
 	}
 	config := console.Config{
 		DataDir: utils.MakeDataDir(ctx),
@@ -97,10 +95,10 @@ func localConsole(ctx *cli.Context) error {
 	return nil
 }
 
-// remoteConsole will connect to a remote getrue instance, attaching a JavaScript
+// remoteConsole will connect to a remote gtai instance, attaching a JavaScript
 // console to it.
 func remoteConsole(ctx *cli.Context) error {
-	// Attach to a remotely running getrue instance and start the JavaScript console
+	// Attach to a remotely running gtai instance and start the JavaScript console
 	endpoint := ctx.Args().First()
 	if endpoint == "" {
 		path := node.DefaultDataDir()
@@ -114,11 +112,11 @@ func remoteConsole(ctx *cli.Context) error {
 				path = filepath.Join(path, "devnet")
 			}
 		}
-		endpoint = fmt.Sprintf("%s/getrue.ipc", path)
+		endpoint = fmt.Sprintf("%s/gtai.ipc", path)
 	}
 	client, err := dialRPC(endpoint)
 	if err != nil {
-		utils.Fatalf("Unable to attach to remote getrue: %v", err)
+		utils.Fatalf("Unable to attach to remote gtai: %v", err)
 	}
 	config := console.Config{
 		DataDir: utils.MakeDataDir(ctx),
@@ -147,19 +145,19 @@ func remoteConsole(ctx *cli.Context) error {
 
 // dialRPC returns a RPC client which connects to the given endpoint.
 // The check for empty endpoint implements the defaulting logic
-// for "getrue attach" and "getrue monitor" with no argument.
+// for "gtai attach" and "gtai monitor" with no argument.
 func dialRPC(endpoint string) (*rpc.Client, error) {
 	if endpoint == "" {
 		endpoint = node.DefaultIPCEndpoint(clientIdentifier)
 	} else if strings.HasPrefix(endpoint, "rpc:") || strings.HasPrefix(endpoint, "ipc:") {
-		// Backwards compatibility with getrue < 1.5 which required
+		// Backwards compatibility with gtai < 1.5 which required
 		// these prefixes.
 		endpoint = endpoint[4:]
 	}
 	return rpc.Dial(endpoint)
 }
 
-// ephemeralConsole starts a new getrue node, attaches an ephemeral JavaScript
+// ephemeralConsole starts a new gtai node, attaches an ephemeral JavaScript
 // console to it, executes each of the files specified as arguments and tears
 // everything down.
 func ephemeralConsole(ctx *cli.Context) error {
@@ -171,7 +169,7 @@ func ephemeralConsole(ctx *cli.Context) error {
 	// Attach to the newly started node and start the JavaScript console
 	client, err := node.Attach()
 	if err != nil {
-		utils.Fatalf("Failed to attach to the inproc getrue: %v", err)
+		utils.Fatalf("Failed to attach to the inproc gtai: %v", err)
 	}
 	config := console.Config{
 		DataDir: utils.MakeDataDir(ctx),
