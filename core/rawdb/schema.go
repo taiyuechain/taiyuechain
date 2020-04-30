@@ -58,8 +58,8 @@ var (
 	txLookupPrefix  = []byte("l") // txLookupPrefix + hash -> transaction/receipt lookup metadata
 	bloomBitsPrefix = []byte("B") // bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash -> bloom bits
 
-	preimagePrefix = []byte("secure-key-")       // preimagePrefix + hash -> preimage
-	configPrefix   = []byte("truechain-config-") // config prefix for the db
+	preimagePrefix = []byte("secure-key-")         // preimagePrefix + hash -> preimage
+	configPrefix   = []byte("taiyuechain-config-") // config prefix for the db
 
 	// Chain index prefixes (use `i` + single byte to avoid mixing data types).
 	BloomBitsIndexPrefix = []byte("iB") // BloomBitsIndexPrefix is the data table of a chain indexer to track its progress

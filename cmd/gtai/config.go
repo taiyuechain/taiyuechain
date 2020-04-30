@@ -15,7 +15,7 @@ import (
 	"github.com/naoina/toml"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
-	"github.com/taiyuechain/taiyuechain/etrue"
+	"github.com/taiyuechain/taiyuechain/etai"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/params"
 )
@@ -59,7 +59,7 @@ type etruestatsConfig struct {
 }
 
 type gethConfig struct {
-	Etrue      etrue.Config
+	Etrue      etai.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
 	//Dashboard  dashboard.Config
@@ -93,7 +93,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		Etrue: etrue.DefaultConfig,
+		Etrue: etai.DefaultConfig,
 		Node:  defaultNodeConfig(),
 		//Dashboard: dashboard.DefaultConfig,
 	}
@@ -150,7 +150,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
 	}*/
 
-	// Add the Truechain Stats daemon if requested.
+	// Add the Taiyuechain Stats daemon if requested.
 	if cfg.Etruestats.URL != "" {
 		utils.RegisterEtrueStatsService(stack, cfg.Etruestats.URL)
 	}

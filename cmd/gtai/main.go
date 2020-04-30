@@ -1,4 +1,4 @@
-// gtai is the official command-line client for Truechain.
+// gtai is the official command-line client for Taiyuechain.
 package main
 
 import (
@@ -17,8 +17,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/console"
-	"github.com/taiyuechain/taiyuechain/etrue"
-	"github.com/taiyuechain/taiyuechain/etrueclient"
+	"github.com/taiyuechain/taiyuechain/etai"
+	"github.com/taiyuechain/taiyuechain/etaiclient"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -34,7 +34,7 @@ var (
 	// Git SHA1 commit hash of the release (set via linker flags)
 	gitCommit = ""
 	// The app that holds all commands and flags.
-	app = utils.NewApp(gitCommit, "the truechain command line interface")
+	app = utils.NewApp(gitCommit, "the taiyuechain command line interface")
 	// flags that configure the node
 	nodeFlags = []cli.Flag{
 		utils.IdentityFlag,
@@ -273,7 +273,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err != nil {
 			utils.Fatalf("Failed to attach to self: %v", err)
 		}
-		stateReader := etrueclient.NewClient(rpcClient)
+		stateReader := etaiclient.NewClient(rpcClient)
 
 		// Open any wallets already attached
 		for _, wallet := range stack.AccountManager().Wallets() {
@@ -306,26 +306,26 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}()
 	// Start auxiliary services if enabled
 	if ctx.GlobalBool(utils.MiningEnabledFlag.Name) || ctx.GlobalBool(utils.MineFruitFlag.Name) {
-		// Mining only makes sense if a full Truechain node is running
+		// Mining only makes sense if a full Taiyuechain node is running
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var truechain *etrue.Truechain
-		if err := stack.Service(&truechain); err != nil {
-			utils.Fatalf("Truechain service not running: %v", err)
+		var taiyuechain *etai.Taiyuechain
+		if err := stack.Service(&taiyuechain); err != nil {
+			utils.Fatalf("Taiyuechain service not running: %v", err)
 		}
 		// Use a reduced number of threads if requested
 		if threads := ctx.GlobalInt(utils.MinerThreadsFlag.Name); threads > 0 {
 			type threaded interface {
 				SetThreads(threads int)
 			}
-			if th, ok := truechain.Engine().(threaded); ok {
+			if th, ok := taiyuechain.Engine().(threaded); ok {
 				th.SetThreads(threads)
 			}
 		}
 		// Set the gas price to the limits from the CLI and start mining
-		truechain.TxPool().SetGasPrice(utils.GlobalBig(ctx, utils.GasPriceFlag.Name))
-		/*if err := truechain.StartMining(true); err != nil {
+		taiyuechain.TxPool().SetGasPrice(utils.GlobalBig(ctx, utils.GasPriceFlag.Name))
+		/*if err := taiyuechain.StartMining(true); err != nil {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}*/
 	}

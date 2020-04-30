@@ -18,14 +18,14 @@ package core
 
 import (
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/log"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
@@ -188,7 +188,7 @@ func TestFastVsFullChains(t *testing.T) {
 	// Configure and generate a sample block chain
 
 	var (
-		gendb   = etruedb.NewMemDatabase()
+		gendb   = etaidb.NewMemDatabase()
 		key, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 		address = crypto.PubkeyToAddress(key.PublicKey)
 		funds   = big.NewInt(1000000000)
@@ -215,7 +215,7 @@ func TestFastVsFullChains(t *testing.T) {
 		}
 	})
 	// Import the chain as an archive node for the comparison baseline
-	archiveDb := etruedb.NewMemDatabase()
+	archiveDb := etaidb.NewMemDatabase()
 	gspec.MustFastCommit(archiveDb)
 	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{})
 	defer archive.Stop()
@@ -224,7 +224,7 @@ func TestFastVsFullChains(t *testing.T) {
 		t.Fatalf("failed to process block %d: %v", n, err)
 	}
 	// Fast import the chain as a non-archive node to test
-	fastDb := etruedb.NewMemDatabase()
+	fastDb := etaidb.NewMemDatabase()
 	gspec.MustFastCommit(fastDb)
 	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{})
 	defer fast.Stop()
@@ -271,7 +271,7 @@ func TestFastVsFullChains(t *testing.T) {
 func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	// Configure and generate a sample block chain
 	var (
-		gendb   = etruedb.NewMemDatabase()
+		gendb   = etaidb.NewMemDatabase()
 		key, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 		address = crypto.PubkeyToAddress(key.PublicKey)
 		funds   = big.NewInt(1000000000)
@@ -301,7 +301,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 		}
 	}
 	// Import the chain as an archive node and ensure all pointers are updated
-	archiveDb := etruedb.NewMemDatabase()
+	archiveDb := etaidb.NewMemDatabase()
 	gspec.MustFastCommit(archiveDb)
 
 	//engine1 := ethash.NewFaker()
@@ -317,7 +317,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 
 	log.Info("archive", "state", archive.CurrentBlock().Root())
 	// Import the chain as a non-archive node and ensure all pointers are updated
-	fastDb := etruedb.NewMemDatabase()
+	fastDb := etaidb.NewMemDatabase()
 	gspec.MustFastCommit(fastDb)
 
 	engine = ethash.NewFaker()
@@ -408,7 +408,7 @@ func TestTrieForkGC(t *testing.T) {
 	// Generate a canonical chain to act as the main dataset
 	engine := ethash.NewFaker()
 
-	db := etruedb.NewMemDatabase()
+	db := etaidb.NewMemDatabase()
 	genesis := new(Genesis).MustFastCommit(db)
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 2*triesInMemory, func(i int, b *BlockGen) { b.SetCoinbase(common.Address{1}) })
 
@@ -423,7 +423,7 @@ func TestTrieForkGC(t *testing.T) {
 		forks[i] = fork[0]
 	}
 	// Import the canonical and fork chain side by side, forcing the trie cache to cache both
-	diskdb := etruedb.NewMemDatabase()
+	diskdb := etaidb.NewMemDatabase()
 	new(Genesis).MustFastCommit(diskdb)
 
 	chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{})
@@ -469,7 +469,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 	)
 	// Generate the original common chain segment and the two competing forks
 	engine := ethash.NewFaker()
-	db := etruedb.NewMemDatabase()
+	db := etaidb.NewMemDatabase()
 	genesis := gspec.MustFastCommit(db)
 
 	blockGenerator := func(i int, block *BlockGen) {
@@ -491,7 +491,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Import the shared chain and the original canonical one
-		diskdb := etruedb.NewMemDatabase()
+		diskdb := etaidb.NewMemDatabase()
 		gspec.MustFastCommit(diskdb)
 
 		chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{})

@@ -17,7 +17,7 @@
 package params
 
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the main Truechain network.
+// the main Taiyuechain network.
 var MainnetBootnodes = []string{
 	"enode://cd99daa76de43e2b7a5806c3455d33012cd127bca9b2e271be3af5d78e402c153a77e1d408f708770fb390e597621407f963f1c444090c21f91e03e03caa2110@39.98.216.197:30313", // CN
 	"enode://e95937d68263a59c95ac1199eecc450b3590624accaf1542c7e51d8dc3ca3bfa6d3f60785b021c408b4a9a67b2869da33237c75448ae29b70506164a2bfe6931@13.52.156.74:30313",  // US WEST
@@ -40,7 +40,7 @@ var TestnetBootnodes = []string{
 }
 
 // DevnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the dev Truechain network.
+// the dev Taiyuechain network.
 var DevnetBootnodes = []string{
 	"enode://f1ce2725b0e5cf403293be25ce94c222d8f4e6e7e4e2881559382a8fbfb64934923467ca182985f8391c6f65d79a717c13df4fb2a53ccd8aba51e5638d6da6a7@39.98.202.190:30314",
 	"enode://5f8f37510d880693e3b8f68f76c2d12fa11074bdf0f11695743af4546b374065fb1dc2ec83dc0f31e1ae7d5304102d429c664869aa7f6b2b70bda45d2a1716ee@39.98.240.34:30314",

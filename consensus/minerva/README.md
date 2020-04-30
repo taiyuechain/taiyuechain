@@ -1,6 +1,6 @@
 # Fundamentally achieving ASIC resistant: A brief introduction to Truehash algorithm
 
-As we all know, TrueChain adopted hybrid consensus technology, It uses PBFT as fast chain to process transactions and PoW as snailchain to supervise and elect the committee.
+As we all know, TaiyueChain adopted hybrid consensus technology, It uses PBFT as fast chain to process transactions and PoW as snailchain to supervise and elect the committee.
 
 PoW algorithm was put forward by Cynthia Dwork and Moni Naor in 1993. The application scenario of it then was to resist the attack of ddos and email spam. In 1999, Jacobsson came up with partial hash inversion algorithm which is also the method that Satoshi Nakamoto utilized in bitcoin network.
 

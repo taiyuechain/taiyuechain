@@ -338,7 +338,7 @@ func (pc *peerConn) CloseConn() {
 	pc.conn.Close() // nolint: errcheck
 }
 
-// HandshakeTimeout performs the truechain P2P handshake between a given node
+// HandshakeTimeout performs the taiyuechain P2P handshake between a given node
 // and the peer by exchanging their NodeInfo. It sets the received nodeInfo on
 // the peer.
 // NOTE: blocking

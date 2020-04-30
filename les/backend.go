@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Truechain Subprotocol.
+// Package les implements the Light Taiyuechain Subprotocol.
 package les
 
 import (
@@ -30,11 +30,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etrue"
-	"github.com/taiyuechain/taiyuechain/etrue/downloader"
-	"github.com/taiyuechain/taiyuechain/etrue/filters"
-	"github.com/taiyuechain/taiyuechain/etrue/gasprice"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etai"
+	"github.com/taiyuechain/taiyuechain/etai/downloader"
+	"github.com/taiyuechain/taiyuechain/etai/filters"
+	"github.com/taiyuechain/taiyuechain/etai/gasprice"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	"github.com/taiyuechain/taiyuechain/light"
@@ -47,7 +47,7 @@ import (
 )
 
 type LightEtrue struct {
-	config *etrue.Config
+	config *etai.Config
 
 	odr         *LesOdr
 	relay       *LesTxRelay
@@ -63,7 +63,7 @@ type LightEtrue struct {
 	reqDist         *requestDistributor
 	retriever       *retrieveManager
 	// DB interfaces
-	chainDb etruedb.Database // Block chain database
+	chainDb etaidb.Database // Block chain database
 
 	bloomRequests                              chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer, chtIndexer, bloomTrieIndexer *core.ChainIndexer
@@ -80,8 +80,8 @@ type LightEtrue struct {
 	wg sync.WaitGroup
 }
 
-func New(ctx *node.ServiceContext, config *etrue.Config) (*LightEtrue, error) {
-	chainDb, err := etrue.CreateDB(ctx, config, "lightchaindata")
+func New(ctx *node.ServiceContext, config *etai.Config) (*LightEtrue, error) {
+	chainDb, err := etai.CreateDB(ctx, config, "lightchaindata")
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +102,11 @@ func New(ctx *node.ServiceContext, config *etrue.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           etrue.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
+		engine:           etai.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
-		bloomIndexer:     etrue.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
+		bloomIndexer:     etai.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
 		chtIndexer:       light.NewChtIndexer(chainDb, true),
 		bloomTrieIndexer: light.NewBloomTrieIndexer(chainDb, true),
 	}
@@ -232,7 +232,7 @@ func (s *LightEtrue) Protocols() []p2p.Protocol {
 }
 
 // Start implements node.Service, starting all internal goroutines needed by the
-// Truechain protocol implementation.
+// Taiyuechain protocol implementation.
 func (s *LightEtrue) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers()
 	log.Warn("Light client mode is an experimental feature")
@@ -245,7 +245,7 @@ func (s *LightEtrue) Start(srvr *p2p.Server) error {
 }
 
 // Stop implements node.Service, terminating all internal goroutines used by the
-// Truechain protocol.
+// Taiyuechain protocol.
 func (s *LightEtrue) Stop() error {
 	s.odr.Stop()
 	if s.bloomIndexer != nil {

@@ -54,7 +54,7 @@ func SSHConnect(user, password, host string, port int) (*ssh.Session, error) {
 }
 
 func runSshAli(ip string) {
-	runSsh("root", "truechain@123456", ip, 22)
+	runSsh("root", "taiyuechain@123456", ip, 22)
 }
 
 func runSsh(user, pass, ip string, port int) {

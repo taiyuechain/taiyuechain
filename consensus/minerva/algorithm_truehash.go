@@ -1,4 +1,4 @@
-// Copyright 2018 The Truechain Authors
+// Copyright 2018 The Taiyuechain Authors
 // This file is part of the taiyuechain library.
 //
 // The taiyuechain library is free software: you can redistribute it and/or modify

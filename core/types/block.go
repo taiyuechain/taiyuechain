@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package types contains data types related to truechain consensus.
+// Package types contains data types related to taiyuechain consensus.
 package types
 
 import (
@@ -225,7 +225,7 @@ type BlockReward struct {
 	SnailNumber *big.Int    `json:"SnailNumber"      gencodec:"required"`
 }
 
-// Block represents an entire block in the truechain blockchain.
+// Block represents an entire block in the taiyuechain blockchain.
 type Block struct {
 	header       *Header
 	transactions Transactions
@@ -346,7 +346,7 @@ type extblock struct {
 	Infos  []*CommitteeMember
 }
 
-// DecodeRLP decodes the truechain
+// DecodeRLP decodes the taiyuechain
 func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	var eb extblock
 	_, size, _ := s.Kind()
@@ -358,7 +358,7 @@ func (b *Block) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-// EncodeRLP serializes b into the truechain RLP block format.
+// EncodeRLP serializes b into the taiyuechain RLP block format.
 func (b *Block) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, extblock{
 		Header: b.header,
@@ -520,7 +520,7 @@ func (b *Block) Hash() common.Hash {
 
 //go:generate gencodec -type SnailHeader -field-override headerMarshaling -out gen_header_json.go
 
-// SnailHeader represents a block header in the truechain truechain.
+// SnailHeader represents a block header in the taiyuechain taiyuechain.
 type SnailHeader struct {
 	ParentHash      common.Hash    `json:"parentHash"       gencodec:"required"`
 	Coinbase        common.Address `json:"miner"            gencodec:"required"`
@@ -545,7 +545,7 @@ type SnailBody struct {
 	Signs  []*PbftSign
 }
 
-// SnailBlock represents an entire snail block in the TrueChain snail chain.
+// SnailBlock represents an entire snail block in the TaiyueChain snail chain.
 type SnailBlock struct {
 	header *SnailHeader
 	fruits SnailBlocks
@@ -774,7 +774,7 @@ func (b *SnailBlock) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-// EncodeRLP serializes b into the TrueChain RLP block format.
+// EncodeRLP serializes b into the TaiyueChain RLP block format.
 func (b *SnailBlock) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, extsnailblock{
 		Header: b.header,

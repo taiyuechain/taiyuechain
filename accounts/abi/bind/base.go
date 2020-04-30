@@ -26,7 +26,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	truechain "github.com/taiyuechain/taiyuechain"
+	taiyuechain "github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
@@ -132,7 +132,7 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 		return err
 	}
 	var (
-		msg    = truechain.CallMsg{From: opts.From, To: &c.address, Data: input}
+		msg    = taiyuechain.CallMsg{From: opts.From, To: &c.address, Data: input}
 		ctx    = ensureContext(opts.Context)
 		code   []byte
 		output []byte
@@ -222,7 +222,7 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 			}
 		}
 		// If the contract surely has code (or code is not needed), estimate the transaction
-		msg := truechain.CallMsg{From: opts.From, To: contract, Value: value, Data: input}
+		msg := taiyuechain.CallMsg{From: opts.From, To: contract, Value: value, Data: input}
 		gasLimit, err = c.transactor.EstimateGas(ensureContext(opts.Context), msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to estimate gas needed: %v", err)
@@ -265,7 +265,7 @@ func (c *BoundContract) FilterLogs(opts *FilterOpts, name string, query ...[]int
 	// Start the background filtering
 	logs := make(chan types.Log, 128)
 
-	config := truechain.FilterQuery{
+	config := taiyuechain.FilterQuery{
 		Addresses: []common.Address{c.address},
 		Topics:    topics,
 		FromBlock: new(big.Int).SetUint64(opts.Start),
@@ -314,7 +314,7 @@ func (c *BoundContract) WatchLogs(opts *WatchOpts, name string, query ...[]inter
 	// Start the background filtering
 	logs := make(chan types.Log, 128)
 
-	config := truechain.FilterQuery{
+	config := taiyuechain.FilterQuery{
 		Addresses: []common.Address{c.address},
 		Topics:    topics,
 	}

@@ -399,7 +399,7 @@ func init() {
 	abiCaCertStore, _ = abi.JSON(strings.NewReader(CACertStoreABIJSON))
 }
 
-// RunStaking execute truechain staking contract
+// RunStaking execute taiyuechain staking contract
 func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	method, err := abiCaCertStore.MethodById(input)
 	if err != nil {

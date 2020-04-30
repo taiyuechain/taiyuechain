@@ -78,7 +78,7 @@ type ChainStateReader interface {
 }
 
 // SyncProgress gives progress indications when the node is synchronising with
-// the Truechain networ
+// the Taiyuechain networ
 
 // SyncProgress gives progress indications when the node is synchronising with
 // the Ethereum network.

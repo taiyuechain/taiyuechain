@@ -65,7 +65,7 @@ func (m *Minerva) AuthorSnail(header *types.SnailHeader) (common.Address, error)
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules of the
-// stock Truechain m engine.
+// stock Taiyuechain m engine.
 func (m *Minerva) VerifyHeader(chain consensus.ChainReader, header *types.Header) error {
 	// Short circuit if the header is known, or it's parent not
 	number := header.Number.Uint64()
@@ -324,7 +324,7 @@ func (m *Minerva) verifyHeaderWorker(chain consensus.ChainReader, headers []*typ
 }*/
 
 // verifyHeader checks whether a header conforms to the consensus rules of the
-// stock Truechain minerva engine.
+// stock Taiyuechain minerva engine.
 func (m *Minerva) verifyHeader(chain consensus.ChainReader, header, parent *types.Header) error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	if uint64(len(header.Extra)) > params.MaximumExtraDataSize {

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	truechain "github.com/taiyuechain/taiyuechain"
+	taiyuechain "github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
@@ -20,8 +20,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/etrue/filters"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etai/filters"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -36,7 +36,7 @@ var errGasEstimationFailed = errors.New("gas required exceeds allowance or alway
 // SimulatedBackend implements bind.ContractBackend, simulating a blockchain in
 // the background. Its main purpose is to allow easily testing contract bindings.
 type SimulatedBackend struct {
-	database   etruedb.Database // In memory database to store our testing data
+	database   etaidb.Database  // In memory database to store our testing data
 	blockchain *core.BlockChain // Ethereum blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -51,7 +51,7 @@ type SimulatedBackend struct {
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes. for fast blockchain
 func NewSimulatedBackend(alloc types.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
-	database := etruedb.NewMemDatabase()
+	database := etaidb.NewMemDatabase()
 	genesis := core.Genesis{Config: params.AllMinervaProtocolChanges, GasLimit: gasLimit, Alloc: alloc}
 	genesis.MustFastCommit(database)
 	// genesis.MustSnailCommit(database)
@@ -159,7 +159,7 @@ func (b *SimulatedBackend) PendingCodeAt(ctx context.Context, contract common.Ad
 }
 
 // CallContract executes a contract call.
-func (b *SimulatedBackend) CallContract(ctx context.Context, call truechain.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (b *SimulatedBackend) CallContract(ctx context.Context, call taiyuechain.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -175,7 +175,7 @@ func (b *SimulatedBackend) CallContract(ctx context.Context, call truechain.Call
 }
 
 // PendingCallContract executes a contract call on the pending state.
-func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call truechain.CallMsg) ([]byte, error) {
+func (b *SimulatedBackend) PendingCallContract(ctx context.Context, call taiyuechain.CallMsg) ([]byte, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	defer b.pendingState.RevertToSnapshot(b.pendingState.Snapshot())
@@ -201,7 +201,7 @@ func (b *SimulatedBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error
 
 // EstimateGas executes the requested code against the currently pending block/state and
 // returns the used amount of gas.
-func (b *SimulatedBackend) EstimateGas(ctx context.Context, call truechain.CallMsg) (uint64, error) {
+func (b *SimulatedBackend) EstimateGas(ctx context.Context, call taiyuechain.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -251,7 +251,7 @@ func (b *SimulatedBackend) EstimateGas(ctx context.Context, call truechain.CallM
 
 // callContract implements common code between normal and pending contract calls.
 // state is modified during execution, make sure to copy it if necessary.
-func (b *SimulatedBackend) callContract(ctx context.Context, call truechain.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
+func (b *SimulatedBackend) callContract(ctx context.Context, call taiyuechain.CallMsg, block *types.Block, statedb *state.StateDB) ([]byte, uint64, bool, error) {
 	// Ensure message is initialized properly.
 	if call.GasPrice == nil {
 		call.GasPrice = big.NewInt(1)
@@ -309,7 +309,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 // returning all the results in one batch.
 //
 // TODO(karalabe): Deprecate when the subscription one can return past data too.
-func (b *SimulatedBackend) FilterLogs(ctx context.Context, query truechain.FilterQuery) ([]types.Log, error) {
+func (b *SimulatedBackend) FilterLogs(ctx context.Context, query taiyuechain.FilterQuery) ([]types.Log, error) {
 	var filter *filters.Filter
 	if query.BlockHash != nil {
 		// Block filter requested, construct a single-shot filter
@@ -341,7 +341,7 @@ func (b *SimulatedBackend) FilterLogs(ctx context.Context, query truechain.Filte
 
 // SubscribeFilterLogs creates a background log filtering operation, returning a
 // subscription immediately, which can be used to stream the found events.
-func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query truechain.FilterQuery, ch chan<- types.Log) (truechain.Subscription, error) {
+func (b *SimulatedBackend) SubscribeFilterLogs(ctx context.Context, query taiyuechain.FilterQuery, ch chan<- types.Log) (taiyuechain.Subscription, error) {
 	// Subscribe to contract events
 	sink := make(chan []*types.Log)
 
@@ -393,7 +393,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 
 // callmsg implements core.Message to allow passing it as a transaction simulator.
 type callmsg struct {
-	truechain.CallMsg
+	taiyuechain.CallMsg
 }
 
 func (m callmsg) From() common.Address    { return m.CallMsg.From }
@@ -410,12 +410,12 @@ func (m callmsg) Data() []byte            { return m.CallMsg.Data }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db etruedb.Database
+	db etaidb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() etruedb.Database { return fb.db }
-func (fb *filterBackend) EventMux() *event.TypeMux  { panic("not supported") }
+func (fb *filterBackend) ChainDb() etaidb.Database { return fb.db }
+func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {
 	if block == rpc.LatestBlockNumber {

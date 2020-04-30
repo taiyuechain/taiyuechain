@@ -20,7 +20,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"strings"
 )
@@ -28,7 +28,7 @@ import (
 
 var (
 	engine        = minerva.NewFaker()
-	db            = etruedb.NewMemDatabase()
+	db            = etaidb.NewMemDatabase()
 	gspec         = DefaulGenesisBlock()
 	//abiStaking, _ = abi.JSON(strings.NewReader(vm.StakeABIJSON))
 	abiStaking, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))

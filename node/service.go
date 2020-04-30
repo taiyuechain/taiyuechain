@@ -20,7 +20,7 @@ import (
 	"reflect"
 
 	"github.com/taiyuechain/taiyuechain/accounts"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -39,11 +39,11 @@ type ServiceContext struct {
 // OpenDatabase opens an existing database with the given name (or creates one
 // if no previous can be found) from within the node's data directory. If the
 // node is an ephemeral one, a memory database is returned.
-func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int) (etruedb.Database, error) {
+func (ctx *ServiceContext) OpenDatabase(name string, cache int, handles int) (etaidb.Database, error) {
 	if ctx.config.DataDir == "" {
-		return etruedb.NewMemDatabase(), nil
+		return etaidb.NewMemDatabase(), nil
 	}
-	db, err := etruedb.NewLDBDatabase(ctx.config.ResolvePath(name), cache, handles)
+	db, err := etaidb.NewLDBDatabase(ctx.config.ResolvePath(name), cache, handles)
 	if err != nil {
 		return nil, err
 	}

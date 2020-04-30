@@ -29,19 +29,19 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/common/prque"
-	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -104,9 +104,9 @@ type BlockChain struct {
 	chainConfig *params.ChainConfig // Chain & network configuration
 	cacheConfig *CacheConfig        // Cache configuration for pruning
 
-	db     etruedb.Database // Low level persistent database to store final content in
-	triegc *prque.Prque     // Priority queue mapping block numbers to tries to gc
-	gcproc time.Duration    // Accumulates canonical block processing for trie dumping
+	db     etaidb.Database // Low level persistent database to store final content in
+	triegc *prque.Prque    // Priority queue mapping block numbers to tries to gc
+	gcproc time.Duration   // Accumulates canonical block processing for trie dumping
 
 	hc               *HeaderChain
 	rmLogsFeed       event.Feed
@@ -155,7 +155,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Ethereum Validator and
 // Processor.
-func NewBlockChain(db etruedb.Database, cacheConfig *CacheConfig,
+func NewBlockChain(db etaidb.Database, cacheConfig *CacheConfig,
 	chainConfig *params.ChainConfig, engine consensus.Engine,
 	vmConfig vm.Config) (*BlockChain, error) {
 
@@ -1008,7 +1008,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 
 		stats.processed++
 
-		if batch.ValueSize() >= etruedb.IdealBatchSize || len(block.SwitchInfos()) > 0 {
+		if batch.ValueSize() >= etaidb.IdealBatchSize || len(block.SwitchInfos()) > 0 {
 			if err := batch.Write(); err != nil {
 				return 0, err
 			}
@@ -1107,7 +1107,7 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 				limit       = common.StorageSize(bc.cacheConfig.TrieNodeLimit) * 1024 * 1024
 			)
 			if nodes > limit || imgs > 4*1024*1024 {
-				triedb.Cap(limit - etruedb.IdealBatchSize)
+				triedb.Cap(limit - etaidb.IdealBatchSize)
 			}
 			// Find the next state trie we need to commit
 			header := bc.GetHeaderByNumber(current - triesInMemory)

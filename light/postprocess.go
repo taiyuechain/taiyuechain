@@ -27,7 +27,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
@@ -96,7 +96,7 @@ type ChtNode struct {
 
 // GetChtRoot reads the CHT root assoctiated to the given section from the database
 // Note that sectionIdx is specified according to LES/1 CHT section size
-func GetChtRoot(db etruedb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetChtRoot(db etaidb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -105,13 +105,13 @@ func GetChtRoot(db etruedb.Database, sectionIdx uint64, sectionHead common.Hash)
 
 // GetChtV2Root reads the CHT root assoctiated to the given section from the database
 // Note that sectionIdx is specified according to LES/2 CHT section size
-func GetChtV2Root(db etruedb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetChtV2Root(db etaidb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	return GetChtRoot(db, (sectionIdx+1)*(CHTFrequencyClient/CHTFrequencyServer)-1, sectionHead)
 }
 
 // StoreChtRoot writes the CHT root assoctiated to the given section into the database
 // Note that sectionIdx is specified according to LES/1 CHT section size
-func StoreChtRoot(db etruedb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreChtRoot(db etaidb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(chtPrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -119,7 +119,7 @@ func StoreChtRoot(db etruedb.Database, sectionIdx uint64, sectionHead, root comm
 
 // ChtIndexerBackend implements core.ChainIndexerBackend
 type ChtIndexerBackend struct {
-	diskdb               etruedb.Database
+	diskdb               etaidb.Database
 	triedb               *trie.Database
 	section, sectionSize uint64
 	lastHash             common.Hash
@@ -127,7 +127,7 @@ type ChtIndexerBackend struct {
 }
 
 // NewBloomTrieIndexer creates a BloomTrie chain indexer
-func NewChtIndexer(db etruedb.Database, clientMode bool) *core.ChainIndexer {
+func NewChtIndexer(db etaidb.Database, clientMode bool) *core.ChainIndexer {
 	var sectionSize, confirmReq uint64
 	if clientMode {
 		sectionSize = CHTFrequencyClient
@@ -136,10 +136,10 @@ func NewChtIndexer(db etruedb.Database, clientMode bool) *core.ChainIndexer {
 		sectionSize = CHTFrequencyServer
 		confirmReq = HelperTrieProcessConfirmations
 	}
-	idb := etruedb.NewTable(db, "chtIndex-")
+	idb := etaidb.NewTable(db, "chtIndex-")
 	backend := &ChtIndexerBackend{
 		diskdb:      db,
-		triedb:      trie.NewDatabase(etruedb.NewTable(db, ChtTablePrefix)),
+		triedb:      trie.NewDatabase(etaidb.NewTable(db, ChtTablePrefix)),
 		sectionSize: sectionSize,
 	}
 	return core.NewChainIndexer(db, idb, backend, sectionSize, confirmReq, time.Millisecond*100, "cht")
@@ -197,7 +197,7 @@ var (
 )
 
 // GetBloomTrieRoot reads the BloomTrie root assoctiated to the given section from the database
-func GetBloomTrieRoot(db etruedb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
+func GetBloomTrieRoot(db etaidb.Database, sectionIdx uint64, sectionHead common.Hash) common.Hash {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	data, _ := db.Get(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...))
@@ -205,7 +205,7 @@ func GetBloomTrieRoot(db etruedb.Database, sectionIdx uint64, sectionHead common
 }
 
 // StoreBloomTrieRoot writes the BloomTrie root assoctiated to the given section into the database
-func StoreBloomTrieRoot(db etruedb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
+func StoreBloomTrieRoot(db etaidb.Database, sectionIdx uint64, sectionHead, root common.Hash) {
 	var encNumber [8]byte
 	binary.BigEndian.PutUint64(encNumber[:], sectionIdx)
 	db.Put(append(append(bloomTriePrefix, encNumber[:]...), sectionHead.Bytes()...), root.Bytes())
@@ -213,7 +213,7 @@ func StoreBloomTrieRoot(db etruedb.Database, sectionIdx uint64, sectionHead, roo
 
 // BloomTrieIndexerBackend implements core.ChainIndexerBackend
 type BloomTrieIndexerBackend struct {
-	diskdb                                     etruedb.Database
+	diskdb                                     etaidb.Database
 	triedb                                     *trie.Database
 	section, parentSectionSize, bloomTrieRatio uint64
 	trie                                       *trie.Trie
@@ -221,12 +221,12 @@ type BloomTrieIndexerBackend struct {
 }
 
 // NewBloomTrieIndexer creates a BloomTrie chain indexer
-func NewBloomTrieIndexer(db etruedb.Database, clientMode bool) *core.ChainIndexer {
+func NewBloomTrieIndexer(db etaidb.Database, clientMode bool) *core.ChainIndexer {
 	backend := &BloomTrieIndexerBackend{
 		diskdb: db,
-		triedb: trie.NewDatabase(etruedb.NewTable(db, BloomTrieTablePrefix)),
+		triedb: trie.NewDatabase(etaidb.NewTable(db, BloomTrieTablePrefix)),
 	}
-	idb := etruedb.NewTable(db, "bltIndex-")
+	idb := etaidb.NewTable(db, "bltIndex-")
 
 	var confirmReq uint64
 	if clientMode {

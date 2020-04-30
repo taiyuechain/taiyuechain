@@ -23,7 +23,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
@@ -107,7 +107,7 @@ func (db *NodeSet) NodeList() NodeList {
 }
 
 // Store writes the contents of the set to the given database
-func (db *NodeSet) Store(target etruedb.Putter) {
+func (db *NodeSet) Store(target etaidb.Putter) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 
@@ -120,7 +120,7 @@ func (db *NodeSet) Store(target etruedb.Putter) {
 type NodeList []rlp.RawValue
 
 // Store writes the contents of the list to the given database
-func (n NodeList) Store(db etruedb.Putter) {
+func (n NodeList) Store(db etaidb.Putter) {
 	var thash taiCrypto.THash
 	for _, node := range n {
 		//db.Put(crypto.Keccak256(node), node)

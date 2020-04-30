@@ -17,7 +17,7 @@
 package les
 
 import (
-	"github.com/taiyuechain/taiyuechain/etrue/downloader"
+	"github.com/taiyuechain/taiyuechain/etai/downloader"
 )
 
 // syncer is responsible for periodically synchronising with the network, both

@@ -606,7 +606,7 @@ func (sw *Switch) addOutboundPeerWithConfig(
 	return nil
 }
 
-// addPeer performs the truechain P2P handshake with a peer
+// addPeer performs the taiyuechain P2P handshake with a peer
 // that already has a SecretConnection. If all goes well,
 // it starts the peer and adds it to the switch.
 // NOTE: This performs a blocking handshake before the peer is added.

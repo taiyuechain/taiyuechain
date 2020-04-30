@@ -31,7 +31,7 @@ var (
 	defaultAddrBookPath   = filepath.Join(defaultConfigDir, defaultAddrBookName)
 )
 
-// Config defines the top level configuration for a truechain node
+// Config defines the top level configuration for a taiyuechain node
 type TbftConfig struct {
 	// Top level options use an anonymous struct
 	BaseConfig `mapstructure:",squash"`
@@ -40,7 +40,7 @@ type TbftConfig struct {
 	Consensus *ConsensusConfig `mapstructure:"consensus"`
 }
 
-// DefaultConfig returns a default configuration for a truechain node
+// DefaultConfig returns a default configuration for a taiyuechain node
 func DefaultConfig() *TbftConfig {
 	return &TbftConfig{
 		BaseConfig: DefaultBaseConfig(),
@@ -68,7 +68,7 @@ func (cfg *TbftConfig) SetRoot(root string) *TbftConfig {
 //-----------------------------------------------------------------------------
 // BaseConfig
 
-// BaseConfig defines the base configuration for a truechain node
+// BaseConfig defines the base configuration for a taiyuechain node
 type BaseConfig struct {
 	// A custom human readable name for this node
 	Moniker string `mapstructure:"moniker"`
@@ -78,7 +78,7 @@ type BaseConfig struct {
 	FilterPeers bool `mapstructure:"filter_peers"` // false
 }
 
-// DefaultBaseConfig returns a default base configuration for a truechain node
+// DefaultBaseConfig returns a default base configuration for a taiyuechain node
 func DefaultBaseConfig() BaseConfig {
 	return BaseConfig{
 		Moniker:     defaultMoniker,
@@ -86,7 +86,7 @@ func DefaultBaseConfig() BaseConfig {
 	}
 }
 
-// TestBaseConfig returns a base configuration for testing a truechain node
+// TestBaseConfig returns a base configuration for testing a taiyuechain node
 func TestBaseConfig() BaseConfig {
 	cfg := DefaultBaseConfig()
 	return cfg
@@ -95,7 +95,7 @@ func TestBaseConfig() BaseConfig {
 //-----------------------------------------------------------------------------
 // P2PConfig
 
-// P2PConfig defines the configuration options for the truechain peer-to-peer networking layer
+// P2PConfig defines the configuration options for the taiyuechain peer-to-peer networking layer
 type P2PConfig struct {
 	RootDir string `mapstructure:"home"`
 
@@ -210,7 +210,7 @@ func DefaultFuzzConnConfig() *FuzzConnConfig {
 //-----------------------------------------------------------------------------
 // ConsensusConfig
 
-// ConsensusConfig defines the configuration for the truechain consensus service,
+// ConsensusConfig defines the configuration for the taiyuechain consensus service,
 // including timeouts and details about the WAL and the block structure.
 type ConsensusConfig struct {
 	RootDir string `mapstructure:"home"`

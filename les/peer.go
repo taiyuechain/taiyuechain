@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Truechain Subprotocol.
+// Package les implements the Light Taiyuechain Subprotocol.
 package les
 
 import (
@@ -30,7 +30,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etrue"
+	"github.com/taiyuechain/taiyuechain/etai"
 	"github.com/taiyuechain/taiyuechain/les/flowcontrol"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/p2p"
@@ -102,8 +102,8 @@ func (p *peer) queueSend(f func()) {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peer) Info() *etrue.PeerInfo {
-	return &etrue.PeerInfo{
+func (p *peer) Info() *etai.PeerInfo {
+	return &etai.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
 		Head:       fmt.Sprintf("%x", p.Head()),
@@ -517,7 +517,7 @@ type peerSetNotify interface {
 }
 
 // peerSet represents the collection of active peers currently participating in
-// the Light Truechain sub-protocol.
+// the Light Taiyuechain sub-protocol.
 type peerSet struct {
 	peers      map[string]*peer
 	lock       sync.RWMutex

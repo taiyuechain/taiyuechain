@@ -35,7 +35,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/params"
 )
 
@@ -140,7 +140,7 @@ func (t *BlockTest) Run() error {
 	}
 
 	// import pre accounts & construct test genesis block & state root
-	db := etruedb.NewMemDatabase()
+	db := etaidb.NewMemDatabase()
 	genesis := core.DefaultGenesisBlock()
 	gblock := genesis.MustFastCommit(db)
 

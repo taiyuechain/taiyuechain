@@ -18,13 +18,13 @@ package rawdb
 
 import (
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/log"
 )
 
 // ReadSnapshotRoot retrieves the root of the block whose state is contained in
 // the persisted snapshot.
-func ReadSnapshotRoot(db etruedb.KeyValueReader) common.Hash {
+func ReadSnapshotRoot(db etaidb.KeyValueReader) common.Hash {
 	data, _ := db.Get(snapshotRootKey)
 	if len(data) != common.HashLength {
 		return common.Hash{}
@@ -34,7 +34,7 @@ func ReadSnapshotRoot(db etruedb.KeyValueReader) common.Hash {
 
 // WriteSnapshotRoot stores the root of the block whose state is contained in
 // the persisted snapshot.
-func WriteSnapshotRoot(db etruedb.KeyValueWriter, root common.Hash) {
+func WriteSnapshotRoot(db etaidb.KeyValueWriter, root common.Hash) {
 	if err := db.Put(snapshotRootKey, root[:]); err != nil {
 		log.Crit("Failed to store snapshot root", "err", err)
 	}
@@ -44,47 +44,47 @@ func WriteSnapshotRoot(db etruedb.KeyValueWriter, root common.Hash) {
 // the persisted snapshot. Since snapshots are not immutable, this  method can
 // be used during updates, so a crash or failure will mark the entire snapshot
 // invalid.
-func DeleteSnapshotRoot(db etruedb.KeyValueWriter) {
+func DeleteSnapshotRoot(db etaidb.KeyValueWriter) {
 	if err := db.Delete(snapshotRootKey); err != nil {
 		log.Crit("Failed to remove snapshot root", "err", err)
 	}
 }
 
 // ReadAccountSnapshot retrieves the snapshot entry of an account trie leaf.
-func ReadAccountSnapshot(db etruedb.KeyValueReader, hash common.Hash) []byte {
+func ReadAccountSnapshot(db etaidb.KeyValueReader, hash common.Hash) []byte {
 	data, _ := db.Get(accountSnapshotKey(hash))
 	return data
 }
 
 // WriteAccountSnapshot stores the snapshot entry of an account trie leaf.
-func WriteAccountSnapshot(db etruedb.KeyValueWriter, hash common.Hash, entry []byte) {
+func WriteAccountSnapshot(db etaidb.KeyValueWriter, hash common.Hash, entry []byte) {
 	if err := db.Put(accountSnapshotKey(hash), entry); err != nil {
 		log.Crit("Failed to store account snapshot", "err", err)
 	}
 }
 
 // DeleteAccountSnapshot removes the snapshot entry of an account trie leaf.
-func DeleteAccountSnapshot(db etruedb.KeyValueWriter, hash common.Hash) {
+func DeleteAccountSnapshot(db etaidb.KeyValueWriter, hash common.Hash) {
 	if err := db.Delete(accountSnapshotKey(hash)); err != nil {
 		log.Crit("Failed to delete account snapshot", "err", err)
 	}
 }
 
 // ReadStorageSnapshot retrieves the snapshot entry of an storage trie leaf.
-func ReadStorageSnapshot(db etruedb.KeyValueReader, accountHash, storageHash common.Hash) []byte {
+func ReadStorageSnapshot(db etaidb.KeyValueReader, accountHash, storageHash common.Hash) []byte {
 	data, _ := db.Get(storageSnapshotKey(accountHash, storageHash))
 	return data
 }
 
 // WriteStorageSnapshot stores the snapshot entry of an storage trie leaf.
-func WriteStorageSnapshot(db etruedb.KeyValueWriter, accountHash, storageHash common.Hash, entry []byte) {
+func WriteStorageSnapshot(db etaidb.KeyValueWriter, accountHash, storageHash common.Hash, entry []byte) {
 	if err := db.Put(storageSnapshotKey(accountHash, storageHash), entry); err != nil {
 		log.Crit("Failed to store storage snapshot", "err", err)
 	}
 }
 
 // DeleteStorageSnapshot removes the snapshot entry of an storage trie leaf.
-func DeleteStorageSnapshot(db etruedb.KeyValueWriter, accountHash, storageHash common.Hash) {
+func DeleteStorageSnapshot(db etaidb.KeyValueWriter, accountHash, storageHash common.Hash) {
 	if err := db.Delete(storageSnapshotKey(accountHash, storageHash)); err != nil {
 		log.Crit("Failed to delete storage snapshot", "err", err)
 	}
@@ -92,20 +92,20 @@ func DeleteStorageSnapshot(db etruedb.KeyValueWriter, accountHash, storageHash c
 
 // IterateStorageSnapshots returns an iterator for walking the entire storage
 // space of a specific account.
-func IterateStorageSnapshots(db etruedb.Iteratee, accountHash common.Hash) etruedb.Iterator {
+func IterateStorageSnapshots(db etaidb.Iteratee, accountHash common.Hash) etaidb.Iterator {
 	return db.NewIteratorWithPrefix(storageSnapshotsKey(accountHash))
 }
 
 // ReadSnapshotJournal retrieves the serialized in-memory diff layers saved at
 // the last shutdown. The blob is expected to be max a few 10s of megabytes.
-func ReadSnapshotJournal(db etruedb.KeyValueReader) []byte {
+func ReadSnapshotJournal(db etaidb.KeyValueReader) []byte {
 	data, _ := db.Get(snapshotJournalKey)
 	return data
 }
 
 // WriteSnapshotJournal stores the serialized in-memory diff layers to save at
 // shutdown. The blob is expected to be max a few 10s of megabytes.
-func WriteSnapshotJournal(db etruedb.KeyValueWriter, journal []byte) {
+func WriteSnapshotJournal(db etaidb.KeyValueWriter, journal []byte) {
 	if err := db.Put(snapshotJournalKey, journal); err != nil {
 		log.Crit("Failed to store snapshot journal", "err", err)
 	}
@@ -113,7 +113,7 @@ func WriteSnapshotJournal(db etruedb.KeyValueWriter, journal []byte) {
 
 // DeleteSnapshotJournal deletes the serialized in-memory diff layers saved at
 // the last shutdown
-func DeleteSnapshotJournal(db etruedb.KeyValueWriter) {
+func DeleteSnapshotJournal(db etaidb.KeyValueWriter) {
 	if err := db.Delete(snapshotJournalKey); err != nil {
 		log.Crit("Failed to remove snapshot journal", "err", err)
 	}

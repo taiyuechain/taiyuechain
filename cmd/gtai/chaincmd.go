@@ -14,8 +14,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/console"
 	"github.com/taiyuechain/taiyuechain/core"
-	"github.com/taiyuechain/taiyuechain/etrue/downloader"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etai/downloader"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/trie"
@@ -149,7 +149,7 @@ Remove blockchain and state databases`,
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `
 The arguments are interpreted as block numbers or hashes.
-Use "truechain dump 0" to dump the genesis block.`,
+Use "taiyuechain dump 0" to dump the genesis block.`,
 	}
 )
 
@@ -237,7 +237,7 @@ func importChain(ctx *cli.Context) error {
 	fmt.Printf("Import done in %v.\n\n", time.Since(start))
 
 	// Output pre-compaction stats mostly to see the import trashing
-	db := chainDb.(*etruedb.LDBDatabase)
+	db := chainDb.(*etaidb.LDBDatabase)
 
 	stats, err := db.LDB().GetProperty("leveldb.stats")
 	if err != nil {
@@ -352,7 +352,7 @@ func importPreimages(ctx *cli.Context) error {
 		utils.Fatalf("This command requires an argument.")
 	}
 	stack := makeFullNode(ctx)
-	diskdb := utils.MakeChainDatabase(ctx, stack).(*etruedb.LDBDatabase)
+	diskdb := utils.MakeChainDatabase(ctx, stack).(*etaidb.LDBDatabase)
 
 	start := time.Now()
 	if err := utils.ImportPreimages(diskdb, ctx.Args().First()); err != nil {
@@ -368,7 +368,7 @@ func exportPreimages(ctx *cli.Context) error {
 		utils.Fatalf("This command requires an argument.")
 	}
 	stack := makeFullNode(ctx)
-	diskdb := utils.MakeChainDatabase(ctx, stack).(*etruedb.LDBDatabase)
+	diskdb := utils.MakeChainDatabase(ctx, stack).(*etaidb.LDBDatabase)
 
 	start := time.Now()
 	if err := utils.ExportPreimages(diskdb, ctx.Args().First()); err != nil {
@@ -462,7 +462,7 @@ func copyDb(ctx *cli.Context) error {
 	dl := downloader.New(0, chainDb, syncBloom, new(event.TypeMux), chain, nil, nil)
 
 	// Create a source peer to satisfy downloader requests from
-	db, err := etruedb.NewLDBDatabase(ctx.Args().First(), ctx.GlobalInt(utils.CacheFlag.Name), 256)
+	db, err := etaidb.NewLDBDatabase(ctx.Args().First(), ctx.GlobalInt(utils.CacheFlag.Name), 256)
 	if err != nil {
 		return err
 	}
@@ -491,7 +491,7 @@ func copyDb(ctx *cli.Context) error {
 	start = time.Now()
 	fmt.Println("Compacting entire database...")
 	//TODO
-	if err = chainDb.(*etruedb.LDBDatabase).LDB().CompactRange(util.Range{}); err != nil {
+	if err = chainDb.(*etaidb.LDBDatabase).LDB().CompactRange(util.Range{}); err != nil {
 		utils.Fatalf("Compaction failed: %v", err)
 	}
 	fmt.Printf("Compaction done in %v.\n\n", time.Since(start))

@@ -26,13 +26,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/hashicorp/golang-lru"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etaidb"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 )
 
@@ -50,7 +50,7 @@ const (
 type HeaderChain struct {
 	config *params.ChainConfig
 
-	chainDb       etruedb.Database
+	chainDb       etaidb.Database
 	genesisHeader *types.Header
 
 	currentHeader     atomic.Value // Current head of the header chain (may be above the block chain!)
@@ -70,7 +70,7 @@ type HeaderChain struct {
 //  getValidator should return the parent's validator
 //  procInterrupt points to the parent's interrupt semaphore
 //  wg points to the parent's shutdown wait group
-func NewHeaderChain(chainDb etruedb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
+func NewHeaderChain(chainDb etaidb.Database, config *params.ChainConfig, engine consensus.Engine, procInterrupt func() bool) (*HeaderChain, error) {
 	headerCache, _ := lru.New(headerCacheLimit)
 	tdCache, _ := lru.New(tdCacheLimit)
 	numberCache, _ := lru.New(numberCacheLimit)
@@ -139,7 +139,6 @@ func (hc *HeaderChain) WriteHeader(header *types.Header) (status WriteStatus, er
 	)
 
 	rawdb.WriteHeader(hc.chainDb, header)
-
 
 	// Extend the canonical chain with the new header
 	rawdb.WriteCanonicalHash(hc.chainDb, hash, number)
@@ -316,7 +315,6 @@ func (fhc *HeaderChain) GetAncestor(hash common.Hash, number, ancestor uint64, m
 	}
 	return hash, number
 }
-
 
 // GetHeader retrieves a block header from the database by hash and number,
 // caching it if found.

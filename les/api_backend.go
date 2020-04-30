@@ -29,9 +29,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/etrue/downloader"
-	"github.com/taiyuechain/taiyuechain/etrue/gasprice"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etai/downloader"
+	"github.com/taiyuechain/taiyuechain/etai/gasprice"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -235,7 +235,7 @@ func (b *LesApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
 }
 
-func (b *LesApiBackend) ChainDb() etruedb.Database {
+func (b *LesApiBackend) ChainDb() etaidb.Database {
 	return b.etrue.chainDb
 }
 

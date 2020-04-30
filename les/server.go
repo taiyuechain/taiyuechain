@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package les implements the Light Truechain Subprotocol.
+// Package les implements the Light Taiyuechain Subprotocol.
 package les
 
 import (
@@ -30,8 +30,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etrue"
-	"github.com/taiyuechain/taiyuechain/etruedb"
+	"github.com/taiyuechain/taiyuechain/etai"
+	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/les/flowcontrol"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/log"
@@ -41,7 +41,7 @@ import (
 )
 
 type LesServer struct {
-	config          *etrue.Config
+	config          *etai.Config
 	protocolManager *ProtocolManager
 	fcManager       *flowcontrol.ClientManager // nil if our node is client only
 	fcCostStats     *requestCostStats
@@ -54,7 +54,7 @@ type LesServer struct {
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 }
 
-func NewLesServer(etrue *etrue.Truechain, config *etrue.Config) (*LesServer, error) {
+func NewLesServer(etrue *etai.Taiyuechain, config *etai.Config) (*LesServer, error) {
 	quitSync := make(chan struct{})
 	pm, err := NewProtocolManager(etrue.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, etrue.EventMux(), etrue.Engine(), newPeerSet(), nil, etrue.TxPool(), etrue.ChainDb(), nil, nil, nil, quitSync, new(sync.WaitGroup))
 	if err != nil {
@@ -229,7 +229,7 @@ func linRegFromBytes(data []byte) *linReg {
 
 type requestCostStats struct {
 	lock  sync.RWMutex
-	db    etruedb.Database
+	db    etaidb.Database
 	stats map[uint64]*linReg
 }
 
@@ -240,7 +240,7 @@ type requestCostStatsRlp []struct {
 
 var rcStatsKey = []byte("_requestCostStats")
 
-func newCostStats(db etruedb.Database) *requestCostStats {
+func newCostStats(db etaidb.Database) *requestCostStats {
 	stats := make(map[uint64]*linReg)
 	for _, code := range reqList {
 		stats[code] = &linReg{cnt: 100}
