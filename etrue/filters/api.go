@@ -245,7 +245,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit FilterCriteria) (*rpc
 		matchedLogs = make(chan []*types.Log)
 	)
 
-	logsSub, err := api.events.SubscribeLogs(truechain.FilterQuery(crit), matchedLogs)
+	logsSub, err := api.events.SubscribeLogs(taiyuechain.FilterQuery(crit), matchedLogs)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit FilterCriteria) (*rpc
 
 // FilterCriteria represents a request to create a new filter.
 // Same as ethereum.FilterQuery but with UnmarshalJSON() method.
-type FilterCriteria truechain.FilterQuery
+type FilterCriteria taiyuechain.FilterQuery
 
 // NewFilter creates a new filter and returns the filter id. It can be
 // used to retrieve logs when the state changes. This method cannot be
@@ -290,7 +290,7 @@ type FilterCriteria truechain.FilterQuery
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#etrue_newfilter
 func (api *PublicFilterAPI) NewFilter(crit FilterCriteria) (rpc.ID, error) {
 	logs := make(chan []*types.Log)
-	logsSub, err := api.events.SubscribeLogs(truechain.FilterQuery(crit), logs)
+	logsSub, err := api.events.SubscribeLogs(taiyuechain.FilterQuery(crit), logs)
 	if err != nil {
 		return rpc.ID(""), err
 	}

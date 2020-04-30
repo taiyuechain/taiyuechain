@@ -19,7 +19,7 @@ package downloader
 import (
 	"errors"
 	"fmt"
-	truechain "github.com/taiyuechain/taiyuechain"
+	taiyuechain "github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"strings"
@@ -1057,7 +1057,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", taiyuechain.SyncProgress{})
 
 	// Synchronise half the blocks and check initial progress
 	tester.newPeer("peer-half", protocol, chain.shorten(chain.len()/2))
@@ -1071,7 +1071,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", taiyuechain.SyncProgress{
 		HighestBlock: uint64(chain.len()/2 - 1),
 	})
 	progress <- struct{}{}
@@ -1087,7 +1087,7 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "completing", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "completing", taiyuechain.SyncProgress{
 		StartingBlock: uint64(chain.len()/2 - 1),
 		CurrentBlock:  uint64(chain.len()/2 - 1),
 		HighestBlock:  uint64(chain.len() - 1),
@@ -1096,14 +1096,14 @@ func testSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "final", taiyuechain.SyncProgress{
 		StartingBlock: uint64(chain.len()/2 - 1),
 		CurrentBlock:  uint64(chain.len() - 1),
 		HighestBlock:  uint64(chain.len() - 1),
 	})
 }
 
-func checkProgress(t *testing.T, d *Downloader, stage string, want truechain.SyncProgress) {
+func checkProgress(t *testing.T, d *Downloader, stage string, want taiyuechain.SyncProgress) {
 	// Mark this method as a helper to report errors at callsite, not in here
 	t.Helper()
 
@@ -1143,7 +1143,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", taiyuechain.SyncProgress{})
 
 	// Attempt a full sync with a faulty peer
 	brokenChain := chain.shorten(chain.len())
@@ -1162,7 +1162,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", taiyuechain.SyncProgress{
 		HighestBlock: uint64(brokenChain.len() - 1),
 	})
 	progress <- struct{}{}
@@ -1185,7 +1185,7 @@ func testFailedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "final", taiyuechain.SyncProgress{
 		CurrentBlock: uint64(chain.len() - 1),
 		HighestBlock: uint64(chain.len() - 1),
 	})
@@ -1214,7 +1214,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		starting <- struct{}{}
 		<-progress
 	}
-	checkProgress(t, tester.downloader, "pristine", truechain.SyncProgress{})
+	checkProgress(t, tester.downloader, "pristine", taiyuechain.SyncProgress{})
 
 	// Create and sync with an attacker that promises a higher chain than available.
 	brokenChain := chain.shorten(chain.len())
@@ -1233,7 +1233,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "initial", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "initial", taiyuechain.SyncProgress{
 		HighestBlock: uint64(brokenChain.len() - 1),
 	})
 	progress <- struct{}{}
@@ -1253,7 +1253,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 		}
 	}()
 	<-starting
-	checkProgress(t, tester.downloader, "completing", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "completing", taiyuechain.SyncProgress{
 		CurrentBlock: afterFailedSync.CurrentBlock,
 		HighestBlock: uint64(validChain.len() - 1),
 	})
@@ -1261,7 +1261,7 @@ func testFakedSyncProgress(t *testing.T, protocol int, mode SyncMode) {
 	// Check final progress after successful sync.
 	progress <- struct{}{}
 	pending.Wait()
-	checkProgress(t, tester.downloader, "final", truechain.SyncProgress{
+	checkProgress(t, tester.downloader, "final", taiyuechain.SyncProgress{
 		CurrentBlock: uint64(validChain.len() - 1),
 		HighestBlock: uint64(validChain.len() - 1),
 	})

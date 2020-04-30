@@ -85,7 +85,7 @@ type Wallet interface {
 	//
 	// You can disable automatic account discovery by calling SelfDerive with a nil
 	// chain state reader.
-	SelfDerive(base DerivationPath, chain truechain.ChainStateReader)
+	SelfDerive(base DerivationPath, chain taiyuechain.ChainStateReader)
 
 	// SignHash requests the wallet to sign the given hash.
 	//

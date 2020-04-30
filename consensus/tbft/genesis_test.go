@@ -101,14 +101,14 @@ func GetCommittee(cnt int) []map[string]interface{} {
 
 func TestOutGenesisJson(t *testing.T) {
 
-	b, _ := ioutil.ReadFile("E:\\truechain\\src\\github.com\\truechain\\truechain-engineering-code\\cmd\\gtai\\genesis.json")
+	b, _ := ioutil.ReadFile("E:\\truechain\\src\\github.com\\truechain\\taiyuechain\\cmd\\gtai\\genesis.json")
 	out := make(map[string]interface{})
 	json.Unmarshal(b, &out)
 	for i := 1; i <= 52; i++ {
 		out["committee"] = GetCommittee(i)
 		bytes, _ := json.Marshal(out)
 		bytes = []byte(strings.Replace(string(bytes), "9e+22", "90000000000000000000000", -1))
-		e := ioutil.WriteFile("E:\\truechain\\src\\github.com\\truechain\\truechain-engineering-code\\cmd\\gtai\\"+fmt.Sprintf("genesis_%s.json", strconv.Itoa(i)), bytes, os.ModePerm)
+		e := ioutil.WriteFile("E:\\truechain\\src\\github.com\\truechain\\taiyuechain\\cmd\\gtai\\"+fmt.Sprintf("genesis_%s.json", strconv.Itoa(i)), bytes, os.ModePerm)
 		if e != nil {
 			fmt.Println(string(bytes))
 		}
