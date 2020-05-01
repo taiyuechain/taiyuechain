@@ -5,7 +5,10 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/asn1"
+	"encoding/hex"
 	"fmt"
+	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
+	"io/ioutil"
 	"math/big"
 )
 
@@ -217,4 +220,8 @@ func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
 	} else {
 		return false
 	}
+}
+func SaveP256Private(file string, key *ecdsa.PrivateKey) error {
+	k := hex.EncodeToString(tycrpto.FromECDSAP256(key))
+	return ioutil.WriteFile(file, []byte(k), 0600)
 }

@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/sha3"
 	"hash"
 	"io"
+	"io/ioutil"
 	"math/big"
 )
 
@@ -716,17 +717,17 @@ func HexToGM2(hexkey string) (*PrivateKey, error) {
 	return gmPrivate, nil
 }
 
-func Keccak256(data ...[]byte) []byte {
+/*func Keccak256(data ...[]byte) []byte {
 	d := sha3.NewLegacyKeccak256()
 	for _, b := range data {
 		d.Write(b)
 	}
 	return d.Sum(nil)
-}
+}*/
 
 func GMPubkeyToAddress(pubkey PublicKey) common.Address {
 	pubBytes := pubkey.GetRawBytes()
-	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return common.BytesToAddress(sm3.Keccak256(pubBytes[1:])[12:])
 }
 
 func getLastBit(a *big.Int) uint {
@@ -808,4 +809,8 @@ func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
 		Y:     key.Y,
 		Curve: sm2P256V1,
 	}
+}
+func SaveSm2Private(file string, key *PrivateKey) error {
+	k := hex.EncodeToString(key.GetRawBytes1())
+	return ioutil.WriteFile(file, []byte(k), 0600)
 }

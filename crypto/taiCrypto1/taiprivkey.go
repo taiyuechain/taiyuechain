@@ -10,6 +10,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"io"
+	"os"
 )
 
 /*
@@ -34,6 +36,9 @@ func (Taipri *EcdsaPrivateKey) ToHex() string {
 func (Taipri *EcdsaPrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 	return ecies.ImportECDSA((*ecdsa.PrivateKey)(Taipri)).Decrypt(ct, nil, nil)
 }
+func (Taipri *EcdsaPrivateKey) SavePrivate(file string) error {
+	return tycrpto.SaveECDSA1(file, (*ecdsa.PrivateKey)(Taipri))
+}
 
 /*
 sm method
@@ -56,8 +61,13 @@ func (Taipri *Sm2PrivateKey) ToHex() string {
 func (Taipri *Sm2PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 	return sm2.Decrypt((*sm2.PrivateKey)(Taipri), ct, sm2.C1C2C3)
 }
+func (Taipri *Sm2PrivateKey) SavePrivate(file string) error {
+	return sm2.SaveSm2Private(file, (*sm2.PrivateKey)(Taipri))
+}
 
-/*
+/*func (Taipri *Sm2PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
+	return sm2.Decrypt((*sm2.PrivateKey)(Taipri), ct, sm2.C1C2C3)
+}
 P256 method
 */
 func (Taipri *P256PrivateKey) Public() []byte {
@@ -77,6 +87,9 @@ func (Taipri *P256PrivateKey) ToHex() string {
 }
 func (Taipri *P256PrivateKey) Decrypt(ct []byte) (m []byte, err error) {
 	return (*ecies.PrivateKey)(Taipri).Decrypt(ct, nil, nil)
+}
+func (Taipri *P256PrivateKey) SavePrivate(file string) error {
+	return p256.SaveP256Private(file, (*ecies.PrivateKey)(Taipri).ExportECDSA())
 }
 func ToPrivateKey(prikey []byte) (TaiPrivKey, error) {
 	if prikey[0] == 1 {
@@ -124,4 +137,21 @@ func HexToPrivate(hexkey string) (TaiPrivKey, error) {
 		return nil, err
 	}
 	return ToPrivateKey(pribyte)
+}
+func LoadECDSA(file string) (TaiPrivKey, error) {
+	buf := make([]byte, 64)
+	fd, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	defer fd.Close()
+	if _, err := io.ReadFull(fd, buf); err != nil {
+		return nil, err
+	}
+
+	key, err := hex.DecodeString(string(buf))
+	if err != nil {
+		return nil, err
+	}
+	return ToPrivateKey(key)
 }

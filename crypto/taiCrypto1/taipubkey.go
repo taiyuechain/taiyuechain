@@ -8,6 +8,7 @@ import (
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 )
@@ -51,8 +52,7 @@ func (Tapub *Sm2PublicKey) ToBytes() []byte {
 	return (*sm2.PublicKey)(Tapub).GetRawBytes1()
 }
 func (Tapub *Sm2PublicKey) ToAddress() common.Address {
-	var t taiCrypto.THash
-	return common.BytesToAddress(t.Keccak256(Tapub.ToBytes()[1:])[12:])
+	return common.BytesToAddress(sm3.Keccak256(Tapub.ToBytes()[1:])[12:])
 }
 func (Tapub *Sm2PublicKey) ToHex() string {
 	pubbyte := Tapub.ToBytes()
