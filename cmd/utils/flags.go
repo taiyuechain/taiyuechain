@@ -1368,6 +1368,8 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 		genesis = core.DefaultTestnetGenesisBlock()
 	case ctx.GlobalBool(DevnetFlag.Name):
 		genesis = core.DefaultDevGenesisBlock()
+	case ctx.GlobalBool(SingleNodeFlag.Name):
+		genesis = core.DefaultSingleNodeGenesisBlock()
 	}
 	return genesis
 }

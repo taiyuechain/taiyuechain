@@ -564,6 +564,31 @@ func DefaultDevGenesisBlock() *Genesis {
 	}
 }
 
+func DefaultSingleNodeGenesisBlock() *Genesis {
+	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
+	key1 := hexutil.MustDecode("0x04044308742b61976de7344edb8662d6d10be1c477dd46e8e4c433c1288442a79183480894107299ff7b0706490f1fb9c9b7c9e62ae62d57bd84a1e469460d8ac1")
+
+	return &Genesis{
+		Config:     params.SingleNodeChainConfig,
+		Nonce:      66,
+		ExtraData:  nil,
+		GasLimit:   22020096,
+		Difficulty: big.NewInt(256),
+		//Alloc:      decodePrealloc(mainnetAllocData),
+		Alloc: map[common.Address]types.GenesisAccount{
+			common.HexToAddress("0xbd54a6c8298a70e9636d0555a77ffa412abdd71a"): {Balance: i},
+			common.HexToAddress("0x3c2e0a65a023465090aaedaa6ed2975aec9ef7f9"): {Balance: i},
+			common.HexToAddress("0x7c357530174275dd30e46319b89f71186256e4f7"): {Balance: i},
+			common.HexToAddress("0xeeb69c67751e9f4917b605840fa9a28be4517871"): {Balance: i},
+			common.HexToAddress("0x9810a954bb88fdc251374d666ed7e06748ea672d"): {Balance: i},
+		},
+		Committee: []*types.CommitteeMember{
+			{Coinbase: common.HexToAddress("0x76ea2f3a002431fede1141b660dbb75c26ba6d97"),
+				Publickey: key1},
+		},
+	}
+}
+
 // DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
 func DefaultTestnetGenesisBlock() *Genesis {
 	seedkey1 := hexutil.MustDecode("0x0412e15f00a1acbec1bce79d701f8ce4b56b4f15a69c3e4e1f5af851f4340d6a399a1605b77078f31b2f8e35f744e8fc63656bd2257e7935101f7e8015150165a2")

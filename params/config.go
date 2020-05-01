@@ -105,6 +105,17 @@ var (
 		BloomRoot:    common.HexToHash("0x331b7a7b273e81daeac8cafb9952a16669d7facc7be3b0ebd3a792b4d8b95cc5"),
 	}
 
+	SingleNodeChainConfig = &ChainConfig{
+		ChainID: big.NewInt(400),
+		Minerva: &(MinervaConfig{
+			MinimumDifficulty:      big.NewInt(200),
+			MinimumFruitDifficulty: big.NewInt(2),
+			DurationLimit:          big.NewInt(120),
+		}),
+		TIP3: &BlockConfig{FastNumber: big.NewInt(380000)},
+		TIP5: &BlockConfig{SnailNumber: big.NewInt(5000)},
+	}
+
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	DevnetChainConfig = &ChainConfig{
 		ChainID: big.NewInt(100),

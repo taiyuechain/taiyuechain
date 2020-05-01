@@ -22,7 +22,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/utils"
@@ -213,12 +212,12 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 		}
 		fmt.Println("constant.CryptoType=", constant.CryptoType)
 		agent.committeeNode.Coinbase = committees[0].Coinbase
-		xCertificate, _ := cim.GetCertFromPem(committees[0].LocalCert)
+		/*xCertificate, _ := cim.GetCertFromPem(committees[0].LocalCert)
 		pk, ok := xCertificate.PublicKey.([]byte)
 		if ok {
 			agent.committeeNode.Publickey = pk
-		}
-		//agent.committeeNode.Publickey = committees[0].Publickey
+		}*/
+		agent.committeeNode.Publickey = committees[0].Publickey
 		agent.isCurrentCommitteeMember = true
 	}
 	log.Info("InitNodeInfo", "singleNode", agent.singleNode,
