@@ -2,7 +2,7 @@ package taiCrypto1
 
 import (
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"

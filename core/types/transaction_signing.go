@@ -95,7 +95,7 @@ func VerfiySignTxBy266(tx *Transaction, s Signer) error {
 	if err != nil {
 		return err
 	}
-	var pubk ecdsa.PublicKey
+	var pubk *ecdsa.PublicKey
 	switch pub := cert.PublicKey.(type) {
 	case *ecdsa.PublicKey:
 		pubk.Curve = pub.Curve
