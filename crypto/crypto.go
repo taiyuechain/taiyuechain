@@ -341,7 +341,10 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 	k := hex.EncodeToString(FromECDSA(key))
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
-
+func SaveECDSA1(file string, key *ecdsa.PrivateKey) error {
+	k := hex.EncodeToString(FromECDSA1(key))
+	return ioutil.WriteFile(file, []byte(k), 0600)
+}
 func GenerateKey() (*ecdsa.PrivateKey, error) {
 	return ecdsa.GenerateKey(S256(), rand.Reader)
 }
