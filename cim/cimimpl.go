@@ -130,6 +130,7 @@ type cimimpl struct {
 	CRL    []*pkix.CertificateList
 
 	cryptoConfig *CryptoConfig
+
 }
 
 func NewCIM() (CIM, error) {
@@ -143,7 +144,7 @@ func (cim *cimimpl) GetIdentifier() string {
 	panic("implement me")
 }
 
-func (cim *cimimpl) SetUp(conf *CIMConfig) error {
+/*func (cim *cimimpl) SetUp(conf *CIMConfig) error {
 	err := cim.preSetup(*conf)
 	if err != nil {
 		return err
@@ -153,14 +154,14 @@ func (cim *cimimpl) SetUp(conf *CIMConfig) error {
 	}
 
 	return nil
-}
+}*/
 
-func (cim *cimimpl) SetUpFromCA(rootCAByte []byte) error {
+func (cim *cimimpl) SetUpFromCA(rootCAByte []byte,chainConfig *params.ChainConfig) error {
 	if len(rootCAByte) == 0 {
 		return errors.New("expected at least one CA certificate")
 	}
 
-	id, err := GetIdentityFromByte(rootCAByte)
+	id, err := GetIdentityFromByte(rootCAByte,chainConfig)
 	if err != nil {
 		return err
 	}

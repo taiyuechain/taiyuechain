@@ -7,14 +7,11 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte"
 	cryptobyte_asn1 "github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte/asn1"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
@@ -1845,7 +1842,7 @@ func extKeyUsageFromOID(oid asn1.ObjectIdentifier) (eku x509.ExtKeyUsage, ok boo
 	}
 	return
 }
-func ReadPemFileByPath(path string) ([]byte, error) {
+/*func ReadPemFileByPath(path string) ([]byte, error) {
 	file, _ := os.Open("../taiCrypto/data/config/conf.json")
 	defer file.Close()
 	decoder := json.NewDecoder(file)
@@ -1861,7 +1858,7 @@ func ReadPemFileByPath(path string) ([]byte, error) {
 	}
 	//data, err := ioutil.ReadFile(path)
 	return ioutil.ReadFile(conf.GmPath + path)
-}
+}*/
 func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 	if cert == nil {
 		return errors.New("cert is nil")

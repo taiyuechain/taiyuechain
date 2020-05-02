@@ -9,8 +9,6 @@ import (
 	"crypto/elliptic"
 
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	"encoding/asn1"
-	"bytes"
 )
 
 type ReIdentity struct {
@@ -63,7 +61,7 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 
 func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) error {
 
-	needVerfyCert,err :=GetCertFromPem(cert)
+	needVerfyCert,err :=GetCertFromPem(cert,chainConfig)
 	if err != nil{
 		return err
 	}
@@ -75,18 +73,11 @@ func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) erro
 		return errors.New("x509: certificate has expired or is not yet valid")
 	}
 
-	//verfiy cert sig
-	//TODO： sm2 and p256
-	//err = needVerfyCert.CheckSignature(needVerfyCert.SignatureAlgorithm,needVerfyCert.RawTBSCertificate, needVerfyCert.Signature)
-	//if err != nil{
-	//	return err
-	//}
-
 	if !IsCorrectSY(chainConfig,needVerfyCert.PublicKey){
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
 	//check from
-	//TODO sm2 and p256
+
 	err =needVerfyCert.CheckSignatureFrom(id.cert)
 	if err != nil{
 		return err
@@ -96,11 +87,15 @@ func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) erro
 
 func (id *identity) isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error{
 
-	rootcert,err := asn1.Marshal(id.cert)
+	needVerfyCert,err :=GetCertFromPem(cert,chainConfig)
+	if err != nil{
+		return err
+	}
 	if(err != nil){
 		return err
 	}
-	if !bytes.Equal(rootcert,cert){
+
+	if !id.cert.Equal(needVerfyCert){
 		return errors.New("not equl ")
 	}
 	return nil
@@ -111,13 +106,13 @@ func IsCorrectSY(chainConfig *params.ChainConfig,syCrypto interface{}) bool {
 
 	switch pub := syCrypto.(type)  {
 	case *sm2.PublicKey:
-		if chainConfig.SymmetrieCryptoType == params.ASY_CRYPTO_SM2 {
+		if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2 {
 			return true
 		}
 	case *ecdsa.PublicKey:
 		switch pub.Curve {
 		case  elliptic.P256():
-			if chainConfig.SymmetrieCryptoType == params.ASY_CRYPTO_P256 {
+			if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256 {
 				return true
 			}
 		}

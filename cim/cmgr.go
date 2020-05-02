@@ -10,12 +10,13 @@ func LoadLocalCIM(dir string, cimID string) error {
 		return errors.New("the local CIM must have an ID")
 	}
 
-	conf, err := GetLocalCmiConfig(dir, cimID)
+	/*conf, err := GetLocalCmiConfig(dir, cimID)
 	if err != nil {
 		return err
-	}
+	}*/
+	return nil
 
-	return GetLocalCIM().SetUp(conf)
+	//return GetLocalCIM().SetUp(conf)
 }
 
 var m sync.Mutex

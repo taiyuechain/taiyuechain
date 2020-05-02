@@ -16,11 +16,13 @@ import (
 	"time"
 	"log"
 	"crypto/rand"
+	"github.com/taiyuechain/taiyuechain/params"
+	 sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	//"encoding/base64"
 )
 
-func GetIdentityFromByte(idBytes []byte) (Identity, error) {
-	cert, err := GetCertFromPem(idBytes)
+func GetIdentityFromByte(idBytes []byte,chainConfig *params.ChainConfig) (Identity, error) {
+	cert, err := GetCertFromPem(idBytes,chainConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +42,7 @@ func GetIdentityFromByte(idBytes []byte) (Identity, error) {
 	return identity, nil
 }
 
-func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
+func GetCertFromPem(idBytes []byte,chainConfig *params.ChainConfig) (*x509.Certificate, error) {
 	if idBytes == nil {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
@@ -56,8 +58,15 @@ func GetCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 	cert, err := x509.ParseCertificate(pemCert.Bytes)*/
 	//pemCert ,_:= base64.StdEncoding.DecodeString(string(idBytes))
 
-	//var cert *x509.Certificate
-	cert, err := x509.ParseCertificate(idBytes)
+	var cert *x509.Certificate
+	var err error
+	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2{
+		cert, err = x509.ParseCertificate(idBytes)
+	}
+	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256{
+		cert, err = sm2_cert.ParseCertificate(idBytes)
+	}
+
 	if err != nil {
 		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
 	}

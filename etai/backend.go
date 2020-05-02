@@ -241,7 +241,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 			return nil, err
 		}
 
-		cimCa.SetUpFromCA(caCert.GetByte())
+		cimCa.SetUpFromCA(caCert.GetByte(),etrue.chainConfig)
 		cim.CimMap[string(i)] = cimCa
 		NewCIMList.AddCim(cimCa)
 	}

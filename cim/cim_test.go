@@ -17,19 +17,20 @@ import (
 	"log"
 	"math/big"
 	"time"
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
-/*func TestMain(m *testing.M) {
-	cimConfigDir, _ := config.GetDevCIMDir()
-	cimID := "simpleCIM"
-	err := InitCrypto(cimConfigDir, cimID)
-	if err != nil {
-		fmt.Printf("Setup for CMI should have succeeded, got err %s instead", err)
-		os.Exit(-1)
+
+
+var(
+	CIMChainConfig = &params.ChainConfig{
+		ChainID: big.NewInt(19330),
+
+		SymmetrieCryptoType:params.SY_CRYPTO_AES,
+		AsymmetrischCryptoType:params.ASY_CRYPTO_SM2,
+		HashCryptoType:params.HASH_CRYPTO_SHA3,
 	}
-	retVal := m.Run()
-	os.Exit(retVal)
-}*/
+)
 
 func TestNewIdentity(t *testing.T) {
 	cimConfigDir, _ := config.GetDevCIMDir()
@@ -77,8 +78,9 @@ func TestSignAndVerify(t *testing.T) {
 	assert.Error(t, err)
 }
 
+
 func TestCertCIMAndVerfiyCert(t *testing.T) {
-	cimList := NewCIMList()
+	cimList := NewCIMList(CIMChainConfig)
 
 	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
@@ -124,7 +126,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		t.Fatalf("error for new cim")
 	}
 
-	err = cimCa.SetUpFromCA(ca_b)
+	err = cimCa.SetUpFromCA(ca_b,CIMChainConfig)
 	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
@@ -418,14 +420,54 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 //func (c *Certificate) Verify(opts VerifyOptions) (chains [][]*Certificate, err error)
 
 func TestCreateAndVerifyRoot22(t *testing.T) {
-	cert2 := []byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
+	//cert2 := []byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
 	//var certList= [][]byte{cert1, cert2, cert3, cert4}
+	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
-	//startTime := time.Now().UnixNano()
-	//var certificate *x509.Certificate
-	_, err := x509.ParseCertificate(cert2)
+	//create root
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	ca := &x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("3")
+	}
+
+
+
+	cert1, err := x509.ParseCertificate(ca_b)
 	if err != nil {
 		t.Fatalf("1")
 	}
-	//fmt.Println(certificate == nil)
+
+	cert2, err := x509.ParseCertificate(ca_b)
+	if err != nil {
+		t.Fatalf("1")
+	}
+
+	if !cert1.Equal(cert2){
+		t.Fatalf("not equl")
+	}
 }
+

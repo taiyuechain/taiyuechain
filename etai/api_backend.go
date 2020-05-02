@@ -18,8 +18,6 @@ package etai
 
 import (
 	"context"
-	"github.com/taiyuechain/taiyuechain/cim"
-	"github.com/taiyuechain/taiyuechain/cim/config"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/accounts"
@@ -113,13 +111,13 @@ func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNum
 }
 func (b *TrueAPIBackend) GetCa(ctx context.Context, dir string) (interface{}, error) {
 	// Only snailchain has miner, also return current block here for fastchain
-	cimConfigDir, _ := config.GetDevCIMDir()
+	/*cimConfigDir, _ := config.GetDevCIMDir()
 	singcertPath := cimConfigDir + dir
 	id, err := cim.GetLocalIdentityDataFromConfig(singcertPath)
 	if err != nil {
 		return nil, err
-	}
-	return id, nil
+	}*/
+	return nil, nil
 }
 
 /*

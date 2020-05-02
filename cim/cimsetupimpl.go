@@ -4,10 +4,9 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"github.com/pkg/errors"
-	"time"
 )
 
-func (cim *cimimpl) preSetup(conf CIMConfig) error {
+/*func (cim *cimimpl) preSetup(conf CIMConfig) error {
 	// setup crypto config
 	if err := cim.setupCrypto(); err != nil {
 		return err
@@ -23,7 +22,7 @@ func (cim *cimimpl) preSetup(conf CIMConfig) error {
 		return err
 	}
 	return nil
-}
+}*/
 
 func (cim *cimimpl) setupCrypto() error {
 
@@ -37,7 +36,7 @@ func (cim *cimimpl) setupCrypto() error {
 	return nil
 }
 
-func (cim *cimimpl) setupCA(conf CIMConfig) error {
+/*func (cim *cimimpl) setupCA(conf CIMConfig) error {
 
 	if len(conf.RootCerts) == 0 {
 		return errors.New("expected at least one CA certificate")
@@ -50,7 +49,7 @@ func (cim *cimimpl) setupCA(conf CIMConfig) error {
 
 	cim.rootCert = id
 	return nil
-}
+}*/
 
 func (cim *cimimpl) getCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 	if idBytes == nil {
@@ -81,7 +80,7 @@ func (cim *cimimpl) setupCRL() error {
 	return nil
 }
 
-func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
+/*func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
 	sid, err := cim.getSigningIdentityFromConf(conf.SigningIdentity)
 	if err != nil {
 		return err
@@ -98,9 +97,9 @@ func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
 	cim.signer = sid
 
 	return nil
-}
+}*/
 
-func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (SigningIdentity, error) {
+/*func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (SigningIdentity, error) {
 	// Extract the public part of the identity
 	idPub, err := GetIdentityFromByte(sig.PublicSigner)
 	if err != nil {
@@ -127,3 +126,4 @@ func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (Signin
 
 	return newSigningIdentity(idPub.(*identity).cert, idPub.(*identity).pk, nodeSigner)
 }
+*/
