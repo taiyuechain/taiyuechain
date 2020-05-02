@@ -13,6 +13,8 @@ import (
 	"os"
 	"time"
 	"errors"
+
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
 
@@ -42,11 +44,12 @@ func InitCrypto(cimConfigDir, cimID string) (error) {
 }
 
 type CimList struct {
+	chainConfig *params.ChainConfig
 	CimMap []CIM
 }
 
-func NewCIMList() *CimList {
-	return &CimList{}
+func NewCIMList(chainConfig *params.ChainConfig) *CimList {
+	return &CimList{chainConfig:chainConfig}
 }
 
 func (cl *CimList) AddCim(cimTemp CIM) error  {
@@ -54,6 +57,7 @@ func (cl *CimList) AddCim(cimTemp CIM) error  {
 		if ci == cimTemp{
 			return errors.New("have one CIM")
 		}
+		//verfiy
 	}
 
 	cl.CimMap = append(cl.CimMap, cimTemp)
@@ -81,16 +85,14 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 
 	//var err error
 	for _,ci:= range cl.CimMap{
-		err := ci.ValidateByByte(cert)
+		err := ci.ValidateByByte(cert,cl.chainConfig)
 		if err != nil{
 			return err
 		}
 	}
-
-
-
 	return nil
 }
+
 
 type cimimpl struct {
 	name string
@@ -182,8 +184,8 @@ func (cim *cimimpl) Validate(id Identity) error {
 }
 
 
-func (cim *cimimpl) ValidateByByte(certByte []byte) error {
-	return cim.rootCert.VerifyByte(certByte)
+func (cim *cimimpl) ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error {
+	return cim.rootCert.VerifyByte(certByte,chainConfig)
 }
 
 

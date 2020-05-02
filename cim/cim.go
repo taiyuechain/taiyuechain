@@ -3,6 +3,7 @@ package cim
 import (
 	"crypto/x509/pkix"
 	"time"
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
 type CIMManager interface {
@@ -46,14 +47,14 @@ type CIM interface {
 	GetSigningIdentity() SigningIdentity
 	Validate(id Identity) error
 	CreateIdentity(priv string) bool
-	ValidateByByte(certByte []byte) error
+	ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error
 }
 
 type Identity interface {
 	ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
 	Verify(msg []byte, sig []byte) error
-	VerifyByte(cert []byte) error
+	VerifyByte(cert []byte,chainConfig *params.ChainConfig) error
 
 }
 

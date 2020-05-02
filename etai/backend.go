@@ -231,7 +231,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-	NewCIMList := cim.NewCIMList()
+	NewCIMList := cim.NewCIMList(etrue.chainConfig)
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for i, caCert := range caCertList.GetCACertMap() {
