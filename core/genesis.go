@@ -55,6 +55,8 @@ const (
 	ASYMMETRICCRYPTOSM2   = 4
 	HASHCRYPTOSM3         = 5
 	HASHCRYPTOHAS3        = 6
+
+
 )
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
@@ -77,7 +79,8 @@ type Genesis struct {
 	Number     uint64      `json:"number"`
 	GasUsed    uint64      `json:"gasUsed"`
 	ParentHash common.Hash `json:"parentHash"`
-	//CryptoType uint8 		`json:"cryptoType"`
+
+
 }
 
 // GenesisAccount is an account in the state of the genesis block.
@@ -482,6 +485,7 @@ func DefaultGenesisBlock() *Genesis {
 			&types.CommitteeMember{Coinbase: common.HexToAddress("0xfC5659050350eB76F9Ebcc6c2b1598C3a2fFc625"), Publickey: key13},
 			&types.CommitteeMember{Coinbase: common.HexToAddress("0xfC5659050350eB76F9Ebcc6c2b1598C3a2fFc625"), Publickey: key14},
 		},
+
 	}
 }
 
@@ -561,6 +565,8 @@ func DefaultDevGenesisBlock() *Genesis {
 			{Coinbase: common.HexToAddress("0x41acde8dd7611338c2a30e90149e682566716e9d"), Publickey: key6},
 			{Coinbase: common.HexToAddress("0x0ffd116a3bf97a7112ff8779cc770b13ea3c66a5"), Publickey: key7},
 		},
+
+
 	}
 }
 
@@ -624,5 +630,6 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4, LocalCert: cert4},
 		},
 		CertList: certList,
+
 	}
 }

@@ -49,6 +49,18 @@ var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 	GoerliGenesisHash:  GoerliTrustedCheckpoint,
 }
 
+const (
+	SY_CRYPTO_SM4  = 1
+	SY_CRYPTO_AES = 2
+
+	ASY_CRYPTO_SM2 = 1
+	ASY_CRYPTO_P256 =2
+	ASY_CRYPTO_S256 =3
+
+	HASH_CRYPTO_SM3 = 1
+	HASH_CRYPTO_SHA3 = 2
+)
+
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
 	MainnetChainConfig = &ChainConfig{
@@ -61,6 +73,9 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(1500000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(12800)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(47000)},
+		SymmetrieCryptoType:SY_CRYPTO_AES,
+		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
+		HashCryptoType:HASH_CRYPTO_SHA3,
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -74,6 +89,9 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(450000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(4000)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
+		SymmetrieCryptoType:SY_CRYPTO_AES,
+		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
+		HashCryptoType:HASH_CRYPTO_SHA3,
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -127,6 +145,9 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(380000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(5000)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
+		SymmetrieCryptoType:SY_CRYPTO_AES,
+		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
+		HashCryptoType:HASH_CRYPTO_SHA3,
 	}
 
 	chainId = big.NewInt(9223372036854775790)
@@ -158,6 +179,13 @@ type ChainConfig struct {
 
 	TIP5 *BlockConfig `json:"tip5"`
 	TIP9 *BlockConfig `json:"tip9"`
+
+	//crytp type
+	SymmetrieCryptoType uint8 		`json:"sycryptoType"`
+	AsymmetrischCryptoType  uint8 		`json:"asycryptoType"`
+	HashCryptoType  uint8 		`json:"hashcryptoType"`
+
+
 }
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
@@ -430,3 +458,6 @@ func (c *ChainConfig) IsTIP9(num *big.Int) bool {
 	}
 	return isForked(c.TIP9.SnailNumber, num)
 }
+
+
+
