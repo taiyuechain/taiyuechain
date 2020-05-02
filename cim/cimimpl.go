@@ -93,6 +93,24 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 	return nil
 }
 
+func (cl *CimList) VerifyRootCert(cert []byte) error  {
+
+	//var err error
+	findOne :=false
+	for _,ci:= range cl.CimMap{
+		err := ci.ValidateRootCert(cert,cl.chainConfig)
+		if err != nil{
+			continue
+		}else{
+			findOne = true
+		}
+	}
+	if !findOne {
+		return errors.New("not find this root cert")
+	}
+	return nil
+}
+
 
 type cimimpl struct {
 	name string
@@ -186,6 +204,9 @@ func (cim *cimimpl) Validate(id Identity) error {
 
 func (cim *cimimpl) ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error {
 	return cim.rootCert.VerifyByte(certByte,chainConfig)
+}
+func (cim *cimimpl) ValidateRootCert(certByte []byte,chainConfig *params.ChainConfig) error {
+	return cim.rootCert.isEqulIdentity(certByte,chainConfig)
 }
 
 

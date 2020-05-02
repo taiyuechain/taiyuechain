@@ -9,7 +9,8 @@ import (
 	"crypto/elliptic"
 
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
+	"encoding/asn1"
+	"bytes"
 )
 
 type ReIdentity struct {
@@ -93,6 +94,18 @@ func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) erro
 	return nil
 }
 
+func (id *identity) isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error{
+
+	rootcert,err := asn1.Marshal(id.cert)
+	if(err != nil){
+		return err
+	}
+	if !bytes.Equal(rootcert,cert){
+		return errors.New("not equl ")
+	}
+	return nil
+}
+
 
 func IsCorrectSY(chainConfig *params.ChainConfig,syCrypto interface{}) bool {
 
@@ -105,10 +118,6 @@ func IsCorrectSY(chainConfig *params.ChainConfig,syCrypto interface{}) bool {
 		switch pub.Curve {
 		case  elliptic.P256():
 			if chainConfig.SymmetrieCryptoType == params.ASY_CRYPTO_P256 {
-				return true
-			}
-		case secp256k1.S256():
-			if chainConfig.SymmetrieCryptoType == params.ASY_CRYPTO_S256 {
 				return true
 			}
 		}

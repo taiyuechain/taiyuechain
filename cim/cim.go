@@ -48,6 +48,7 @@ type CIM interface {
 	Validate(id Identity) error
 	CreateIdentity(priv string) bool
 	ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error
+	ValidateRootCert(certByte []byte,chainConfig *params.ChainConfig) error
 }
 
 type Identity interface {
@@ -55,6 +56,7 @@ type Identity interface {
 	//detemine if the signature  is this identity singed.
 	Verify(msg []byte, sig []byte) error
 	VerifyByte(cert []byte,chainConfig *params.ChainConfig) error
+	isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error
 
 }
 
