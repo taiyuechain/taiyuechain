@@ -241,7 +241,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 			return nil, err
 		}
 
-		cimCa.SetUpFromCA(caCert.GetByte(),etrue.chainConfig)
+		cimCa.SetUpFromCA(caCert.GetByte(), etrue.chainConfig)
 		cim.CimMap[string(i)] = cimCa
 		NewCIMList.AddCim(cimCa)
 	}
@@ -261,7 +261,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}*/
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist); err != nil {
+	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList); err != nil {
 		return nil, err
 	}
 

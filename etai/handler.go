@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"math"
 	"math/big"
 	"sync"
@@ -115,11 +116,12 @@ type ProtocolManager struct {
 
 	pbNodeInfoCh  chan types.NodeInfoEvent
 	pbNodeInfoSub event.Subscription
+	cimList       *cim.CimList
 }
 
 // NewProtocolManager returns a new Ethereum sub protocol manager. The Ethereum sub protocol manages peers capable
 // with the Ethereum network.
-func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb etaidb.Database, agent *PbftAgent, cacheLimit int, whitelist map[uint64]common.Hash) (*ProtocolManager, error) {
+func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCheckpoint, mode downloader.SyncMode, networkID uint64, mux *event.TypeMux, txpool txPool, engine consensus.Engine, blockchain *core.BlockChain, chaindb etaidb.Database, agent *PbftAgent, cacheLimit int, whitelist map[uint64]common.Hash, cimList *cim.CimList) (*ProtocolManager, error) {
 	// Create the protocol manager with the base fields
 	manager := &ProtocolManager{
 		networkID:   networkID,
@@ -135,6 +137,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 		noMorePeers: make(chan struct{}),
 		txsyncCh:    make(chan *txsync),
 		quitSync:    make(chan struct{}),
+		cimList:     cimList,
 	}
 	if mode == downloader.FullSync {
 		// The database seems empty as the current block is the genesis. Yet the fast
@@ -392,7 +395,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		number  = head.Number
 	)
 
-	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
+	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter, pm.cimList); err != nil {
 		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}
