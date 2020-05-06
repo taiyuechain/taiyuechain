@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -19,6 +18,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/params"
 	 sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	//"encoding/base64"
+	"strings"
+	"encoding/pem"
 )
 
 func GetIdentityFromByte(idBytes []byte,chainConfig *params.ChainConfig) (Identity, error) {
@@ -301,21 +302,25 @@ type Configuration struct {
 }
 
 func ReadPemFileByPath(path string) ([]byte, error) {
-	file, _ := os.Open("../../crypto/taiCrypto/data/config/conf.json")
-	defer file.Close()
-	decoder := json.NewDecoder(file)
-	conf := Configuration{}
-	err := decoder.Decode(&conf)
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Println("Error:", err)
+		panic(fmt.Sprintf(
+			"Unable to read test certificate from %q - %q "+
+				"Does a unit test have an incorrect test file name?\n",
+			path, err))
 	}
-	fmt.Println(conf.EcdsaPath)
 
-	if len(path) == 0 {
-		return nil, errors.New("ReadPemFileByPath path is nil")
+	if strings.Contains(string(data), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(data)
+		if block == nil {
+			panic(fmt.Sprintf(
+				"Failed to PEM decode test certificate from %q - "+
+					"Does a unit test have a buggy test cert file?\n",
+				path))
+		}
+		data = block.Bytes
 	}
-	//data, err := ioutil.ReadFile(path)
-	return ioutil.ReadFile(conf.EcdsaPath + path)
+	return data,nil
 }
 
 func ReadPemFileUsePath(path string) ([]byte, error) {

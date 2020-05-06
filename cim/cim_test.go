@@ -18,12 +18,23 @@ import (
 	"math/big"
 	"time"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	"encoding/hex"
 )
 
 
 
 var(
 	CIMChainConfig = &params.ChainConfig{
+		ChainID: big.NewInt(19330),
+
+		SymmetrieCryptoType:params.SY_CRYPTO_AES,
+		AsymmetrischCryptoType:params.ASY_CRYPTO_P256,
+		HashCryptoType:params.HASH_CRYPTO_SHA3,
+	}
+
+	CIMChainConfig_SM2 = &params.ChainConfig{
 		ChainID: big.NewInt(19330),
 
 		SymmetrieCryptoType:params.SY_CRYPTO_AES,
@@ -171,17 +182,107 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		t.Fatalf("2")
 	}
 
-	encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
+	/*encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
 
 	if len(encodeca2) == 0 {
 		t.Fatalf("len is zero")
-	}
+	}*/
 	err = cimList.VerifyCert(ca_b2)
 	if err != nil {
 		t.Fatalf("verfiy error")
 	}
 
 }
+
+
+
+func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
+	cimList := NewCIMList(CIMChainConfig)
+
+	//HexToECDSAP
+	//var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	//(prikey)
+	pribytebyte, err := hex.DecodeString("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var root, _ = sm2.RawBytesToPrivateKey1(pribytebyte)
+	var rootPuk = sm2.PrivteToPublickey(*root)
+	//create root
+	ca_b := sm2_cert.CreateCertBySMPrivte(root, *rootPuk)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("3")
+	}
+
+	//encodeca := base64.StdEncoding.EncodeToString(ca_b)
+	//encodeca :=pem.Encode()
+	rootCert, err := sm2_cert.ParseCertificate(ca_b)
+	if err != nil {
+		t.Fatalf("cert error")
+	}
+
+	cimCa, err := NewCIM()
+	if err != nil {
+		t.Fatalf("error for new cim")
+	}
+
+	err = cimCa.SetUpFromCA(ca_b,CIMChainConfig)
+	if err != nil {
+		//fmt.Println(err)
+		t.Fatalf("set cimCa error")
+	}
+
+	cimList.AddCim(cimCa)
+
+	// son
+	//bytes, _ := base64.StdEncoding.DecodeString(encodeca)
+
+	/*rootCert, err := x509.ParseCertificate(bytes)
+	if err != nil{
+		t.Fatalf("cert error")
+	}*/
+	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
+	ca2 := &x509.Certificate{
+		SerialNumber: serialNumber2,
+		Subject: pkix.Name{
+			Country:            []string{"China"},
+			Organization:       []string{"Yjwt"},
+			OrganizationalUnit: []string{"YjwtU"},
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(10, 0, 0),
+		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+	}
+	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
+	//var thash taiCrypto.THash
+	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
+	//caecda, err := private.ToECDSACA([]byte(priv))
+	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
+	if err != nil {
+		log.Println("create ca failed", err)
+		//return false
+		t.Fatalf("2")
+	}
+
+	/*encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
+
+	if len(encodeca2) == 0 {
+		t.Fatalf("len is zero")
+	}*/
+	err = cimList.VerifyCert(ca_b2)
+	if err != nil {
+		t.Fatalf("verfiy error")
+	}
+
+}
+
+
 
 func TestCreateCertByPrivate(t *testing.T) {
 
@@ -469,5 +570,12 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 	if !cert1.Equal(cert2){
 		t.Fatalf("not equl")
 	}
+}
+
+func TestReadPemFile(t *testing.T)  {
+	path :="./testdata/testcert/peer-expired.pem"
+	byte ,_:=ReadPemFileByPath(path)
+	encodeca2 := base64.StdEncoding.EncodeToString(byte)
+	fmt.Println(encodeca2)
 }
 
