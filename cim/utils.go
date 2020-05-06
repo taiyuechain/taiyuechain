@@ -60,10 +60,10 @@ func GetCertFromPem(idBytes []byte,chainConfig *params.ChainConfig) (*x509.Certi
 
 	var cert *x509.Certificate
 	var err error
-	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2{
+	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256{
 		cert, err = x509.ParseCertificate(idBytes)
 	}
-	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256{
+	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2{
 		cert, err = sm2_cert.ParseCertificate(idBytes)
 	}
 
