@@ -284,12 +284,12 @@ func TestHexToPublickey(t *testing.T) {
 	//taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
 	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOSM2
 	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOECIES
-	ecdsa := GenerateKey()
-	pri := (ecdsa).(*Sm2PrivateKey)
-	ecdsapubkey := (*Sm2PublicKey)(&pri.PublicKey)
-	stringpub := ecdsapubkey.ToHex()
-	ecdsapublic, _ := HexToPublickey(stringpub)
-	fmt.Println(ecdsapublic)
+	/*	ecdsa := GenerateKey()
+		pri := (ecdsa).(*Sm2PrivateKey)
+		ecdsapubkey := (*Sm2PublicKey)(&pri.PublicKey)
+		stringpub := ecdsapubkey.ToHex()
+		ecdsapublic, _ := HexToPublickey(stringpub)
+		fmt.Println(ecdsapublic)*/
 }
 
 func TestNewpublickey(t *testing.T) {
@@ -297,4 +297,30 @@ func TestNewpublickey(t *testing.T) {
 	interfacepub := Newpublickey(ecdpri.PublicKey)
 	stringpub := interfacepub.ToHex()
 	fmt.Println(stringpub)
+}
+
+func TestSigToPub1(t *testing.T) {
+	/*ecdpri, _ := tycrpto.GenerateKey()
+	ecdp := (*EcdsaPrivateKey)(ecdpri)
+	d := sha3.NewLegacyKeccak256()
+	sign, _ := ecdp.Sign(d.Sum(nil))
+	fmt.Println(sign)
+	fmt.Println(ecdpri.PublicKey)
+	ecdsapub,_:=SigToPub(d.Sum(nil),sign)
+	ecdsabyte:=ecdsapub.ToBytes()
+	pub,_:=ToPublickey(ecdsabyte)
+	fmt.Println(pub)*/
+	ecdsas := GenerateKey("ASY_CRYPTO_S256")
+	msg := tycrpto.Keccak256([]byte("foo"))
+	sig, err := ecdsas.Sign(msg)
+	if err != nil {
+		fmt.Println("ecdsa.Sign ", err)
+	}
+	pubkey, err := ToPublickey(ecdsas.ToPubkeyByte())
+	if err != nil {
+		fmt.Println("ecdsa.ToPublickey ", err)
+	}
+	if pubkey.Verify(msg, sig) {
+		fmt.Println("pubkey.Verify")
+	}
 }

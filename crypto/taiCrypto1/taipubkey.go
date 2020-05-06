@@ -172,6 +172,33 @@ func SigToPub(hash, sig []byte) (TaiPubKey, error) {
 	}
 	return nil, nil
 }
+
+/*func ECRecovery(msg []byte,sig[]byte) ([]byte,error){
+	if sig[0] == 1 {
+		ecdsaPublickey, err := tycrpto.Ecrecover(msg, sig[1:])
+		if err != nil {
+			return nil, err
+		}
+		return ecdsaPublickey, nil
+	}
+	if sig[0] == 2 {
+		sm2publickey, err := sm2.RecoverPubkey(msg, sig[1:])
+		if err != nil {
+			return nil, err
+		}
+
+		return (*Sm2PublicKey)(sm2publickey), nil
+	}
+	if sig[0] == 3 {
+		p256publickey, err := p256.ECRecovery(hash, sig[1:])
+		if err != nil {
+			return nil, err
+		}
+		return (*P256PublicKey)(ecies.ImportECDSAPublic(p256publickey)), nil
+	}
+	return nil, nil
+
+}*/
 func HexToPublickey(hexkey string) (TaiPubKey, error) {
 	publicbyte, err := hex.DecodeString(hexkey)
 	if err != nil {

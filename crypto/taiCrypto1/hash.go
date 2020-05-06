@@ -4,7 +4,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 )
 
 /*sm3 hash*/
@@ -36,16 +35,14 @@ func (ecdsah *EcdsaHash) CreateAddress(b common.Address, nonce uint64) {
 func (ecdsah *EcdsaHash) CreateAddress2(b common.Address, salt [32]byte, inithash []byte) {
 	ecdsah.Address = tycrpto.CreateAddress2(b, salt, inithash)
 }
-func NewHash() TaiHash {
+func NewHash(config string) TaiHash {
 	var smh Sm3Hash
 	var ecd EcdsaHash
-	switch taiCrypto.AsymmetricCryptoType {
-	case taiCrypto.ASYMMETRICCRYPTOECDSA:
+	switch config {
+	case "HASH_CRYPTO_SHA3":
 		return &ecd
-	case taiCrypto.ASYMMETRICCRYPTOSM2:
+	case "HASH_CRYPTO_SM3":
 		return &smh
-	case taiCrypto.ASYMMETRICCRYPTOECIES:
-		return &ecd
 	}
 	return nil
 }

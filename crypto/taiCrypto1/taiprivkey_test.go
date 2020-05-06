@@ -99,11 +99,11 @@ func TestP256PrivateKey_Sign(t *testing.T) {
 }
 
 func TestGenerateKey(t *testing.T) {
-	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
-	ecdsa := GenerateKey()
-	d := sha3.NewLegacyKeccak256()
-	sign, _ := ecdsa.Sign(d.Sum(nil))
-	fmt.Println(sign)
+	/*	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+		ecdsa := GenerateKey()
+		d := sha3.NewLegacyKeccak256()
+		sign, _ := ecdsa.Sign(d.Sum(nil))
+		fmt.Println(sign)*/
 
 }
 
@@ -111,10 +111,10 @@ func TestHexToPrivate(t *testing.T) {
 	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOECDSA
 	//taiCrypto.AsymmetricCryptoType=taiCrypto.ASYMMETRICCRYPTOSM2
 	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECIES
-	ecdsa := GenerateKey()
-	pristr := ecdsa.ToHex()
-	ecdsaprivate, _ := HexToPrivate(pristr)
-	fmt.Println(ecdsaprivate)
+	/*	ecdsa := GenerateKey()
+		pristr := ecdsa.ToHex()
+		ecdsaprivate, _ := HexToPrivate(pristr)
+		fmt.Println(ecdsaprivate)*/
 }
 
 func TestNewPrivate(t *testing.T) {

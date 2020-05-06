@@ -10,6 +10,7 @@ import (
 
 type TaiPrivKey interface {
 	Public() []byte
+	ToPubkeyByte() []byte
 	Sign(digestHash []byte) ([]byte, error)
 	ToHex() string
 	Decrypt(m []byte) (ct []byte, err error)
