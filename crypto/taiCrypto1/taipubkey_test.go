@@ -291,3 +291,10 @@ func TestHexToPublickey(t *testing.T) {
 	ecdsapublic, _ := HexToPublickey(stringpub)
 	fmt.Println(ecdsapublic)
 }
+
+func TestNewpublickey(t *testing.T) {
+	ecdpri, _ := tycrpto.GenerateKey()
+	interfacepub := Newpublickey(ecdpri.PublicKey)
+	stringpub := interfacepub.ToHex()
+	fmt.Println(stringpub)
+}

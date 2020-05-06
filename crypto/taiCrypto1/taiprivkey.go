@@ -155,3 +155,14 @@ func LoadECDSA(file string) (TaiPrivKey, error) {
 	}
 	return ToPrivateKey(key)
 }
+func NewPrivate(privkey interface{}) TaiPrivKey {
+	switch pri := privkey.(type) {
+	case ecdsa.PrivateKey:
+		return (*EcdsaPrivateKey)(&pri)
+	case sm2.PrivateKey:
+		return (*Sm2PrivateKey)(&pri)
+	case ecies.PrivateKey:
+		return (*P256PrivateKey)(&pri)
+	}
+	return nil
+}

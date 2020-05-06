@@ -14,7 +14,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
-	//"golang.org/x/crypto/sha3"
 	"hash"
 	"io"
 	"io/ioutil"

@@ -116,3 +116,12 @@ func TestHexToPrivate(t *testing.T) {
 	ecdsaprivate, _ := HexToPrivate(pristr)
 	fmt.Println(ecdsaprivate)
 }
+
+func TestNewPrivate(t *testing.T) {
+	ecdpri, _ := tycrpto.GenerateKey()
+	private := NewPrivate(*ecdpri)
+	stringpri := private.ToHex()
+	fmt.Println(stringpri)
+	boolerr := private.SavePrivate(stringpri)
+	fmt.Println(boolerr)
+}

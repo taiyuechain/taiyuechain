@@ -179,3 +179,14 @@ func HexToPublickey(hexkey string) (TaiPubKey, error) {
 	}
 	return ToPublickey(publicbyte)
 }
+func Newpublickey(publickey interface{}) TaiPubKey {
+	switch pub := publickey.(type) {
+	case ecdsa.PublicKey:
+		return (*EcdsaPublicKey)(&pub)
+	case sm2.PublicKey:
+		return (*Sm2PublicKey)(&pub)
+	case ecies.PublicKey:
+		return (*P256PublicKey)(&pub)
+	}
+	return nil
+}
