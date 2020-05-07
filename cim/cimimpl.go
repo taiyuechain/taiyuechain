@@ -6,7 +6,7 @@ import (
 
 	"errors"
 
-	"github.com/taiyuechain/taiyuechain/params"
+
 )
 
 
@@ -14,12 +14,12 @@ import (
 
 
 type CimList struct {
-	chainConfig *params.ChainConfig
+	CryptoType uint8
 	CimMap []CIM
 }
 
-func NewCIMList(chainConfig *params.ChainConfig) *CimList {
-	return &CimList{chainConfig:chainConfig}
+func NewCIMList(CryptoType uint8) *CimList {
+	return &CimList{CryptoType:CryptoType}
 }
 
 func (cl *CimList) AddCim(cimTemp CIM) error  {
@@ -55,7 +55,7 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 
 	//var err error
 	for _,ci:= range cl.CimMap{
-		err := ci.ValidateByByte(cert,cl.chainConfig)
+		err := ci.ValidateByByte(cert,cl.CryptoType)
 		if err != nil{
 			return err
 		}
@@ -68,7 +68,7 @@ func (cl *CimList) VerifyRootCert(cert []byte) error  {
 	//var err error
 	findOne :=false
 	for _,ci:= range cl.CimMap{
-		err := ci.ValidateRootCert(cert,cl.chainConfig)
+		err := ci.ValidateRootCert(cert,cl.CryptoType)
 		if err != nil{
 			continue
 		}else{
@@ -116,12 +116,12 @@ func (cim *cimimpl) GetIdentifier() string {
 
 
 
-func (cim *cimimpl) SetUpFromCA(rootCAByte []byte,chainConfig *params.ChainConfig) error {
+func (cim *cimimpl) SetUpFromCA(rootCAByte []byte,CryptoType uint8) error {
 	if len(rootCAByte) == 0 {
 		return errors.New("expected at least one CA certificate")
 	}
 
-	id, err := GetIdentityFromByte(rootCAByte,chainConfig)
+	id, err := GetIdentityFromByte(rootCAByte,CryptoType)
 	if err != nil {
 		return err
 	}
@@ -163,11 +163,11 @@ func (cim *cimimpl) Validate(id Identity) error {
 }
 
 
-func (cim *cimimpl) ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error {
-	return cim.rootCert.VerifyByte(certByte,chainConfig)
+func (cim *cimimpl) ValidateByByte(certByte []byte,cryptoType uint8) error {
+	return cim.rootCert.VerifyByte(certByte,cryptoType)
 }
-func (cim *cimimpl) ValidateRootCert(certByte []byte,chainConfig *params.ChainConfig) error {
-	return cim.rootCert.isEqulIdentity(certByte,chainConfig)
+func (cim *cimimpl) ValidateRootCert(certByte []byte,cryptoType uint8) error {
+	return cim.rootCert.isEqulIdentity(certByte,cryptoType)
 }
 
 

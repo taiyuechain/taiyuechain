@@ -231,7 +231,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-	NewCIMList := cim.NewCIMList(etrue.chainConfig)
+	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for _, caCert := range caCertList.GetCACertMap() {
@@ -241,7 +241,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 			return nil, err
 		}
 
-		cimCa.SetUpFromCA(caCert.GetByte(),etrue.chainConfig)
+		cimCa.SetUpFromCA(caCert.GetByte(),etrue.config.CryptoType)
 		//cim.CimMap[string(i)] = cimCa
 		NewCIMList.AddCim(cimCa)
 	}

@@ -4,11 +4,8 @@ import (
 	"crypto/x509"
 	"github.com/pkg/errors"
 	"time"
-	"github.com/taiyuechain/taiyuechain/params"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	//"github.com/taiyuechain/taiyuechain/etai"
 )
 
 type ReIdentity struct {
@@ -26,9 +23,9 @@ func (id *identity) ExpiresAt() time.Time {
 }
 
 
-func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) error {
+func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 
-	needVerfyCert,err :=GetCertFromPem(cert,chainConfig)
+	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
 	if err != nil{
 		return err
 	}
@@ -40,7 +37,7 @@ func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) erro
 		return errors.New("x509: certificate has expired or is not yet valid")
 	}
 
-	if !IsCorrectSY(chainConfig,needVerfyCert.PublicKey){
+	if !IsCorrectSY(cryptoType,needVerfyCert.PublicKey){
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
 	//check from
@@ -52,9 +49,9 @@ func (id *identity) VerifyByte(cert []byte,chainConfig *params.ChainConfig) erro
 	return nil
 }
 
-func (id *identity) isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error{
+func (id *identity) isEqulIdentity(cert []byte,cryptoType uint8) error{
 
-	needVerfyCert,err :=GetCertFromPem(cert,chainConfig)
+	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
 	if err != nil{
 		return err
 	}
@@ -69,23 +66,23 @@ func (id *identity) isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) 
 }
 
 
-func IsCorrectSY(chainConfig *params.ChainConfig,syCrypto interface{}) bool {
+/*func IsCorrectSY(cryptoType uint8,syCrypto interface{}) bool {
 
 	switch pub := syCrypto.(type)  {
 	case *sm2.PublicKey:
-		if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2 {
+		if cryptoType == 2 {
 			return true
 		}
 	case *ecdsa.PublicKey:
 		switch pub.Curve {
 		case  elliptic.P256():
-			if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256 {
+			if cryptoType == 1 {
 				return true
 			}
 		}
 	}
 	return false
-}
+}*/
 
 
 func NewIdentity(cert *x509.Certificate) (Identity, error) {

@@ -2,7 +2,6 @@ package cim
 
 import (
 	"time"
-	"github.com/taiyuechain/taiyuechain/params"
 )
 
 type CIMManager interface {
@@ -37,7 +36,7 @@ type CIM interface {
 	//GetIdentifier() string
 	// construct consortium identity manager
 	//SetUp(conf *CIMConfig) error
-	SetUpFromCA(rootCAByte []byte,chainConfig *params.ChainConfig) error
+	SetUpFromCA(rootCAByte []byte,cryptoType uint8) error
 	//GetRootCert() Identity
 	//GetTLSRootCert() []byte
 	// revoke cert list
@@ -46,16 +45,16 @@ type CIM interface {
 	GetSigningIdentity() SigningIdentity
 	Validate(id Identity) error
 	///CreateIdentity(priv string) bool
-	ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error
-	ValidateRootCert(certByte []byte,chainConfig *params.ChainConfig) error
+	ValidateByByte(certByte []byte,cryptoType uint8) error
+	ValidateRootCert(certByte []byte,cryptoType uint8) error
 }
 
 type Identity interface {
 	ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
 	//Verify(msg []byte, sig []byte) error
-	VerifyByte(cert []byte,chainConfig *params.ChainConfig) error
-	isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error
+	VerifyByte(cert []byte ,cryptoType uint8) error
+	isEqulIdentity(cert []byte,cryptoType uint8) error
 
 }
 

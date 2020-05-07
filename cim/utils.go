@@ -15,15 +15,13 @@ import (
 	"time"
 	"log"
 	"crypto/rand"
-	"github.com/taiyuechain/taiyuechain/params"
-	 sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	//"encoding/base64"
 	"strings"
 	"encoding/pem"
 )
 
-func GetIdentityFromByte(idBytes []byte,chainConfig *params.ChainConfig) (Identity, error) {
-	cert, err := GetCertFromPem(idBytes,chainConfig)
+func GetIdentityFromByte(idBytes []byte,cryptoType uint8) (Identity, error) {
+	cert, err := GetCertFromByte(idBytes,cryptoType)
 	if err != nil {
 		return nil, err
 	}
@@ -43,28 +41,21 @@ func GetIdentityFromByte(idBytes []byte,chainConfig *params.ChainConfig) (Identi
 	return identity, nil
 }
 
-func GetCertFromPem(idBytes []byte,chainConfig *params.ChainConfig) (*x509.Certificate, error) {
+/*func GetCertFromPem(idBytes []byte,cryptoType uint8) (*x509.Certificate, error) {
 	if idBytes == nil {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
 
 	// Decode the pem bytes
-	/*pemCert, _ := pem.Decode(idBytes)
-	if pemCert == nil {
-		return nil, errors.Errorf("getCertFromPem error: could not decode pem bytes [%v]", idBytes)
-	}
 
-	// get a cert
-	var cert *x509.Certificate
-	cert, err := x509.ParseCertificate(pemCert.Bytes)*/
 	//pemCert ,_:= base64.StdEncoding.DecodeString(string(idBytes))
 
 	var cert *x509.Certificate
 	var err error
-	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_P256{
+	if cryptoType == 1{
 		cert, err = x509.ParseCertificate(idBytes)
 	}
-	if chainConfig.AsymmetrischCryptoType == params.ASY_CRYPTO_SM2{
+	if cryptoType == 2{
 		cert, err = sm2_cert.ParseCertificate(idBytes)
 	}
 
@@ -73,9 +64,9 @@ func GetCertFromPem(idBytes []byte,chainConfig *params.ChainConfig) (*x509.Certi
 	}
 
 	return cert, nil
-}
+}*/
 
-func CreateIdentity(priv string) bool {
+/*func CreateIdentity(priv string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 	ca := &x509.Certificate{
@@ -129,7 +120,7 @@ func CreateIdentity(priv string) bool {
 	dstFile1.WriteString(encodeString1 + "\n")
 	fmt.Println(encodeString)
 	return true
-}
+}*/
 
 func CreateCertP256(priv *ecdsa.PrivateKey)( cert []byte)  {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
