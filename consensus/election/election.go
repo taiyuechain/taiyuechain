@@ -383,13 +383,19 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 		return members, errs
 	}
 
+	//todo ignore singlenode model sign validate
+	if e.singleNode {
+		return committeeMembers, nil
+	}
+
 	for i, sign := range signs {
 		// member, err := e.VerifySign(sign)
 		//caoliang modify
 		//pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 		pubkey, _ := taipublic.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 		//member := e.GetMemberByPubkey(committeeMembers, crypto.FromECDSAPub(pubkey))
-		member := e.GetMemberByPubkey(committeeMembers, taipublic.FromECDSAPub(*pubkey))
+		pubBytes := taipublic.FromECDSAPub(*pubkey)
+		member := e.GetMemberByPubkey(committeeMembers, pubBytes)
 		if member == nil {
 			errs[i] = ErrInvalidMember
 		} else {
