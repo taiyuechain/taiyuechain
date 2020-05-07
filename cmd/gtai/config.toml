@@ -3,6 +3,7 @@ NetworkId = 19660
 Host = "127.0.0.1"
 EnableElection =true
 NodeType =true
+CryptoType = 1
 [Etrue.MinervaHash]
 Tip9 =1
 [Etrue.TxPool]

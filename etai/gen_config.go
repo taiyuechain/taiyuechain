@@ -39,6 +39,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
+		CryptoType        uint8
+
 	}
 	var enc Config
 	enc.Genesis = c.Genesis

@@ -184,6 +184,9 @@ type Config struct {
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`
+
+
+
 }
 
 func (c *Config) GetNodeType() bool {
