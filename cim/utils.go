@@ -28,15 +28,15 @@ func GetIdentityFromByte(idBytes []byte,chainConfig *params.ChainConfig) (Identi
 		return nil, err
 	}
 
-	keyImporter := &x509PublicKeyImportOptsKeyImporter{}
-	opts := &X509PublicKeyImportOpts{Temporary: true}
+	/*keyImporter := &x509PublicKeyImportOptsKeyImporter{}
+	opts := &X509PublicKeyImportOpts{Temporary: true}*/
 
-	certPubK, err := keyImporter.KeyImport(cert, opts)
+	//certPubK, err := keyImporter.KeyImport(cert, opts)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed importing key with opts")
 	}
 
-	identity, err := NewIdentity(cert, certPubK)
+	identity, err := NewIdentity(cert)
 	if err != nil {
 		return nil, err
 	}

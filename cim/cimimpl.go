@@ -1,17 +1,9 @@
 package cim
 
 import (
-	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/base64"
-	"fmt"
-	//"github.com/pkg/errors"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"log"
-	"math/big"
-	"os"
-	"time"
+
 	"errors"
 
 	"github.com/taiyuechain/taiyuechain/params"
@@ -20,28 +12,6 @@ import (
 
 
 
-type cimManagerImpl struct {
-	cimMap map[string]CIM
-}
-
-func InitCrypto(cimConfigDir, cimID string) (error) {
-	//var err error
-	// Check whether CIM folder exists
-	fi, err := os.Stat(cimConfigDir)
-	if os.IsNotExist(err) || !fi.IsDir() {
-		return errors.New("cannot init crypto, missing %s folder")
-	}
-	if cimID == "" {
-		return errors.New("the local cim must have an ID")
-	}
-
-	err = LoadLocalCIM(cimConfigDir, cimID)
-	if err != nil {
-		return errors.New("error when setting up from directory")
-	}
-
-	return nil
-}
 
 type CimList struct {
 	chainConfig *params.ChainConfig
@@ -144,17 +114,7 @@ func (cim *cimimpl) GetIdentifier() string {
 	panic("implement me")
 }
 
-/*func (cim *cimimpl) SetUp(conf *CIMConfig) error {
-	err := cim.preSetup(*conf)
-	if err != nil {
-		return err
-	}
-	if err != nil {
-		return err
-	}
 
-	return nil
-}*/
 
 func (cim *cimimpl) SetUpFromCA(rootCAByte []byte,chainConfig *params.ChainConfig) error {
 	if len(rootCAByte) == 0 {
@@ -213,7 +173,7 @@ func (cim *cimimpl) ValidateRootCert(certByte []byte,chainConfig *params.ChainCo
 
 
 
-func (cim *cimimpl) CreateIdentity(priv string) bool {
+/*func (cim *cimimpl) CreateIdentity(priv string) bool {
 	//var private taiCrypto.TaiPrivateKey
 	//var public taiCrypto.TaiPublicKey
 	ca := &x509.Certificate{
@@ -264,4 +224,4 @@ func (cim *cimimpl) CreateIdentity(priv string) bool {
 	dstFile1.WriteString(encodeString1 + "\n")
 	fmt.Println(encodeString)
 	return true
-}
+}*/

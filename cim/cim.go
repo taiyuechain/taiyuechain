@@ -1,7 +1,6 @@
 package cim
 
 import (
-	"crypto/x509/pkix"
 	"time"
 	"github.com/taiyuechain/taiyuechain/params"
 )
@@ -21,32 +20,32 @@ type CryptoConfig struct {
 }
 
 // Cim Config sets
-type CIMConfig struct {
+/*type CIMConfig struct {
 	Name                 string
 	RootCerts            [][]byte
 	IntermediateCerts    [][]byte
 	Admins               [][]byte
 	RevocationList       [][]byte
-	SigningIdentity      *SigningIdentityInfo
+	//SigningIdentity      *SigningIdentityInfo
 	TlsRootCerts         [][]byte
 	TlsIntermediateCerts [][]byte
-}
+}*/
 
 // consortium indentity  manager
 type CIM interface {
 	//cim uniq  id
-	GetIdentifier() string
+	//GetIdentifier() string
 	// construct consortium identity manager
 	//SetUp(conf *CIMConfig) error
 	SetUpFromCA(rootCAByte []byte,chainConfig *params.ChainConfig) error
-	GetRootCert() Identity
-	GetTLSRootCert() []byte
+	//GetRootCert() Identity
+	//GetTLSRootCert() []byte
 	// revoke cert list
-	GetCrlList() []*pkix.CertificateList
+	//GetCrlList() []*pkix.CertificateList
 	GetTLSIntermediateCert() []byte
 	GetSigningIdentity() SigningIdentity
 	Validate(id Identity) error
-	CreateIdentity(priv string) bool
+	///CreateIdentity(priv string) bool
 	ValidateByByte(certByte []byte,chainConfig *params.ChainConfig) error
 	ValidateRootCert(certByte []byte,chainConfig *params.ChainConfig) error
 }
@@ -54,7 +53,7 @@ type CIM interface {
 type Identity interface {
 	ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
-	Verify(msg []byte, sig []byte) error
+	//Verify(msg []byte, sig []byte) error
 	VerifyByte(cert []byte,chainConfig *params.ChainConfig) error
 	isEqulIdentity(cert []byte,chainConfig *params.ChainConfig) error
 
@@ -65,11 +64,4 @@ type SigningIdentity interface {
 	Identity
 	Sign(msg []byte) ([]byte, error)
 	GetPublicVersion() Identity
-}
-
-type SigningIdentityInfo struct {
-	PublicSigner []byte
-	// PrivateSigner denotes a reference to the private key of the
-	// peer's signing identity
-	PrivateSigner []byte
 }

@@ -6,23 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-/*func (cim *cimimpl) preSetup(conf CIMConfig) error {
-	// setup crypto config
-	if err := cim.setupCrypto(); err != nil {
-		return err
-	}
 
-	// Setup CAs
-	if err := cim.setupCA(conf); err != nil {
-		return err
-	}
-
-	// setup the signer (if present)
-	if err := cim.setupSigningIdentity(conf); err != nil {
-		return err
-	}
-	return nil
-}*/
 
 func (cim *cimimpl) setupCrypto() error {
 
@@ -36,20 +20,6 @@ func (cim *cimimpl) setupCrypto() error {
 	return nil
 }
 
-/*func (cim *cimimpl) setupCA(conf CIMConfig) error {
-
-	if len(conf.RootCerts) == 0 {
-		return errors.New("expected at least one CA certificate")
-	}
-
-	id, err := GetIdentityFromByte(conf.RootCerts[0])
-	if err != nil {
-		return err
-	}
-
-	cim.rootCert = id
-	return nil
-}*/
 
 func (cim *cimimpl) getCertFromPem(idBytes []byte) (*x509.Certificate, error) {
 	if idBytes == nil {
@@ -80,50 +50,3 @@ func (cim *cimimpl) setupCRL() error {
 	return nil
 }
 
-/*func (cim *cimimpl) setupSigningIdentity(conf CIMConfig) error {
-	sid, err := cim.getSigningIdentityFromConf(conf.SigningIdentity)
-	if err != nil {
-		return err
-	}
-
-	expirationTime := sid.ExpiresAt()
-	now := time.Now()
-	if expirationTime.After(now) {
-	} else if expirationTime.IsZero() {
-	} else {
-		return errors.Errorf("signing identity expired %v ago", now.Sub(expirationTime))
-	}
-
-	cim.signer = sid
-
-	return nil
-}*/
-
-/*func (cim *cimimpl) getSigningIdentityFromConf(sig *SigningIdentityInfo) (SigningIdentity, error) {
-	// Extract the public part of the identity
-	idPub, err := GetIdentityFromByte(sig.PublicSigner)
-	if err != nil {
-		return nil, err
-	}
-
-	if sig.PrivateSigner == nil {
-		return nil, errors.New("KeyMaterial not found in SigningIdentityInfo")
-	}
-
-	pemKey, _ := pem.Decode(sig.PrivateSigner)
-
-	keyImporter := &ecdsaPrivateKeyImportOptsKeyImporter{}
-	opts := &ECDSAPrivateKeyImportOpts{Temporary: true}
-
-	privKey, err := keyImporter.KeyImport(pemKey.Bytes, opts)
-	if err != nil {
-		return nil, errors.WithMessage(err, "getIdentityFromBytes error: Failed to import EC private key")
-	}
-	nodeSigner, err := NewCryptoSigner(privKey)
-	if err != nil {
-		return nil, errors.WithMessage(err, "NewCryptoSigner error")
-	}
-
-	return newSigningIdentity(idPub.(*identity).cert, idPub.(*identity).pk, nodeSigner)
-}
-*/
