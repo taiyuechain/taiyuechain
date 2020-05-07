@@ -72,6 +72,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		NetworkId               *uint64
 		SyncMode                *downloader.SyncMode
 		EnableElection          *bool          `toml:",omitempty"`
+		NodeType                *bool          `toml:",omitempty"`
 		CommitteeKey            *hexutil.Bytes `toml:",omitempty"`
 		Host                    *string        `toml:",omitempty"`
 		Port                    *int           `toml:",omitempty"`
