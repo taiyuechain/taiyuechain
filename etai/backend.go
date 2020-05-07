@@ -234,7 +234,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	NewCIMList := cim.NewCIMList(etrue.chainConfig)
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	for i, caCert := range caCertList.GetCACertMap() {
+	for _, caCert := range caCertList.GetCACertMap() {
 		//log.Info("cart List ", "is", caCert)
 		cimCa, err := cim.NewCIM()
 		if err != nil {
@@ -242,7 +242,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		}
 
 		cimCa.SetUpFromCA(caCert.GetByte(),etrue.chainConfig)
-		cim.CimMap[string(i)] = cimCa
+		//cim.CimMap[string(i)] = cimCa
 		NewCIMList.AddCim(cimCa)
 	}
 
@@ -261,7 +261,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}*/
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist); err != nil {
+	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList); err != nil {
 		return nil, err
 	}
 
