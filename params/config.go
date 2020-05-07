@@ -73,9 +73,7 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(1500000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(12800)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(47000)},
-		SymmetrieCryptoType:SY_CRYPTO_AES,
-		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
-		HashCryptoType:HASH_CRYPTO_SHA3,
+
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -89,9 +87,7 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(450000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(4000)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
-		SymmetrieCryptoType:SY_CRYPTO_AES,
-		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
-		HashCryptoType:HASH_CRYPTO_SHA3,
+
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -145,9 +141,7 @@ var (
 		TIP3: &BlockConfig{FastNumber: big.NewInt(380000)},
 		TIP5: &BlockConfig{SnailNumber: big.NewInt(5000)},
 		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
-		SymmetrieCryptoType:SY_CRYPTO_AES,
-		AsymmetrischCryptoType:ASY_CRYPTO_SM2,
-		HashCryptoType:HASH_CRYPTO_SHA3,
+
 	}
 
 	chainId = big.NewInt(9223372036854775790)
@@ -180,10 +174,7 @@ type ChainConfig struct {
 	TIP5 *BlockConfig `json:"tip5"`
 	TIP9 *BlockConfig `json:"tip9"`
 
-	//crytp type
-	SymmetrieCryptoType uint8 		`json:"sycryptoType"`
-	AsymmetrischCryptoType  uint8 		`json:"asycryptoType"`
-	HashCryptoType  uint8 		`json:"hashcryptoType"`
+
 
 
 }
