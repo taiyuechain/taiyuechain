@@ -18,6 +18,8 @@ package election
 
 import (
 	"bytes"
+	"github.com/taiyuechain/taiyuechain/core/vm"
+
 	//"crypto/ecdsa"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 
@@ -42,6 +44,7 @@ import (
 )
 
 const (
+	chainHeadSize           = 256
 	snailchainHeadSize      = 64
 	committeeCacheLimit     = 256
 	committeeMemberChanSize = 20
@@ -150,6 +153,9 @@ type Election struct {
 	//snailChainEventCh  chan types.SnailChainEvent
 	//snailChainEventSub event.Subscription
 
+	chainHeadCh  chan types.FastChainHeadEvent
+	chainHeadSub event.Subscription
+
 	committeeMemberCh  chan types.CommitteeMemberEvent
 	committeeMemberSub event.Subscription
 
@@ -176,6 +182,9 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		fastchain: fastBlockChain,
 		//snailchain:        snailBlockChain,
 		//snailChainEventCh: make(chan types.SnailChainEvent, snailchainHeadSize),
+
+		chainHeadCh: make(chan types.FastChainHeadEvent, chainHeadSize),
+
 		prepare:           false,
 		switchNext:        make(chan struct{}),
 		singleNode:        config.GetNodeType(),
@@ -183,7 +192,7 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		committeeMemberCh: make(chan types.CommitteeMemberEvent, committeeMemberChanSize),
 	}
 	//subscrib handle committeeMember event
-	election.subScribeHandleCommitteeMemberEvent()
+	election.subScribeEvent()
 
 	// get genesis committee
 	election.genesisCommittee = election.getGenesisCommittee()
@@ -213,8 +222,13 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 	return election
 }
 
-func (e *Election) subScribeHandleCommitteeMemberEvent() {
+func (e *Election) subScribeEvent() {
+	e.chainHeadSub = e.fastchain.SubscribeChainHeadEvent(e.chainHeadCh)
 	//election.committeeMemberSub = election.*.SubscribeCommitteeMemberEvent(election.committeeMemberCh)
+}
+
+func (e *Election) stop() {
+	e.chainHeadSub.Unsubscribe()
 }
 
 // NewFakeElection create fake mode election only for testing
@@ -1295,6 +1309,7 @@ func (e *Election) Start() error {
 
 // Monitor both chains and trigger elections at the same time
 func (e *Election) loop() {
+	defer e.stop()
 	// Elect next committee on start
 	if e.prepare {
 		next := new(big.Int).Add(e.committee.id, common.Big1)
@@ -1322,6 +1337,33 @@ func (e *Election) loop() {
 	// Calculate commitee and switchover via fast and snail event
 	for {
 		select {
+		case fastHead := <-e.chainHeadCh:
+			if fastHead.Block.Number().Cmp(e.committee.endFastNumber) == 0 {
+				caCertList := vm.NewCACertList()
+				stateDB, err := e.fastchain.State()
+				if err != nil {
+					log.Error("election fastHead event", "err", err)
+					continue
+				}
+				err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+				e.nextCommittee = e.getCommitteeInfoByCommitteeId(e.committee.id)
+				//e.nextCommittee.members =caCertList
+
+				//send CommitteeSwitchover event to pbftAgent
+				e.electionFeed.Send(types.ElectionEvent{
+					Option:           types.CommitteeSwitchover,
+					CommitteeID:      e.nextCommittee.id,
+					CommitteeMembers: e.nextCommittee.Members(),
+					BeginFastNumber:  e.nextCommittee.beginFastNumber,
+					EndFastNumber:    e.nextCommittee.endFastNumber,
+				})
+
+				//reset committee and nextCommittee
+				e.mu.Lock()
+				e.committee = e.nextCommittee
+				e.nextCommittee = nil
+				e.mu.Unlock()
+			}
 		/*case se := <-e.snailChainEventCh:
 		if se.Block != nil && e.committee.switchCheckNumber.Cmp(se.Block.Number()) == 0 {
 			//Record Numbers to open elections
@@ -1402,17 +1444,37 @@ func (e *Election) SubscribeElectionEvent(ch chan<- types.ElectionEvent) event.S
 	return e.scope.Track(e.electionFeed.Subscribe(ch))
 }
 
+//committee struct {
+//id                  *big.Int
+//beginFastNumber     *big.Int // the first fast block proposed by this committee
+//endFastNumber       *big.Int
+func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committee {
+	beginFastNumber := calculateBeginFastNumber(committeeId)
+	return &committee{
+		id:              committeeId,
+		beginFastNumber: beginFastNumber,
+		endFastNumber:   calculateEndFastNumber(beginFastNumber),
+	}
+}
+
+//每届委员会产生的fastBlock数量
+var fastNumberPerSession = new(big.Int).SetUint64(uint64(100000))
+
+func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
+	beginFastNumber := new(big.Int).Mul(committeeId, fastNumberPerSession)
+	return beginFastNumber
+}
+func calculateEndFastNumber(beginFastNumber *big.Int) *big.Int {
+	endFastNumber := new(big.Int).Add(beginFastNumber, fastNumberPerSession)
+	return endFastNumber
+}
+
 func (e *Election) removeCommitteeMember(removeCommitteeMember *types.CommitteeMember) {
 	for i, member := range e.nextCommittee.members {
 		if member.Coinbase == removeCommitteeMember.Coinbase {
 			e.nextCommittee.members = append(e.nextCommittee.members[:i], e.nextCommittee.members[i+1:]...)
 		}
 	}
-}
-
-func main() {
-	a := []int{1, 2, 3}
-	a = append(a[:0], a[1:]...) // 删除开头1个元素
 }
 
 // SetEngine set election backend consesus
