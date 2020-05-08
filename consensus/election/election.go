@@ -383,6 +383,10 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 		return members, errs
 	}
 
+	//todo ignore singlenode model sign validate
+	if e.singleNode {
+		return committeeMembers, nil
+	}
 	for i, sign := range signs {
 		// member, err := e.VerifySign(sign)
 		//caoliang modify
