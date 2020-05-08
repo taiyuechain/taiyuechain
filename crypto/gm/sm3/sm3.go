@@ -88,7 +88,7 @@ func (digest *sm3Digest) Reset() {
 }
 
 func (digest *sm3Digest) Write(p []byte) (n int, err error) {
-	_ = p[0]
+	//_ = p[0]
 	inLen := len(p)
 
 	i := 0

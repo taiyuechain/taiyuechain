@@ -40,6 +40,9 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm4"
 	"hash"
 
 	ethcrypto "github.com/taiyuechain/taiyuechain/crypto"
@@ -52,6 +55,13 @@ var (
 )
 
 type ECIESParams struct {
+	Hash      func() hash.Hash // hash function
+	hashAlgo  crypto.Hash
+	Cipher    func([]byte) (cipher.Block, error) // symmetric cipher
+	BlockSize int                                // block size of symmetric cipher
+	KeyLen    int                                // length of symmetric key
+}
+type SM2256Params struct {
 	Hash      func() hash.Hash // hash function
 	hashAlgo  crypto.Hash
 	Cipher    func([]byte) (cipher.Block, error) // symmetric cipher
@@ -97,6 +107,13 @@ var (
 		BlockSize: aes.BlockSize,
 		KeyLen:    32,
 	}
+	ECIES_SM4_SM3256 = &ECIESParams{
+		Hash:      sm3.New,
+		hashAlgo:  crypto.SM3_256,
+		Cipher:    sm4.NewCipher,
+		BlockSize: sm4.BlockSize,
+		KeyLen:    16,
+	}
 )
 
 var paramsFromCurve = map[elliptic.Curve]*ECIESParams{
@@ -104,6 +121,7 @@ var paramsFromCurve = map[elliptic.Curve]*ECIESParams{
 	elliptic.P256():  ECIES_AES128_SHA256,
 	elliptic.P384():  ECIES_AES256_SHA384,
 	elliptic.P521():  ECIES_AES256_SHA512,
+	sm2.P256Sm2():    ECIES_SM4_SM3256,
 }
 
 func AddParamsForCurve(curve elliptic.Curve, params *ECIESParams) {

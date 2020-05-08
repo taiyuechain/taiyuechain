@@ -51,9 +51,7 @@ const (
 type Sm2CipherTextType int32
 
 const (
-	// 旧标准的密文顺序
 	C1C2C3 Sm2CipherTextType = 1
-	// [GM/T 0009-2012]标准规定的顺序
 	C1C3C2 Sm2CipherTextType = 2
 )
 
@@ -619,7 +617,6 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 	return r, s, nil
 }
 
-// 签名结果为DER编码的字节数组
 func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	r, s, err := SignToRS(priv, userId, in)
 	if err != nil {
@@ -663,7 +660,6 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 	return expectedR.Cmp(r) == 0
 }
 
-// 输入签名须为DER编码的字节数组
 func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 	r, s, _, _, err := UnmarshalSign(sign)
 	if err != nil {
@@ -673,6 +669,17 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 	return VerifyByRS(pub, userId, src, r, s)
 }
 
+func Ecrecover(hash, sig []byte) ([]byte, error) {
+	/*	_, _, x, y, err := UnmarshalSign(sig)
+		if err != nil {
+			return nil, err
+		}
+		pubx:=x.Bytes()
+		puby:=y.Bytes()
+		five:=append(pubx, puby)*/
+	return nil, nil
+	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
+}
 func RecoverPubkey(hash, sig []byte) (*PublicKey, error) {
 	_, _, x, y, err := UnmarshalSign(sig)
 	if err != nil {
@@ -807,6 +814,13 @@ func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
 		X:     key.X,
 		Y:     key.Y,
 		Curve: sm2P256V1,
+	}
+}
+func ToSm2privatekey(key *ecdsa.PrivateKey) *PrivateKey {
+	return &PrivateKey{
+		D:         key.D,
+		PublicKey: *ToSm2Publickey(&key.PublicKey),
+		Curve:     sm2P256V1,
 	}
 }
 func SaveSm2Private(file string, key *PrivateKey) error {
