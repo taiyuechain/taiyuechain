@@ -61,13 +61,6 @@ type ECIESParams struct {
 	BlockSize int                                // block size of symmetric cipher
 	KeyLen    int                                // length of symmetric key
 }
-type SM2256Params struct {
-	Hash      func() hash.Hash // hash function
-	hashAlgo  crypto.Hash
-	Cipher    func([]byte) (cipher.Block, error) // symmetric cipher
-	BlockSize int                                // block size of symmetric cipher
-	KeyLen    int                                // length of symmetric key
-}
 
 // Standard ECIES parameters:
 // * ECIES using AES128 and HMAC-SHA-256-16
@@ -109,7 +102,7 @@ var (
 	}
 	ECIES_SM4_SM3256 = &ECIESParams{
 		Hash:      sm3.New,
-		hashAlgo:  crypto.SM3_256,
+		hashAlgo:  crypto.SHA256,
 		Cipher:    sm4.NewCipher,
 		BlockSize: sm4.BlockSize,
 		KeyLen:    16,
