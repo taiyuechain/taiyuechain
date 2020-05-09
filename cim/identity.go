@@ -40,18 +40,20 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 	if !IsCorrectSY(cryptoType,needVerfyCert.PublicKey){
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
-	//check cert signatrue
-	err = CheckSignatrue(needVerfyCert,cryptoType)
+	//check cert signatrue only root need
+	/*err = CheckSignatrue(needVerfyCert,cryptoType)
+	if err != nil{
+		return err
+	}*/
+
+
+
+
+	err =CheckSignatureFrom(needVerfyCert,id.cert,cryptoType)
 	if err != nil{
 		return err
 	}
 
-
-	//check from
-	err =needVerfyCert.CheckSignatureFrom(id.cert)
-	if err != nil{
-		return err
-	}
 	return nil
 }
 
