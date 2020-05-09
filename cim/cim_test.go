@@ -2,9 +2,7 @@ package cim
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/taiyuechain/taiyuechain/cim/config"
-	"path/filepath"
+
 	"testing"
 
 	"crypto/rand"
@@ -17,81 +15,25 @@ import (
 	"log"
 	"math/big"
 	"time"
-	"github.com/taiyuechain/taiyuechain/params"
+	//"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
-	"encoding/hex"
+
 )
 
 
 
 var(
-	CIMChainConfig = &params.ChainConfig{
-		ChainID: big.NewInt(19330),
 
-		SymmetrieCryptoType:params.SY_CRYPTO_AES,
-		AsymmetrischCryptoType:params.ASY_CRYPTO_P256,
-		HashCryptoType:params.HASH_CRYPTO_SHA3,
-	}
+	CryptoType = uint8(1)
+	CryptoSM2 = uint8(2)
 
-	CIMChainConfig_SM2 = &params.ChainConfig{
-		ChainID: big.NewInt(19330),
-
-		SymmetrieCryptoType:params.SY_CRYPTO_AES,
-		AsymmetrischCryptoType:params.ASY_CRYPTO_SM2,
-		HashCryptoType:params.HASH_CRYPTO_SHA3,
-	}
 )
 
-func TestNewIdentity(t *testing.T) {
-	cimConfigDir, _ := config.GetDevCIMDir()
-	singcertPath := cimConfigDir + "testcert"
-	id, err := GetLocalIdentityDataFromConfig(singcertPath)
-	assert.Error(t, err)
-	assert.NotNil(t, id)
-}
-
-func TestChectIdentity(t *testing.T) {
-	cimConfigDir, _ := config.GetDevConfigDir()
-	cimDir, _ := config.GetDevCIMDir()
-	singcertPath := filepath.Join(cimConfigDir, "/testcert")
-	id, err := GetLocalIdentityDataFromConfig(singcertPath)
-	assert.NotNil(t, id)
-	err = GetLocalCIM().Validate(id)
-	assert.Error(t, err)
-	singcertValidPath := filepath.Join(cimDir, "/signcerts")
-	certValidId, err := GetLocalIdentityDataFromConfig(singcertValidPath)
-	assert.NotNil(t, id)
-	err = GetLocalCIM().Validate(certValidId)
-	assert.Error(t, err)
-}
-
-func TestSignAndVerify(t *testing.T) {
-	cim := GetLocalCIM()
-	id := cim.GetSigningIdentity()
-
-	msg := []byte("foo")
-	sig, err := id.Sign(msg)
-	if err != nil {
-		t.Fatalf("Sign should have succeeded")
-		return
-	}
-
-	err = id.Verify(msg, sig)
-	if err != nil {
-		t.Fatalf("The signature should be valid")
-		return
-	}
-
-	err = id.Verify(msg[1:], sig)
-	assert.Error(t, err)
-	err = id.Verify(msg, sig[1:])
-	assert.Error(t, err)
-}
 
 
 func TestCertCIMAndVerfiyCert(t *testing.T) {
-	cimList := NewCIMList(CIMChainConfig)
+	cimList := NewCIMList(CryptoType)
 
 	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
@@ -132,12 +74,20 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		t.Fatalf("cert error")
 	}
 
+
+	err =rootCert.CheckSignature(rootCert.SignatureAlgorithm,rootCert.RawTBSCertificate,rootCert.Signature)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Printf("CheckSignature ok\n")
+	}
+
 	cimCa, err := NewCIM()
 	if err != nil {
 		t.Fatalf("error for new cim")
 	}
 
-	err = cimCa.SetUpFromCA(ca_b,CIMChainConfig)
+	err = cimCa.SetUpFromCA(ca_b,CryptoType)
 	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
@@ -197,35 +147,30 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 
 
 func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
-	cimList := NewCIMList(CIMChainConfig)
+	cimList := NewCIMList(CryptoSM2)
 
 	//HexToECDSAP
 	//var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 	//(prikey)
-	pribytebyte, err := hex.DecodeString("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var root, _ = sm2.RawBytesToPrivateKey1(pribytebyte)
-	var rootPuk = sm2.PrivteToPublickey(*root)
-	//create root
-	ca_b := sm2_cert.CreateCertBySMPrivte(root, *rootPuk)
-	if err != nil {
-		log.Println("create ca failed", err)
-		//return false
-		t.Fatalf("3")
-	}
+	//pribytebyte, err := hex.DecodeString("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	//var rootpri, _ = sm2.RawBytesToPrivateKey(pribytebyte)
+	//var rootPuk = sm2.PrivteToPublickey(*rootpri)
+	rootpri, rootPuk, err := sm2.GenerateKey(rand.Reader)
+	ca_b :=sm2_cert.CreateCertBySMPrivte(rootpri,rootPuk)
 
-	//encodeca := base64.StdEncoding.EncodeToString(ca_b)
-	//encodeca :=pem.Encode()
 	rootCert, err := sm2_cert.ParseCertificate(ca_b)
-	if err != nil {
+	if err != nil{
 		t.Fatalf("cert error")
 	}
+
+	fmt.Println(rootCert)
 
 	cimCa, err := NewCIM()
 	if err != nil {
 		t.Fatalf("error for new cim")
 	}
 
-	err = cimCa.SetUpFromCA(ca_b,CIMChainConfig)
+	err = cimCa.SetUpFromCA(ca_b,CryptoSM2)
 	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
@@ -240,42 +185,22 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	if err != nil{
 		t.Fatalf("cert error")
 	}*/
-	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
-	ca2 := &x509.Certificate{
-		SerialNumber: serialNumber2,
-		Subject: pkix.Name{
-			Country:            []string{"China"},
-			Organization:       []string{"Yjwt"},
-			OrganizationalUnit: []string{"YjwtU"},
-		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
-		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
-	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
-	if err != nil {
-		log.Println("create ca failed", err)
-		//return false
-		t.Fatalf("2")
+	//var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	//pribytebyte_son, err := hex.DecodeString("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	//var son, _ = sm2.RawBytesToPrivateKey(pribytebyte_son)
+	//var sonPuk = sm2.PrivteToPublickey(*son)
+	_, sonPuk, err := sm2.GenerateKey(rand.Reader)
+
+	rootcert,err :=sm2_cert.ParseCertificate(ca_b)
+	if err!=nil{
+		t.Fatalf("ParseCertificate error")
 	}
 
-	/*encodeca2 := base64.StdEncoding.EncodeToString(ca_b2)
-
-	if len(encodeca2) == 0 {
-		t.Fatalf("len is zero")
-	}*/
-	err = cimList.VerifyCert(ca_b2)
+	son_byte,err:=sm2_cert.IssueCert(rootcert,rootpri,sonPuk)
+	if err!=nil{
+		t.Fatalf("IssueCert error")
+	}
+	err = cimList.VerifyCert(son_byte)
 	if err != nil {
 		t.Fatalf("verfiy error")
 	}
@@ -578,4 +503,6 @@ func TestReadPemFile(t *testing.T)  {
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
 }
+
+
 
