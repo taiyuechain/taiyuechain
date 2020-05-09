@@ -27,6 +27,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 	"io"
@@ -52,22 +53,43 @@ var (
 var errInvalidPubkey = errors.New("invalid secp256k1 public key")
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
-func Keccak256(data ...[]byte) []byte {
-	d := sha3.NewLegacyKeccak256()
-	for _, b := range data {
-		d.Write(b)
+func Keccak256(cryptotype uint8, data ...[]byte) []byte {
+	if cryptotype == 1 {
+		d := sha3.NewLegacyKeccak256()
+		for _, b := range data {
+			d.Write(b)
+		}
+		return d.Sum(nil)
 	}
-	return d.Sum(nil)
+	if cryptotype == 2 {
+		d := sm3.New()
+		for _, b := range data {
+			d.Write(b)
+		}
+		return d.Sum(nil)
+	}
+	return nil
 }
 
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
-func Keccak256Hash(data ...[]byte) (h common.Hash) {
-	d := sha3.NewLegacyKeccak256()
-	for _, b := range data {
-		d.Write(b)
+func Keccak256Hash(cryptotype uint8, data ...[]byte) (h common.Hash) {
+	if cryptotype == 1 {
+		d := sha3.NewLegacyKeccak256()
+		for _, b := range data {
+			d.Write(b)
+		}
+		d.Sum(h[:0])
+		return h
 	}
-	d.Sum(h[:0])
+	if cryptotype == 2 {
+		d := sm3.New()
+		for _, b := range data {
+			d.Write(b)
+		}
+		d.Sum(h[:0])
+		return h
+	}
 	return h
 }
 
@@ -81,15 +103,15 @@ func Keccak512(data ...[]byte) []byte {
 }
 
 // CreateAddress creates an ethereum address given the bytes and the nonce
-func CreateAddress(b common.Address, nonce uint64) common.Address {
+func CreateAddress(cryptotype uint8, b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	return common.BytesToAddress(Keccak256(cryptotype, data)[12:])
 }
 
 // CreateAddress2 creates an ethereum address given the address bytes, initial
 // contract code hash and a salt.
-func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+func CreateAddress2(cryptotype uint8, b common.Address, salt [32]byte, inithash []byte) common.Address {
+	return common.BytesToAddress(Keccak256(cryptotype, []byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
 // ToECDSA creates a private key with the given D value.
