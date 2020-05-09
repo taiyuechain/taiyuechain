@@ -20,26 +20,7 @@ import (
 	"encoding/pem"
 )
 
-func GetIdentityFromByte(idBytes []byte,cryptoType uint8) (Identity, error) {
-	cert, err := GetCertFromByte(idBytes,cryptoType)
-	if err != nil {
-		return nil, err
-	}
 
-	/*keyImporter := &x509PublicKeyImportOptsKeyImporter{}
-	opts := &X509PublicKeyImportOpts{Temporary: true}*/
-
-	//certPubK, err := keyImporter.KeyImport(cert, opts)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Failed importing key with opts")
-	}
-
-	identity, err := NewIdentity(cert)
-	if err != nil {
-		return nil, err
-	}
-	return identity, nil
-}
 
 /*func GetCertFromPem(idBytes []byte,cryptoType uint8) (*x509.Certificate, error) {
 	if idBytes == nil {
