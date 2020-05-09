@@ -4,93 +4,49 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"encoding/asn1"
-	"encoding/hex"
 	"fmt"
-	tycrpto "github.com/taiyuechain/taiyuechain/crypto"
-	"io/ioutil"
+	//tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 )
 
-type P256Signature struct {
+type Signature struct {
 	R, S *big.Int
 	//X, Y *big.Int
 }
 
-func (p P256Signature) Reset() {
+func (p Signature) Reset() {
 	panic("implement me")
 }
 
-func (p P256Signature) String() string {
+func (p Signature) String() string {
 	panic("implement me")
 }
 
-func (p P256Signature) ProtoMessage() {
+func (p Signature) ProtoMessage() {
 	panic("implement me")
 }
 
-func SignP256(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
+func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	r, s, err := ecdsa.Sign(rand.Reader, priv, hash)
 	if err != nil {
 		return nil, err
 	}
-	return asn1.Marshal(P256Signature{r, s})
+	sign := make([]byte, 65)
+	sign = append(sign, r.Bytes()...)
+	sign = append(sign, s.Bytes()...)
+	v := sign[65] - 27
+	sign = append(sign, v)
+	return sign[65:], nil
 }
 
-func VerifyP256(public *ecdsa.PublicKey, hash []byte, sign []byte) bool {
-	p256sign := new(P256Signature)
-	tt, err := asn1.Unmarshal(sign, p256sign)
-	fmt.Println(len(tt))
-	if err != nil {
-		return false
-	}
-	return ecdsa.Verify(public, hash, p256sign.R, p256sign.S)
+func Verify(public *ecdsa.PublicKey, hash []byte, sign []byte) bool {
+	return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
 
 // NewSigningKey generates a random P-256 ECDSA private key.
 func NewSigningKey() (*ecdsa.PrivateKey, error) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	return key, err
-}
-
-// Sign signs arbitrary data using ECDSA.
-func Sign(data []byte, privkey *ecdsa.PrivateKey) ([]byte, error) {
-	// hash message
-	//digest := sha256.Sum256(data)
-
-	// sign the hash
-	r, s, err := ecdsa.Sign(rand.Reader, privkey, data[:])
-	if err != nil {
-		return nil, err
-	}
-
-	// encode the signature {R, S}
-	// big.Int.Bytes() will need padding in the case of leading zero bytes
-	params := privkey.Curve.Params()
-	curveOrderByteSize := params.P.BitLen() / 8
-	rBytes, sBytes := r.Bytes(), s.Bytes()
-	signature := make([]byte, curveOrderByteSize*2)
-	copy(signature[curveOrderByteSize-len(rBytes):], rBytes)
-	copy(signature[curveOrderByteSize*2-len(sBytes):], sBytes)
-
-	//privkey.PublicKey.Y
-
-	return signature, nil
-}
-
-// Verify checks a raw ECDSA signature.
-// Returns true if it's valid and false if not.
-func Verify(data, signature []byte, pubkey *ecdsa.PublicKey) bool {
-	// hash message
-	//digest := sha256.Sum256(data)
-
-	curveOrderByteSize := pubkey.Curve.Params().P.BitLen() / 8
-
-	r, s := new(big.Int), new(big.Int)
-	r.SetBytes(signature[:curveOrderByteSize])
-	s.SetBytes(signature[curveOrderByteSize:])
-
-	return ecdsa.Verify(pubkey, data[:], r, s)
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
@@ -221,7 +177,8 @@ func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
 		return false
 	}
 }
-func SaveP256Private(file string, key *ecdsa.PrivateKey) error {
+
+/*func SaveP256Private(file string, key *ecdsa.PrivateKey) error {
 	k := hex.EncodeToString(tycrpto.FromECDSAP256(key))
 	return ioutil.WriteFile(file, []byte(k), 0600)
-}
+}*/

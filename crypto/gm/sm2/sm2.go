@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	sm32 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
 	"hash"
 	"io"
@@ -332,7 +332,7 @@ func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byt
 	c2 := make([]byte, len(in))
 	copy(c2, in)
 	var c1 []byte
-	digest := sm3.New()
+	digest := sm32.New()
 	var kPBx, kPBy *big.Int
 	for {
 		k, err := nextK(rand.Reader, pub.Curve.N)
@@ -402,7 +402,7 @@ func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]b
 	}
 	c1x, c1y = priv.Curve.ScalarMult(c1x, c1y, priv.D.Bytes())
 
-	digest := sm3.New()
+	digest := sm32.New()
 	c3Len := digest.Size()
 	c2Len := len(in) - c1Len - c3Len
 	c2 := make([]byte, c2Len)
@@ -435,9 +435,9 @@ func MarshalCipher(in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) 
 	byteLen := (sm2P256V1.Params().BitSize + 7) >> 3
 	c1x := make([]byte, byteLen)
 	c1y := make([]byte, byteLen)
-	c2Len := len(in) - (1 + byteLen*2) - sm3.DigestLength
+	c2Len := len(in) - (1 + byteLen*2) - sm32.DigestLength
 	c2 := make([]byte, c2Len)
-	c3 := make([]byte, sm3.DigestLength)
+	c3 := make([]byte, sm32.DigestLength)
 	pos := 1
 
 	copy(c1x, in[pos:pos+byteLen])
@@ -450,15 +450,15 @@ func MarshalCipher(in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) 
 	if cipherTextType == C1C2C3 {
 		copy(c2, in[pos:pos+c2Len])
 		pos += c2Len
-		copy(c3, in[pos:pos+sm3.DigestLength])
+		copy(c3, in[pos:pos+sm32.DigestLength])
 		result, err := asn1.Marshal(sm2CipherC1C2C3{nc1x, nc1y, c2, c3})
 		if err != nil {
 			return nil, err
 		}
 		return result, nil
 	} else if cipherTextType == C1C3C2 {
-		copy(c3, in[pos:pos+sm3.DigestLength])
-		pos += sm3.DigestLength
+		copy(c3, in[pos:pos+sm32.DigestLength])
+		pos += sm32.DigestLength
 		copy(c2, in[pos:pos+c2Len])
 		result, err := asn1.Marshal(sm2CipherC1C3C2{nc1x, nc1y, c3, c2})
 		if err != nil {
@@ -573,7 +573,7 @@ func UnmarshalSign(sign []byte) (r, s, x, y *big.Int, err error) {
 }
 
 func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err error) {
-	digest := sm3.New()
+	digest := sm32.New()
 	pubX, pubY := priv.Curve.ScalarBaseMult(priv.D.Bytes())
 	if userId == nil {
 		userId = sm2SignDefaultUserId
@@ -622,7 +622,13 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
+	//return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
+	sign := make([]byte, 65)
+	sign = append(sign, r.Bytes()...)
+	sign = append(sign, s.Bytes()...)
+	v := sign[65] - 27
+	sign = append(sign, v)
+	return sign[65:], nil
 
 }
 
@@ -635,7 +641,7 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 		return false
 	}
 
-	digest := sm3.New()
+	digest := sm32.New()
 	if userId == nil {
 		userId = sm2SignDefaultUserId
 	}
@@ -661,36 +667,12 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 }
 
 func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
-	r, s, _, _, err := UnmarshalSign(sign)
-	if err != nil {
-		return false
-	}
-
-	return VerifyByRS(pub, userId, src, r, s)
-}
-
-func Ecrecover(hash, sig []byte) ([]byte, error) {
-	/*	_, _, x, y, err := UnmarshalSign(sig)
+	/*	r, s, _, _, err := UnmarshalSign(sign)
 		if err != nil {
-			return nil, err
-		}
-		pubx:=x.Bytes()
-		puby:=y.Bytes()
-		five:=append(pubx, puby)*/
-	return nil, nil
-	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
-}
-func RecoverPubkey(hash, sig []byte) (*PublicKey, error) {
-	_, _, x, y, err := UnmarshalSign(sig)
-	if err != nil {
-		return nil, err
-	}
-	pub := new(PublicKey)
-	pub.Curve = GetSm2P256V1()
-	pub.X = x
-	pub.Y = y
-	return pub, nil
-	//var recoverPubKey, _, _ = btcec.RecoverCompactSM2(btcec.P256Sm2(), sig, hash[:])
+			return false
+		}*/
+
+	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	intOne := new(big.Int).SetInt64(1)
@@ -733,7 +715,7 @@ func HexToGM2(hexkey string) (*PrivateKey, error) {
 
 func GMPubkeyToAddress(pubkey PublicKey) common.Address {
 	pubBytes := pubkey.GetRawBytes()
-	return common.BytesToAddress(sm3.Keccak256(pubBytes[1:])[12:])
+	return common.BytesToAddress(sm32.Keccak256(pubBytes[1:])[12:])
 }
 
 func getLastBit(a *big.Int) uint {
@@ -821,6 +803,12 @@ func ToSm2privatekey(key *ecdsa.PrivateKey) *PrivateKey {
 		D:         key.D,
 		PublicKey: *ToSm2Publickey(&key.PublicKey),
 		Curve:     sm2P256V1,
+	}
+}
+func ToEcdsaPrivate(key *PrivateKey) *ecdsa.PrivateKey {
+	return &ecdsa.PrivateKey{
+		D:         key.D,
+		PublicKey: *ToECDSAPublickey(&key.PublicKey),
 	}
 }
 func SaveSm2Private(file string, key *PrivateKey) error {

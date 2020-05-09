@@ -23,15 +23,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
+	"github.com/taiyuechain/taiyuechain/crypto/ecies"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/rlp"
+	"golang.org/x/crypto/sha3"
 	"io"
 	"io/ioutil"
 	"math/big"
 	"os"
-
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/common/math"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 //SignatureLength indicates the byte length required to carry a signature with recovery id.
@@ -92,35 +93,58 @@ func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Add
 }
 
 // ToECDSA creates a private key with the given D value.
-func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
-	return toECDSA(d, true)
+func ToECDSA(cryptotype uint8, d []byte) (*ecdsa.PrivateKey, error) {
+	if cryptotype == 1 {
+		ecdsapri, err := toECDSA(elliptic.P256(), d, true)
+		if err != nil {
+			return nil, err
+		}
+		return ecdsapri, nil
+	}
+	//guomi
+	if cryptotype == 2 {
+		ecdsapri, err := toECDSA(sm2.P256Sm2(), d, true)
+		if err != nil {
+			return nil, err
+		}
+		return ecdsapri, nil
+	}
+	//guoji S256
+	if cryptotype == 3 {
+		ecdsapri, err := toECDSA(S256(), d, true)
+		if err != nil {
+			return nil, err
+		}
+		return ecdsapri, nil
+	}
+	return nil, nil
 }
-func ToECDSA1(d []byte) (*ecdsa.PrivateKey, error) {
-	return toECDSA1(d, true)
-}
+func ToECDSAUnsafe(cryptotype uint8, d []byte) *ecdsa.PrivateKey {
+	if cryptotype == 1 {
+		ecdsapri, _ := toECDSA(elliptic.P256(), d, true)
+		return ecdsapri
+	}
+	//guomi
+	if cryptotype == 2 {
+		ecdsapri, _ := toECDSA(sm2.P256Sm2(), d, true)
+		return ecdsapri
+	}
+	//guoji S256
+	if cryptotype == 3 {
+		ecdsapri, _ := toECDSA(S256(), d, true)
 
-// ToECDSA creates a private key with the given D value.
-func ToECDSAP256(d []byte) (*ecdsa.PrivateKey, error) {
-	return toECDSAP256(d, true)
-}
-func ToECDSAP2561(d []byte) (*ecdsa.PrivateKey, error) {
-	return toECDSAP2561(d, true)
-}
-
-// ToECDSAUnsafe blindly converts a binary blob to a private key. It should almost
-// never be used unless you are sure the input is valid and want to avoid hitting
-// errors due to bad origin encoding (0 prefixes cut off).
-func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
-	priv, _ := toECDSA(d, false)
-	return priv
+		return ecdsapri
+	}
+	return nil
 }
 
 // toECDSA creates a private key with the given D value. The strict parameter
 // controls whether the key's length should be enforced at the curve size or
 // it can also accept legacy encodings (0 prefixes).
-func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
+func toECDSA(curve elliptic.Curve, d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = S256()
+	//priv.PublicKey.Curve = S256()
+	priv.PublicKey.Curve = curve
 	if strict && 8*len(d) != priv.Params().BitSize {
 		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
 	}
@@ -136,80 +160,6 @@ func toECDSA(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	}
 
 	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d)
-	if priv.PublicKey.X == nil {
-		return nil, errors.New("invalid private key")
-	}
-	return priv, nil
-}
-
-func toECDSA1(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
-	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = S256()
-	if strict && 8*len(d[1:]) != priv.Params().BitSize {
-		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
-	}
-	priv.D = new(big.Int).SetBytes(d[1:])
-
-	// The priv.D must < N
-	if priv.D.Cmp(secp256k1N) >= 0 {
-		return nil, fmt.Errorf("invalid private key, >=N")
-	}
-	// The priv.D must not be zero or negative.
-	if priv.D.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid private key, zero or negative")
-	}
-
-	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d[1:])
-	if priv.PublicKey.X == nil {
-		return nil, errors.New("invalid private key")
-	}
-	return priv, nil
-}
-
-// toECDSA creates a private key with the given D value. The strict parameter
-// controls whether the key's length should be enforced at the curve size or
-// it can also accept legacy encodings (0 prefixes).
-func toECDSAP256(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
-	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = elliptic.P256()
-	if strict && 8*len(d) != priv.Params().BitSize {
-		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
-	}
-	priv.D = new(big.Int).SetBytes(d)
-
-	// The priv.D must < N
-	if priv.D.Cmp(secp256k1N) >= 0 {
-		return nil, fmt.Errorf("invalid private key, >=N")
-	}
-	// The priv.D must not be zero or negative.
-	if priv.D.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid private key, zero or negative")
-	}
-
-	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d)
-	if priv.PublicKey.X == nil {
-		return nil, errors.New("invalid private key")
-	}
-	return priv, nil
-}
-func toECDSAP2561(d []byte, strict bool) (*ecdsa.PrivateKey, error) {
-	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = elliptic.P256()
-	if strict && 8*len(d[1:]) != priv.Params().BitSize {
-		return nil, fmt.Errorf("invalid length, need %d bits", priv.Params().BitSize)
-	}
-	priv.D = new(big.Int).SetBytes(d[1:])
-
-	// The priv.D must < N
-	if priv.D.Cmp(secp256k1N) >= 0 {
-		return nil, fmt.Errorf("invalid private key, >=N")
-	}
-	// The priv.D must not be zero or negative.
-	if priv.D.Sign() <= 0 {
-		return nil, fmt.Errorf("invalid private key, zero or negative")
-	}
-
-	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.Curve.ScalarBaseMult(d[1:])
 	if priv.PublicKey.X == nil {
 		return nil, errors.New("invalid private key")
 	}
@@ -223,101 +173,69 @@ func FromECDSA(priv *ecdsa.PrivateKey) []byte {
 	}
 	return math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
 }
-func FromECDSA1(priv *ecdsa.PrivateKey) []byte {
-	if priv == nil {
-		return nil
+func UnmarshalPubkey(cryptotype uint8, pub []byte) (*ecdsa.PublicKey, error) {
+	if cryptotype == 1 {
+		x, y := elliptic.Unmarshal(elliptic.P256(), pub)
+		if x == nil {
+			return nil, errInvalidPubkey
+		}
+		return &ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
 	}
-	ret := math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
-	ret = append([]byte{1}, ret...)
-	return ret
-}
-func FromECDSAP256(priv *ecdsa.PrivateKey) []byte {
-	if priv == nil {
-		return nil
+	//guomi
+	if cryptotype == 2 {
+		//ecdsapri, _ := toECDSA(sm2.P256Sm2(),d,true)
+		x, y := elliptic.Unmarshal(sm2.P256Sm2(), pub)
+		if x == nil {
+			return nil, errInvalidPubkey
+		}
+		return &ecdsa.PublicKey{Curve: sm2.P256Sm2(), X: x, Y: y}, nil
 	}
-	ret := math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
-	ret = append([]byte{3}, ret...)
-	return ret
+	//guoji S256
+	if cryptotype == 3 {
+		x, y := elliptic.Unmarshal(S256(), pub)
+		if x == nil {
+			return nil, errInvalidPubkey
+		}
+		return &ecdsa.PublicKey{Curve: S256(), X: x, Y: y}, nil
+	}
+	return nil, nil
 }
 
-// UnmarshalPubkey converts bytes to a secp256k1 public key.
-func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(S256(), pub)
-	if x == nil {
-		return nil, errInvalidPubkey
+func FromECDSAPub(cryptotype uint8, pub *ecdsa.PublicKey) []byte {
+	if cryptotype == 1 {
+		if pub == nil || pub.X == nil || pub.Y == nil {
+			return nil
+		}
+		return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
 	}
-	return &ecdsa.PublicKey{Curve: S256(), X: x, Y: y}, nil
-}
-
-func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
+	//guomi
+	if cryptotype == 2 {
+		if pub == nil || pub.X == nil || pub.Y == nil {
+			return nil
+		}
+		return elliptic.Marshal(sm2.P256Sm2(), pub.X, pub.Y)
 	}
-	return elliptic.Marshal(S256(), pub.X, pub.Y)
-}
-func FromECDSAPub1(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
+	//guoji S256
+	if cryptotype == 3 {
+		if pub == nil || pub.X == nil || pub.Y == nil {
+			return nil
+		}
+		return elliptic.Marshal(S256(), pub.X, pub.Y)
 	}
-	ret := elliptic.Marshal(S256(), pub.X, pub.Y)
-	ret = append([]byte{1}, ret...)
-	return ret
-}
-func UnmarshalPubkey1(pub []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(S256(), pub[1:])
-	if x == nil {
-		return nil, errInvalidPubkey
-	}
-	return &ecdsa.PublicKey{Curve: S256(), X: x, Y: y}, nil
-}
-func UnmarshalPubkeyP256(pub []byte) (*ecdsa.PublicKey, error) {
-	x, y := elliptic.Unmarshal(elliptic.P256(), pub[1:])
-	if x == nil {
-		return nil, errInvalidPubkey
-	}
-	return &ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
-}
-func FromECDSAPubCA(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
-	}
-	return elliptic.Marshal(S256(), pub.X, pub.Y)
-}
-func FromECDSAPubP256(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
-	}
-	return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
-}
-func FromECDSAPubP2561(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
-	}
-	ret := elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
-	ret = append([]byte{3}, ret...)
-	return ret
+	return nil
 }
 
 // HexToECDSA parses a secp256k1 private key.
-func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
+func HexToECDSA(cryptotype uint8, hexkey string) (*ecdsa.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
 		return nil, errors.New("invalid hex string")
 	}
-	return ToECDSA(b)
-}
-
-// HexToECDSA parses a secp256k1 private key.
-func HexToECDSAP256(hexkey string) (*ecdsa.PrivateKey, error) {
-	b, err := hex.DecodeString(hexkey)
-	if err != nil {
-		return nil, errors.New("invalid hex string")
-	}
-	return ToECDSAP256(b)
+	return ToECDSA(cryptotype, b)
 }
 
 // LoadECDSA loads a secp256k1 private key from the given file.
-func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
+func LoadECDSA(cryptotype uint8, file string) (*ecdsa.PrivateKey, error) {
 	buf := make([]byte, 64)
 	fd, err := os.Open(file)
 	if err != nil {
@@ -332,7 +250,7 @@ func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ToECDSA(key)
+	return ToECDSA(cryptotype, key)
 }
 
 // SaveECDSA saves a secp256k1 private key to the given file with
@@ -341,12 +259,25 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 	k := hex.EncodeToString(FromECDSA(key))
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
-func SaveECDSA1(file string, key *ecdsa.PrivateKey) error {
-	k := hex.EncodeToString(FromECDSA1(key))
-	return ioutil.WriteFile(file, []byte(k), 0600)
-}
-func GenerateKey() (*ecdsa.PrivateKey, error) {
-	return ecdsa.GenerateKey(S256(), rand.Reader)
+func GenerateKey(cryptotype uint8) (*ecdsa.PrivateKey, error) {
+	switch cryptotype {
+	//guoji P256
+	case 1:
+		ecdsapri, err := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+		if err != nil {
+			return nil, err
+		}
+		return (ecdsapri.ExportECDSA()), nil
+	//	guomi
+	case 2:
+		smpri, _ := ecies.GenerateKey(rand.Reader, sm2.GetSm2P256V1(), nil)
+		return (smpri.ExportECDSA()), nil
+	//	guoji S256
+	case 3:
+		eciespri, _ := ecies.GenerateKey(rand.Reader, S256(), nil)
+		return (eciespri.ExportECDSA()), nil
+	}
+	return nil, nil
 }
 
 // ValidateSignatureValues verifies whether the signature values are valid with
@@ -364,16 +295,60 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	return r.Cmp(secp256k1N) < 0 && s.Cmp(secp256k1N) < 0 && (v == 0 || v == 1)
 }
 
-func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
+/*func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPubCA(&p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
-}
-
-func PubkeyToAddressP256(p ecdsa.PublicKey) common.Address {
-	pubBytes := FromECDSAPubP256(&p)
+}*/
+func PubkeyToAddress(cryptotype uint8, p ecdsa.PublicKey) common.Address {
+	pubBytes := FromECDSAPub(cryptotype, &p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
 
+func Encrypt(cryptotype uint8, pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
+	switch cryptotype {
+	//guoji P256
+	case 1:
+		return ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(pub), m, s1, s2)
+	//	guomi
+	case 2:
+		return sm2.Encrypt(sm2.ToSm2Publickey(pub), m, sm2.C1C2C3)
+
+	//	guoji S256
+	case 3:
+		return ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(pub), m, s1, s2)
+	}
+	return nil, nil
+}
+func Decrypt(cryptotype uint8, pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
+	switch cryptotype {
+	//guoji P256
+	case 1:
+		return ecies.ImportECDSA(pri).Decrypt(c, s1, s2)
+	//	guomi
+	case 2:
+		return sm2.Decrypt(sm2.ToSm2privatekey(pri), c, sm2.C1C2C3)
+
+	//	guoji S256
+	case 3:
+		return ecies.ImportECDSA(pri).Decrypt(c, s1, s2)
+	}
+	return nil, nil
+}
+func GenerateShared(cryptotype uint8, pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
+	switch cryptotype {
+	//guoji P256
+	case 1:
+		return ecies.ImportECDSA(pri).GenerateShared(ecies.ImportECDSAPublic(pub), skLen, macLen)
+	//	guomi
+	case 2:
+		return sm2.ToSm2privatekey(pri).GenerateShared(sm2.ToSm2Publickey(pub), skLen, macLen)
+
+	//	guoji S256
+	case 3:
+		return ecies.ImportECDSA(pri).GenerateShared(ecies.ImportECDSAPublic(pub), skLen, macLen)
+	}
+	return nil, nil
+}
 func zeroBytes(bytes []byte) {
 	for i := range bytes {
 		bytes[i] = 0
