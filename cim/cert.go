@@ -66,7 +66,7 @@ func CheckSignatureFrom(son *x509.Certificate,parent *x509.Certificate,cryptoTyp
 	return nil
 }
 
-func checkSignatrue(cert *x509.Certificate,cryptoType uint8) error  {
+func CheckSignatrue(cert *x509.Certificate,cryptoType uint8) error  {
 	if cryptoType ==1 {
 		return cert.CheckSignature(cert.SignatureAlgorithm,cert.RawTBSCertificate,cert.Signature)
 	}
