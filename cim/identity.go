@@ -59,7 +59,17 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 
 func (id *identity) isEqulIdentity(cert []byte,cryptoType uint8) error{
 
-	err := isEqulCert(id.cert,cert,cryptoType)
+	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
+	if err != nil{
+		return err
+	}
+
+	CheckSignatrue(needVerfyCert,cryptoType)
+	if err != nil{
+		return err
+	}
+
+	err = isEqulCert(id.cert,cert,cryptoType)
 	if err != nil{
 		return err
 	}
@@ -79,6 +89,10 @@ func GetIdentityFromByte(idBytes []byte,cryptoType uint8) (Identity, error) {
 		return nil, err
 	}
 
+	CheckSignatrue(cert,cryptoType)
+	if err != nil{
+		return nil,err
+	}
 
 	identity, err := NewIdentity(cert)
 	if err != nil {
