@@ -16,7 +16,6 @@ import (
 	"math/big"
 	"net"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -238,43 +237,21 @@ func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub sm2.PublicKey)(cert []byte){
 	return cert
 }
 
-func CreateCertificateRequest(pub *sm2.PublicKey,
-	pri *sm2.PrivateKey, userId []byte, name string) bool {
+func CreateCertificateRequest(template *x509.CertificateRequest, pub *sm2.PublicKey,
+	pri *sm2.PrivateKey, userId []byte) (csr []byte, err error) {
 	var publicKeyBytes []byte
 	var publicKeyAlgorithm pkix.AlgorithmIdentifier
-	publicKeyBytes, publicKeyAlgorithm, err := marshalPublicKey(pub)
+	publicKeyBytes, publicKeyAlgorithm, err = marshalPublicKey(pub)
 	if err != nil {
-		log.Println("create ca failed", err)
-		return false
+		return nil, err
 	}
-	sanContents, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
-	if err != nil {
-		log.Println("create ca failed", err)
-		return false
-	}
-	template := x509.CertificateRequest{
-		Subject: pkix.Name{
-			CommonName:   "test.example.com",
-			Organization: []string{"Σ Acme Co"},
-		},
-		DNSNames: []string{"test.example.com"},
 
-		// An explicit extension should override the DNSNames from the
-		// template.
-		ExtraExtensions: []pkix.Extension{
-			{
-				Id:    oidExtensionSubjectAltName,
-				Value: sanContents,
-			},
-		},
-	}
 	var extensions []pkix.Extension
 	if (len(template.DNSNames) > 0 || len(template.EmailAddresses) > 0 || len(template.IPAddresses) > 0 || len(template.URIs) > 0) &&
 		!oidInExtensions(oidExtensionSubjectAltName, template.ExtraExtensions) {
 		sanBytes, err := marshalSANs(template.DNSNames, template.EmailAddresses, template.IPAddresses, template.URIs)
 		if err != nil {
-			log.Println("create ca failed", err)
-			return false
+			return nil, err
 		}
 
 		extensions = append(extensions, pkix.Extension{
@@ -346,15 +323,13 @@ func CreateCertificateRequest(pub *sm2.PublicKey,
 	if len(asn1Subject) == 0 {
 		asn1Subject, err = asn1.Marshal(template.Subject.ToRDNSequence())
 		if err != nil {
-			log.Println("create ca failed", err)
-			return false
+			return
 		}
 	}
 
 	rawAttributes, err := newRawAttributes(attributes)
 	if err != nil {
-		log.Println("create ca failed", err)
-		return false
+		return
 	}
 
 	tbsCSR := tbsCertificateRequest{
@@ -372,22 +347,20 @@ func CreateCertificateRequest(pub *sm2.PublicKey,
 
 	tbsCSRContents, err := asn1.Marshal(tbsCSR)
 	if err != nil {
-		log.Println("create ca failed", err)
-		return false
+		return
 	}
 	tbsCSR.Raw = tbsCSRContents
 
 	var signature []byte
 	signature, err = sm2.Sign(pri, userId, tbsCSRContents)
 	if err != nil {
-		log.Println("create ca failed", err)
-		return false
+		return
 	}
 
 	var sigAlgo pkix.AlgorithmIdentifier
 	sigAlgo.Algorithm = oidSignatureSM3WithSM2
 
-	ca_b, err := asn1.Marshal(certificateRequest{
+	return asn1.Marshal(certificateRequest{
 		TBSCSR:             tbsCSR,
 		SignatureAlgorithm: sigAlgo,
 		SignatureValue: asn1.BitString{
@@ -395,20 +368,6 @@ func CreateCertificateRequest(pub *sm2.PublicKey,
 			BitLength: len(signature) * 8,
 		},
 	})
-	if err != nil {
-		log.Println("create ca failed", err)
-		return false
-	}
-	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	fileName := "../taiCrypto/data/cert/gmcert/" + name + "ca.pem"
-	dstFile, err := os.Create(fileName)
-	if err != nil {
-		return false
-	}
-	dstFile.WriteString(encodeString + "\n")
-	defer dstFile.Close()
-
-	return true
 }
 
 // marshalSANs marshals a list of addresses into a the contents of an X.509
@@ -740,6 +699,30 @@ func VerifyDERCSRSign(asn1Data []byte, userId []byte) (bool, error) {
 func VerifyCSRSign(csr *x509.CertificateRequest, userId []byte) bool {
 	pub := csr.PublicKey.(*sm2.PublicKey)
 	return sm2.Verify(pub, userId, csr.RawTBSCertificateRequest, csr.Signature)
+}
+
+func CheckSignature(csr *x509.Certificate)  error{
+
+	pub := csr.PublicKey.(*sm2.PublicKey)
+
+	res:= sm2.Verify(pub, nil, csr.RawTBSCertificate, csr.Signature)
+	if res{
+		return nil
+	}else{
+		return errors.New("verfiy error")
+	}
+}
+
+func CheckSignatureFrom(son,parent *x509.Certificate)  error{
+
+	pub := parent.PublicKey.(*sm2.PublicKey)
+
+	res:= sm2.Verify(pub, nil, son.RawTBSCertificate, son.Signature)
+	if res{
+		return nil
+	}else{
+		return errors.New("verfiy error")
+	}
 }
 
 func FillCertificateTemplateByCSR(template *x509.Certificate, csr *x509.CertificateRequest) {
@@ -1842,23 +1825,8 @@ func extKeyUsageFromOID(oid asn1.ObjectIdentifier) (eku x509.ExtKeyUsage, ok boo
 	}
 	return
 }
-/*func ReadPemFileByPath(path string) ([]byte, error) {
-	file, _ := os.Open("../taiCrypto/data/config/conf.json")
-	defer file.Close()
-	decoder := json.NewDecoder(file)
-	conf := cim.Configuration{}
-	err := decoder.Decode(&conf)
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-	fmt.Println(conf.GmPath)
 
-	if len(path) == 0 {
-		return nil, errors.New("ReadPemFileByPath path is nil")
-	}
-	//data, err := ioutil.ReadFile(path)
-	return ioutil.ReadFile(conf.GmPath + path)
-}*/
+
 func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 	if cert == nil {
 		return errors.New("cert is nil")
