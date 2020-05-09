@@ -12,7 +12,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte"
 	cryptobyte_asn1 "github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte/asn1"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	"log"
+	//"log"
 	"math/big"
 	"net"
 	"net/url"
@@ -74,21 +74,13 @@ type certificateRequest struct {
 }
 
 
-func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub sm2.PublicKey)(cert []byte){
+func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub *sm2.PublicKey)(cert []byte){
 
-	//pub :=pri.PublicKey
-	var publicKeyBytes []byte
-	var publicKeyAlgorithm pkix.AlgorithmIdentifier
-	publicKeyBytes, publicKeyAlgorithm, err := marshalPublicKey(&pub)
-	if err != nil {
-		log.Println("create ca failed", err)
-		return nil
-	}
 	sanContents, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
 	if err != nil {
-		log.Println("create ca failed", err)
 		return nil
 	}
+
 	template := x509.CertificateRequest{
 		Subject: pkix.Name{
 			CommonName:   "test.example.com",
@@ -105,136 +97,62 @@ func CreateCertBySMPrivte(pri *sm2.PrivateKey,pub sm2.PublicKey)(cert []byte){
 			},
 		},
 	}
-	var extensions []pkix.Extension
-	if (len(template.DNSNames) > 0 || len(template.EmailAddresses) > 0 || len(template.IPAddresses) > 0 || len(template.URIs) > 0) &&
-		!oidInExtensions(oidExtensionSubjectAltName, template.ExtraExtensions) {
-		sanBytes, err := marshalSANs(template.DNSNames, template.EmailAddresses, template.IPAddresses, template.URIs)
-		if err != nil {
-			log.Println("create ca failed", err)
-			return nil
-		}
 
-		extensions = append(extensions, pkix.Extension{
-			Id:    oidExtensionSubjectAltName,
-			Value: sanBytes,
-		})
-	}
-	extensions = append(extensions, template.ExtraExtensions...)
-
-	var attributes []pkix.AttributeTypeAndValueSET
-	attributes = append(attributes, template.Attributes...)
-
-	if len(extensions) > 0 {
-		// specifiedExtensions contains all the extensions that we
-		// found specified via template.Attributes.
-		specifiedExtensions := make(map[string]bool)
-
-		for _, atvSet := range template.Attributes {
-			if !atvSet.Type.Equal(oidExtensionRequest) {
-				continue
-			}
-
-			for _, atvs := range atvSet.Value {
-				for _, atv := range atvs {
-					specifiedExtensions[atv.Type.String()] = true
-				}
-			}
-		}
-
-		atvs := make([]pkix.AttributeTypeAndValue, 0, len(extensions))
-		for _, e := range extensions {
-			if specifiedExtensions[e.Id.String()] {
-				// Attributes already contained a value for
-				// this extension and it takes priority.
-				continue
-			}
-
-			atvs = append(atvs, pkix.AttributeTypeAndValue{
-				// There is no place for the critical flag in a CSR.
-				Type:  e.Id,
-				Value: e.Value,
-			})
-		}
-
-		// Append the extensions to an existing attribute if possible.
-		appended := false
-		for _, atvSet := range attributes {
-			if !atvSet.Type.Equal(oidExtensionRequest) || len(atvSet.Value) == 0 {
-				continue
-			}
-
-			atvSet.Value[0] = append(atvSet.Value[0], atvs...)
-			appended = true
-			break
-		}
-
-		// Otherwise, add a new attribute for the extensions.
-		if !appended {
-			attributes = append(attributes, pkix.AttributeTypeAndValueSET{
-				Type: oidExtensionRequest,
-				Value: [][]pkix.AttributeTypeAndValue{
-					atvs,
-				},
-			})
-		}
-	}
-
-	asn1Subject := template.RawSubject
-	if len(asn1Subject) == 0 {
-		asn1Subject, err = asn1.Marshal(template.Subject.ToRDNSequence())
-		if err != nil {
-			log.Println("create ca failed", err)
-			return nil
-		}
-	}
-
-	rawAttributes, err := newRawAttributes(attributes)
+	derBytes, err := CreateCertificateRequest(&template, pub, pri, nil)
 	if err != nil {
-		log.Println("create ca failed", err)
 		return nil
 	}
 
-	tbsCSR := tbsCertificateRequest{
-		Version: 0, // PKCS #10, RFC 2986
-		Subject: asn1.RawValue{FullBytes: asn1Subject},
-		PublicKey: publicKeyInfo{
-			Algorithm: publicKeyAlgorithm,
-			PublicKey: asn1.BitString{
-				Bytes:     publicKeyBytes,
-				BitLength: len(publicKeyBytes) * 8,
-			},
-		},
-		RawAttributes: rawAttributes,
-	}
-
-	tbsCSRContents, err := asn1.Marshal(tbsCSR)
+	csr, err := ParseCertificateRequest(derBytes)
 	if err != nil {
-		log.Println("create ca failed", err)
-		return nil
-	}
-	tbsCSR.Raw = tbsCSRContents
-
-	var signature []byte
-	signature, err = sm2.Sign(pri, nil, tbsCSRContents)
-	if err != nil {
-		log.Println("create ca failed", err)
 		return nil
 	}
 
-	var sigAlgo pkix.AlgorithmIdentifier
-	sigAlgo.Algorithm = oidSignatureSM3WithSM2
+	testExtKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+	testUnknownExtKeyUsage := []asn1.ObjectIdentifier{[]int{1, 2, 3}, []int{2, 59, 1}}
+	cerTemplate := x509.Certificate{
+		// SerialNumber is negative to ensure that negative
+		// values are parsed. This is due to the prevalence of
+		// buggy code that produces certificates with negative
+		// serial numbers.
+		SerialNumber: big.NewInt(-1),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Unix(time.Now().Unix()+100000000, 0),
 
-	ca_b, err := asn1.Marshal(certificateRequest{
-		TBSCSR:             tbsCSR,
-		SignatureAlgorithm: sigAlgo,
-		SignatureValue: asn1.BitString{
-			Bytes:     signature,
-			BitLength: len(signature) * 8,
-		},
-	})
+		SubjectKeyId: []byte{1, 2, 3, 4},
+		KeyUsage:     x509.KeyUsageCertSign,
 
-	cert = ca_b
-	return cert
+		ExtKeyUsage:        testExtKeyUsage,
+		UnknownExtKeyUsage: testUnknownExtKeyUsage,
+
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+
+		OCSPServer:            []string{"http://ocsp.example.com"},
+		IssuingCertificateURL: []string{"http://crt.example.com/ca1.crt"},
+
+		PolicyIdentifiers: []asn1.ObjectIdentifier{[]int{1, 2, 3}},
+
+		CRLDistributionPoints: []string{"http://crl1.example.com/ca1.crl", "http://crl2.example.com/ca1.crl"},
+	}
+
+	FillCertificateTemplateByCSR(&cerTemplate, csr)
+
+	cinfo, err := CreateCertificateInfo(&cerTemplate, &cerTemplate, csr)
+	if err != nil {
+		return nil
+	}
+
+	sign, err := sm2.Sign(pri, nil, cinfo.Raw)
+	if err != nil {
+		return nil
+	}
+
+	cer, err := CreateCertificate(cinfo, sign)
+	if err != nil {
+		return nil
+	}
+	return cer
 }
 
 func CreateCertificateRequest(template *x509.CertificateRequest, pub *sm2.PublicKey,
@@ -1855,3 +1773,83 @@ func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 	}
 
 }
+
+func IssueCert(rootcert  *x509.Certificate, rootPri *sm2.PrivateKey,sonPuk *sm2.PublicKey) (cert []byte, err error) {
+	sanContents_son, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
+	if err != nil {
+		return nil,err
+	}
+
+	template_son := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Σ Acme Co"},
+		},
+		DNSNames: []string{"test.example.com"},
+
+		// An explicit extension should override the DNSNames from the
+		// template.
+		ExtraExtensions: []pkix.Extension{
+			{
+				Id:    oidExtensionSubjectAltName,
+				Value: sanContents_son,
+			},
+		},
+	}
+
+	derBytes_son, err := CreateCertificateRequest(&template_son, sonPuk, rootPri, nil)
+	if err != nil {
+		return nil,err
+	}
+
+	csr_son, err := ParseCertificateRequest(derBytes_son)
+	if err != nil {
+		return nil,err
+	}
+
+	cerTemplate_son := x509.Certificate{
+		// SerialNumber is negative to ensure that negative
+		// values are parsed. This is due to the prevalence of
+		// buggy code that produces certificates with negative
+		// serial numbers.
+		SerialNumber: big.NewInt(-1),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Unix(time.Now().Unix()+100000000, 0),
+
+		SubjectKeyId: []byte{1, 2, 3, 4},
+		KeyUsage:     x509.KeyUsageCertSign,
+
+		//ExtKeyUsage:        testExtKeyUsage,
+		//UnknownExtKeyUsage: testUnknownExtKeyUsage,
+
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+
+		OCSPServer:            []string{"http://ocsp.example.com"},
+		IssuingCertificateURL: []string{"http://crt.example.com/ca1.crt"},
+
+		PolicyIdentifiers: []asn1.ObjectIdentifier{[]int{1, 2, 3}},
+
+		CRLDistributionPoints: []string{"http://crl1.example.com/ca1.crl", "http://crl2.example.com/ca1.crl"},
+	}
+
+	FillCertificateTemplateByCSR(&cerTemplate_son, csr_son)
+
+	cinfo_son, err := CreateCertificateInfo(&cerTemplate_son, rootcert, csr_son)
+	if err != nil {
+		return nil,err
+	}
+
+	sign_son, err := sm2.Sign(rootPri, nil, cinfo_son.Raw)
+	if err != nil {
+		return nil,err
+	}
+
+	cer_son, err := CreateCertificate(cinfo_son, sign_son)
+	if err != nil {
+		return nil,err
+	}
+
+	return cer_son,nil
+}
+

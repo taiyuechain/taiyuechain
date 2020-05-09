@@ -268,7 +268,7 @@ func TestCheckSignatureFrom(t *testing.T) {
 	}
 
 	////////////////////////////////////////son
-	pri_son, pub_son, err := sm2.GenerateKey(rand.Reader)
+	_, pub_son, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -295,7 +295,7 @@ func TestCheckSignatureFrom(t *testing.T) {
 		},
 	}
 
-	derBytes_son, err := CreateCertificateRequest(&template_son, pub_son, pri_son, nil)
+	derBytes_son, err := CreateCertificateRequest(&template_son, pub_son, pri, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -333,9 +333,9 @@ func TestCheckSignatureFrom(t *testing.T) {
 		CRLDistributionPoints: []string{"http://crl1.example.com/ca1.crl", "http://crl2.example.com/ca1.crl"},
 	}
 
-	FillCertificateTemplateByCSR(&cerTemplate_son, csr)
+	FillCertificateTemplateByCSR(&cerTemplate_son, csr_son)
 
-	cinfo_son, err := CreateCertificateInfo(&cerTemplate_son, &cerTemplate, csr_son)
+	cinfo_son, err := CreateCertificateInfo(&cerTemplate_son, parentcertificate, csr_son)
 	if err != nil {
 		t.Fatal(err)
 	}
