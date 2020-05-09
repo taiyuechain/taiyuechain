@@ -56,8 +56,24 @@ func ParseCertificate(asn1Data []byte,cryptoType uint8) (*x509.Certificate, erro
 
 }
 
-func CheckSignatureFrom(son *x509.Certificate,parent *x509.Certificate) error   {
-	return son.CheckSignatureFrom(parent)
+func CheckSignatureFrom(son *x509.Certificate,parent *x509.Certificate,cryptoType uint8) error   {
+	if cryptoType ==1 {
+		return son.CheckSignatureFrom(parent)
+	}
+	if cryptoType == 2 {
+		return sm2_cert.CheckSignatureFrom(son,parent)
+	}
+	return nil
+}
+
+func checkSignatrue(cert *x509.Certificate,cryptoType uint8) error  {
+	if cryptoType ==1 {
+		return cert.CheckSignature(cert.SignatureAlgorithm,cert.RawTBSCertificate,cert.Signature)
+	}
+	if cryptoType == 2{ //sm2
+		return sm2_cert.CheckSignature(cert)
+	}
+	return nil
 }
 
 func isEqulCert(cert *x509.Certificate,idBytes []byte,cryptoType uint8) error {
@@ -75,3 +91,4 @@ func isEqulCert(cert *x509.Certificate,idBytes []byte,cryptoType uint8) error {
 	}
 	return nil
 }
+
