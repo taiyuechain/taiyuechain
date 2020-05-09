@@ -40,8 +40,14 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 	if !IsCorrectSY(cryptoType,needVerfyCert.PublicKey){
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
-	//check from
+	//check cert signatrue
+	err = CheckSignatrue(needVerfyCert,cryptoType)
+	if err != nil{
+		return err
+	}
 
+
+	//check from
 	err =needVerfyCert.CheckSignatureFrom(id.cert)
 	if err != nil{
 		return err
@@ -51,40 +57,30 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 
 func (id *identity) isEqulIdentity(cert []byte,cryptoType uint8) error{
 
-	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
+	err := isEqulCert(id.cert,cert,cryptoType)
 	if err != nil{
 		return err
-	}
-	if(err != nil){
-		return err
-	}
-
-	if !id.cert.Equal(needVerfyCert){
-		return errors.New("not equl ")
 	}
 	return nil
 }
 
 
-/*func IsCorrectSY(cryptoType uint8,syCrypto interface{}) bool {
-
-	switch pub := syCrypto.(type)  {
-	case *sm2.PublicKey:
-		if cryptoType == 2 {
-			return true
-		}
-	case *ecdsa.PublicKey:
-		switch pub.Curve {
-		case  elliptic.P256():
-			if cryptoType == 1 {
-				return true
-			}
-		}
-	}
-	return false
-}*/
 
 
 func NewIdentity(cert *x509.Certificate) (Identity, error) {
 	return &identity{cert: cert}, nil
+}
+
+func GetIdentityFromByte(idBytes []byte,cryptoType uint8) (Identity, error) {
+	cert, err := GetCertFromByte(idBytes,cryptoType)
+	if err != nil {
+		return nil, err
+	}
+
+
+	identity, err := NewIdentity(cert)
+	if err != nil {
+		return nil, err
+	}
+	return identity, nil
 }
