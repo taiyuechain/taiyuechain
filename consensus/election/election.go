@@ -1347,7 +1347,9 @@ func (e *Election) loop() {
 				}
 				err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 				e.nextCommittee = e.getCommitteeInfoByCommitteeId(e.committee.id)
-				//e.nextCommittee.members =caCertList
+
+				//todo e.nextCommittee.members
+				e.nextCommittee.members = e.convertCAToCommitteeMembers(caCertList)
 
 				//send CommitteeSwitchover event to pbftAgent
 				e.electionFeed.Send(types.ElectionEvent{
@@ -1363,6 +1365,7 @@ func (e *Election) loop() {
 				e.committee = e.nextCommittee
 				e.nextCommittee = nil
 				e.mu.Unlock()
+				log.Info("Election BFT committee CommitteeSwitchover", "beginFastNumber", e.committee.beginFastNumber, "endFastNumber", e.committee.endFastNumber)
 			}
 		/*case se := <-e.snailChainEventCh:
 		if se.Block != nil && e.committee.switchCheckNumber.Cmp(se.Block.Number()) == 0 {
@@ -1442,6 +1445,17 @@ func (e *Election) loop() {
 // SubscribeElectionEvent adds a channel to feed on committee change event
 func (e *Election) SubscribeElectionEvent(ch chan<- types.ElectionEvent) event.Subscription {
 	return e.scope.Track(e.electionFeed.Subscribe(ch))
+}
+
+func (e *Election) convertCAToCommitteeMembers(caCertList *vm.CACertList) types.CommitteeMembers {
+	caCertMap := caCertList.GetCACertMap()
+	members := make([]*types.CommitteeMember, len(caCertMap))
+
+	//todo get pubkey by cert
+	/*for i, caCert := range caCertMap {
+		members[i] =caCert.GetByte()
+	}*/
+	return members
 }
 
 //committee struct {
