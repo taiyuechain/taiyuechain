@@ -129,6 +129,14 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 
 func VerifySignature(pubkey, digestHash, signature []byte) bool {
 	if cryptotype == CRYPTO_P256_SH3_AES {
+		if len(pubkey) == 33 {
+			p256pub, err := DecompressPubkey(pubkey)
+			if err != nil {
+				return false
+			}
+			return p256.Verify(p256pub, digestHash, signature)
+		}
+
 		p256pub, err := UnmarshalPubkey(pubkey)
 		if err != nil {
 			return false
@@ -137,6 +145,13 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 	}
 	//guomi
 	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+		if len(pubkey) == 33 {
+			smpub, err := DecompressPubkey(pubkey)
+			if err != nil {
+				return false
+			}
+			return sm2.Verify(sm2.ToSm2Publickey(smpub), nil, digestHash, signature)
+		}
 		smpub, err := UnmarshalPubkey(pubkey)
 		if err != nil {
 			return false

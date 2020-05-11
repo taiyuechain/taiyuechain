@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"encoding/hex"
 	"fmt"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
@@ -24,6 +25,10 @@ func TestDecrypt(t *testing.T) {
 	//sign and verify test
 	sign, _ := Sign(hash, ecdsapri)
 	pubbyte := FromECDSAPub(&ecdsapri.PublicKey)
+	ecdpub, _ := UnmarshalPubkey(pubbyte)
+	fmt.Println(ecdpub)
+	fmt.Println(ecdsapri.PublicKey)
+
 	boolverify := VerifySignature(pubbyte, hash, sign)
 	fmt.Println(boolverify)
 	//	compress and uncompress test
@@ -45,19 +50,18 @@ func TestDecrypt(t *testing.T) {
 }
 
 func Test_zeroBytes(t *testing.T) {
-	type args struct {
-		bytes []byte
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-		})
-	}
+	cryptotype = CRYPTO_SM2_SM3_SM4
+	ecdsapri, _ := GenerateKey()
+	pubkeybyte := FromECDSAPub(&ecdsapri.PublicKey)
+	stringsm2pub := hex.EncodeToString(pubkeybyte)
+	fmt.Println(stringsm2pub)
+	cryptotype = CRYPTO_P256_SH3_AES
+	ecdpub, _ := UnmarshalPubkey(pubkeybyte)
+	fmt.Println(ecdpub)
+	byte, _ := hex.DecodeString(stringsm2pub)
+	ecdpub1, _ := UnmarshalPubkey(byte)
+	fmt.Println(ecdpub1)
+
 }
 func TestSm2(t *testing.T) {
 	cryptotype = CRYPTO_P256_SH3_AES
