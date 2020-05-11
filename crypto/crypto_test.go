@@ -12,7 +12,7 @@ import (
 
 func TestDecrypt(t *testing.T) {
 	//1 is guoji 2 is guomi
-	cryptotype = CRYPTO_SM2_SM3
+	cryptotype = CRYPTO_SM2_SM3_SM4
 	ecdsapri, _ := GenerateKey()
 	fmt.Println(ecdsapri)
 	ecdsabyte := FromECDSA(ecdsapri)
@@ -60,7 +60,7 @@ func Test_zeroBytes(t *testing.T) {
 	}
 }
 func TestSm2(t *testing.T) {
-	cryptotype = CRYPTO_P256_SH3
+	cryptotype = CRYPTO_P256_SH3_AES
 	priv, err := GenerateKey()
 	if err != nil {
 		log.Fatal(err)
