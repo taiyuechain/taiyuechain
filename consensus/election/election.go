@@ -32,6 +32,7 @@ import (
 	"math/big"
 	"sync"
 
+	"crypto/ecdsa"
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -41,7 +42,6 @@ import (
 	//"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
-	"crypto/ecdsa"
 )
 
 const (
@@ -72,8 +72,8 @@ var (
 )
 
 type candidateMember struct {
-	coinbase common.Address
-	address  common.Address
+	coinbase   common.Address
+	address    common.Address
 	publickey  *ecdsa.PublicKey
 	difficulty *big.Int
 	upper      *big.Int
@@ -135,10 +135,10 @@ type Election struct {
 
 	commiteeCache *lru.Cache
 
-	electionMode  ElectMode
-	committee     *committee
-	nextCommittee *committee
-	mu            sync.RWMutex
+	electionMode    ElectMode
+	committee       *committee
+	nextCommittee   *committee
+	mu              sync.RWMutex
 	testPrivateKeys []*ecdsa.PrivateKey
 	startSwitchover bool //Flag bit for handling event switching
 	singleNode      bool
@@ -475,7 +475,7 @@ func (e *Election) getElectionMembers(snailBeginNumber *big.Int, snailEndNumber 
 	return members
 }
 
-func (e *Election) getCommitteeBuyContract() *committee {
+func (e *Election) getCommitteeByContract() *committee {
 	//TODO get new one
 	return &committee{
 		id:                  new(big.Int).Set(common.Big0),
@@ -946,11 +946,11 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 			addrs[cm.address] = 1
 
 			member := &types.CommitteeMember{
-				Coinbase: cm.coinbase,
+				Coinbase:      cm.coinbase,
 				CommitteeBase: crypto.PubkeyToAddress(*cm.publickey),
 				Publickey:     crypto.FromECDSAPub(cm.publickey),
 
-				Flag:          types.StateUnusedFlag,
+				Flag: types.StateUnusedFlag,
 			}
 			members = append(members, member)
 
@@ -1205,7 +1205,8 @@ func (e *Election) Start() error {
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
 	//snailHeadNumber := e.snailchain.CurrentBlock().Number()
 
-	currentCommittee := e.getCommitteeBuyContract() //e.getCommittee(fastHeadNumber, snailHeadNumber)
+	//todo e.getCommittee(fastHeadNumber, snailHeadNumber)
+	currentCommittee := e.getCommitteeByContract()
 	if currentCommittee == nil {
 		log.Crit("Election faiiled to get committee on start")
 		return nil
@@ -1303,18 +1304,26 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if fastHead.Block.Number().Cmp(e.committee.endFastNumber) == 0 {
-				caCertList := vm.NewCACertList()
-				stateDB, err := e.fastchain.State()
-				if err != nil {
-					log.Error("election fastHead event", "err", err)
-					continue
-				}
-				err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-				e.nextCommittee = e.getCommitteeInfoByCommitteeId(e.committee.id)
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == numberinterval {
+				//send CommitteeOver event to pbftAgent to notify currentCommittee endFastNumber
+				e.electionFeed.Send(types.ElectionEvent{
+					Option:           types.CommitteeOver,
+					CommitteeID:      e.committee.id,
+					CommitteeMembers: e.committee.Members(),
+					BeginFastNumber:  e.committee.beginFastNumber,
+					EndFastNumber:    e.committee.endFastNumber,
+				})
+				log.Info("Election BFT committee election start..", "endfast", e.committee.endFastNumber)
 
-				//todo e.nextCommittee.members
-				e.nextCommittee.members = e.convertCAToCommitteeMembers(caCertList)
+				//calculate nextCommittee
+				nextCommittee := e.getCommitteeInfoByCommitteeId(e.committee.id)
+
+				//reset committee and nextCommittee
+				e.mu.Lock()
+				e.nextCommittee = nextCommittee
+				e.startSwitchover = true
+				e.mu.Unlock()
+				printCommittee(e.nextCommittee)
 
 				//send CommitteeSwitchover event to pbftAgent
 				e.electionFeed.Send(types.ElectionEvent{
@@ -1324,12 +1333,6 @@ func (e *Election) loop() {
 					BeginFastNumber:  e.nextCommittee.beginFastNumber,
 					EndFastNumber:    e.nextCommittee.endFastNumber,
 				})
-
-				//reset committee and nextCommittee
-				e.mu.Lock()
-				e.committee = e.nextCommittee
-				e.nextCommittee = nil
-				e.mu.Unlock()
 				log.Info("Election BFT committee CommitteeSwitchover", "beginFastNumber", e.committee.beginFastNumber, "endFastNumber", e.committee.endFastNumber)
 			}
 		/*case se := <-e.snailChainEventCh:
@@ -1392,7 +1395,7 @@ func (e *Election) loop() {
 					BeginFastNumber:  e.committee.beginFastNumber,
 				})
 			}
-		case ch := <-e.committeeMemberCh:
+			/*case ch := <-e.committeeMemberCh:
 			switch ch.Option {
 			case types.AddCommitteeMember:
 				log.Info("AddCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
@@ -1402,7 +1405,7 @@ func (e *Election) loop() {
 				e.removeCommitteeMember(ch.CommitteeMember)
 			default:
 				log.Error("unknown handle committeeMember option:", "option", ch.Option)
-			}
+			}*/
 		}
 	}
 }
@@ -1412,32 +1415,54 @@ func (e *Election) SubscribeElectionEvent(ch chan<- types.ElectionEvent) event.S
 	return e.scope.Track(e.electionFeed.Subscribe(ch))
 }
 
-func (e *Election) convertCAToCommitteeMembers(caCertList *vm.CACertList) types.CommitteeMembers {
+func (e *Election) getCACertList() *vm.CACertList {
+	caCertList := vm.NewCACertList()
+	stateDB, err := e.fastchain.State()
+	if err != nil {
+		log.Error("election fastHead event", "err", err)
+		return nil
+	}
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	return caCertList
+}
+
+func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList) []*types.CommitteeMember {
 	caCertMap := caCertList.GetCACertMap()
 	members := make([]*types.CommitteeMember, len(caCertMap))
-
-	//todo get pubkey by cert
-	/*for i, caCert := range caCertMap {
-		members[i] =caCert.GetByte()
-	}*/
+	publicKeys := make([][]byte, len(caCertMap))
+	for i, caCert := range caCertMap {
+		if !caCert.GetIsStore() {
+			continue
+		}
+		var member *types.CommitteeMember
+		member.LocalCert = caCert.GetByte()
+		certificate, err := crypto.GetCertFromByte(caCert.GetByte()) //todo
+		if err != nil {
+			log.Error(" GetCertFromByte error", "err", err)
+		}
+		publicKeys[i] = certificate.PublicKey.([]byte)
+		members[i] = member
+	}
 	return members
 }
 
-//committee struct {
-//id                  *big.Int
-//beginFastNumber     *big.Int // the first fast block proposed by this committee
-//endFastNumber       *big.Int
 func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committee {
 	beginFastNumber := calculateBeginFastNumber(committeeId)
-	return &committee{
-		id:              committeeId,
+	committee := &committee{
+		id:              new(big.Int).Add(committeeId, common.Big1),
 		beginFastNumber: beginFastNumber,
 		endFastNumber:   calculateEndFastNumber(beginFastNumber),
 	}
+	caCertPubkeyList := e.getCACertList()
+	committee.members = e.assignmentCommitteeMember(caCertPubkeyList)
+	return committee
 }
 
 //每届委员会产生的fastBlock数量
-var fastNumberPerSession = new(big.Int).SetUint64(uint64(100000))
+var fastNumberPerSession = new(big.Int).SetUint64(uint64(10000))
+
+//相隔多少个块前需要通知
+var numberinterval uint64 = 100
 
 func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
 	beginFastNumber := new(big.Int).Mul(committeeId, fastNumberPerSession)

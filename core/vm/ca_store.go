@@ -74,6 +74,10 @@ func (cacert *CACert) GetByte() []byte {
 	return cacert.cACert
 }
 
+func (cacert *CACert) GetIsStore() bool {
+	return cacert.isStore
+}
+
 type ProposalState struct {
 	pHash              common.Hash
 	cACert             []byte
