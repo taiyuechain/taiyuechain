@@ -1,9 +1,5 @@
 package cim
 
-import (
-	"time"
-)
-
 type CIMManager interface {
 	newCIMManager() error
 	// Get all the CIM
@@ -36,7 +32,7 @@ type CIM interface {
 	//GetIdentifier() string
 	// construct consortium identity manager
 	//SetUp(conf *CIMConfig) error
-	SetUpFromCA(rootCAByte []byte,cryptoType uint8) error
+	SetUpFromCA(rootCAByte []byte) error
 	//GetRootCert() Identity
 	//GetTLSRootCert() []byte
 	// revoke cert list
@@ -45,16 +41,16 @@ type CIM interface {
 	GetSigningIdentity() SigningIdentity
 	Validate(id Identity) error
 	///CreateIdentity(priv string) bool
-	ValidateByByte(certByte []byte,cryptoType uint8) error
-	ValidateRootCert(certByte []byte,cryptoType uint8) error
+	ValidateByByte(certByte []byte) error
+	ValidateRootCert(certByte []byte) error
 }
 
 type Identity interface {
-	ExpiresAt() time.Time
+	//ExpiresAt() time.Time
 	//detemine if the signature  is this identity singed.
 	//Verify(msg []byte, sig []byte) error
-	VerifyByte(cert []byte ,cryptoType uint8) error
-	isEqulIdentity(cert []byte,cryptoType uint8) error
+	VerifyByte(cert []byte) error
+	isEqulIdentity(cert []byte) error
 
 }
 

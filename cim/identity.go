@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"time"
 
-	//"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 type ReIdentity struct {
@@ -23,9 +23,9 @@ func (id *identity) ExpiresAt() time.Time {
 }
 
 
-func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
+func (id *identity) VerifyByte(cert []byte) error {
 
-	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
+	needVerfyCert,err :=crypto.GetCertFromByte(cert)
 	if err != nil{
 		return err
 	}
@@ -37,19 +37,12 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 		return errors.New("x509: certificate has expired or is not yet valid")
 	}
 
-	if !IsCorrectSY(cryptoType,needVerfyCert.PublicKey){
+	if !crypto.IsCorrectSY(needVerfyCert.PublicKey){
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
-	//check cert signatrue only root need
-	/*err = CheckSignatrue(needVerfyCert,cryptoType)
-	if err != nil{
-		return err
-	}*/
 
 
-
-
-	err =CheckSignatureFrom(needVerfyCert,id.cert,cryptoType)
+	err =crypto.CheckSignatureFrom(needVerfyCert,id.cert)
 	if err != nil{
 		return err
 	}
@@ -57,19 +50,19 @@ func (id *identity) VerifyByte(cert []byte,cryptoType uint8) error {
 	return nil
 }
 
-func (id *identity) isEqulIdentity(cert []byte,cryptoType uint8) error{
+func (id *identity) isEqulIdentity(cert []byte) error{
 
-	needVerfyCert,err :=GetCertFromByte(cert,cryptoType)
+	needVerfyCert,err :=crypto.GetCertFromByte(cert)
 	if err != nil{
 		return err
 	}
 
-	CheckSignatrue(needVerfyCert,cryptoType)
+	crypto.CheckSignatrue(needVerfyCert)
 	if err != nil{
 		return err
 	}
 
-	err = isEqulCert(id.cert,cert,cryptoType)
+	err = crypto.IsEqulCert(id.cert,cert)
 	if err != nil{
 		return err
 	}
@@ -83,13 +76,13 @@ func NewIdentity(cert *x509.Certificate) (Identity, error) {
 	return &identity{cert: cert}, nil
 }
 
-func GetIdentityFromByte(idBytes []byte,cryptoType uint8) (Identity, error) {
-	cert, err := GetCertFromByte(idBytes,cryptoType)
+func GetIdentityFromByte(idBytes []byte) (Identity, error) {
+	cert, err := crypto.GetCertFromByte(idBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	CheckSignatrue(cert,cryptoType)
+	crypto.CheckSignatrue(cert)
 	if err != nil{
 		return nil,err
 	}

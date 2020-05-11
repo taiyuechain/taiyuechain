@@ -56,7 +56,7 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 
 	//var err error
 	for _,ci:= range cl.CimMap{
-		err := ci.ValidateByByte(cert,cl.CryptoType)
+		err := ci.ValidateByByte(cert)
 		if err != nil{
 			return err
 		}
@@ -69,7 +69,7 @@ func (cl *CimList) VerifyRootCert(cert []byte) error  {
 	//var err error
 	findOne :=false
 	for _,ci:= range cl.CimMap{
-		err := ci.ValidateRootCert(cert,cl.CryptoType)
+		err := ci.ValidateRootCert(cert)
 		if err != nil{
 			continue
 		}else{
@@ -117,12 +117,12 @@ func (cim *cimimpl) GetIdentifier() string {
 
 
 
-func (cim *cimimpl) SetUpFromCA(rootCAByte []byte,CryptoType uint8) error {
+func (cim *cimimpl) SetUpFromCA(rootCAByte []byte) error {
 	if len(rootCAByte) == 0 {
 		return errors.New("expected at least one CA certificate")
 	}
 
-	id, err := GetIdentityFromByte(rootCAByte,CryptoType)
+	id, err := GetIdentityFromByte(rootCAByte)
 	if err != nil {
 		return err
 	}
@@ -164,11 +164,11 @@ func (cim *cimimpl) Validate(id Identity) error {
 }
 
 
-func (cim *cimimpl) ValidateByByte(certByte []byte,cryptoType uint8) error {
-	return cim.rootCert.VerifyByte(certByte,cryptoType)
+func (cim *cimimpl) ValidateByByte(certByte []byte) error {
+	return cim.rootCert.VerifyByte(certByte)
 }
-func (cim *cimimpl) ValidateRootCert(certByte []byte,cryptoType uint8) error {
-	return cim.rootCert.isEqulIdentity(certByte,cryptoType)
+func (cim *cimimpl) ValidateRootCert(certByte []byte) error {
+	return cim.rootCert.isEqulIdentity(certByte)
 }
 
 

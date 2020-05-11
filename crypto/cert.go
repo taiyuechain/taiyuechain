@@ -1,4 +1,4 @@
-package cim
+package crypto
 
 import (
 	"crypto/ecdsa"
@@ -11,17 +11,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-func IsCorrectSY(cryptoType uint8,syCrypto interface{}) bool {
+func IsCorrectSY(syCrypto interface{}) bool {
 
 	switch pub := syCrypto.(type)  {
 	case *sm2.PublicKey:
-		if cryptoType == 2 {
+		if cryptotype == CRYPTO_SM2_SM3 {
 			return true
 		}
 	case *ecdsa.PublicKey:
 		switch pub.Curve {
 		case  elliptic.P256():
-			if cryptoType == 1 {
+			if cryptotype == CRYPTO_P256_SH3 {
 				return true
 			}
 		}
@@ -29,12 +29,12 @@ func IsCorrectSY(cryptoType uint8,syCrypto interface{}) bool {
 	return false
 }
 
-func GetCertFromByte(idBytes []byte,cryptoType uint8) (*x509.Certificate, error) {
+func GetCertFromByte(idBytes []byte) (*x509.Certificate, error) {
 	if idBytes == nil {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
 
-	cert,err:=ParseCertificate(idBytes,cryptoType)
+	cert,err:=ParseCertificate(idBytes)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
@@ -43,42 +43,42 @@ func GetCertFromByte(idBytes []byte,cryptoType uint8) (*x509.Certificate, error)
 	return cert, nil
 }
 
-func ParseCertificate(asn1Data []byte,cryptoType uint8) (*x509.Certificate, error)  {
+func ParseCertificate(asn1Data []byte) (*x509.Certificate, error)  {
 	if asn1Data == nil {
 		return nil, errors.New("getCertFromPem error: nil idBytes")
 	}
-	if cryptoType == 1{
+	if cryptotype == CRYPTO_P256_SH3{
 		return x509.ParseCertificate(asn1Data)
-	}else if cryptoType == 2{
+	}else if cryptotype == CRYPTO_SM2_SM3{
 		return sm2_cert.ParseCertificate(asn1Data)
 	}
 	return nil, nil
 
 }
 
-func CheckSignatureFrom(son *x509.Certificate,parent *x509.Certificate,cryptoType uint8) error   {
-	if cryptoType ==1 {
+func CheckSignatureFrom(son *x509.Certificate,parent *x509.Certificate) error   {
+	if cryptotype ==CRYPTO_P256_SH3 {
 		return son.CheckSignatureFrom(parent)
 	}
-	if cryptoType == 2 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		return sm2_cert.CheckSignatureFrom(son,parent)
 	}
 	return nil
 }
 
-func CheckSignatrue(cert *x509.Certificate,cryptoType uint8) error  {
-	if cryptoType ==1 {
+func CheckSignatrue(cert *x509.Certificate) error  {
+	if cryptotype ==CRYPTO_P256_SH3 {
 		return cert.CheckSignature(cert.SignatureAlgorithm,cert.RawTBSCertificate,cert.Signature)
 	}
-	if cryptoType == 2{ //sm2
+	if cryptotype == CRYPTO_SM2_SM3{ //sm2
 		return sm2_cert.CheckSignature(cert)
 	}
 	return nil
 }
 
-func isEqulCert(cert *x509.Certificate,idBytes []byte,cryptoType uint8) error {
+func IsEqulCert(cert *x509.Certificate,idBytes []byte) error {
 
-	needVerfyCert,err :=GetCertFromByte(idBytes,cryptoType)
+	needVerfyCert,err :=GetCertFromByte(idBytes)
 	if err != nil{
 		return err
 	}
