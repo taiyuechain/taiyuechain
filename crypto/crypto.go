@@ -55,14 +55,14 @@ var errInvalidPubkey = errors.New("invalid secp256k1 public key")
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
 
 func Keccak256(data ...[]byte) []byte {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
 			d.Write(b)
 		}
 		return d.Sum(nil)
 	}
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		d := sm3.New()
 		for _, b := range data {
 			d.Write(b)
@@ -75,7 +75,7 @@ func Keccak256(data ...[]byte) []byte {
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h common.Hash) {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
 			d.Write(b)
@@ -83,7 +83,7 @@ func Keccak256Hash(data ...[]byte) (h common.Hash) {
 		d.Sum(h[:0])
 		return h
 	}
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		d := sm3.New()
 		for _, b := range data {
 			d.Write(b)
@@ -117,7 +117,7 @@ func CreateAddress2(cryptotype uint8, b common.Address, salt [32]byte, inithash 
 
 // ToECDSA creates a private key with the given D value.
 func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		ecdsapri, err := toECDSA(elliptic.P256(), d, true)
 		if err != nil {
 			return nil, err
@@ -125,7 +125,7 @@ func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 		return ecdsapri, nil
 	}
 	//guomi
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		ecdsapri, err := toECDSA(sm2.P256Sm2(), d, true)
 		if err != nil {
 			return nil, err
@@ -133,7 +133,7 @@ func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 		return ecdsapri, nil
 	}
 	//guoji S256
-	if cryptotype == 3 {
+	if cryptotype == CRYPTO_S256_SH3 {
 		ecdsapri, err := toECDSA(S256(), d, true)
 		if err != nil {
 			return nil, err
@@ -143,17 +143,17 @@ func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	return nil, nil
 }
 func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		ecdsapri, _ := toECDSA(elliptic.P256(), d, true)
 		return ecdsapri
 	}
 	//guomi
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		ecdsapri, _ := toECDSA(sm2.P256Sm2(), d, true)
 		return ecdsapri
 	}
 	//guoji S256
-	if cryptotype == 3 {
+	if cryptotype == CRYPTO_S256_SH3 {
 		ecdsapri, _ := toECDSA(S256(), d, true)
 
 		return ecdsapri
@@ -197,7 +197,7 @@ func FromECDSA(priv *ecdsa.PrivateKey) []byte {
 	return math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
 }
 func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		x, y := elliptic.Unmarshal(elliptic.P256(), pub)
 		if x == nil {
 			return nil, errInvalidPubkey
@@ -205,7 +205,7 @@ func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 		return &ecdsa.PublicKey{Curve: elliptic.P256(), X: x, Y: y}, nil
 	}
 	//guomi
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		//ecdsapri, _ := toECDSA(sm2.P256Sm2(),d,true)
 		x, y := elliptic.Unmarshal(sm2.P256Sm2(), pub)
 		if x == nil {
@@ -214,7 +214,7 @@ func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 		return &ecdsa.PublicKey{Curve: sm2.P256Sm2(), X: x, Y: y}, nil
 	}
 	//guoji S256
-	if cryptotype == 3 {
+	if cryptotype == CRYPTO_S256_SH3 {
 		x, y := elliptic.Unmarshal(S256(), pub)
 		if x == nil {
 			return nil, errInvalidPubkey
@@ -225,21 +225,21 @@ func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 }
 
 func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
-	if cryptotype == 1 {
+	if cryptotype == CRYPTO_P256_SH3 {
 		if pub == nil || pub.X == nil || pub.Y == nil {
 			return nil
 		}
 		return elliptic.Marshal(elliptic.P256(), pub.X, pub.Y)
 	}
 	//guomi
-	if cryptotype == 2 {
+	if cryptotype == CRYPTO_SM_SM3 {
 		if pub == nil || pub.X == nil || pub.Y == nil {
 			return nil
 		}
 		return elliptic.Marshal(sm2.P256Sm2(), pub.X, pub.Y)
 	}
 	//guoji S256
-	if cryptotype == 3 {
+	if cryptotype == CRYPTO_S256_SH3 {
 		if pub == nil || pub.X == nil || pub.Y == nil {
 			return nil
 		}
@@ -285,18 +285,18 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 func GenerateKey() (*ecdsa.PrivateKey, error) {
 	switch cryptotype {
 	//guoji P256
-	case 1:
+	case CRYPTO_P256_SH3:
 		ecdsapri, err := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
 		if err != nil {
 			return nil, err
 		}
 		return (ecdsapri.ExportECDSA()), nil
 	//	guomi
-	case 2:
+	case CRYPTO_SM_SM3:
 		smpri, _ := ecies.GenerateKey(rand.Reader, sm2.GetSm2P256V1(), nil)
 		return (smpri.ExportECDSA()), nil
 	//	guoji S256
-	case 3:
+	case CRYPTO_S256_SH3:
 		eciespri, _ := ecies.GenerateKey(rand.Reader, S256(), nil)
 		return (eciespri.ExportECDSA()), nil
 	}
@@ -330,14 +330,14 @@ func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	switch cryptotype {
 	//guoji P256
-	case 1:
+	case CRYPTO_P256_SH3:
 		return ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(pub), m, s1, s2)
 	//	guomi
-	case 2:
+	case CRYPTO_SM_SM3:
 		return sm2.Encrypt(sm2.ToSm2Publickey(pub), m, sm2.C1C2C3)
 
 	//	guoji S256
-	case 3:
+	case CRYPTO_S256_SH3:
 		return ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(pub), m, s1, s2)
 	}
 	return nil, nil
@@ -345,14 +345,14 @@ func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 	switch cryptotype {
 	//guoji P256
-	case 1:
+	case CRYPTO_P256_SH3:
 		return ecies.ImportECDSA(pri).Decrypt(c, s1, s2)
 	//	guomi
-	case 2:
+	case CRYPTO_SM_SM3:
 		return sm2.Decrypt(sm2.ToSm2privatekey(pri), c, sm2.C1C2C3)
 
 	//	guoji S256
-	case 3:
+	case CRYPTO_S256_SH3:
 		return ecies.ImportECDSA(pri).Decrypt(c, s1, s2)
 	}
 	return nil, nil
@@ -360,14 +360,14 @@ func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 func GenerateShared(pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
 	switch cryptotype {
 	//guoji P256
-	case 1:
+	case CRYPTO_P256_SH3:
 		return ecies.ImportECDSA(pri).GenerateShared(ecies.ImportECDSAPublic(pub), skLen, macLen)
 	//	guomi
-	case 2:
+	case CRYPTO_SM_SM3:
 		return sm2.ToSm2privatekey(pri).GenerateShared(sm2.ToSm2Publickey(pub), skLen, macLen)
 
 	//	guoji S256
-	case 3:
+	case CRYPTO_S256_SH3:
 		return ecies.ImportECDSA(pri).GenerateShared(ecies.ImportECDSAPublic(pub), skLen, macLen)
 	}
 	return nil, nil
