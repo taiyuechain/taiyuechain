@@ -19,7 +19,7 @@ package node
 import (
 	//"crypto/ecdsa"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"crypto/ecdsa"
 	"fmt"
@@ -37,6 +37,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
+	"crypto/ecdsa"
 )
 
 const (
@@ -302,19 +303,14 @@ func (c *Config) instanceDir() string {
 // first any manually set key, falling back to the one found in the configured
 // data folder. If no key can be found, a new one is generated.
 //caoliang modify
-//func (c *Config) NodeKey() *ecdsa.PrivateKey {
-func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
-	//func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
-	var taiprivate taiCrypto.TaiPrivateKey
+func (c *Config) NodeKey() *ecdsa.PrivateKey {
 	// Use any specifically configured key.
 	if c.P2P.PrivateKey != nil {
 		return c.P2P.PrivateKey
 	}
 	// Generate ephemeral key if no datadir is being used.
 	if c.DataDir == "" {
-		//caoliang modify
-		//key, err := crypto.GenerateKey()
-		key, err := taiCrypto.GenPrivKey()
+		key, err := crypto.GenerateKey()
 		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
 		}
@@ -322,15 +318,11 @@ func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
 	}
 
 	keyfile := c.ResolvePath(datadirPrivateKey)
-	//caolaing modify taiprivate
-	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
-	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
+	if key, err := crypto.LoadECDSA(keyfile); err == nil {
 		return key
 	}
 	// No persistent key found, generate and store a new one.
-	//caoliang modify
-	//key, err := crypto.GenerateKey()
-	key, err := taiCrypto.GenPrivKey()
+	key, err := crypto.GenerateKey()
 	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
 	}
@@ -340,10 +332,7 @@ func (c *Config) NodeKey() *taiCrypto.TaiPrivateKey {
 		return key
 	}
 	keyfile = filepath.Join(instanceDir, datadirPrivateKey)
-	//caolaing modify
-	//if err := crypto.SaveECDSA(keyfile, key); err != nil {
-	taiprivate.Private = key.Private
-	if err := taiprivate.SaveECDSA(keyfile, taiprivate); err != nil {
+	if err := crypto.SaveECDSA(keyfile, key); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
 	return key
@@ -455,16 +444,10 @@ func makeAccountManager(conf *Config) (*accounts.Manager, string, error) {
 	return accounts.NewManager(backends...), ephemeral, nil
 }
 
-//caoliang modify
-//func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
-func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
-	//func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
+func (c *Config) BftCommitteeKey() *ecdsa.PrivateKey {
 	// Generate ephemeral key if no datadir is being used.
-	var taiprivate taiCrypto.TaiPrivateKey
 	if c.DataDir == "" {
-		//caoliang modify
-		//key, err := crypto.GenerateKey()
-		key, err := taiCrypto.GenPrivKey()
+		key, err := crypto.GenerateKey()
 		if err != nil {
 			log.Crit(fmt.Sprintf("Failed to generate ephemeral node key: %v", err))
 		}
@@ -472,15 +455,11 @@ func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
 	}
 
 	keyfile := c.ResolvePath(bftCommitteePrivateKey)
-	//caoliang modify
-	//if key, err := crypto.LoadECDSA(keyfile); err == nil {
-	if key, err := taiprivate.LoadECDSA(keyfile); err == nil {
+	if key, err := crypto.LoadECDSA(keyfile); err == nil {
 		return key
 	}
 	// No persistent key found, generate and store a new one.
-	//caoliang modify
-	//key, err := crypto.GenerateKey()
-	key, err := taiCrypto.GenPrivKey()
+	key, err := crypto.GenerateKey()
 	if err != nil {
 		log.Crit(fmt.Sprintf("Failed to generate node key: %v", err))
 	}
@@ -490,9 +469,7 @@ func (c *Config) BftCommitteeKey() *taiCrypto.TaiPrivateKey {
 		return key
 	}
 	keyfile = filepath.Join(instanceDir, bftCommitteePrivateKey)
-	//caolaing modify
-	//if err := crypto.SaveECDSA(keyfile, key); err != nil {
-	if err := taiprivate.SaveECDSA(keyfile, *key); err != nil {
+	if err := crypto.SaveECDSA(keyfile, key); err != nil {
 		log.Error(fmt.Sprintf("Failed to persist node key: %v", err))
 	}
 	return key

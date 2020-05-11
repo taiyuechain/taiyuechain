@@ -21,14 +21,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etaidb"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
-/*var thash taiCrypto.THash*/
+
 func NewState(ctx context.Context, head *types.Header, odr OdrBackend) *state.StateDB {
 	state, _ := state.New(head.Root, NewStateDatabase(ctx, head, odr))
 	return state
@@ -96,8 +96,8 @@ type odrTrie struct {
 }
 
 func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
-	//key = crypto.Keccak256(key)
-	key = thash.Keccak256(key)
+	key = crypto.Keccak256(key)
+
 	var res []byte
 	err := t.do(key, func() (err error) {
 		res, err = t.trie.TryGet(key)
@@ -107,16 +107,14 @@ func (t *odrTrie) TryGet(key []byte) ([]byte, error) {
 }
 
 func (t *odrTrie) TryUpdate(key, value []byte) error {
-	//key = crypto.Keccak256(key)
-	key = thash.Keccak256(key)
+	key = crypto.Keccak256(key)
 	return t.do(key, func() error {
 		return t.trie.TryDelete(key)
 	})
 }
 
 func (t *odrTrie) TryDelete(key []byte) error {
-	//key = crypto.Keccak256(key)
-	key = thash.Keccak256(key)
+	key = crypto.Keccak256(key)
 	return t.do(key, func() error {
 		return t.trie.TryDelete(key)
 	})

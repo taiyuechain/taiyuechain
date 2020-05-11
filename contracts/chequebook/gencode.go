@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"math/big"
 

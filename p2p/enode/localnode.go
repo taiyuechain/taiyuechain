@@ -18,7 +18,6 @@ package enode
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"net"
 	"reflect"
 	"strconv"
@@ -29,6 +28,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
+	"crypto/ecdsa"
 )
 
 const (
@@ -44,8 +44,8 @@ const (
 type LocalNode struct {
 	cur atomic.Value // holds a non-nil node pointer while the record is up-to-date.
 	id  ID
-	//key *ecdsa.PrivateKey
-	key *taiCrypto.TaiPrivateKey
+	key *ecdsa.PrivateKey
+
 	db  *DB
 
 	// everything below is protected by a lock
@@ -59,10 +59,10 @@ type LocalNode struct {
 }
 
 // NewLocalNode creates a local node.
-//func NewLocalNode(db *DB, key *ecdsa.PrivateKey) *LocalNode {
-func NewLocalNode(db *DB, key *taiCrypto.TaiPrivateKey) *LocalNode {
+func NewLocalNode(db *DB, key *ecdsa.PrivateKey) *LocalNode {
+
 	ln := &LocalNode{
-		id:       PubkeyToIDV4(&key.TaiPubKey),
+		id:       PubkeyToIDV4(&key.PublicKey),
 		db:       db,
 		key:      key,
 		udpTrack: netutil.NewIPTracker(iptrackWindow, iptrackContactWindow, iptrackMinStatements),

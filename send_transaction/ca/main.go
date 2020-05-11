@@ -10,7 +10,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/etaiclient"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
@@ -133,10 +132,10 @@ func SendP256Transtion(ip string) {
 	}
 
 	//sendRawTransaction(client *rpc.Client, from string, to string, value string) (string, error)
-	var toPrive, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var fromPrive, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var toPrive, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var fromPrive, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 
-	from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
+	from := crypto.PubkeyToAddress(fromPrive.PublicKey)
 	amount := new(big.Int).SetInt64(1000000000000000000)
 	fmt.Println("amount", amount)
 	nonce := uint64(2)
@@ -169,7 +168,7 @@ func SendP256Transtion(ip string) {
 
 	fmt.Println("the chain id ", "is", chainID)
 	//from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
-	to := crypto.PubkeyToAddressP256(topubk)
+	to := crypto.PubkeyToAddress(topubk)
 	fmt.Println("--from address", hexutil.Encode(from.Bytes()), "--to address", hexutil.Encode(to.Bytes()))
 
 	//send true transfer
@@ -183,7 +182,7 @@ func SendP256Transtion(ip string) {
 	//tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
 	signer := types.NewSigner(constant.CryptoType, chainID)
-	signTx, _ := types.SignTxBy266(tx, signer, fromPrive)
+	signTx, _ := types.SignTx(tx, signer, fromPrive)
 
 	fmt.Println("--start send ")
 	err = client.SendPayTransaction(context.Background(), signTx)
@@ -360,12 +359,10 @@ func unlockAccount(client *rpc.Client, account string, password string, time int
 
 // Genesis address
 func genAddress() string {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
-	priKey, _ := taiCrypto.GenPrivKey()
-	//address := crypto.PubkeyToAddress(priKey.PublicKey)
-	taipublic = priKey.TaiPubKey
-	address := taipublic.PubkeyToAddress(taipublic)
+
+	priKey, _ := crypto.GenerateKey()
+	address := crypto.PubkeyToAddress(priKey.PublicKey)
+
 	return address.Hex()
 }
 

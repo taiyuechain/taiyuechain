@@ -21,7 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"os"
@@ -71,12 +71,9 @@ func (api *PublicTaichainAPI) Pubkey() string {
 
 // CommitteeBase is the address that generate by pubkey
 func (api *PublicTaichainAPI) CommitteeBase() common.Address {
-	//cao liang modify
-	var taipublic taiCrypto.TaiPublicKey
-	//pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
-	//return crypto.PubkeyToAddress(*pubKey)
-	pubKey, _ := taipublic.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
-	return taipublic.PubkeyToAddress(*pubKey)
+	pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
+	return crypto.PubkeyToAddress(*pubKey)
+
 }
 
 //IsCommitteeMember return node whether current committee member

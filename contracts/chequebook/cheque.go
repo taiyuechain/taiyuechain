@@ -14,7 +14,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -231,8 +230,6 @@ func (self *Chequebook) Stop() {
 // Issue creates a cheque signed by the chequebook owner's private key. The
 // signer commits to a contract (one that they own), a beneficiary and amount.
 func (self *Chequebook) Issue(beneficiary common.Address, amount *big.Int) (ch *Cheque, err error) {
-	//caoliang modify
-	var taiprivate taiCrypto.TaiPrivateKey
 	defer self.lock.Unlock()
 	self.lock.Lock()
 
@@ -250,10 +247,8 @@ func (self *Chequebook) Issue(beneficiary common.Address, amount *big.Int) (ch *
 		}
 		sum := new(big.Int).Set(sent)
 		sum.Add(sum, amount)
-		//caoliang modify
-		//sig, err = crypto.Sign(sigHash(self.contractAddr, beneficiary, sum), self.prvKey)
-		taiprivate.Private = *self.prvKey
-		sig, err = taiprivate.Sign(sigHash(self.contractAddr, beneficiary, sum), taiprivate)
+		sig, err = crypto.Sign(sigHash(self.contractAddr, beneficiary, sum), self.prvKey)
+
 		if err == nil {
 			ch = &Cheque{
 				Contract:    self.contractAddr,
@@ -436,8 +431,7 @@ type Inbox struct {
 // NewInbox creates an Inbox. An Inboxes is not persisted, the cumulative sum is updated
 // from blockchain when first cheque is received.
 func NewInbox(prvKey *ecdsa.PrivateKey, contractAddr, beneficiary common.Address, signer *ecdsa.PublicKey, abigen bind.ContractBackend) (self *Inbox, err error) {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
+
 	if signer == nil {
 		return nil, fmt.Errorf("signer is null")
 	}
@@ -462,10 +456,9 @@ func NewInbox(prvKey *ecdsa.PrivateKey, contractAddr, beneficiary common.Address
 		cashed:      new(big.Int).Set(common.Big0),
 		log:         log.New("contract", contractAddr),
 	}
-	//caolaing modify
 	//self.log.Trace("New chequebook inbox initialized", "beneficiary", self.beneficiary, "signer", hexutil.Bytes(crypto.FromECDSAPub(signer)))
-	taipublic.Publickey = *signer
-	self.log.Trace("New chequebook inbox initialized", "beneficiary", self.beneficiary, "signer", hexutil.Bytes(taipublic.FromECDSAPub(taipublic)))
+
+	self.log.Trace("New chequebook inbox initialized", "beneficiary", self.beneficiary, "signer", hexutil.Bytes(crypto.FromECDSAPub(signer)))
 
 	return
 }
@@ -579,8 +572,7 @@ func (self *Inbox) Receive(promise *Cheque) (*big.Int, error) {
 
 // Verify verifies cheque for signer, contract, beneficiary, amount, valid signature.
 func (self *Cheque) Verify(signerKey *ecdsa.PublicKey, contract, beneficiary common.Address, sum *big.Int) (*big.Int, error) {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
+
 	log.Trace("Verifying chequebook cheque", "cheque", self, "sum", sum)
 	if sum == nil {
 		return nil, fmt.Errorf("invalid amount")
@@ -600,19 +592,12 @@ func (self *Cheque) Verify(signerKey *ecdsa.PublicKey, contract, beneficiary com
 			return nil, fmt.Errorf("incorrect amount: %v <= 0", amount)
 		}
 	}
-	//caoliang modify
-	//pubKey, err := crypto.SigToPub(sigHash(self.Contract, beneficiary, self.Amount), self.Sig)
-	pubKey, err := taipublic.SigToPub(sigHash(self.Contract, beneficiary, self.Amount), self.Sig)
+	pubKey, err := crypto.SigToPub(sigHash(self.Contract, beneficiary, self.Amount), self.Sig)
 	if err != nil {
 		return nil, fmt.Errorf("invalid signature: %v", err)
 	}
-	//caolaing modify
-	/*if !bytes.Equal(crypto.FromECDSAPub(pubKey), crypto.FromECDSAPub(signerKey)) {
+	if !bytes.Equal(crypto.FromECDSAPub(pubKey), crypto.FromECDSAPub(signerKey)) {
 		return nil, fmt.Errorf("signer mismatch: %x != %x", crypto.FromECDSAPub(pubKey), crypto.FromECDSAPub(signerKey))
-	}*/
-	taipublic.Publickey = *signerKey
-	if !bytes.Equal(taipublic.FromECDSAPub(*pubKey), taipublic.FromECDSAPub(taipublic)) {
-		return nil, fmt.Errorf("signer mismatch: %x != %x", taipublic.FromECDSAPub(*pubKey), taipublic.FromECDSAPub(taipublic))
 	}
 	return amount, nil
 }

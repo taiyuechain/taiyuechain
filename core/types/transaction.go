@@ -19,7 +19,7 @@ package types
 import (
 	"container/heap"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"sync/atomic"
@@ -421,9 +421,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	} else {
 		V = byte(dec.V.Uint64() - 27)
 	}
-	//caoliang modify
-	//if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
-	if !taiCrypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
+	if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
 		return ErrInvalidSig
 	}
 	*tx = Transaction{data: dec}

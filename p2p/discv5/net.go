@@ -18,9 +18,7 @@ package discv5
 
 import (
 	"bytes"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-
-	//"crypto/ecdsa"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"net"
@@ -31,8 +29,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"golang.org/x/crypto/sha3"
+	//"crypto/ecdsa"
 )
 
 var (
@@ -134,8 +133,7 @@ type timeoutEvent struct {
 	node *Node
 }
 
-//func newNetwork(conn transport, ourPubkey ecdsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
-func newNetwork(conn transport, ourPubkey taiCrypto.TaiPublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func newNetwork(conn transport, ourPubkey ecdsa.PublicKey, dbPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	ourID := PubkeyID(&ourPubkey)
 
 	var db *nodeDB
@@ -201,7 +199,6 @@ func (net *Network) ReadRandomNodes(buf []*Node) (n int) {
 // are no known nodes in the database.
 func (net *Network) SetFallbackNodes(nodes []*Node) error {
 	nursery := make([]*Node, 0, len(nodes))
-	var thash taiCrypto.THash
 	for _, n := range nodes {
 		if err := n.validateComplete(); err != nil {
 			return fmt.Errorf("bad bootstrap/fallback node %q (%v)", n, err)
@@ -209,9 +206,7 @@ func (net *Network) SetFallbackNodes(nodes []*Node) error {
 		// Recompute cpy.sha because the node might not have been
 		// created by NewNode or ParseNode.
 		cpy := *n
-
-		//cpy.sha = crypto.Keccak256Hash(n.ID[:])
-		cpy.sha = thash.Keccak256Hash(n.ID[:])
+		cpy.sha = crypto.Keccak256Hash(n.ID[:])
 		nursery = append(nursery, &cpy)
 	}
 	net.reqRefresh(nursery)
@@ -221,9 +216,7 @@ func (net *Network) SetFallbackNodes(nodes []*Node) error {
 // Resolve searches for a specific node with the given ID.
 // It returns nil if the node could not be found.
 func (net *Network) Resolve(targetID NodeID) *Node {
-	var thash taiCrypto.THash
-	//result := net.lookup(crypto.Keccak256Hash(targetID[:]), true)
-	result := net.lookup(thash.Keccak256Hash(targetID[:]), true)
+	result := net.lookup(crypto.Keccak256Hash(targetID[:]), true)
 	for _, n := range result {
 		if n.ID == targetID {
 			return n
@@ -240,9 +233,7 @@ func (net *Network) Resolve(targetID NodeID) *Node {
 //
 // The local node may be included in the result.
 func (net *Network) Lookup(targetID NodeID) []*Node {
-	var thash taiCrypto.THash
-	//return net.lookup(crypto.Keccak256Hash(targetID[:]), false)
-	return net.lookup(thash.Keccak256Hash(targetID[:]), false)
+	return net.lookup(crypto.Keccak256Hash(targetID[:]), false)
 }
 
 func (net *Network) lookup(target common.Hash, stopOnMatch bool) []*Node {
@@ -1156,12 +1147,11 @@ func (net *Network) handleKnownPong(n *Node, pkt *ingressPacket) error {
 }
 
 func (net *Network) handleQueryEvent(n *Node, ev nodeEvent, pkt *ingressPacket) (*nodeState, error) {
-	var thash taiCrypto.THash
 	switch ev {
 	case findnodePacket:
-		//target := crypto.Keccak256Hash(pkt.data.(*findnode).Target[:])
-		target := thash.Keccak256Hash(pkt.data.(*findnode).Target[:])
+		target := crypto.Keccak256Hash(pkt.data.(*findnode).Target[:])
 		results := net.tab.closest(target, bucketSize).entries
+		log.Debug("handleQueryEvent", "results", len(results), "pkt", pkt.remoteAddr.IP, "name", n.state.name)
 		net.conn.sendNeighbours(n, results)
 		return n.state, nil
 	case neighborsPacket:
@@ -1178,7 +1168,7 @@ func (net *Network) handleQueryEvent(n *Node, ev nodeEvent, pkt *ingressPacket) 
 		}
 		return n.state, nil
 
-	// v5
+		// v5
 
 	case findnodeHashPacket:
 		results := net.tab.closest(pkt.data.(*findnodeHash).Target, bucketSize).entries

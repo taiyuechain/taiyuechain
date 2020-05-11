@@ -17,7 +17,6 @@
 package etai
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"os"
 	"os/user"
@@ -32,6 +31,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/etai/downloader"
 	"github.com/taiyuechain/taiyuechain/etai/gasprice"
 	"github.com/taiyuechain/taiyuechain/params"
+	"crypto/ecdsa"
 )
 
 // DefaultConfig contains default settings for use on the Taiyuechain main net.
@@ -116,8 +116,8 @@ type Config struct {
 	// If this filed is empty, can't be a committee member.
 	CommitteeKey []byte `toml:",omitempty"`
 	// caoliang modify
-	//PrivateKey *ecdsa.PrivateKey `toml:"-"`
-	PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
+	PrivateKey *ecdsa.PrivateKey `toml:"-"`
+
 
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.

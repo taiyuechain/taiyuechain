@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/metrics"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"sync"
 	"time"
@@ -17,6 +16,7 @@ import (
 	ctypes "github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"crypto/ecdsa"
 )
 
 const (
@@ -69,8 +69,7 @@ type KeepBlockSign struct {
 }
 
 //NewPrivValidator return new private Validator
-//func NewPrivValidator(priv ecdsa.PrivateKey) PrivValidator {
-func NewPrivValidator(priv taiCrypto.TaiPrivateKey) PrivValidator {
+func NewPrivValidator(priv ecdsa.PrivateKey) PrivValidator {
 	return &privValidator{
 		PrivKey:  tcrypto.PrivKeyTrue(priv),
 		LastStep: stepNone,

@@ -19,7 +19,7 @@ package state
 import (
 	"bytes"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 
@@ -28,10 +28,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
-var thash taiCrypto.THash
 
-//var emptyCodeHash = crypto.Keccak256(nil)
-var emptyCodeHash = thash.Keccak256(nil)
+var emptyCodeHash = crypto.Keccak256(nil)
 
 type Code []byte
 
@@ -138,8 +136,8 @@ func newObject(db *StateDB, address common.Address, data Account) *stateObject {
 	return &stateObject{
 		db:      db,
 		address: address,
-		//addrHash:      crypto.Keccak256Hash(address[:]),
-		addrHash:        thash.Keccak256Hash(address[:]),
+		addrHash:      crypto.Keccak256Hash(address[:]),
+		//addrHash:        thash.Keccak256Hash(address[:]),
 		data:            data,
 		originStorage:   make(Storage),
 		dirtyStorage:    make(Storage),

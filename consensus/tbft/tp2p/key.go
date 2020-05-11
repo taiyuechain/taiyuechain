@@ -20,7 +20,6 @@ const IDByteLength = 20
 // It contains the nodes private key for authentication.
 type NodeKey struct {
 	PrivKey crypto.PrivKey `json:"priv_key"` // our priv key
-	//PrivKey taiCrypto.TaiPrivateKey `json:"priv_key"` // our priv key
 }
 
 // ID returns the peer's canonical ID - the hash of its public key.

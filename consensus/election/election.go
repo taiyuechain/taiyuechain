@@ -24,7 +24,7 @@ import (
 	//"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"crypto/ecdsa"
 	"encoding/hex"
@@ -41,6 +41,7 @@ import (
 	//"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
+	"crypto/ecdsa"
 )
 
 const (
@@ -73,8 +74,7 @@ var (
 type candidateMember struct {
 	coinbase common.Address
 	address  common.Address
-	//publickey  *ecdsa.PublicKey
-	publickey  *taiCrypto.TaiPublicKey
+	publickey  *ecdsa.PublicKey
 	difficulty *big.Int
 	upper      *big.Int
 	lower      *big.Int
@@ -139,8 +139,7 @@ type Election struct {
 	committee     *committee
 	nextCommittee *committee
 	mu            sync.RWMutex
-	//testPrivateKeys []*ecdsa.PrivateKey
-	testPrivateKeys []*taiCrypto.TaiPrivateKey
+	testPrivateKeys []*ecdsa.PrivateKey
 	startSwitchover bool //Flag bit for handling event switching
 	singleNode      bool
 
@@ -233,28 +232,18 @@ func (e *Election) stop() {
 
 // NewFakeElection create fake mode election only for testing
 func NewFakeElection() *Election {
-	//caoliang modify
-	//var priKeys []*ecdsa.PrivateKey
-	var priKeys []*taiCrypto.TaiPrivateKey
-	var taipublic taiCrypto.TaiPublicKey
-	//var priKeys [] *taiCrypto.TaiPrivateKey
+	var priKeys []*ecdsa.PrivateKey
 	var members []*types.CommitteeMember
 
 	for i := 0; i < params.MinimumCommitteeNumber; i++ {
-		//caoliang modify
-		//priKey, err := crypto.GenerateKey()
-		priKey, err := taiCrypto.GenPrivKey()
+		priKey, err := crypto.GenerateKey()
 		priKeys = append(priKeys, priKey)
 		if err != nil {
 			log.Error("initMembers", "error", err)
 		}
-		//caoliang modify
-		//coinbase := crypto.PubkeyToAddress(priKey.PublicKey)
-		//taipublic.Publickey = priKey.PublicKey
-		coinbase := taipublic.PubkeyToAddress(taipublic)
-		//caoliang modify
-		//m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: coinbase, Publickey: crypto.FromECDSAPub(&priKey.PublicKey), Flag: types.StateUsedFlag, MType: types.TypeFixed}
-		m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: coinbase, Publickey: taipublic.FromECDSAPub(taipublic), Flag: types.StateUsedFlag, MType: types.TypeFixed}
+		coinbase := crypto.PubkeyToAddress(priKey.PublicKey)
+
+		m := &types.CommitteeMember{Coinbase: coinbase, CommitteeBase: coinbase, Publickey: crypto.FromECDSAPub(&priKey.PublicKey), Flag: types.StateUsedFlag, MType: types.TypeFixed}
 		members = append(members, m)
 	}
 
@@ -283,7 +272,7 @@ func NewFakeElection() *Election {
 
 func (e *Election) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, error) {
 	var signs []*types.PbftSign
-	var taiprivate taiCrypto.TaiPrivateKey
+
 	for _, privateKey := range e.testPrivateKeys {
 		voteSign := &types.PbftSign{
 			Result:     types.VoteAgree,
@@ -292,10 +281,8 @@ func (e *Election) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, error)
 		}
 		var err error
 		signHash := voteSign.HashWithNoSign().Bytes()
-		//caoliang modify
-		//voteSign.Sign, err = crypto.Sign(signHash, privateKey)
-		taiprivate = *privateKey
-		voteSign.Sign, err = taiprivate.Sign(signHash, taiprivate)
+		voteSign.Sign, err = crypto.Sign(signHash, privateKey)
+
 		if err != nil {
 			log.Error("fb GenerateSign error ", "err", err)
 		}
@@ -361,25 +348,18 @@ func (e *Election) VerifyPublicKey(fastHeight *big.Int, pubKeyByte []byte) (*typ
 
 // VerifySign lookup the pbft sign and return the committee member who signs it
 func (e *Election) VerifySign(sign *types.PbftSign) (*types.CommitteeMember, error) {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
-	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
-	//pubkey, err := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
-	pubkey, err := taipublic.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
+	pubkey, err := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 	if err != nil {
 		return nil, err
 	}
-	//caoliang modify
-	//pubkeyByte := crypto.FromECDSAPub(pubkey)
-	pubkeyByte := taipublic.FromECDSAPub(*pubkey)
+	pubkeyByte := crypto.FromECDSAPub(pubkey)
 	member, err := e.VerifyPublicKey(sign.FastHeight, pubkeyByte)
 	return member, err
 }
 
 // VerifySigns verify signatures of bft committee in batches
 func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMember, []error) {
-	var taipublic taiCrypto.TaiPublicKey
-	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
+
 	members := make([]*types.CommitteeMember, len(signs))
 	errs := make([]error, len(signs))
 
@@ -403,13 +383,8 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 	}
 
 	for i, sign := range signs {
-		// member, err := e.VerifySign(sign)
-		//caoliang modify
-		//pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
-		pubkey, _ := taipublic.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
-		//member := e.GetMemberByPubkey(committeeMembers, crypto.FromECDSAPub(pubkey))
-		pubBytes := taipublic.FromECDSAPub(*pubkey)
-		member := e.GetMemberByPubkey(committeeMembers, pubBytes)
+		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
+		member := e.GetMemberByPubkey(committeeMembers, crypto.FromECDSAPub(pubkey))
 		if member == nil {
 			errs[i] = ErrInvalidMember
 		} else {
@@ -941,8 +916,7 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 	var addrs = make(map[common.Address]uint)
 	var members []*types.CommitteeMember
 	var defaults = make(map[common.Address]*types.CommitteeMember)
-	var taihash taiCrypto.THash
-	var taipublic taiCrypto.TaiPublicKey
+
 	for _, g := range e.defaultMembers {
 		defaults[g.CommitteeBase] = g
 	}
@@ -950,10 +924,7 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 	round := new(big.Int).Set(common.Big1)
 	for {
 		seedNumber := new(big.Int).Add(seed.Big(), round)
-		//caoliang modify
-		//hash := crypto.Keccak256Hash(seedNumber.Bytes())
-		hash := taihash.Keccak256Hash(seedNumber.Bytes())
-		//prop := new(big.Int).Div(maxUint256, hash.Big())
+		hash := crypto.Keccak256Hash(seedNumber.Bytes())
 		prop := hash.Big()
 
 		for _, cm := range candidates {
@@ -973,17 +944,12 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 				break
 			}
 			addrs[cm.address] = 1
-			//caolaing modfiy
-			//taipublic.Publickey = *cm.publickey
-			taipublic = *cm.publickey
+
 			member := &types.CommitteeMember{
 				Coinbase: cm.coinbase,
-				//caoliang modify
-				//CommitteeBase: crypto.PubkeyToAddress(*cm.publickey),
-				//Publickey:     crypto.FromECDSAPub(cm.publickey),
+				CommitteeBase: crypto.PubkeyToAddress(*cm.publickey),
+				Publickey:     crypto.FromECDSAPub(cm.publickey),
 
-				CommitteeBase: taipublic.PubkeyToAddress(taipublic),
-				Publickey:     taipublic.FromECDSAPub(taipublic),
 				Flag:          types.StateUnusedFlag,
 			}
 			members = append(members, member)
@@ -1004,7 +970,6 @@ func (e *Election) elect(candidates []*candidateMember, seed common.Hash) []*typ
 
 // electCommittee elect committee members from snail block.
 func (e *Election) electCommittee(snailBeginNumber *big.Int, snailEndNumber *big.Int) *types.ElectionCommittee {
-	//var taipublic taiCrypto.TaiPublicKey
 	log.Info("elect new committee..", "begin", snailBeginNumber, "end", snailEndNumber,
 		"threshold", params.ElectionFruitsThreshold, "max", params.MaximumCommitteeNumber)
 

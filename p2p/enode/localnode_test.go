@@ -17,7 +17,7 @@
 package enode
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/p2p/enr"

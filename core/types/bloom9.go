@@ -18,7 +18,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
@@ -114,9 +114,8 @@ func LogsBloom(logs []*Log) *big.Int {
 }
 
 func bloom9(b []byte) *big.Int {
-	var thash taiCrypto.THash
-	//b = crypto.Keccak256(b[:])
-	b = thash.Keccak256(b[:])
+
+	b = crypto.Keccak256(b[:])
 	r := new(big.Int)
 
 	for i := 0; i < 6; i += 2 {

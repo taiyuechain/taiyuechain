@@ -21,11 +21,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	/*	"crypto/ecdsa"
-		"github.com/taiyuechain/taiyuechain/crypto"
-		"github.com/taiyuechain/taiyuechain/crypto/ecies"*/
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+		"github.com/taiyuechain/taiyuechain/crypto"*/
+		"github.com/taiyuechain/taiyuechain/crypto/ecies"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
-	//"crypto/ecdsa"
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/hmac"
 	"crypto/rand"
@@ -182,12 +182,11 @@ func readProtocolHandshake(rw MsgReader) (*protoHandshake, error) {
 // messages. the protocol handshake is the first authenticated message
 // and also verifies whether the encryption handshake 'worked' and the
 // remote side actually provided the right public key.
-//func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ecdsa.PublicKey, error) {
-func (t *rlpx) doEncHandshake(prv *taiCrypto.TaiPrivateKey, dial *taiCrypto.TaiPublicKey) (*taiCrypto.TaiPublicKey, error) {
+func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ecdsa.PublicKey, error) {
 	var (
 		sec       secrets
 		err       error
-		taipublic taiCrypto.TaiPublicKey
+
 	)
 	if dial == nil {
 		sec, err = receiverEncHandshake(t.fd, prv)
@@ -200,29 +199,26 @@ func (t *rlpx) doEncHandshake(prv *taiCrypto.TaiPrivateKey, dial *taiCrypto.TaiP
 	t.wmu.Lock()
 	t.rw = newRLPXFrameRW(t.fd, sec)
 	t.wmu.Unlock()
-	taipublic = *sec.Remote.ExportECDSA()
-	//return sec.Remote.ExportECDSA(), nil
-	return &taipublic, nil
+	//taipublic = *sec.Remote.ExportECDSA()
+	return sec.Remote.ExportECDSA(), nil
+	//return &taipublic, nil
 }
 
 // encHandshake contains the state of the encryption handshake.
 type encHandshake struct {
 	initiator bool
-	/*	remote               *ecies.PublicKey  // remote-pubk
+		remote               *ecies.PublicKey  // remote-pubk
 		initNonce, respNonce []byte            // nonce
 		randomPrivKey        *ecies.PrivateKey // ecdhe-random
-		remoteRandomPub      *ecies.PublicKey  // ecdhe-random-pubk*/
-	remote               *taiCrypto.TaiPublicKey  // remote-pubk
-	initNonce, respNonce []byte                   // nonce
-	randomPrivKey        *taiCrypto.TaiPrivateKey // ecdhe-random
-	remoteRandomPub      *taiCrypto.TaiPublicKey  // ecdhe-random-pubk
+		remoteRandomPub      *ecies.PublicKey  // ecdhe-random-pubk
+
 }
 
 // secrets represents the connection secrets
 // which are negotiated during the encryption handshake.
 type secrets struct {
-	//Remote *ecies.PublicKey
-	Remote                *taiCrypto.TaiPublicKey
+	Remote *ecies.PublicKey
+
 	AES, MAC              []byte
 	EgressMAC, IngressMAC hash.Hash
 	Token                 []byte
@@ -254,27 +250,20 @@ type authRespV4 struct {
 // secrets is called after the handshake is completed.
 // It extracts the connection secrets from the handshake values.
 func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
-	var thash taiCrypto.THash
 	ecdheSecret, err := h.randomPrivKey.GenerateShared(h.remoteRandomPub, sskLen, sskLen)
 	if err != nil {
 		return secrets{}, err
 	}
 
 	// derive base secrets from ephemeral key agreement
-	/*	sharedSecret := crypto.Keccak256(ecdheSecret, crypto.Keccak256(h.respNonce, h.initNonce))
+		sharedSecret := crypto.Keccak256(ecdheSecret, crypto.Keccak256(h.respNonce, h.initNonce))
 		aesSecret := crypto.Keccak256(ecdheSecret, sharedSecret)
 		s := secrets{
 			Remote: h.remote,
 			AES:    aesSecret,
 			MAC:    crypto.Keccak256(ecdheSecret, aesSecret),
-		}*/
-	sharedSecret := thash.Keccak256(ecdheSecret, thash.Keccak256(h.respNonce, h.initNonce))
-	aesSecret := thash.Keccak256(ecdheSecret, sharedSecret)
-	s := secrets{
-		Remote: h.remote,
-		AES:    aesSecret,
-		MAC:    thash.Keccak256(ecdheSecret, aesSecret),
-	}
+		}
+
 	// setup sha3 instances for the MACs
 	mac1 := sha3.NewLegacyKeccak256()
 	mac1.Write(xor(s.MAC, h.respNonce))
@@ -293,23 +282,16 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 
 // staticSharedSecret returns the static shared secret, the result
 // of key agreement between the local and remote static node key.
-/*func (h *encHandshake) staticSharedSecret(prv *ecdsa.PrivateKey) ([]byte, error) {
+func (h *encHandshake) staticSharedSecret(prv *ecdsa.PrivateKey) ([]byte, error) {
 	return ecies.ImportECDSA(prv).GenerateShared(h.remote, sskLen, sskLen)
-}*/
-
-func (h *encHandshake) staticSharedSecret(prv *taiCrypto.TaiPrivateKey) ([]byte, error) {
-	var taiprivate taiCrypto.TaiPrivateKey
-	return taiprivate.ImportECDSA(prv).GenerateShared(h.remote, sskLen, sskLen)
 }
 
 // initiatorEncHandshake negotiates a session token on conn.
 // it should be called on the dialing side of the connection.
 //
 // prv is the local client's private key.
-//func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
-func initiatorEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey, remote *taiCrypto.TaiPublicKey) (s secrets, err error) {
-	//h := &encHandshake{initiator: true, remote: ecies.ImportECDSAPublic(remote)}
-	h := &encHandshake{initiator: true, remote: remote.ImportECDSAPublic(remote)}
+func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
+	h := &encHandshake{initiator: true, remote: ecies.ImportECDSAPublic(remote)}
 	authMsg, err := h.makeAuthMsg(prv)
 	//authMsg, err := h.makeAuthMsg(prv)
 	if err != nil {
@@ -335,8 +317,7 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey, rem
 }
 
 // makeAuthMsg creates the initiator handshake message.
-//func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
-func (h *encHandshake) makeAuthMsg(prv *taiCrypto.TaiPrivateKey) (*authMsgV4, error) {
+func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 	// Generate random initiator nonce.
 	h.initNonce = make([]byte, shaLen)
 	_, err := rand.Read(h.initNonce)
@@ -344,10 +325,7 @@ func (h *encHandshake) makeAuthMsg(prv *taiCrypto.TaiPrivateKey) (*authMsgV4, er
 		return nil, err
 	}
 	// Generate random keypair to for ECDH.
-	//h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), nil)
-	//eciesPrivate, err:= ecies.GenerateKey(rand.Reader, taiCrypto.S256(), nil)
-	eciesPrivate, err := taiCrypto.GenerateKey(rand.Reader, taiCrypto.S256(), nil)
-	h.randomPrivKey = eciesPrivate
+	h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -358,17 +336,16 @@ func (h *encHandshake) makeAuthMsg(prv *taiCrypto.TaiPrivateKey) (*authMsgV4, er
 		return nil, err
 	}
 	signed := xor(token, h.initNonce)
-	//signature, err := crypto.Sign(signed, h.randomPrivKey.ExportECDSA())
-	var taiprivate taiCrypto.TaiPrivateKey
-	signature, err := taiprivate.Sign(signed, *h.randomPrivKey.ExportECDSA())
+	signature, err := crypto.Sign(signed, h.randomPrivKey.ExportECDSA())
+
 	if err != nil {
 		return nil, err
 	}
-	var taipublic taiCrypto.TaiPublicKey
+
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
-	//copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
-	copy(msg.InitiatorPubkey[:], taipublic.FromECDSAPub(prv.TaiPubKey)[1:])
+	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
+
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = TrueRLPXVersion
 	return msg, nil
@@ -387,8 +364,8 @@ func (h *encHandshake) handleAuthResp(msg *authRespV4) (err error) {
 // it should be called on the listening side of the connection.
 //
 // prv is the local client's private key.
-//func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets, err error) {
-func receiverEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey) (s secrets, err error) {
+func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets, err error) {
+
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
 	if err != nil {
@@ -421,8 +398,7 @@ func receiverEncHandshake(conn io.ReadWriter, prv *taiCrypto.TaiPrivateKey) (s s
 	return h.secrets(authPacket, authRespPacket)
 }
 
-//func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *ecdsa.PrivateKey) error {
-func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *taiCrypto.TaiPrivateKey) error {
+func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *ecdsa.PrivateKey) error {
 	// Import the remote identity.
 
 	rpub, err := importPublicKey(msg.InitiatorPubkey[:])
@@ -435,8 +411,7 @@ func (h *encHandshake) handleAuthMsg(msg *authMsgV4, prv *taiCrypto.TaiPrivateKe
 	// Generate random keypair for ECDH.
 	// If a private key is already set, use it instead of generating one (for testing).
 	if h.randomPrivKey == nil {
-		//h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), nil)
-		h.randomPrivKey, err = taiCrypto.GenerateKey(rand.Reader, taiCrypto.S256(), nil)
+		h.randomPrivKey, err = ecies.GenerateKey(rand.Reader, crypto.S256(), nil)
 		if err != nil {
 			return err
 		}
@@ -465,25 +440,22 @@ func (h *encHandshake) makeAuthResp() (msg *authRespV4, err error) {
 
 	msg = new(authRespV4)
 	copy(msg.Nonce[:], h.respNonce)
-	//copy(msg.RandomPubkey[:], exportPubkey(&h.randomPrivKey.PublicKey))
-	copy(msg.RandomPubkey[:], exportPubkey(&h.randomPrivKey.TaiPubKey))
+	copy(msg.RandomPubkey[:], exportPubkey(&h.randomPrivKey.PublicKey))
 	msg.Version = TrueRLPXVersion
 	return msg, nil
 }
 
 func (msg *authMsgV4) sealPlain(h *encHandshake) ([]byte, error) {
-	var taipublic taiCrypto.TaiPublicKey
-	var thash taiCrypto.THash
+
 	buf := make([]byte, authMsgLen)
 	n := copy(buf, msg.Signature[:])
-	//n += copy(buf[n:], crypto.Keccak256(exportPubkey(&h.randomPrivKey.PublicKey)))
-	n += copy(buf[n:], thash.Keccak256(exportPubkey(&h.randomPrivKey.TaiPubKey)))
+	n += copy(buf[n:], crypto.Keccak256(exportPubkey(&h.randomPrivKey.PublicKey)))
+
 	n += copy(buf[n:], msg.InitiatorPubkey[:])
 	n += copy(buf[n:], msg.Nonce[:])
 	buf[n] = 0 // token-flag
 	//
-	//return ecies.Encrypt(rand.Reader, h.remote, buf, nil, nil)
-	return taipublic.Encrypt(rand.Reader, h.remote, buf, nil, nil)
+	return ecies.Encrypt(rand.Reader, h.remote, buf, nil, nil)
 }
 
 func (msg *authMsgV4) decodePlain(input []byte) {
@@ -496,12 +468,12 @@ func (msg *authMsgV4) decodePlain(input []byte) {
 }
 
 func (msg *authRespV4) sealPlain(hs *encHandshake) ([]byte, error) {
-	var taipublic taiCrypto.TaiPublicKey
+
 	buf := make([]byte, authRespLen)
 	n := copy(buf, msg.RandomPubkey[:])
 	copy(buf[n:], msg.Nonce[:])
-	//return ecies.Encrypt(rand.Reader, hs.remote, buf, nil, nil)
-	return taipublic.Encrypt(rand.Reader, hs.remote, buf, nil, nil)
+	return ecies.Encrypt(rand.Reader, hs.remote, buf, nil, nil)
+
 }
 
 func (msg *authRespV4) decodePlain(input []byte) {
@@ -523,9 +495,9 @@ func sealEIP8(msg interface{}, h *encHandshake) ([]byte, error) {
 	buf.Write(pad)
 	prefix := make([]byte, 2)
 	binary.BigEndian.PutUint16(prefix, uint16(buf.Len()+eciesOverhead))
-	var taipublic taiCrypto.TaiPublicKey
-	//enc, err := ecies.Encrypt(rand.Reader, h.remote, buf.Bytes(), nil, prefix)
-	enc, err := taipublic.Encrypt(rand.Reader, h.remote, buf.Bytes(), nil, prefix)
+
+	enc, err := ecies.Encrypt(rand.Reader, h.remote, buf.Bytes(), nil, prefix)
+
 	return append(prefix, enc...), err
 }
 
@@ -533,16 +505,16 @@ type plainDecoder interface {
 	decodePlain([]byte)
 }
 
-//func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r io.Reader) ([]byte, error) {
-func readHandshakeMsg(msg plainDecoder, plainSize int, prv *taiCrypto.TaiPrivateKey, r io.Reader) ([]byte, error) {
+func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r io.Reader) ([]byte, error) {
+
 	buf := make([]byte, plainSize)
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return buf, err
 	}
 	// Attempt decoding pre-EIP-8 "plain" format.
 	log.Debug("decrypt is key is:", prv)
-	//key := ecies.ImportECDSA(prv)
-	key := prv.ImportECDSA(prv)
+	key := ecies.ImportECDSA(prv)
+
 	log.Debug("decrypt is buf is:", buf)
 	if dec, err := key.Decrypt(buf, nil, nil); err == nil {
 		msg.decodePlain(dec)
@@ -569,10 +541,10 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *taiCrypto.TaiPrivate
 }
 
 // importPublicKey unmarshals 512 bit public keys.
-//func importPublicKey(pubKey []byte) (*ecies.PublicKey, error) {
-func importPublicKey(pubKey []byte) (*taiCrypto.TaiPublicKey, error) {
+func importPublicKey(pubKey []byte) (*ecies.PublicKey, error) {
+
 	var pubKey65 []byte
-	var taipublic taiCrypto.TaiPublicKey
+
 	switch len(pubKey) {
 	case 64:
 		// add 'uncompressed key' flag
@@ -583,33 +555,20 @@ func importPublicKey(pubKey []byte) (*taiCrypto.TaiPublicKey, error) {
 		return nil, fmt.Errorf("invalid public key length %v (expect 64/65)", len(pubKey))
 	}
 	// TODO: fewer pointless conversions
-	//pub, err := crypto.UnmarshalPubkey(pubKey65)
-	pub, err := taipublic.UnmarshalPubkey(pubKey65)
+	pub, err := crypto.UnmarshalPubkey(pubKey65)
+
 	if err != nil {
 		return nil, err
 	}
-	return taipublic.ImportECDSAPublic(pub), nil
-	//return ecies.ImportECDSAPublic(pub), nil
+
+	return ecies.ImportECDSAPublic(pub), nil
 }
 
-//func exportPubkey(pub *ecies.PublicKey) []byte {
-func exportPubkey(pub *taiCrypto.TaiPublicKey) []byte {
+func exportPubkey(pub *ecies.PublicKey) []byte {
 	if pub == nil {
 		panic("nil pubkey")
 	}
-	/*if pub.X != nil {
-		return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
-	}*/
-	if pub.EciesPublickey.X != nil {
-		return elliptic.Marshal(pub.EciesPublickey.Curve, pub.EciesPublickey.X, pub.EciesPublickey.Y)[1:]
-	}
-	if pub.Publickey.X != nil {
-		return elliptic.Marshal(taiCrypto.S256(), pub.Publickey.X, pub.Publickey.Y)[1:]
-	}
-	if pub.SmPublickey.X != nil {
-		return elliptic.Marshal(pub.SmPublickey.Curve, pub.SmPublickey.X, pub.SmPublickey.Y)[1:]
-	}
-	return nil
+	return elliptic.Marshal(pub.Curve, pub.X, pub.Y)[1:]
 }
 
 func xor(one, other []byte) (xor []byte) {

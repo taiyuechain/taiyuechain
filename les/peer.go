@@ -18,8 +18,6 @@
 package les
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
-
 	//"crypto/ecdsa"
 	"encoding/binary"
 	"errors"
@@ -35,6 +33,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"crypto/ecdsa"
 )
 
 var (
@@ -53,8 +52,8 @@ const (
 
 type peer struct {
 	*p2p.Peer
-	//pubKey *ecdsa.PublicKey
-	pubKey *taiCrypto.TaiPublicKey
+	pubKey *ecdsa.PublicKey
+
 	rw     p2p.MsgReadWriter
 
 	version int    // Protocol version negoiated

@@ -18,7 +18,7 @@ package params
 
 import (
 	"encoding/json"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"encoding/binary"
 	"fmt"
@@ -200,14 +200,14 @@ func (c *TrustedCheckpoint) HashEqual(hash common.Hash) bool {
 
 // Hash returns the hash of checkpoint's four key fields(index, sectionHead, chtRoot and bloomTrieRoot).
 func (c *TrustedCheckpoint) Hash() common.Hash {
-	var thash taiCrypto.THash
+
 	buf := make([]byte, 8+3*common.HashLength)
 	binary.BigEndian.PutUint64(buf, c.SectionIndex)
 	copy(buf[8:], c.SectionHead.Bytes())
 	copy(buf[8+common.HashLength:], c.CHTRoot.Bytes())
 	copy(buf[8+2*common.HashLength:], c.BloomRoot.Bytes())
-	//return crypto.Keccak256Hash(buf)
-	return thash.Keccak256Hash(buf)
+	return crypto.Keccak256Hash(buf)
+
 }
 
 // Empty returns an indicator whether the checkpoint is regarded as empty.

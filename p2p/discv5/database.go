@@ -24,7 +24,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"os"
 	"sync"
 	"time"
@@ -198,15 +198,14 @@ func (db *nodeDB) fetchRLP(key []byte, val interface{}) error {
 	return err
 }
 
+
 // node retrieves a node with a given id from the database.
 func (db *nodeDB) node(id NodeID) *Node {
 	var node Node
-	var thash taiCrypto.THash
 	if err := db.fetchRLP(makeKey(id, nodeDBDiscoverRoot), &node); err != nil {
 		return nil
 	}
-	//node.sha = crypto.Keccak256Hash(node.ID[:])
-	node.sha = thash.Keccak256Hash(node.ID[:])
+	node.sha = crypto.Keccak256Hash(node.ID[:])
 	return &node
 }
 

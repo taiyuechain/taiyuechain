@@ -17,7 +17,7 @@
 package runtime
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math"
 	"math/big"
 	"time"
@@ -51,7 +51,7 @@ type Config struct {
 
 // sets defaults on the config
 func setDefaults(cfg *Config) {
-	var thash taiCrypto.THash
+
 	if cfg.ChainConfig == nil {
 		cfg.ChainConfig = &params.ChainConfig{
 			ChainID: big.NewInt(1),
@@ -78,8 +78,7 @@ func setDefaults(cfg *Config) {
 	}
 	if cfg.GetHashFn == nil {
 		cfg.GetHashFn = func(n uint64) common.Hash {
-			//return common.BytesToHash(crypto.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
-			return common.BytesToHash(thash.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
+			return common.BytesToHash(crypto.Keccak256([]byte(new(big.Int).SetUint64(n).String())))
 		}
 	}
 }

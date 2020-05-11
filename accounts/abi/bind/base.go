@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 
@@ -101,7 +101,7 @@ func NewBoundContract(address common.Address, abi abi.ABI, caller ContractCaller
 // deployment address with a Go wrapper.
 func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend ContractBackend, params ...interface{}) (common.Address, *types.Transaction, *BoundContract, error) {
 	// Otherwise try to deploy the contract
-	var thash taiCrypto.THash
+
 	c := NewBoundContract(common.Address{}, abi, backend, backend, backend)
 
 	input, err := c.abi.Pack("", params...)
@@ -112,8 +112,7 @@ func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend Co
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	thash.CreateAddress(opts.From, tx.Nonce())
-	//c.address = crypto.CreateAddress(opts.From, tx.Nonce())
+	c.address = crypto.CreateAddress(opts.From, tx.Nonce())
 	return c.address, tx, c, nil
 }
 

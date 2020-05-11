@@ -17,20 +17,15 @@
 package types
 
 import (
-	//"crypto/ecdsa"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 
-	"crypto/ecdsa"
 	"crypto/x509"
-	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
-	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -60,22 +55,16 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 }
 
 // SignTx signs the transaction using the given signer and private key
-//caolaing modify
-//func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
-func SignTx(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*Transaction, error) {
-	//func SignTx(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*Transaction, error) {
-	var taiprivate taiCrypto.TaiPrivateKey
-	taiprivate = *prv
+func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
-	//sig, err := crypto.Sign(h[:], prv)
-	sig, err := taiprivate.Sign(h[:], taiprivate)
+	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
 	return tx.WithSignature(s, sig)
 }
 
-func SignTxBy266(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
+/*func SignTxBy266(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash(tx)
 	//sig, err := crypto.Sign(h[:], prv)
 	sig, err := p256.SignP256(prv, h[:])
@@ -141,16 +130,12 @@ func VerfiySignTxBySM(tx *Transaction, s Signer) error {
 		return nil
 	}
 	return errors.New("verfiy tx sm2 err")
-}
+}*/
 
-//caolaing modify
-//func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
-func SignTx_Payment(tx *Transaction, s Signer, prv *taiCrypto.TaiPrivateKey) (*Transaction, error) {
-	var taiprivate taiCrypto.TaiPrivateKey
-	taiprivate = *prv
+
+func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash_Payment(tx)
-	//sig, err := crypto.Sign(h[:], prv)
-	sig, err := taiprivate.Sign(h[:], taiprivate)
+	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +193,7 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 	return addr, nil
 }
 
-func SenderP256(signer Signer, tx *Transaction) (common.Address, error) {
+/*func SenderP256(signer Signer, tx *Transaction) (common.Address, error) {
 	if sc := tx.from.Load(); sc != nil {
 		sigCache := sc.(sigCache)
 		// If the signer used to derive from in a previous
@@ -232,7 +217,7 @@ func SenderP256(signer Signer, tx *Transaction) (common.Address, error) {
 	return addr, nil
 
 }
-
+*/
 // Signer encapsulates transaction signature handling. Note that this interface is not a
 // stable API and may change at any time to accommodate new protocol rules.
 type Signer interface {
@@ -250,7 +235,7 @@ type Signer interface {
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
 
-	SenderP256(tx *Transaction) (common.Address, error)
+	//SenderP256(tx *Transaction) (common.Address, error)
 }
 
 func NewSigner(cryptoType uint8, chainId *big.Int) Signer {
@@ -567,13 +552,11 @@ func recoverPlainP256(tx *Transaction) (common.Address, error) {
 }
 
 func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (common.Address, error) {
-	var thash taiCrypto.THash
-	var taipublic taiCrypto.TaiPublicKey
 	if Vb.BitLen() > 8 {
 		return common.Address{}, ErrInvalidSig
 	}
 	V := byte(Vb.Uint64() - 27)
-	if !taiCrypto.ValidateSignatureValues(V, R, S, homestead) {
+	if !crypto.ValidateSignatureValues(V, R, S, homestead) {
 		return common.Address{}, ErrInvalidSig
 	}
 	// encode the snature in uncompressed format
@@ -583,8 +566,7 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (commo
 	copy(sig[64-len(s):64], s)
 	sig[64] = V
 	// recover the public key from the snature
-	//pub, err := crypto.Ecrecover(sighash[:], sig)
-	pub, err := taipublic.Ecrecover(sighash[:], sig)
+	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
 		return common.Address{}, err
 	}
@@ -592,8 +574,7 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (commo
 		return common.Address{}, errors.New("invalid public key")
 	}
 	var addr common.Address
-	//copy(addr[:], crypto.Keccak256(pub[1:])[12:])
-	copy(addr[:], thash.Keccak256(pub[1:])[12:])
+	copy(addr[:], crypto.Keccak256(pub[1:])[12:])
 	return addr, nil
 }
 

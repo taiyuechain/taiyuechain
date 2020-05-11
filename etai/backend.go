@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	config "github.com/taiyuechain/taiyuechain/params"
 	"math/big"
 	"runtime"
@@ -583,10 +583,8 @@ func (s *Taiyuechain) Stop() error {
 }
 
 func (s *Taiyuechain) startPbftServer() error {
-	var taiprivate taiCrypto.TaiPrivateKey
-	//caoliang modify
-	//priv, err := crypto.ToECDSA(s.config.CommitteeKey)
-	priv, err := taiprivate.ToECDSA(s.config.CommitteeKey)
+
+	priv, err := crypto.ToECDSA(s.config.CommitteeKey)
 	if err != nil {
 		return err
 	}

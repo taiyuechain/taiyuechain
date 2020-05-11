@@ -20,6 +20,7 @@ type CimList struct {
 
 func NewCIMList(CryptoType uint8) *CimList {
 	return &CimList{CryptoType:CryptoType}
+
 }
 
 func (cl *CimList) AddCim(cimTemp CIM) error  {

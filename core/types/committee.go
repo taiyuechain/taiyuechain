@@ -8,7 +8,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
@@ -16,6 +15,7 @@ import (
 	"math/big"
 	"strings"
 	"sync/atomic"
+	"crypto/ecdsa"
 )
 
 const (
@@ -154,17 +154,12 @@ type TransportCommitteeNode struct {
 	EXT   []byte
 }
 
-//func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *ecdsa.PublicKey) *CommitteeNode {
-func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *taiCrypto.TaiPublicKey) *CommitteeNode {
-	var taipublic taiCrypto.TaiPublicKey
-	taipublic = *pubKey
+func (tcn *TransportCommitteeNode) ConvertTransportToCommitteeNode(pubKey *ecdsa.PublicKey) *CommitteeNode {
 	return &CommitteeNode{
-		IP:    tcn.IP,
-		Port:  tcn.Port,
-		Port2: tcn.Port2,
-		//caoliang modify
-		//Publickey: crypto.FromECDSAPub(pubKey),
-		Publickey: taipublic.FromECDSAPub(taipublic),
+		IP:        tcn.IP,
+		Port:      tcn.Port,
+		Port2:     tcn.Port2,
+		Publickey: crypto.FromECDSAPub(pubKey),
 	}
 }
 

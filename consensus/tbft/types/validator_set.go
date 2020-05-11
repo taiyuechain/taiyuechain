@@ -2,14 +2,14 @@ package types
 
 import (
 	"bytes"
-	//"crypto/ecdsa"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	ctypes "github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math"
 	"sort"
@@ -298,8 +298,7 @@ func (valSet *ValidatorSet) Remove(address []byte) (val *Validator, removed bool
 
 // RemoveForPK deletes the validator with address. It returns the validator removed
 // and true. If returns nil and false if validator is not present in the set.
-//func (valSet *ValidatorSet) RemoveForPK(pk ecdsa.PublicKey) (val *Validator, removed bool) {
-func (valSet *ValidatorSet) RemoveForPK(pk taiCrypto.TaiPublicKey) (val *Validator, removed bool) {
+func (valSet *ValidatorSet) RemoveForPK(pk ecdsa.PublicKey) (val *Validator, removed bool) {
 	pkt := crypto.PubKeyTrue(pk)
 	return valSet.Remove(pkt.Address())
 }

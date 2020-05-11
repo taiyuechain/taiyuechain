@@ -18,7 +18,7 @@ package discv5
 
 import (
 	"bytes"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"crypto/ecdsa"
 	"errors"
@@ -32,6 +32,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"crypto/ecdsa"
 )
 
 const Version = 4
@@ -225,33 +226,31 @@ type conn interface {
 // udp implements the RPC protocol.
 type udp struct {
 	conn conn
-	//priv        *ecdsa.PrivateKey
-	priv        *taiCrypto.TaiPrivateKey
+	priv        *ecdsa.PrivateKey
+
 	ourEndpoint rpcEndpoint
 	nat         nat.Interface
 	net         *Network
 }
 
 // ListenUDP returns a new table that listens for UDP packets on laddr.
-//func ListenUDP(priv *ecdsa.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
-func ListenUDP(priv *taiCrypto.TaiPrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
+func ListenUDP(priv *ecdsa.PrivateKey, conn conn, nodeDBPath string, netrestrict *netutil.Netlist) (*Network, error) {
 	realaddr := conn.LocalAddr().(*net.UDPAddr)
 	transport, err := listenUDP(priv, conn, realaddr)
 	if err != nil {
 		return nil, err
 	}
-	net, err := newNetwork(transport, priv.TaiPubKey, nodeDBPath, netrestrict)
+	net, err := newNetwork(transport, priv.PublicKey, nodeDBPath, netrestrict)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("UDP listener up", "net", net.tab.self)
+	log.Info("UDP listener up v5", "net", net.tab.self)
 	transport.net = net
 	go transport.readLoop()
 	return net, nil
 }
 
-//func listenUDP(priv *ecdsa.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
-func listenUDP(priv *taiCrypto.TaiPrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
+func listenUDP(priv *ecdsa.PrivateKey, conn conn, realaddr *net.UDPAddr) (*udp, error) {
 	return &udp{conn: conn, priv: priv, ourEndpoint: makeEndpoint(realaddr, uint16(realaddr.Port))}, nil
 }
 
@@ -352,10 +351,7 @@ func (t *udp) sendPacket(toid NodeID, toaddr *net.UDPAddr, ptype byte, req inter
 // zeroed padding space for encodePacket.
 var headSpace = make([]byte, headSize)
 
-//func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
-func encodePacket(priv *taiCrypto.TaiPrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
-	var thash taiCrypto.THash
-
+func encodePacket(priv *ecdsa.PrivateKey, ptype byte, req interface{}) (p, hash []byte, err error) {
 	b := new(bytes.Buffer)
 	b.Write(headSpace)
 	b.WriteByte(ptype)
@@ -364,14 +360,14 @@ func encodePacket(priv *taiCrypto.TaiPrivateKey, ptype byte, req interface{}) (p
 		return nil, nil, err
 	}
 	packet := b.Bytes()
-	sig, err := (priv.Sign(thash.Keccak256(packet[headSize:]), *priv))
+	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
 	if err != nil {
 		log.Error(fmt.Sprint("could not sign packet:", err))
 		return nil, nil, err
 	}
 	copy(packet, versionPrefix)
 	copy(packet[versionPrefixSize:], sig)
-	hash = thash.Keccak256(packet[versionPrefixSize:])
+	hash = crypto.Keccak256(packet[versionPrefixSize:])
 	return packet, hash, nil
 }
 
@@ -411,7 +407,6 @@ func (t *udp) handlePacket(from *net.UDPAddr, buf []byte) error {
 }
 
 func decodePacket(buffer []byte, pkt *ingressPacket) error {
-	var thash taiCrypto.THash
 	if len(buffer) < headSize+1 {
 		return errPacketTooSmall
 	}
@@ -421,12 +416,12 @@ func decodePacket(buffer []byte, pkt *ingressPacket) error {
 	if !bytes.Equal(prefix, versionPrefix) {
 		return errBadPrefix
 	}
-	fromID, err := recoverNodeID(thash.Keccak256(buf[headSize:]), sig)
+	fromID, err := recoverNodeID(crypto.Keccak256(buf[headSize:]), sig)
 	if err != nil {
 		return err
 	}
 	pkt.rawData = buf
-	pkt.hash = thash.Keccak256(buf[versionPrefixSize:])
+	pkt.hash = crypto.Keccak256(buf[versionPrefixSize:])
 	pkt.remoteID = fromID
 	switch pkt.ev = nodeEvent(sigdata[0]); pkt.ev {
 	case pingPacket:

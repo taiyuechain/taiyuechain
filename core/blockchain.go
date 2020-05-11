@@ -20,9 +20,9 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
-	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"sync"
@@ -891,7 +891,6 @@ func (bc *BlockChain) Rollback(chain []common.Hash) {
 
 // SetReceiptsData computes all the non-consensus fields of the receipts
 func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts types.Receipts) error {
-	//var taipublic taiCrypto.TaiPublicKey
 	signer := types.MakeSigner(config, block.Number())
 
 	transactions, logIndex := block.Transactions(), uint(0)
@@ -907,11 +906,7 @@ func SetReceiptsData(config *params.ChainConfig, block *types.Block, receipts ty
 		if transactions[j].To() == nil {
 			// Deriving the signer is expensive, only do if it's actually needed
 			from, _ := types.Sender(signer, transactions[j])
-			//caoliang modify
-			var thash taiCrypto.THash
-			//receipts[j].ContractAddress = crypto.CreateAddress(from, transactions[j].Nonce())
-			receipts[j].ContractAddress = thash.CreateAddress(from, transactions[j].Nonce())
-			//receipts[j].ContractAddress = taipublic.CreateAddress(from, transactions[j].Nonce())
+			receipts[j].ContractAddress = crypto.CreateAddress(from, transactions[j].Nonce())
 		}
 		// The used gas can be calculated based on previous receipts
 		if j == 0 {

@@ -20,7 +20,7 @@ package les
 import (
 	//"crypto/ecdsa"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
@@ -38,6 +38,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"crypto/ecdsa"
 )
 
 const (
@@ -725,26 +726,16 @@ func (e *poolEntry) DecodeRLP(s *rlp.Stream) error {
 	return nil
 }
 
-//func encodePubkey64(pub *ecdsa.PublicKey) []byte {
-func encodePubkey64(pub *taiCrypto.TaiPublicKey) []byte {
-	var taipublic taiCrypto.TaiPublicKey
-	//caoliang modify
-	//return crypto.FromECDSAPub(pub)[1:]
-	taipublic = *pub
-	return taipublic.FromECDSAPub(taipublic)[1:]
+func encodePubkey64(pub *ecdsa.PublicKey) []byte {
+	return crypto.FromECDSAPub(pub)[1:]
+
 }
 
-//func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
-func decodePubkey64(b []byte) (*taiCrypto.TaiPublicKey, error) {
-	var taipublic taiCrypto.TaiPublicKey
-	//caoliang modify
-	//return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
-	taipub, err := taipublic.UnmarshalPubkey(append([]byte{0x04}, b...))
-	if err != nil {
-		return nil, nil
-	}
-	//return taipublic.UnmarshalPubkey(append([]byte{0x04}, b...))
-	return taipub, nil
+func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
+
+
+	return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
+
 }
 
 // discoveredEntry implements wrsItem

@@ -19,7 +19,7 @@ package node
 import (
 	"context"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"strings"
 	"time"
 
@@ -430,7 +430,6 @@ func (s *PublicWeb3API) ClientVersion() string {
 // Sha3 applies the ethereum sha3 implementation on the input.
 // It assumes the input is hex encoded.
 func (s *PublicWeb3API) Sha3(input hexutil.Bytes) hexutil.Bytes {
-	//return crypto.Keccak256(input)
-	var thash taiCrypto.THash
-	return thash.Keccak256(input)
+	return crypto.Keccak256(input)
+
 }

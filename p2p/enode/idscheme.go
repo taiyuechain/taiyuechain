@@ -21,7 +21,7 @@ import (
 	//"crypto/ecdsa"
 	//"crypto/ecdsa"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 
 	"github.com/taiyuechain/taiyuechain/common/math"
@@ -29,6 +29,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 )
+
 
 // List of known secure identity schemes.
 var ValidSchemes = enr.SchemeMap{
@@ -43,78 +44,20 @@ var ValidSchemesForTesting = enr.SchemeMap{
 // v4ID is the "v4" identity scheme.
 type V4ID struct{}
 
-/*type EcdsaSecp256k1 ecdsa.PublicKey
-
-func (e EcdsaSecp256k1) ENRKey() string {
-	return "ecdsasecp256k1"
-}
-func (e EcdsaSecp256k1) EncodeRLP(w io.Writer) error {
-	//return rlp.Encode(w, crypto.CompressPubkey((*ecdsa.PublicKey)(&v)))
-	var taipublic taiCrypto.TaiPublicKey
-	taipublic.Publickey = ecdsa.PublicKey(e)
-	return rlp.Encode(w, taipublic.CompressPubkey(taipublic))
-}
-
-// DecodeRLP implements rlp.Decoder.
-func (e *EcdsaSecp256k1) DecodeRLP(s *rlp.Stream) error {
-	var taipublic taiCrypto.TaiPublicKey
-	buf, err := s.Bytes()
-	if err != nil {
-		return err
-	}
-	//pk, err := crypto.DecompressPubkey(buf)
-	pk, err := taipublic.DecompressPubkey(buf)
-	if err != nil {
-		return err
-	}
-	*e = (EcdsaSecp256k1)(pk.Publickey)
-	return nil
-}
-
-type Sm2Secp256k1 sm2.PublicKey
-
-func (s Sm2Secp256k1) ENRKey() string {
-	return "secp256k1"
-}
-func (s Sm2Secp256k1) EncodeRLP(w io.Writer) error {
-	//return rlp.Encode(w, crypto.CompressPubkey((*ecdsa.PublicKey)(&v)))
-	var taipublic taiCrypto.TaiPublicKey
-	taipublic.SmPublickey = sm2.PublicKey(s)
-	return rlp.Encode(w, taipublic.CompressPubkey(taipublic))
-}
-
-// DecodeRLP implements rlp.Decoder.
-func (s Sm2Secp256k1) DecodeRLP(r *rlp.Stream) error {
-	var taipublic taiCrypto.TaiPublicKey
-	buf, err := r.Bytes()
-	if err != nil {
-		return err
-	}
-	//pk, err := crypto.DecompressPubkey(buf)
-	pk, err := taipublic.DecompressPubkey(buf)
-	if err != nil {
-		return err
-	}
-	s = (Sm2Secp256k1)(pk.SmPublickey)
-	return nil
-}*/
-
 // SignV4 signs a record using the v4 scheme.
-//func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
-func SignV4(r *enr.Record, privkey *taiCrypto.TaiPrivateKey) error {
+func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	// Copy r to avoid modifying it if signing fails.
-	var taiprivate taiCrypto.TaiPrivateKey
 	cpy := *r
 	cpy.Set(enr.ID("v4"))
-	cpy.Set(Secp256k1(privkey.Private.PublicKey))
+	cpy.Set(Secp256k1(privkey.PublicKey))
 
 	h := sha3.NewLegacyKeccak256()
 	rlp.Encode(h, cpy.AppendElements(nil))
-	sig, err := taiprivate.Sign(h.Sum(nil), *privkey)
+	sig, err := crypto.Sign(h.Sum(nil), privkey)
 	if err != nil {
 		return err
 	}
-	sig = sig[:len(sig)-1]
+	sig = sig[:len(sig)-1] // remove v
 	if err = cpy.SetSig(V4ID{}, sig); err == nil {
 		*r = cpy
 	}
@@ -122,7 +65,6 @@ func SignV4(r *enr.Record, privkey *taiCrypto.TaiPrivateKey) error {
 }
 
 func (V4ID) Verify(r *enr.Record, sig []byte) error {
-	var taipublic taiCrypto.TaiPublicKey
 	var entry s256raw
 	if err := r.Load(&entry); err != nil {
 		return err
@@ -132,8 +74,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 
 	h := sha3.NewLegacyKeccak256()
 	rlp.Encode(h, r.AppendElements(nil))
-	taipublic.HexBytesPublic = entry
-	if !taipublic.VerifySignature(h.Sum(nil), sig) {
+	if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
 		return enr.ErrInvalidSig
 	}
 	return nil
@@ -141,7 +82,6 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 
 func (V4ID) NodeAddr(r *enr.Record) []byte {
 	var pubkey Secp256k1
-	var thash taiCrypto.THash
 	err := r.Load(&pubkey)
 	if err != nil {
 		return nil
@@ -149,38 +89,30 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	buf := make([]byte, 64)
 	math.ReadBits(pubkey.X, buf[:32])
 	math.ReadBits(pubkey.Y, buf[32:])
-	return thash.Keccak256(buf)
-	return nil
+	return crypto.Keccak256(buf)
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.
 type Secp256k1 ecdsa.PublicKey
 
-//type Secp256k1 taiCrypto.TaiPublicKey
-
 func (v Secp256k1) ENRKey() string { return "secp256k1" }
 
 // EncodeRLP implements rlp.Encoder.
 func (v Secp256k1) EncodeRLP(w io.Writer) error {
-	//return rlp.Encode(w, crypto.CompressPubkey((*ecdsa.PublicKey)(&v)))
-	var taipublic taiCrypto.TaiPublicKey
-	taipublic.Publickey = (ecdsa.PublicKey)(v)
-	return rlp.Encode(w, taipublic.CompressPubkey(taipublic))
+	return rlp.Encode(w, crypto.CompressPubkey((*ecdsa.PublicKey)(&v)))
 }
 
 // DecodeRLP implements rlp.Decoder.
 func (v *Secp256k1) DecodeRLP(s *rlp.Stream) error {
-	var taipublic taiCrypto.TaiPublicKey
 	buf, err := s.Bytes()
 	if err != nil {
 		return err
 	}
-	//pk, err := crypto.DecompressPubkey(buf)
-	pk, err := taipublic.DecompressPubkey(buf)
+	pk, err := crypto.DecompressPubkey(buf)
 	if err != nil {
 		return err
 	}
-	*v = (Secp256k1)(pk.Publickey)
+	*v = (Secp256k1)(*pk)
 	return nil
 }
 
@@ -200,10 +132,8 @@ func (v4CompatID) Verify(r *enr.Record, sig []byte) error {
 	return r.Load(&pubkey)
 }
 
-//func signV4Compat(r *enr.Record, pubkey *ecdsa.PublicKey) {
-func signV4Compat(r *enr.Record, pubkey *taiCrypto.TaiPublicKey) {
-
-	r.Set((*Secp256k1)(&pubkey.Publickey))
+func signV4Compat(r *enr.Record, pubkey *ecdsa.PublicKey) {
+	r.Set((*Secp256k1)(pubkey))
 	if err := r.SetSig(v4CompatID{}, []byte{}); err != nil {
 		panic(err)
 	}

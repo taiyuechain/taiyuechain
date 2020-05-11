@@ -19,7 +19,7 @@ package vm
 import (
 	"crypto/sha256"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/common"
@@ -101,24 +101,23 @@ func (c *ecrecover) Run(evm *EVM, contract *Contract, input []byte) ([]byte, err
 	r := new(big.Int).SetBytes(input[64:96])
 	s := new(big.Int).SetBytes(input[96:128])
 	v := input[63] - 27
-	var taipublic taiCrypto.TaiPublicKey
-	var thash taiCrypto.THash
+
 	// tighter sig s values input homestead only apply to tx sigs
-	//if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
-	if !allZero(input[32:63]) || !taiCrypto.ValidateSignatureValues(v, r, s, false) {
+	if !allZero(input[32:63]) || !crypto.ValidateSignatureValues(v, r, s, false) {
+
 		return nil, nil
 	}
 	// v needs to be at the end for libsecp256k1
-	//pubKey, err := crypto.Ecrecover(input[:32], append(input[64:128], v))
-	pubKey, err := taipublic.Ecrecover(input[:32], append(input[64:128], v))
+	pubKey, err := crypto.Ecrecover(input[:32], append(input[64:128], v))
+
 	// make sure the public key is a valid one
 	if err != nil {
 		return nil, nil
 	}
 
 	// the first byte of pubkey is bitcoin heritage
-	//return common.LeftPadBytes(crypto.Keccak256(pubKey[1:])[12:], 32), nil
-	return common.LeftPadBytes(thash.Keccak256(pubKey[1:])[12:], 32), nil
+	return common.LeftPadBytes(crypto.Keccak256(pubKey[1:])[12:], 32), nil
+
 }
 
 // SHA256 implemented as a native contract.

@@ -18,7 +18,7 @@ package abi
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"strings"
 
 	"github.com/taiyuechain/taiyuechain/common"
@@ -64,7 +64,5 @@ func (e Event) Sig() string {
 // ID returns the canonical representation of the event's signature used by the
 // abi definition to identify event names and types.
 func (e Event) ID() common.Hash {
-	var thash taiCrypto.THash
-	//return common.BytesToHash(crypto.Keccak256([]byte(e.Sig())))
-	return common.BytesToHash(thash.Keccak256([]byte(e.Sig())))
+	return common.BytesToHash(crypto.Keccak256([]byte(e.Sig())))
 }

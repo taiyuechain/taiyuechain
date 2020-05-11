@@ -8,7 +8,7 @@ import (
 	"errors"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	tcrypyo  "github.com/taiyuechain/taiyuechain/crypto"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
@@ -48,7 +48,6 @@ type SecretConnection struct {
 // Caller should call conn.Close()
 // See docs/sts-final.pdf for more information.
 func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*SecretConnection, error) {
-	var taipublic taiCrypto.TaiPublicKey
 	locPubKey := locPrivKey.PubKey()
 
 	// Generate ephemeral keys for perfect forward secrecy.
@@ -95,14 +94,12 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	}
 
 	remPubKeyBytes, remSignature := authSigMsg.Key, authSigMsg.Sig
-	//caoliang modify
-	//remPubKeyEcdsa, err := tcrypyo.UnmarshalPubkey(remPubKeyBytes)
-	remPubKeyEcdsa, err := taipublic.UnmarshalPubkey(remPubKeyBytes)
+
+	remPubKeyEcdsa, err := tcrypyo.UnmarshalPubkey(remPubKeyBytes)
 	if err != nil {
 		return nil, err
 	}
-	//caoliang modify
-	//remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
+
 	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
 		return nil, errors.New("Challenge verification failed")

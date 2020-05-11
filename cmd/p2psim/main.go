@@ -40,7 +40,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"os"
 	"strings"
@@ -276,22 +276,20 @@ func protocolList(node *p2p.NodeInfo) []string {
 }
 
 func createNode(ctx *cli.Context) error {
-	var taiprivate taiCrypto.TaiPrivateKey
+
 	if len(ctx.Args()) != 0 {
 		return cli.ShowCommandHelp(ctx, ctx.Command.Name)
 	}
 	config := adapters.RandomNodeConfig()
 	config.Name = ctx.String("name")
 	if key := ctx.String("key"); key != "" {
-		//caoliang modify
-		//privKey, err := crypto.HexToECDSA(key)
-		privKey, err := taiprivate.HexToECDSA(key)
+		privKey, err := crypto.HexToECDSA(key)
 		if err != nil {
 			return err
 		}
-		nodeid := discv5.PubkeyID(&privKey.Private.PublicKey)
+		nodeid := discv5.PubkeyID(&privKey.PublicKey)
 		copy(config.ID[:], nodeid[:32])
-		config.PrivateKey = &privKey.Private
+		config.PrivateKey = privKey
 	}
 	if services := ctx.String("services"); services != "" {
 		config.Services = strings.Split(services, ",")

@@ -18,7 +18,7 @@ package light
 
 import (
 	"errors"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"sync"
 
 	"github.com/taiyuechain/taiyuechain/common"
@@ -121,10 +121,9 @@ type NodeList []rlp.RawValue
 
 // Store writes the contents of the list to the given database
 func (n NodeList) Store(db etaidb.Putter) {
-	var thash taiCrypto.THash
+
 	for _, node := range n {
-		//db.Put(crypto.Keccak256(node), node)
-		db.Put(thash.Keccak256(node), node)
+		db.Put(crypto.Keccak256(node), node)
 	}
 }
 

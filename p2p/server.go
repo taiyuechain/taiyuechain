@@ -22,7 +22,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/rlp"
@@ -65,8 +65,7 @@ var errServerStopped = errors.New("server stopped")
 type Config struct {
 	// This field must be set to a valid secp256k1 private key.
 	//caoliang modify
-	//PrivateKey *ecdsa.PrivateKey `toml:"-"`
-	PrivateKey *taiCrypto.TaiPrivateKey `toml:"-"`
+	PrivateKey *ecdsa.PrivateKey `toml:"-"`
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.
 	MaxPeers int
@@ -226,8 +225,7 @@ type conn struct {
 
 type transport interface {
 	// The two handshakes.
-	//doEncHandshake(prv *ecdsa.PrivateKey, dialDest *ecdsa.PublicKey) (*ecdsa.PublicKey, error)
-	doEncHandshake(prv *taiCrypto.TaiPrivateKey, dialDest *taiCrypto.TaiPublicKey) (*taiCrypto.TaiPublicKey, error)
+	doEncHandshake(prv *ecdsa.PrivateKey, dialDest *ecdsa.PublicKey) (*ecdsa.PublicKey, error)
 	doProtoHandshake(our *protoHandshake) (*protoHandshake, error)
 	// The MsgReadWriter can only be used after the encryption
 	// handshake has completed. The code uses conn.id to track this
@@ -365,13 +363,7 @@ func (srv *Server) Self() *enode.Node {
 	srv.lock.Unlock()
 
 	if ln == nil {
-		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
-			return enode.NewV4(&srv.PrivateKey.TaiPubKey, net.ParseIP("0.0.0.0"), 0, 0)
-		}
-		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
-			return enode.NewV4(&srv.PrivateKey.TaiPubKey, net.ParseIP("0.0.0.0"), 0, 0)
-		}
-
+		return enode.NewV4(&srv.PrivateKey.PublicKey, net.ParseIP("0.0.0.0"), 0, 0)
 	}
 	return ln.Node()
 }
@@ -479,15 +471,7 @@ func (srv *Server) Start() (err error) {
 
 func (srv *Server) setupLocalNode() error {
 	// Create the devp2p handshake.
-	var taipublic taiCrypto.TaiPublicKey
-	//pubkey := crypto.FromECDSAPub(&srv.PrivateKey.PublicKey)
-	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
-		srv.PrivateKey.TaiPubKey.Publickey = srv.PrivateKey.Private.PublicKey
-	}
-	if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
-		srv.PrivateKey.TaiPubKey.SmPublickey = srv.PrivateKey.GmPrivate.PublicKey
-	}
-	pubkey := taipublic.FromECDSAPub(srv.PrivateKey.TaiPubKey)
+	pubkey := crypto.FromECDSAPub(&srv.PrivateKey.PublicKey)
 	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey[1:]}
 	for _, p := range srv.Protocols {
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
@@ -926,13 +910,10 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 		return errServerStopped
 	}
 	// If dialing, figure out the remote public key.
-	var dialPubkey *taiCrypto.TaiPublicKey
+	var dialPubkey *ecdsa.PublicKey
 	if dialDest != nil {
-		dialPubkey = new(taiCrypto.TaiPublicKey)
-		/*pubkey:=new(ecdsa.PublicKey)*/
-		dialPubkey.Publickey = *new(ecdsa.PublicKey)
-		//if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey)); err != nil {
-		if err := dialDest.Load((*enode.Secp256k1)(&dialPubkey.Publickey)); err != nil {
+		dialPubkey = new(ecdsa.PublicKey)
+		if err := dialDest.Load((*enode.Secp256k1)(dialPubkey)); err != nil {
 			return errors.New("dial destination doesn't have a secp256k1 public key")
 		}
 	}
@@ -944,16 +925,8 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	}
 	if dialDest != nil {
 		// For dialed connections, check that the remote public key matches.
-		//if dialPubkey.X.Cmp(remotePubkey.X) != 0 || dialPubkey.Y.Cmp(remotePubkey.Y) != 0 {
-		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
-			if dialPubkey.Publickey.X.Cmp(remotePubkey.Publickey.X) != 0 || dialPubkey.Publickey.Y.Cmp(remotePubkey.Publickey.Y) != 0 {
-				return DiscUnexpectedIdentity
-			}
-		}
-		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOSM2 {
-			if dialPubkey.SmPublickey.X.Cmp(remotePubkey.SmPublickey.X) != 0 || dialPubkey.SmPublickey.Y.Cmp(remotePubkey.SmPublickey.Y) != 0 {
-				return DiscUnexpectedIdentity
-			}
+		if dialPubkey.X.Cmp(remotePubkey.X) != 0 || dialPubkey.Y.Cmp(remotePubkey.Y) != 0 {
+			return DiscUnexpectedIdentity
 		}
 		c.node = dialDest
 	} else {
@@ -974,9 +947,9 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 		clog.Trace("Failed proto handshake", "err", err)
 		return err
 	}
-	var thash taiCrypto.THash
-	//if id := c.node.ID(); !bytes.Equal(crypto.Keccak256(phs.ID), id[:]) {
-	if id := c.node.ID(); !bytes.Equal(thash.Keccak256(phs.ID), id[:]) {
+
+	if id := c.node.ID(); !bytes.Equal(crypto.Keccak256(phs.ID), id[:]) {
+	//if id := c.node.ID(); !bytes.Equal(thash.Keccak256(phs.ID), id[:]) {
 		clog.Trace("Wrong devp2p handshake identity", "phsid", hex.EncodeToString(phs.ID))
 		return DiscUnexpectedIdentity
 	}
@@ -992,18 +965,14 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	return nil
 }
 
-//func nodeFromConn(pubkey *ecdsa.PublicKey, conn net.Conn) *enode.Node {
-func nodeFromConn(pubkey *taiCrypto.TaiPublicKey, conn net.Conn) *enode.Node {
-	var taipublic taiCrypto.TaiPublicKey
-	//ecies.Encrypt(rand.Reader, h.remote, buf, nil, nil)
+func nodeFromConn(pubkey *ecdsa.PublicKey, conn net.Conn) *enode.Node {
 	var ip net.IP
 	var port int
 	if tcp, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
 		ip = tcp.IP
 		port = tcp.Port
 	}
-	taipublic = *pubkey
-	return enode.NewV4(&taipublic, ip, port, port)
+	return enode.NewV4(pubkey, ip, port, port)
 }
 
 func truncateName(s string) string {

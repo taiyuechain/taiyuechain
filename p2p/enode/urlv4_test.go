@@ -18,13 +18,13 @@ package enode
 
 import (
 	"bytes"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"net"
 	"reflect"
 	"strings"
 	"testing"
 	"testing/quick"
+	"crypto/ecdsa"
 )
 
 var parseNodeTests = []struct {
@@ -120,7 +120,7 @@ var parseNodeTests = []struct {
 	},
 }
 
-func hexPubkey(h string) *taiCrypto.TaiPublicKey {
+func hexPubkey(h string) *ecdsa.PublicKey {
 	k, err := parsePubkey(h)
 	if err != nil {
 		panic(err)

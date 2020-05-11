@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math"
 	"math/rand"
 	"sort"
@@ -28,7 +27,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 )
 
@@ -711,9 +710,7 @@ func (b *topicRadiusBucket) adjust(now mclock.AbsTime, inside float64) {
 }
 
 func newTopicRadius(t Topic) *topicRadius {
-	var thash taiCrypto.THash
-	//topicHash := crypto.Keccak256Hash([]byte(t))
-	topicHash := thash.Keccak256Hash([]byte(t))
+	topicHash := crypto.Keccak256Hash([]byte(t))
 	topicHashPrefix := binary.BigEndian.Uint64(topicHash[0:8])
 
 	return &topicRadius{

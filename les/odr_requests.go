@@ -22,10 +22,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common"
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/etaidb"
@@ -305,9 +304,8 @@ func (r *CodeRequest) Validate(db etaidb.Database, msg *Msg) error {
 	data := reply[0]
 
 	// Verify the data and store if checks out
-	var thash taiCrypto.THash
-	//if hash := crypto.Keccak256Hash(data); r.Hash != hash {
-	if hash := thash.Keccak256Hash(data); r.Hash != hash {
+
+	if hash := crypto.Keccak256Hash(data); r.Hash != hash {
 		return errDataHashMismatch
 	}
 	r.Data = data

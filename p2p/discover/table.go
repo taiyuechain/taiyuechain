@@ -23,11 +23,11 @@
 package discover
 
 import (
-	//"crypto/ecdsa"
+
 	crand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	mrand "math/rand"
 	"net"
 	"sort"
@@ -39,6 +39,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
+	"crypto/ecdsa"
 )
 
 const (
@@ -260,9 +261,7 @@ func (tab *Table) Delete(node *enode.Node) {
 // not need to be an actual node identifier.
 func (tab *Table) lookup(targetKey encPubkey, refreshIfEmpty bool) []*node {
 	var (
-		thash taiCrypto.THash
-		//target         = enode.ID(crypto.Keccak256Hash(targetKey[:]))
-		target         = enode.ID(thash.Keccak256Hash(targetKey[:]))
+		target         = enode.ID(crypto.Keccak256Hash(targetKey[:]))
 		asked          = make(map[enode.ID]bool)
 		seen           = make(map[enode.ID]bool)
 		reply          = make(chan []*node, alpha)
@@ -433,9 +432,9 @@ func (tab *Table) doRefresh(done chan struct{}) {
 
 	// Run self lookup to discover new neighbor nodes.
 	// We can only do this if we have a secp256k1 identity.
-	//var key ecdsa.PublicKey
-	var key taiCrypto.TaiPublicKey
-	if err := tab.self().Load((*enode.Secp256k1)(&key.Publickey)); err == nil {
+	var key ecdsa.PublicKey
+
+	if err := tab.self().Load((*enode.Secp256k1)(&key)); err == nil {
 		tab.lookup(encodePubkey(&key), false)
 	}
 

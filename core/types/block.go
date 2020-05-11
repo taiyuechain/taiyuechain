@@ -21,7 +21,7 @@ import (
 	//"crypto/ecdsa"
 	//"crypto/ecdsa"
 	"encoding/binary"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"sort"
@@ -35,6 +35,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
+	"crypto/ecdsa"
 )
 
 var (
@@ -790,14 +791,12 @@ func (b *SnailBlock) Number() *big.Int { return new(big.Int).Set(b.header.Number
 /*func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
 	return crypto.UnmarshalPubkey(b.header.Publickey)
 }*/
-//func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
-func (b *SnailBlock) GetPubKey() (*taiCrypto.TaiPublicKey, error) {
-	var taipublic taiCrypto.TaiPublicKey
-	taipub, err := taipublic.UnmarshalPubkey(b.header.Publickey)
+func (b *SnailBlock) GetPubKey() (*ecdsa.PublicKey, error) {
+	pub, err := crypto.UnmarshalPubkey(b.header.Publickey)
 	if err != nil {
 		return nil, err
 	}
-	return taipub, nil
+	return pub, nil
 }
 func (b *SnailBlock) PublicKey() []byte         { return b.header.Publickey }
 func (b *SnailBlock) BlockDifficulty() *big.Int { return new(big.Int).Set(b.header.Difficulty) }

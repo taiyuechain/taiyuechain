@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -363,9 +363,9 @@ func New(code string) (*Tracer, error) {
 		}
 		nonce := uint64(ctx.GetInt(-1))
 		ctx.Pop2()
-		var thash taiCrypto.THash
-		//contract := crypto.CreateAddress(from, nonce)
-		contract := thash.CreateAddress(from, nonce)
+
+		contract := crypto.CreateAddress(from, nonce)
+
 		copy(makeSlice(ctx.PushFixedBuffer(20), 20), contract[:])
 		return 1
 	})

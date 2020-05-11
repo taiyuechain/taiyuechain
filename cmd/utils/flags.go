@@ -23,7 +23,7 @@ import (
 	//"encoding/hex"
 	"fmt"
 	//"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -65,6 +65,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"gopkg.in/urfave/cli.v1"
+	"crypto/ecdsa"
 )
 
 var (
@@ -639,26 +640,23 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
-	var taiprivate taiCrypto.TaiPrivateKey
+
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
-		//key  *ecdsa.PrivateKey
-		key *taiCrypto.TaiPrivateKey
+		key  *ecdsa.PrivateKey
 		err error
 	)
 	switch {
 	case file != "" && hex != "":
 		Fatalf("Options %q and %q are mutually exclusive", NodeKeyFileFlag.Name, NodeKeyHexFlag.Name)
 	case file != "":
-		//if key, err = crypto.LoadECDSA(file); err != nil {
-		if key, err = taiprivate.LoadECDSA(file); err != nil {
+		if key, err = crypto.LoadECDSA(file); err != nil {
 			Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
 		}
 		cfg.PrivateKey = key
 	case hex != "":
-		//if key, err = crypto.HexToECDSA(hex); err != nil {
-		if key, err = taiprivate.HexToECDSA(hex); err != nil {
+		if key, err = crypto.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
 		}
 		cfg.PrivateKey = key
@@ -666,41 +664,28 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *etai.Config) {
-	var taiprivate taiCrypto.TaiPrivateKey
+
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
 		file = ctx.GlobalString(BftKeyFileFlag.Name)
-		//caoliang modify
-		//key *ecdsa.PrivateKey
-		key *taiCrypto.TaiPrivateKey
+		key *ecdsa.PrivateKey
 
-		//err  error
+		err  error
 	)
 	log.Debug("", "file:", file, "hex:", hex)
 	switch {
 	case file != "" && hex != "":
 		Fatalf("Options %q and %q are mutually exclusive", BftKeyFileFlag.Name, BftKeyHexFlag.Name)
 	case file != "":
-		//caoliang modify
-		//if key, err = crypto.LoadECDSA(file); err != nil {
-
-		key1, err := taiprivate.LoadECDSA(file)
-		if err != nil {
+		if key, err = crypto.LoadECDSA(file); err != nil {
 			Fatalf("Option %q: %v", BftKeyFileFlag.Name, err)
 		}
-		if taiCrypto.AsymmetricCryptoType == taiCrypto.ASYMMETRICCRYPTOECDSA {
-			key = key1
-			cfg.PrivateKey = key
-		}
+		cfg.PrivateKey = key
 
 	case hex != "":
-		//caoliang modify
-		//if key, err = crypto.HexToECDSA(hex); err != nil {
-		key1, err := taiprivate.HexToECDSA(hex)
-		if err != nil {
+		if key, err = crypto.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
-		key = key1
 		cfg.PrivateKey = key
 	}
 }
@@ -1166,17 +1151,8 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *etai.Config) {
 
 	//TODO
 	// need do verfiy the private key and cert
-	//privatekey ,_:=crypto.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
-	var taiprivate taiCrypto.TaiPrivateKey
-	//var taipublic taiCrypto.TaiPublicKey
-	//privatekey, _ := taiprivate.HexToECDSACA(ctx.GlobalString(BftKeyHexFlag.Name))
-	//	if cim.VarifyCertByPrivateKey(&privatekey.Private, cfg.NodeCert) != nil {
-	//log.Error("cert not the varify cert by private key")
-	//return
-	//	}
 
-	//cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
-	cfg.CommitteeKey = taiprivate.FromECDSA(*cfg.PrivateKey)
+	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
 		Fatalf("init load CommitteeKey  nil.")
 	}

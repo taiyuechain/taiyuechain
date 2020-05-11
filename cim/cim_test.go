@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"log"
 	"math/big"
 	"time"
@@ -35,7 +34,7 @@ var(
 func TestCertCIMAndVerfiyCert(t *testing.T) {
 	cimList := NewCIMList(CryptoType)
 
-	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var root, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
 	//create root
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -55,11 +54,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -102,7 +97,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 	if err != nil{
 		t.Fatalf("cert error")
 	}*/
-	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var son, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 	serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
 	ca2 := &x509.Certificate{
@@ -120,11 +115,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -211,10 +202,10 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 
 func TestCreateCertByPrivate(t *testing.T) {
 
-	var prv, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var prv2, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var prv3, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
-	var prv4, _ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+	var prv, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3, _ = crypto.HexToECDSA("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4, _ = crypto.HexToECDSA("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
 	//var prvB :=
 
 	fmt.Println(crypto.FromECDSA(prv))
@@ -248,33 +239,33 @@ func TestVerifyCertByPrivate(t *testing.T) {
 }
 
 func TestCreatePubk(t *testing.T) {
-	var prv, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var prv2, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var prv3, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
-	var prv4, _ = crypto.HexToECDSAP256("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
+	var prv, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var prv2, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var prv3, _ = crypto.HexToECDSA("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var prv4, _ = crypto.HexToECDSA("0477ce2c8b15abc55832b9218e624282ad351adcd1c23edc4459f087d4be7edf")
 
 	//pk :=
-	pkbyte1 := crypto.FromECDSAPubCA(&prv.PublicKey)
+	pkbyte1 := crypto.FromECDSAPub(&prv.PublicKey)
 	pkstring1 := hexutil.Encode(pkbyte1)
 	fmt.Println(pkstring1)
 
-	pkbyte2 := crypto.FromECDSAPubCA(&prv2.PublicKey)
+	pkbyte2 := crypto.FromECDSAPub(&prv2.PublicKey)
 	pkstring2 := hexutil.Encode(pkbyte2)
 	fmt.Println(pkstring2)
 
-	pkbyte3 := crypto.FromECDSAPubCA(&prv3.PublicKey)
+	pkbyte3 := crypto.FromECDSAPub(&prv3.PublicKey)
 	pkstring3 := hexutil.Encode(pkbyte3)
 	fmt.Println(pkstring3)
 
-	pkbyte4 := crypto.FromECDSAPubCA(&prv4.PublicKey)
+	pkbyte4 := crypto.FromECDSAPub(&prv4.PublicKey)
 	pkstring4 := hexutil.Encode(pkbyte4)
 	fmt.Println(pkstring4)
 
-	var taipublic taiCrypto.TaiPublicKey
+
 
 	b, err := hexutil.Decode(pkstring1)
-	taiCrypto.AsymmetricCryptoType = taiCrypto.ASYMMETRICCRYPTOECDSA
-	_, err = taipublic.UnmarshalPubkey(b)
+
+	_, err = crypto.UnmarshalPubkey(b)
 	if err != nil {
 		fmt.Println("errr", "is", err)
 	}
@@ -282,9 +273,9 @@ func TestCreatePubk(t *testing.T) {
 }
 
 func TestCreateAndVerifyRoot(t *testing.T) {
-	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var son, _ = crypto.HexToECDSAP256("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
-	var last, _ = crypto.HexToECDSAP256("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
+	var root, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var son, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var last, _ = crypto.HexToECDSA("96531838617b060305f04e5c9b760e8644454cadd375c1dd1fcd6140034a67a5")
 
 	//create root
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -304,11 +295,7 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -355,11 +342,7 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, &son.PublicKey, root)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -404,11 +387,7 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b3, err := x509.CreateCertificate(rand.Reader, ca3, sonCert, &last.PublicKey, son)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -448,7 +427,7 @@ func TestCreateAndVerifyRoot(t *testing.T) {
 func TestCreateAndVerifyRoot22(t *testing.T) {
 	//cert2 := []byte("MIIBrzCCAVSgAwIBAgIQGw+ZL1AAtkflUiPEAfDRSjAKBggqhkjOPQQDAjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwHhcNMjAwNDA2MDMyNDMzWhcNMzAwNDA2MDMyNDMzWjAvMQ4wDAYDVQQGEwVDaGluYTENMAsGA1UEChMEWWp3dDEOMAwGA1UECxMFWWp3dFUwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQ/WgjVUvDJCIGMX+My7DluIgqkS/4pOl0W4LSljuS47FdFd5aP950rp9j0cuE+mNg/e1gXnJJcKMaIMd1yqurCo1IwUDAOBgNVHQ8BAf8EBAMCAoQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0OBAcEBQECAwQFMAoGCCqGSM49BAMCA0kAMEYCIQDjw3r4fmSh1rOr4ziEZtPzK0VeJARifcdctKAkiPInMwIhAM7y15GEROMcmqazQazhUUVz8pxt89szqSq/oibmgKKw")
 	//var certList= [][]byte{cert1, cert2, cert3, cert4}
-	var root, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var root, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 
 	//create root
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
@@ -468,11 +447,7 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &root.PublicKey, root)
 	if err != nil {
 		log.Println("create ca failed", err)

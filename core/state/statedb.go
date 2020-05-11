@@ -20,7 +20,7 @@ package state
 import (
 	"errors"
 	"fmt"
-	//"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"sort"
 	"sync"
@@ -40,11 +40,11 @@ type revision struct {
 
 var (
 	// emptyState is the known hash of an empty state trie entry.
-	//emptyState = crypto.Keccak256Hash(nil)
-	emptyState = thash.Keccak256Hash(nil)
+	emptyState = crypto.Keccak256Hash(nil)
+	//emptyState = thash.Keccak256Hash(nil)
 	// emptyCode is the known hash of the empty EVM bytecode.
-	//emptyCode = crypto.Keccak256Hash(nil)
-	emptyCode = thash.Keccak256Hash(nil)
+	emptyCode = crypto.Keccak256Hash(nil)
+	//emptyCode = thash.Keccak256Hash(nil)
 )
 
 type proofList [][]byte
@@ -277,8 +277,7 @@ func (self *StateDB) GetCAState(a common.Address, b common.Hash) []byte {
 // GetProof returns the MerkleProof for a given Account
 func (self *StateDB) GetProof(a common.Address) ([][]byte, error) {
 	var proof proofList
-	//err := self.trie.Prove(crypto.Keccak256(a.Bytes()), 0, &proof)
-	err := self.trie.Prove(thash.Keccak256(a.Bytes()), 0, &proof)
+	err := self.trie.Prove(crypto.Keccak256(a.Bytes()), 0, &proof)
 	return [][]byte(proof), err
 }
 
@@ -289,8 +288,7 @@ func (self *StateDB) GetStorageProof(a common.Address, key common.Hash) ([][]byt
 	if trie == nil {
 		return proof, errors.New("storage trie for requested address does not exist")
 	}
-	//err := trie.Prove(crypto.Keccak256(key.Bytes()), 0, &proof)
-	err := trie.Prove(thash.Keccak256(key.Bytes()), 0, &proof)
+	err := trie.Prove(crypto.Keccak256(key.Bytes()), 0, &proof)
 	return [][]byte(proof), err
 }
 
@@ -378,8 +376,8 @@ func (self *StateDB) SetCode(addr common.Address, code []byte) {
 
 	if stateObject != nil {
 
-		//stateObject.SetCode(crypto.Keccak256Hash(code), code)
-		stateObject.SetCode(thash.Keccak256Hash(code), code)
+		stateObject.SetCode(crypto.Keccak256Hash(code), code)
+
 	}
 }
 

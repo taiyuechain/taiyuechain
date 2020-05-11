@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -343,14 +343,13 @@ func importWallet(ctx *cli.Context) error {
 }
 
 func accountImport(ctx *cli.Context) error {
-	var taiprivate taiCrypto.TaiPrivateKey
+
 	keyfile := ctx.Args().First()
 	if len(keyfile) == 0 {
 		utils.Fatalf("keyfile must be given as argument")
 	}
-	//caoliang modify
-	//key, err := crypto.LoadECDSA(keyfile)
-	key, err := taiprivate.LoadECDSA(keyfile)
+	key, err := crypto.LoadECDSA(keyfile)
+
 	if err != nil {
 		utils.Fatalf("Failed to load the private key: %v", err)
 	}
@@ -358,8 +357,6 @@ func accountImport(ctx *cli.Context) error {
 	passphrase := getPassPhrase("Your new account is locked with a password. Please give a password. Do not forget this password.", true, 0, utils.MakePasswordList(ctx))
 
 	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
-	//caolaing modify
-	//acct, err := ks.ImportECDSA(key, passphrase)
 	acct, err := ks.ImportECDSA(key, passphrase)
 	if err != nil {
 		utils.Fatalf("Could not create the account: %v", err)

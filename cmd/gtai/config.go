@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"os"
 	"reflect"
@@ -99,13 +99,10 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	}
 
 	if ctx.GlobalBool(utils.SingleNodeFlag.Name) {
-		var taiprivate taiCrypto.TaiPrivateKey
-		//var taipublic taiCrypto.TaiPublicKey
 
-		prikey, _ := taiprivate.HexToECDSA("c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc")
+		prikey, _ := crypto.HexToECDSA("c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc")
 		cfg.Etrue.PrivateKey = prikey
-		cfg.Etrue.CommitteeKey = taiprivate.FromECDSA(*cfg.Etrue.PrivateKey)
-		//cfg.Etrue.Etherbase = taipublic.PubkeyToAddress(cfg.Etrue.PrivateKey.TaiPubKey)
+		cfg.Etrue.CommitteeKey = crypto.FromECDSA(cfg.Etrue.PrivateKey)
 
 		//cfg.Etrue.MineFruit = true
 		cfg.Etrue.Mine = true

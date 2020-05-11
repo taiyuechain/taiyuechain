@@ -21,8 +21,8 @@
 package keystore
 
 import (
-	//"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 
 	crand "crypto/rand"
@@ -258,7 +258,6 @@ func (ks *KeyStore) Delete(a accounts.Account, passphrase string) error {
 // signature is in the [R || S || V] format where V is 0 or 1.
 func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 	// Look up the key to sign with and abort if it cannot be found
-	var taiprivate taiCrypto.TaiPrivateKey
 	ks.mu.RLock()
 	defer ks.mu.RUnlock()
 
@@ -267,9 +266,7 @@ func (ks *KeyStore) SignHash(a accounts.Account, hash []byte) ([]byte, error) {
 		return nil, ErrLocked
 	}
 	// Sign the hash using plain ECDSA operations
-	//return crypto.Sign(hash, unlockedKey.PrivateKey)
-	taiprivate = *unlockedKey.PrivateKey
-	return taiprivate.Sign(hash, taiprivate)
+	return crypto.Sign(hash, unlockedKey.PrivateKey)
 }
 
 // SignTx signs the given transaction with the requested account.
@@ -303,14 +300,13 @@ func (ks *KeyStore) SignTx_Payment(a accounts.Account, tx *types.Transaction, ch
 // can be decrypted with the given passphrase. The produced signature is in the
 // [R || S || V] format where V is 0 or 1.
 func (ks *KeyStore) SignHashWithPassphrase(a accounts.Account, passphrase string, hash []byte) (signature []byte, err error) {
-	var taiprivate taiCrypto.TaiPrivateKey
 	_, key, err := ks.getDecryptedKey(a, passphrase)
 	if err != nil {
 		return nil, err
 	}
 	defer zeroKey(key.PrivateKey)
-	//return crypto.Sign(hash, key.PrivateKey)
-	return taiprivate.Sign(hash, *key.PrivateKey)
+	return crypto.Sign(hash, key.PrivateKey)
+
 }
 
 // SignTxWithPassphrase signs the transaction if the private key matching the
@@ -459,8 +455,7 @@ func (ks *KeyStore) Import(keyJSON []byte, passphrase, newPassphrase string) (ac
 }
 
 // ImportECDSA stores the given key into the key directory, encrypting it with the passphrase.
-//func (ks *KeyStore) ImportECDSA(priv *ecdsa.PrivateKey, passphrase string) (accounts.Account, error) {
-func (ks *KeyStore) ImportECDSA(priv *taiCrypto.TaiPrivateKey, passphrase string) (accounts.Account, error) {
+func (ks *KeyStore) ImportECDSA(priv *ecdsa.PrivateKey, passphrase string) (accounts.Account, error) {
 	key := newKeyFromECDSA(priv)
 	if ks.cache.hasAddress(key.Address) {
 		return accounts.Account{}, fmt.Errorf("account already exists")
@@ -500,25 +495,9 @@ func (ks *KeyStore) ImportPreSaleKey(keyJSON []byte, passphrase string) (account
 }
 
 // zeroKey zeroes a private key in memory.
-/*func zeroKey(k *ecdsa.PrivateKey) {
+func zeroKey(k *ecdsa.PrivateKey) {
 	b := k.D.Bits()
 	for i := range b {
 		b[i] = 0
-	}
-}*/
-func zeroKey(k *taiCrypto.TaiPrivateKey) {
-	switch taiCrypto.AsymmetricCryptoType {
-	case taiCrypto.ASYMMETRICCRYPTOECDSA:
-		b := k.Private.D.Bits()
-		for i := range b {
-			b[i] = 0
-		}
-		break
-	case taiCrypto.ASYMMETRICCRYPTOSM2:
-		b := k.GmPrivate.D.Bits()
-		for i := range b {
-			b[i] = 0
-		}
-		break
 	}
 }

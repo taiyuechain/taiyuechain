@@ -121,11 +121,7 @@ func CreateCertP256(priv *ecdsa.PrivateKey)( cert []byte)  {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &priv.PublicKey, priv)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -136,8 +132,7 @@ func CreateCertP256(priv *ecdsa.PrivateKey)( cert []byte)  {
 }
 
 func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
-	//var private taiCrypto.TaiPrivateKey
-	//var public taiCrypto.TaiPublicKey
+
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -156,11 +151,7 @@ func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 	}
-	//ecdsa, err := taiCrypto.HexToTaiPrivateKey(priv)
-	//var thash taiCrypto.THash
-	//caecda, err := private.ToECDSACA(ecdsa.HexBytesPrivate)
-	//caecda, err := private.ToECDSACA([]byte(priv))
-	//pub := crypto.FromECDSAPub(&priv.PublicKey)
+
 	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &priv.PublicKey, priv)
 	if err != nil {
 		log.Println("create ca failed", err)
@@ -212,7 +203,6 @@ func CreateIdentity2(priv, priv2 *ecdsa.PrivateKey, name string) bool {
 	}*/
 
 	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	//fileName := "../../crypto/taiCrypto/data/cert/ecdsacert/" + name + "ca.pem"
 	fileName := "../../accounts/keystore/testdata/" + name + "ca.pem"
 	dstFile, err := os.Create(fileName)
 	if err != nil {

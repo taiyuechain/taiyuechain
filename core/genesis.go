@@ -21,14 +21,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
 	"math/big"
 	"strings"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/common/math"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -44,9 +43,6 @@ import (
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
 
-var SymmetricCryptoType uint8
-var AsymmetricCryptoType uint8
-var HashCryptoType uint8
 
 const (
 	SYMMETRICCRYPTOSM4    = 1
@@ -260,8 +256,7 @@ func (g *Genesis) CommitFast(db etaidb.Database) (*types.Block, error) {
 // ToFastBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
 func (g *Genesis) ToFastBlock(db etaidb.Database) *types.Block {
-	//caolaing modify
-	var taipublic taiCrypto.TaiPublicKey
+
 	if db == nil {
 		db = etaidb.NewMemDatabase()
 	}
@@ -300,13 +295,13 @@ func (g *Genesis) ToFastBlock(db etaidb.Database) *types.Block {
 		//pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
 		cc := hex.EncodeToString(member.Publickey)
 		fmt.Sprintln("cccccc" + cc)
-		pubkey, _ := taipublic.UnmarshalPubkey(member.Publickey)
-		//log.Info("member.Publickey","is",member.Publickey)
+		pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
+
 		member.Flag = types.StateUsedFlag
 		member.MType = types.TypeFixed
 		//caolaing modify
-		//member.CommitteeBase = crypto.PubkeyToAddress(*pubkey)
-		member.CommitteeBase = taipublic.PubkeyToAddress(*pubkey)
+		member.CommitteeBase = crypto.PubkeyToAddress(*pubkey)
+		///member.CommitteeBase = taipublic.PubkeyToAddress(*pubkey)
 	}
 	return types.NewBlock(head, nil, nil, nil, committee.Members)
 }

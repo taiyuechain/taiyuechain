@@ -19,7 +19,7 @@ package light
 import (
 	"bytes"
 	"context"
-	"github.com/taiyuechain/taiyuechain/crypto/taiCrypto"
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -29,10 +29,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
-var thash taiCrypto.THash
 
-//var sha3_nil = crypto.Keccak256Hash(nil)
-var sha3_nil = thash.Keccak256Hash(nil)
+
+var sha3_nil = crypto.Keccak256Hash(nil)
 
 func GetHeaderByNumber(ctx context.Context, odr OdrBackend, number uint64) (*types.Header, error) {
 	db := odr.Database()
