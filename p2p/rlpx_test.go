@@ -18,15 +18,10 @@ package p2p
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/p2p/simulations/pipes"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
-	"io"
 	"io/ioutil"
 	"net"
 	"reflect"
@@ -35,8 +30,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/crypto/ecies"
+	"github.com/taiyuechain/taiyuechain/p2p/simulations/pipes"
+	"github.com/taiyuechain/taiyuechain/rlp"
+	"golang.org/x/crypto/sha3"
 )
 
 func TestSharedSecret(t *testing.T) {
@@ -45,11 +43,11 @@ func TestSharedSecret(t *testing.T) {
 	prv1, _ := crypto.GenerateKey()
 	pub1 := &prv1.PublicKey
 
-	ss0, err := ecies.ImportECDSA(prv0).GenerateShared(ecies.ImportECDSAPublic(pub1), sskLen, sskLen)
+	ss0, err := crypto.GenerateShared(prv0, pub1, sskLen, sskLen)
 	if err != nil {
 		return
 	}
-	ss1, err := ecies.ImportECDSA(prv1).GenerateShared(ecies.ImportECDSAPublic(pub0), sskLen, sskLen)
+	ss1, err := crypto.GenerateShared(prv1, pub0, sskLen, sskLen)
 	if err != nil {
 		return
 	}
@@ -81,17 +79,15 @@ func TestEncHandshake(t *testing.T) {
 func testEncHandshake(token []byte) error {
 	type result struct {
 		side   string
-		pubkey *taiCrypto.TaiPublicKey
+		pubkey *ecdsa.PublicKey
 		err    error
 	}
 	var (
-		taiprivate  taiCrypto.TaiPrivateKey
-		prv0, _     = taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-		taiprivate1 taiCrypto.TaiPrivateKey
-		prv1, _     = taiprivate1.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
-		fd0, fd1    = net.Pipe()
-		c0, c1      = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
-		output      = make(chan result)
+		prv0, _  = crypto.GenerateKey()
+		prv1, _  = crypto.GenerateKey()
+		fd0, fd1 = net.Pipe()
+		c0, c1   = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
+		output   = make(chan result)
 	)
 
 	go func() {
@@ -99,12 +95,12 @@ func testEncHandshake(token []byte) error {
 		defer func() { output <- r }()
 		defer fd0.Close()
 
-		r.pubkey, r.err = c0.doEncHandshake(prv0, &prv1.TaiPubKey)
+		r.pubkey, r.err = c0.doEncHandshake(prv0, &prv1.PublicKey)
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv1.TaiPubKey) {
-			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &prv1.TaiPubKey)
+		if !reflect.DeepEqual(r.pubkey, &prv1.PublicKey) {
+			r.err = fmt.Errorf("remote pubkey mismatch: got %v, want: %v", r.pubkey, &prv1.PublicKey)
 		}
 	}()
 	go func() {
@@ -116,8 +112,8 @@ func testEncHandshake(token []byte) error {
 		if r.err != nil {
 			return
 		}
-		if !reflect.DeepEqual(r.pubkey, &prv0.TaiPubKey) {
-			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &prv0.TaiPubKey)
+		if !reflect.DeepEqual(r.pubkey, &prv0.PublicKey) {
+			r.err = fmt.Errorf("remote ID mismatch: got %v, want: %v", r.pubkey, &prv0.PublicKey)
 		}
 	}()
 
@@ -148,15 +144,13 @@ func testEncHandshake(token []byte) error {
 
 func TestProtocolHandshake(t *testing.T) {
 	var (
-		taiprivate taiCrypto.TaiPrivateKey
-		prv0, _    = taiprivate.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-		pub0       = crypto.FromECDSAPub(&prv0.TaiPubKey.Publickey)[1:]
-		hs0        = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
+		prv0, _ = crypto.GenerateKey()
+		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)[1:]
+		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
-		taiprivate1 taiCrypto.TaiPrivateKey
-		prv1, _     = taiprivate1.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
-		pub1        = crypto.FromECDSAPub(&prv1.TaiPubKey.Publickey)[1:]
-		hs1         = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
+		prv1, _ = crypto.GenerateKey()
+		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)[1:]
+		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
 	)
@@ -171,13 +165,13 @@ func TestProtocolHandshake(t *testing.T) {
 		defer wg.Done()
 		defer fd0.Close()
 		rlpx := newRLPX(fd0)
-		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.TaiPubKey)
+		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.PublicKey)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey.Publickey, prv1.TaiPubKey.Publickey) {
-			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey.Publickey, &prv1.TaiPubKey.Publickey)
+		if !reflect.DeepEqual(rpubkey, &prv1.PublicKey) {
+			t.Errorf("dial side remote pubkey mismatch: got %v, want %v", rpubkey, &prv1.PublicKey)
 			return
 		}
 
@@ -202,8 +196,8 @@ func TestProtocolHandshake(t *testing.T) {
 			t.Errorf("listen side enc handshake failed: %v", err)
 			return
 		}
-		if !reflect.DeepEqual(rpubkey.Publickey, prv0.TaiPubKey.Publickey) {
-			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey.Publickey, &prv0.TaiPubKey.Publickey)
+		if !reflect.DeepEqual(rpubkey, &prv0.PublicKey) {
+			t.Errorf("listen side remote pubkey mismatch: got %v, want %v", rpubkey, &prv0.PublicKey)
 			return
 		}
 
@@ -500,68 +494,4 @@ var eip8HandshakeRespTests = []handshakeAckTest{
 		wantVersion: 57,
 		wantRest:    []rlp.RawValue{{0x06}, {0xC2, 0x07, 0x08}, {0x81, 0xFA}},
 	},
-}
-
-func TestHandshakeForwardCompatibility(t *testing.T) {
-	var (
-		keyA, _ = crypto.HexToECDSA("49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee")
-		keyBB   taiCrypto.TaiPrivateKey
-		keyB, _ = keyBB.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-
-		pubA    = crypto.FromECDSAPub(&keyA.PublicKey)[1:]
-		pubB    = crypto.FromECDSAPub(&keyB.TaiPubKey.Publickey)[1:]
-		ephA, _ = crypto.HexToECDSA("869d6ecf5211f1cc60418a13b9d870b22959d0c16f02bec714c960dd2298a32d")
-
-		ephBP   taiCrypto.TaiPrivateKey
-		ephB, _ = ephBP.HexToECDSA("e238eb8e04fee6511ab04c6dd3c89ce097b11f25d584863ac2b6d5b35b1847e4")
-
-		ephPubA       = crypto.FromECDSAPub(&ephA.PublicKey)[1:]
-		ephPubB       = crypto.FromECDSAPub(&ephB.TaiPubKey.Publickey)[1:]
-		nonceA        = unhex("7e968bba13b6c50e2c4cd7f241cc0d64d1ac25c7f5952df231ac6a2bda8ee5d6")
-		nonceB        = unhex("559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd")
-		_, _, _, _    = pubA, pubB, ephPubA, ephPubB
-		authSignature = unhex("299ca6acfd35e3d72d8ba3d1e2b60b5561d5af5218eb5bc182045769eb4226910a301acae3b369fffc4a4899d6b02531e89fd4fe36a2cf0d93607ba470b50f7800")
-		_             = authSignature
-	)
-	makeAuth := func(test handshakeAuthTest) *authMsgV4 {
-		msg := &authMsgV4{Version: test.wantVersion, Rest: test.wantRest, gotPlain: test.isPlain}
-		copy(msg.Signature[:], authSignature)
-		copy(msg.InitiatorPubkey[:], pubA)
-		copy(msg.Nonce[:], nonceA)
-		return msg
-	}
-
-	// check derivation for (Auth₂, Ack₂) on recipient side
-	var (
-		ephBPP taiCrypto.TaiPrivateKey
-		hs     = &encHandshake{
-			initiator:     false,
-			respNonce:     nonceB,
-			randomPrivKey: ephBPP.ImportECDSA(ephB),
-		}
-		authCiphertext     = unhex(eip8HandshakeAuthTests[1].input)
-		authRespCiphertext = unhex(eip8HandshakeRespTests[1].input)
-		authMsg            = makeAuth(eip8HandshakeAuthTests[1])
-		wantAES            = unhex("80e8632c05fed6fc2a13b0f8d31a3cf645366239170ea067065aba8e28bac487")
-		wantMAC            = unhex("2ea74ec5dae199227dff1af715362700e989d889d7a493cb0639691efb8e5f98")
-		wantFooIngressHash = unhex("0c7ec6340062cc46f5e9f1e3cf86f8c8c403c5a0964f5df0ebd34a75ddc86db5")
-	)
-	if err := hs.handleAuthMsg(authMsg, keyB); err != nil {
-		t.Fatalf("handleAuthMsg: %v", err)
-	}
-	derived, err := hs.secrets(authCiphertext, authRespCiphertext)
-	if err != nil {
-		t.Fatalf("secrets: %v", err)
-	}
-	if !bytes.Equal(derived.AES, wantAES) {
-		t.Errorf("aes-secret mismatch:\ngot %x\nwant %x", derived.AES, wantAES)
-	}
-	if !bytes.Equal(derived.MAC, wantMAC) {
-		t.Errorf("mac-secret mismatch:\ngot %x\nwant %x", derived.MAC, wantMAC)
-	}
-	io.WriteString(derived.IngressMAC, "foo")
-	fooIngressHash := derived.IngressMAC.Sum(nil)
-	if !bytes.Equal(fooIngressHash, wantFooIngressHash) {
-		t.Errorf("ingress-mac('foo') mismatch:\ngot %x\nwant %x", fooIngressHash, wantFooIngressHash)
-	}
 }
