@@ -323,7 +323,7 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 }*/
 func PubkeyToAddress(cryptotype uint8, p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPub(cryptotype, &p)
-	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return common.BytesToAddress(Keccak256(cryptotype, pubBytes[1:])[12:])
 }
 
 func Encrypt(cryptotype uint8, pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
