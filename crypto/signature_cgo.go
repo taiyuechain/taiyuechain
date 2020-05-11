@@ -32,18 +32,18 @@ import (
 /*func Ecrecover(hash, sig []byte) ([]byte, error) {
 	return secp256k1.RecoverPubkey(hash, sig)
 }*/
-func Ecrecover(cryptotype uint8, hash, sig []byte) ([]byte, error) {
+func Ecrecover(hash, sig []byte) ([]byte, error) {
 	if cryptotype == 1 {
 		p256pub, err := p256.ECRecovery(hash, sig[:65])
 		if err != nil {
 			return nil, err
 		}
-		return FromECDSAPub(cryptotype, p256pub), nil
+		return FromECDSAPub(p256pub), nil
 	}
 	//guomi
 	if cryptotype == 2 {
 		smpub := sm2.Decompress(sig[65:])
-		return FromECDSAPub(cryptotype, sm2.ToECDSAPublickey(smpub)), nil
+		return FromECDSAPub(sm2.ToECDSAPublickey(smpub)), nil
 	}
 	//guoji S256
 	if cryptotype == 3 {
@@ -53,10 +53,10 @@ func Ecrecover(cryptotype uint8, hash, sig []byte) ([]byte, error) {
 }
 
 // SigToPub returns the public key that created the given signature.
-func SigToPub(cryptotype uint8, hash, sig []byte) (*ecdsa.PublicKey, error) {
+func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	if cryptotype == 1 {
 		//p256pub,err:=p256.ECRecovery(hash, sig)
-		p256pub, err := DecompressPubkey(cryptotype, sig[65:])
+		p256pub, err := DecompressPubkey(sig[65:])
 		if err != nil {
 			return nil, err
 		}
@@ -64,7 +64,7 @@ func SigToPub(cryptotype uint8, hash, sig []byte) (*ecdsa.PublicKey, error) {
 	}
 	//guomi
 	if cryptotype == 2 {
-		smpub, err := DecompressPubkey(cryptotype, sig[65:])
+		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func SigToPub(cryptotype uint8, hash, sig []byte) (*ecdsa.PublicKey, error) {
 	}
 	//guoji S256
 	if cryptotype == 3 {
-		s, err := Ecrecover(3, hash, sig)
+		s, err := Ecrecover(hash, sig)
 		if err != nil {
 			return nil, err
 		}
@@ -91,13 +91,13 @@ func SigToPub(cryptotype uint8, hash, sig []byte) (*ecdsa.PublicKey, error) {
 // solution is to hash any input before calculating the signature.
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
-func Sign(cryptotype uint8, digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
+func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	if cryptotype == 1 {
 		p256sign, err := p256.Sign(prv, digestHash)
 		if err != nil {
 			return nil, err
 		}
-		pubtype := CompressPubkey(cryptotype, &prv.PublicKey)
+		pubtype := CompressPubkey(&prv.PublicKey)
 		p256sign = append(p256sign, pubtype...)
 		return p256sign, nil
 	}
@@ -107,7 +107,7 @@ func Sign(cryptotype uint8, digestHash []byte, prv *ecdsa.PrivateKey) (sig []byt
 		if err != nil {
 			return nil, err
 		}
-		pubtype := CompressPubkey(cryptotype, &prv.PublicKey)
+		pubtype := CompressPubkey(&prv.PublicKey)
 		smsign = append(smsign, pubtype...)
 		return smsign, nil
 	}
@@ -127,9 +127,9 @@ func Sign(cryptotype uint8, digestHash []byte, prv *ecdsa.PrivateKey) (sig []byt
 // The public key should be in compressed (33 bytes) or uncompressed (65 bytes) format.
 // The signature should have the 64 byte [R || S] format.
 
-func VerifySignature(cryptotype uint8, pubkey, digestHash, signature []byte) bool {
+func VerifySignature(pubkey, digestHash, signature []byte) bool {
 	if cryptotype == 1 {
-		p256pub, err := UnmarshalPubkey(cryptotype, pubkey)
+		p256pub, err := UnmarshalPubkey(pubkey)
 		if err != nil {
 			return false
 		}
@@ -137,7 +137,7 @@ func VerifySignature(cryptotype uint8, pubkey, digestHash, signature []byte) boo
 	}
 	//guomi
 	if cryptotype == 2 {
-		smpub, err := UnmarshalPubkey(cryptotype, pubkey)
+		smpub, err := UnmarshalPubkey(pubkey)
 		if err != nil {
 			return false
 		}
@@ -152,7 +152,7 @@ func VerifySignature(cryptotype uint8, pubkey, digestHash, signature []byte) boo
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
-func DecompressPubkey(cryptotype uint8, pubkey []byte) (*ecdsa.PublicKey, error) {
+func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 	if cryptotype == 1 {
 		p256pub, err := p256.DecompressPubkey(pubkey)
 		if err != nil {
@@ -178,7 +178,7 @@ func DecompressPubkey(cryptotype uint8, pubkey []byte) (*ecdsa.PublicKey, error)
 }
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
-func CompressPubkey(cryptotype uint8, pubkey *ecdsa.PublicKey) []byte {
+func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 	if cryptotype == 1 {
 		return p256.CompressPubkey(pubkey)
 	}

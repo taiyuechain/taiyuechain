@@ -53,7 +53,8 @@ var (
 var errInvalidPubkey = errors.New("invalid secp256k1 public key")
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
-func Keccak256(cryptotype uint8, data ...[]byte) []byte {
+
+func Keccak256(data ...[]byte) []byte {
 	if cryptotype == 1 {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
@@ -73,7 +74,7 @@ func Keccak256(cryptotype uint8, data ...[]byte) []byte {
 
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
-func Keccak256Hash(cryptotype uint8, data ...[]byte) (h common.Hash) {
+func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	if cryptotype == 1 {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
@@ -103,19 +104,19 @@ func Keccak512(data ...[]byte) []byte {
 }
 
 // CreateAddress creates an ethereum address given the bytes and the nonce
-func CreateAddress(cryptotype uint8, b common.Address, nonce uint64) common.Address {
+func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(cryptotype, data)[12:])
+	return common.BytesToAddress(Keccak256(data)[12:])
 }
 
 // CreateAddress2 creates an ethereum address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(cryptotype uint8, b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256(cryptotype, []byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
 // ToECDSA creates a private key with the given D value.
-func ToECDSA(cryptotype uint8, d []byte) (*ecdsa.PrivateKey, error) {
+func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	if cryptotype == 1 {
 		ecdsapri, err := toECDSA(elliptic.P256(), d, true)
 		if err != nil {
@@ -141,7 +142,7 @@ func ToECDSA(cryptotype uint8, d []byte) (*ecdsa.PrivateKey, error) {
 	}
 	return nil, nil
 }
-func ToECDSAUnsafe(cryptotype uint8, d []byte) *ecdsa.PrivateKey {
+func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
 	if cryptotype == 1 {
 		ecdsapri, _ := toECDSA(elliptic.P256(), d, true)
 		return ecdsapri
@@ -195,7 +196,7 @@ func FromECDSA(priv *ecdsa.PrivateKey) []byte {
 	}
 	return math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
 }
-func UnmarshalPubkey(cryptotype uint8, pub []byte) (*ecdsa.PublicKey, error) {
+func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 	if cryptotype == 1 {
 		x, y := elliptic.Unmarshal(elliptic.P256(), pub)
 		if x == nil {
@@ -223,7 +224,7 @@ func UnmarshalPubkey(cryptotype uint8, pub []byte) (*ecdsa.PublicKey, error) {
 	return nil, nil
 }
 
-func FromECDSAPub(cryptotype uint8, pub *ecdsa.PublicKey) []byte {
+func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
 	if cryptotype == 1 {
 		if pub == nil || pub.X == nil || pub.Y == nil {
 			return nil
@@ -248,16 +249,16 @@ func FromECDSAPub(cryptotype uint8, pub *ecdsa.PublicKey) []byte {
 }
 
 // HexToECDSA parses a secp256k1 private key.
-func HexToECDSA(cryptotype uint8, hexkey string) (*ecdsa.PrivateKey, error) {
+func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
 		return nil, errors.New("invalid hex string")
 	}
-	return ToECDSA(cryptotype, b)
+	return ToECDSA(b)
 }
 
 // LoadECDSA loads a secp256k1 private key from the given file.
-func LoadECDSA(cryptotype uint8, file string) (*ecdsa.PrivateKey, error) {
+func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	buf := make([]byte, 64)
 	fd, err := os.Open(file)
 	if err != nil {
@@ -272,7 +273,7 @@ func LoadECDSA(cryptotype uint8, file string) (*ecdsa.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ToECDSA(cryptotype, key)
+	return ToECDSA(key)
 }
 
 // SaveECDSA saves a secp256k1 private key to the given file with
@@ -281,7 +282,7 @@ func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 	k := hex.EncodeToString(FromECDSA(key))
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
-func GenerateKey(cryptotype uint8) (*ecdsa.PrivateKey, error) {
+func GenerateKey() (*ecdsa.PrivateKey, error) {
 	switch cryptotype {
 	//guoji P256
 	case 1:
@@ -321,12 +322,12 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	pubBytes := FromECDSAPubCA(&p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }*/
-func PubkeyToAddress(cryptotype uint8, p ecdsa.PublicKey) common.Address {
-	pubBytes := FromECDSAPub(cryptotype, &p)
-	return common.BytesToAddress(Keccak256(cryptotype, pubBytes[1:])[12:])
+func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
+	pubBytes := FromECDSAPub(&p)
+	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
 
-func Encrypt(cryptotype uint8, pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
+func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	switch cryptotype {
 	//guoji P256
 	case 1:
@@ -341,7 +342,7 @@ func Encrypt(cryptotype uint8, pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byt
 	}
 	return nil, nil
 }
-func Decrypt(cryptotype uint8, pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
+func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 	switch cryptotype {
 	//guoji P256
 	case 1:
@@ -356,7 +357,7 @@ func Decrypt(cryptotype uint8, pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byt
 	}
 	return nil, nil
 }
-func GenerateShared(cryptotype uint8, pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
+func GenerateShared(pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
 	switch cryptotype {
 	//guoji P256
 	case 1:
