@@ -41,7 +41,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 		return FromECDSAPub(p256pub), nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		smpub := sm2.Decompress(sig[65:])
 		return FromECDSAPub(sm2.ToECDSAPublickey(smpub)), nil
 	}
@@ -63,7 +63,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
 			return nil, err
@@ -102,7 +102,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		return p256sign, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		smsign, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
 		if err != nil {
 			return nil, err
@@ -136,7 +136,7 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 		return p256.Verify(p256pub, digestHash, signature)
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		smpub, err := UnmarshalPubkey(pubkey)
 		if err != nil {
 			return false
@@ -161,7 +161,7 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		return sm2.ToECDSAPublickey(sm2.Decompress(pubkey)), nil
 
 	}
@@ -183,7 +183,7 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 		return p256.CompressPubkey(pubkey)
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM_SM3 {
+	if cryptotype == CRYPTO_SM2_SM3 {
 		return sm2.Compress(sm2.ToSm2Publickey(pubkey))
 
 	}
