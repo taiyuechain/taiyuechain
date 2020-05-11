@@ -22,7 +22,7 @@ import (
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/etaidb"
+	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -68,20 +68,20 @@ type Trie interface {
 	Hash() common.Hash
 	NodeIterator(startKey []byte) trie.NodeIterator
 	GetKey([]byte) []byte // TODO(fjl): remove this when SecureTrie is removed
-	Prove(key []byte, fromLevel uint, proofDb etaidb.Putter) error
+	Prove(key []byte, fromLevel uint, proofDb taidb.Putter) error
 }
 
 // NewDatabase creates a backing store for state. The returned database is safe for
 // concurrent use and retains a few recent expanded trie nodes in memory. To keep
 // more historical state in memory, use the NewDatabaseWithCache constructor.
-func NewDatabase(db etaidb.Database) Database {
+func NewDatabase(db taidb.Database) Database {
 	return NewDatabaseWithCache(db, 0)
 }
 
 // NewDatabase creates a backing store for state. The returned database is safe for
 // concurrent use and retains both a few recent expanded trie nodes in memory, as
 // well as a lot of collapsed RLP trie nodes in a large memory cache.
-func NewDatabaseWithCache(db etaidb.Database, cache int) Database {
+func NewDatabaseWithCache(db taidb.Database, cache int) Database {
 	csc, _ := lru.New(codeSizeCacheSize)
 	return &cachingDB{
 		db:            trie.NewDatabaseWithCache(db, cache),
@@ -179,6 +179,6 @@ func (m cachedTrie) Commit(onleaf trie.LeafCallback) (common.Hash, error) {
 	return root, err
 }
 
-func (m cachedTrie) Prove(key []byte, fromLevel uint, proofDb etaidb.Putter) error {
+func (m cachedTrie) Prove(key []byte, fromLevel uint, proofDb taidb.Putter) error {
 	return m.SecureTrie.Prove(key, fromLevel, proofDb)
 }

@@ -17,8 +17,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/console"
-	"github.com/taiyuechain/taiyuechain/etai"
-	"github.com/taiyuechain/taiyuechain/etaiclient"
+	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/taiclient"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -273,7 +273,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if err != nil {
 			utils.Fatalf("Failed to attach to self: %v", err)
 		}
-		stateReader := etaiclient.NewClient(rpcClient)
+		stateReader := taiclient.NewClient(rpcClient)
 
 		// Open any wallets already attached
 		for _, wallet := range stack.AccountManager().Wallets() {
@@ -310,7 +310,7 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" {
 			utils.Fatalf("Light clients do not support mining")
 		}
-		var taiyuechain *etai.Taiyuechain
+		var taiyuechain *tai.Taiyuechain
 		if err := stack.Service(&taiyuechain); err != nil {
 			utils.Fatalf("Taiyuechain service not running: %v", err)
 		}

@@ -28,7 +28,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etai"
+	"github.com/taiyuechain/taiyuechain/tai"
 	"github.com/taiyuechain/taiyuechain/les/flowcontrol"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/p2p"
@@ -101,8 +101,8 @@ func (p *peer) queueSend(f func()) {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peer) Info() *etai.PeerInfo {
-	return &etai.PeerInfo{
+func (p *peer) Info() *tai.PeerInfo {
+	return &tai.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
 		Head:       fmt.Sprintf("%x", p.Head()),

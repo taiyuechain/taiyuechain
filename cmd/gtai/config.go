@@ -15,7 +15,7 @@ import (
 	"github.com/naoina/toml"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
-	"github.com/taiyuechain/taiyuechain/etai"
+	"github.com/taiyuechain/taiyuechain/tai"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/params"
 )
@@ -59,7 +59,7 @@ type etruestatsConfig struct {
 }
 
 type gethConfig struct {
-	Etrue      etai.Config
+	Etrue      tai.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
 	//Dashboard  dashboard.Config
@@ -93,7 +93,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		Etrue: etai.DefaultConfig,
+		Etrue: tai.DefaultConfig,
 		Node:  defaultNodeConfig(),
 		//Dashboard: dashboard.DefaultConfig,
 	}

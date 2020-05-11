@@ -49,11 +49,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
-	"github.com/taiyuechain/taiyuechain/etai"
-	"github.com/taiyuechain/taiyuechain/etai/downloader"
-	"github.com/taiyuechain/taiyuechain/etai/gasprice"
-	"github.com/taiyuechain/taiyuechain/etaidb"
-	"github.com/taiyuechain/taiyuechain/etaistats"
+	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/tai/gasprice"
+	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/taistats"
 	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
@@ -138,7 +138,7 @@ var (
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
 		Usage: "Network identifier",
-		Value: etai.DefaultConfig.NetworkId,
+		Value: tai.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{
 		Name:  "testnet",
@@ -192,12 +192,12 @@ var (
 	BFTPortFlag = cli.Uint64Flag{
 		Name:  "bftport",
 		Usage: "committee node port ",
-		Value: uint64(etai.DefaultConfig.Port),
+		Value: uint64(tai.DefaultConfig.Port),
 	}
 	BFTStandbyPortFlag = cli.Uint64Flag{
 		Name:  "bftport2",
 		Usage: "committee node standby port ",
-		Value: uint64(etai.DefaultConfig.StandbyPort),
+		Value: uint64(tai.DefaultConfig.StandbyPort),
 	}
 	BftKeyFileFlag = cli.StringFlag{
 		Name:  "bftkey",
@@ -208,7 +208,7 @@ var (
 		Usage: "committee generate bft_privatekey as hex (for testing)",
 	}
 
-	defaultSyncMode = etai.DefaultConfig.SyncMode
+	defaultSyncMode = tai.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("full", or "snapshot")`,
@@ -231,7 +231,7 @@ var (
 	LightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
 		Usage: "Maximum number of LES client peers",
-		Value: etai.DefaultConfig.LightPeers,
+		Value: tai.DefaultConfig.LightPeers,
 	}
 	LightKDFFlag = cli.BoolFlag{
 		Name:  "lightkdf",
@@ -281,37 +281,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum gas price limit to enforce for acceptance into the pool",
-		Value: etai.DefaultConfig.TxPool.PriceLimit,
+		Value: tai.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: etai.DefaultConfig.TxPool.PriceBump,
+		Value: tai.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: etai.DefaultConfig.TxPool.AccountSlots,
+		Value: tai.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: etai.DefaultConfig.TxPool.GlobalSlots,
+		Value: tai.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: etai.DefaultConfig.TxPool.AccountQueue,
+		Value: tai.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: etai.DefaultConfig.TxPool.GlobalQueue,
+		Value: tai.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: etai.DefaultConfig.TxPool.Lifetime,
+		Value: tai.DefaultConfig.TxPool.Lifetime,
 	}
 	//fruit pool settings
 	SnailPoolJournalFlag = cli.StringFlag{
@@ -374,13 +374,13 @@ var (
 	GasTargetFlag = cli.Uint64Flag{
 		Name:  "gastarget",
 		Usage: "Target gas floor for fast block",
-		Value: etai.DefaultConfig.MinerGasFloor,
+		Value: tai.DefaultConfig.MinerGasFloor,
 	}
 
 	GasLimitFlag = cli.Uint64Flag{
 		Name:  "gaslimit",
 		Usage: "Target gas ceiling for fast block",
-		Value: etai.DefaultConfig.MinerGasCeil,
+		Value: tai.DefaultConfig.MinerGasCeil,
 	}
 
 	EtherbaseFlag = cli.StringFlag{
@@ -396,7 +396,7 @@ var (
 	GasPriceFlag = BigFlag{
 		Name:  "gasprice",
 		Usage: "Minimal gas price to accept for mining a transactions",
-		Value: etai.DefaultConfig.GasPrice,
+		Value: tai.DefaultConfig.GasPrice,
 	}
 	ExtraDataFlag = cli.StringFlag{
 		Name:  "extradata",
@@ -560,12 +560,12 @@ var (
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpoblocks",
 		Usage: "Number of recent blocks to check for gas prices",
-		Value: etai.DefaultConfig.GPO.Blocks,
+		Value: tai.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpopercentile",
 		Usage: "Suggested gas price is the given percentile of a set of recent transaction gas prices",
-		Value: etai.DefaultConfig.GPO.Percentile,
+		Value: tai.DefaultConfig.GPO.Percentile,
 	}
 
 	// Metrics flags
@@ -663,7 +663,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	}
 }
 
-func setBftCommitteeKey(ctx *cli.Context, cfg *etai.Config) {
+func setBftCommitteeKey(ctx *cli.Context, cfg *tai.Config) {
 
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
@@ -850,7 +850,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setEtherbase retrieves the etherbase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *etai.Config) {
+func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *tai.Config) {
 	if ctx.GlobalIsSet(EtherbaseFlag.Name) {
 		account, err := MakeAddress(ks, ctx.GlobalString(EtherbaseFlag.Name))
 		if err != nil {
@@ -1023,7 +1023,7 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *etai.Config) {
+func setEthash(ctx *cli.Context, cfg *tai.Config) {
 
 }
 
@@ -1079,7 +1079,7 @@ func checkExclusive(ctx *cli.Context, args ...interface{}) {
 }
 
 // SetTaichainConfig applies etrue-related command line flags to the config.
-func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *etai.Config) {
+func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	// Avoid conflicting network flags
 	checkExclusive(ctx, TestnetFlag, DevnetFlag)
 	//checkExclusive(ctx, LightServFlag, LightModeFlag)
@@ -1248,7 +1248,7 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 }*/
 
 // RegisterEtrueService adds an Taiyuechain client to the stack.
-func RegisterEtrueService(stack *node.Node, cfg *etai.Config) {
+func RegisterEtrueService(stack *node.Node, cfg *tai.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1256,7 +1256,7 @@ func RegisterEtrueService(stack *node.Node, cfg *etai.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := etai.New(ctx, cfg)
+			fullNode, err := tai.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1287,13 +1287,13 @@ func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit st
 func RegisterEtrueStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both etrue and les services
-		var etrueServ *etai.Taiyuechain
+		var etrueServ *tai.Taiyuechain
 		ctx.Service(&etrueServ)
 
 		var lesServ *les.LightEtrue
 		ctx.Service(&lesServ)
 
-		return etaistats.New(url, etrueServ, lesServ)
+		return taistats.New(url, etrueServ, lesServ)
 	}); err != nil {
 		Fatalf("Failed to register the Taiyuechain Stats service: %v", err)
 	}
@@ -1321,7 +1321,7 @@ func SetupMetrics(ctx *cli.Context) {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) etaidb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) taidb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1351,7 +1351,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, chainDb etaidb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, chainDb taidb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
@@ -1367,12 +1367,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	engine = minerva.NewFaker()
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		engine = minerva.New(minerva.Config{
-			CacheDir:       stack.ResolvePath(etai.DefaultConfig.MinervaHash.CacheDir),
-			CachesInMem:    etai.DefaultConfig.MinervaHash.CachesInMem,
-			CachesOnDisk:   etai.DefaultConfig.MinervaHash.CachesOnDisk,
-			DatasetDir:     stack.ResolvePath(etai.DefaultConfig.MinervaHash.DatasetDir),
-			DatasetsInMem:  etai.DefaultConfig.MinervaHash.DatasetsInMem,
-			DatasetsOnDisk: etai.DefaultConfig.MinervaHash.DatasetsOnDisk,
+			CacheDir:       stack.ResolvePath(tai.DefaultConfig.MinervaHash.CacheDir),
+			CachesInMem:    tai.DefaultConfig.MinervaHash.CachesInMem,
+			CachesOnDisk:   tai.DefaultConfig.MinervaHash.CachesOnDisk,
+			DatasetDir:     stack.ResolvePath(tai.DefaultConfig.MinervaHash.DatasetDir),
+			DatasetsInMem:  tai.DefaultConfig.MinervaHash.DatasetsInMem,
+			DatasetsOnDisk: tai.DefaultConfig.MinervaHash.DatasetsOnDisk,
 			Tip9:           config.TIP9.SnailNumber.Uint64(),
 		})
 	}
@@ -1381,8 +1381,8 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	}
 	cache := &core.CacheConfig{
 		Disabled:      ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieNodeLimit: etai.DefaultConfig.TrieCache,
-		TrieTimeLimit: etai.DefaultConfig.TrieTimeout,
+		TrieNodeLimit: tai.DefaultConfig.TrieCache,
+		TrieTimeLimit: tai.DefaultConfig.TrieTimeout,
 	}
 
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {

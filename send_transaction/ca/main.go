@@ -10,7 +10,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/etaiclient"
+	"github.com/taiyuechain/taiyuechain/taiclient"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 
@@ -123,7 +123,7 @@ func SendP256Transtion(ip string) {
 	fmt.Println("send Transaction num is:", num)
 	//client, err := rpc.Dial("http://" + ip)
 	url := "http://" + ip
-	client, err := etaiclient.Dial(url)
+	client, err := taiclient.Dial(url)
 	defer client.Close()
 	if err != nil {
 		fmt.Println("Dail:", ip, err.Error())

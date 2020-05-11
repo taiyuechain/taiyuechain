@@ -30,11 +30,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/etai"
-	"github.com/taiyuechain/taiyuechain/etai/downloader"
-	"github.com/taiyuechain/taiyuechain/etai/filters"
-	"github.com/taiyuechain/taiyuechain/etai/gasprice"
-	"github.com/taiyuechain/taiyuechain/etaidb"
+	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/tai/filters"
+	"github.com/taiyuechain/taiyuechain/tai/gasprice"
+	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	"github.com/taiyuechain/taiyuechain/light"
@@ -47,7 +47,7 @@ import (
 )
 
 type LightEtrue struct {
-	config *etai.Config
+	config *tai.Config
 
 	odr         *LesOdr
 	relay       *LesTxRelay
@@ -63,7 +63,7 @@ type LightEtrue struct {
 	reqDist         *requestDistributor
 	retriever       *retrieveManager
 	// DB interfaces
-	chainDb etaidb.Database // Block chain database
+	chainDb taidb.Database // Block chain database
 
 	bloomRequests                              chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer, chtIndexer, bloomTrieIndexer *core.ChainIndexer
@@ -80,8 +80,8 @@ type LightEtrue struct {
 	wg sync.WaitGroup
 }
 
-func New(ctx *node.ServiceContext, config *etai.Config) (*LightEtrue, error) {
-	chainDb, err := etai.CreateDB(ctx, config, "lightchaindata")
+func New(ctx *node.ServiceContext, config *tai.Config) (*LightEtrue, error) {
+	chainDb, err := tai.CreateDB(ctx, config, "lightchaindata")
 	if err != nil {
 		return nil, err
 	}
@@ -102,11 +102,11 @@ func New(ctx *node.ServiceContext, config *etai.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           etai.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
+		engine:           tai.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
-		bloomIndexer:     etai.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
+		bloomIndexer:     tai.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
 		chtIndexer:       light.NewChtIndexer(chainDb, true),
 		bloomTrieIndexer: light.NewBloomTrieIndexer(chainDb, true),
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"time"
 
-	//"github.com/taiyuechain/taiyuechain/etai"
+	//"github.com/taiyuechain/taiyuechain/tai"
 )
 
 type ReIdentity struct {
