@@ -8,6 +8,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	"io/ioutil"
+	"encoding/pem"
+	"strings"
+	"fmt"
 )
 
 func IsCorrectSY(syCrypto interface{}) bool {
@@ -89,4 +93,26 @@ func IsEqulCert(cert *x509.Certificate, idBytes []byte) error {
 		return errors.New("not equl ")
 	}
 	return nil
+}
+
+func ReadPemFileByPath(path string) ([]byte, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Unable to read test certificate from %q - %q "+
+				"Does a unit test have an incorrect test file name?\n",
+			path, err))
+	}
+
+	if strings.Contains(string(data), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(data)
+		if block == nil {
+			panic(fmt.Sprintf(
+				"Failed to PEM decode test certificate from %q - "+
+					"Does a unit test have a buggy test cert file?\n",
+				path))
+		}
+		data = block.Bytes
+	}
+	return data,nil
 }

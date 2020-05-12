@@ -15,9 +15,7 @@ import (
 	"time"
 	"log"
 	"crypto/rand"
-	//"encoding/base64"
-	"strings"
-	"encoding/pem"
+
 )
 
 
@@ -263,27 +261,7 @@ type Configuration struct {
 	GmPath    string
 }
 
-func ReadPemFileByPath(path string) ([]byte, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(fmt.Sprintf(
-			"Unable to read test certificate from %q - %q "+
-				"Does a unit test have an incorrect test file name?\n",
-			path, err))
-	}
 
-	if strings.Contains(string(data), "-BEGIN CERTIFICATE-") {
-		block, _ := pem.Decode(data)
-		if block == nil {
-			panic(fmt.Sprintf(
-				"Failed to PEM decode test certificate from %q - "+
-					"Does a unit test have a buggy test cert file?\n",
-				path))
-		}
-		data = block.Bytes
-	}
-	return data,nil
-}
 
 func ReadPemFileUsePath(path string) ([]byte, error) {
 

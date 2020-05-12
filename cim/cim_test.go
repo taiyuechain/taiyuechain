@@ -458,7 +458,7 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 
 func TestReadPemFile(t *testing.T) {
 	path := "./testdata/testcert/peer-expired.pem"
-	byte, _ := ReadPemFileByPath(path)
+	byte, _ := crypto.ReadPemFileByPath(path)
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
 }
