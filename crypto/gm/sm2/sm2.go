@@ -286,8 +286,54 @@ func notEncrypted(encData []byte, in []byte) bool {
 	}
 	return true
 }
+func incCounter(ctr []byte) {
+	if ctr[3]++; ctr[3] != 0 {
+		return
+	}
+	if ctr[2]++; ctr[2] != 0 {
+		return
+	}
+	if ctr[1]++; ctr[1] != 0 {
+		return
+	}
+	if ctr[0]++; ctr[0] != 0 {
+		return
+	}
+}
+func concatKDF(hash hash.Hash, z, s1 []byte, kdLen int) (k []byte, err error) {
+	if s1 == nil {
+		s1 = make([]byte, 0)
+	}
+	reps := ((kdLen + 7) * 8) / (hash.BlockSize() * 8)
 
+	counter := []byte{0, 0, 0, 1}
+	k = make([]byte, 0)
+
+	for i := 0; i <= reps; i++ {
+		hash.Write(counter)
+		hash.Write(z)
+		hash.Write(s1)
+		k = append(k, hash.Sum(nil)...)
+		hash.Reset()
+		incCounter(counter)
+	}
+
+	k = k[:kdLen]
+	return
+}
 func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
+	R, _, err := GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := sm3.New()
+	z, err := R.GenerateShared(pub, 16, 16)
+	if err != nil {
+		return nil, err
+	}
+	K, err := concatKDF(hash, z, nil, 32)
+	Ke := K[:16]
 	c2 := make([]byte, len(in))
 	copy(c2, in)
 	var c1 []byte
@@ -318,15 +364,18 @@ func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byt
 	c1Len := len(c1)
 	c2Len := len(c2)
 	c3Len := len(c3)
-	result := make([]byte, c1Len+c2Len+c3Len)
+	c4len := len(Ke)
+	result := make([]byte, c1Len+c2Len+c3Len+c4len)
 	if cipherTextType == C1C2C3 {
 		copy(result[:c1Len], c1)
 		copy(result[c1Len:c1Len+c2Len], c2)
 		copy(result[c1Len+c2Len:], c3)
+		copy(result[c1Len+c2Len+c3Len:], Ke)
 	} else if cipherTextType == C1C3C2 {
 		copy(result[:c1Len], c1)
 		copy(result[c1Len:c1Len+c3Len], c3)
 		copy(result[c1Len+c3Len:], c2)
+		copy(result[c1Len+c2Len+c3Len:], Ke)
 	} else {
 		return nil, errors.New("unknown cipherTextType:" + string(cipherTextType))
 	}
@@ -351,6 +400,13 @@ func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []b
 	return sk, nil
 }
 func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
+	hash := sm3.New()
+	z, err := priv.GenerateShared(&priv.PublicKey, 16, 16)
+	if err != nil {
+		return nil, err
+	}
+	K, err := concatKDF(hash, z, nil, 32)
+	Ke := K[:16]
 	c1Len := ((priv.Curve.BitSize+7)/8)*2 + 1
 	c1 := make([]byte, c1Len)
 	copy(c1, in[:c1Len])
@@ -363,7 +419,7 @@ func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]b
 
 	digest := sm3.New()
 	c3Len := digest.Size()
-	c2Len := len(in) - c1Len - c3Len
+	c2Len := len(in) - c1Len - c3Len - len(Ke)
 	c2 := make([]byte, c2Len)
 	c3 := make([]byte, c3Len)
 	if cipherTextType == C1C2C3 {
