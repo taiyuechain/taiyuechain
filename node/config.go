@@ -17,11 +17,9 @@
 package node
 
 import (
-	//"crypto/ecdsa"
-	//"github.com/taiyuechain/taiyuechain/crypto"
+
 	"github.com/taiyuechain/taiyuechain/crypto"
 
-	//"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -32,7 +30,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/accounts/usbwallet"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
@@ -483,7 +480,7 @@ func (c *Config) BftCommitteeCert() []byte {
 	}
 	certfile := c.ResolvePath(datadirLocalCert)
 	var err error
-	cert, err = cim.ReadPemFileByPath(certfile)
+	cert, err = crypto.ReadPemFileByPath(certfile)
 	if err != nil {
 		log.Error("ReadPemFileByPath", "err", err)
 		return nil
