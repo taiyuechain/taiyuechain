@@ -6,7 +6,8 @@ import (
 
 	"errors"
 
-
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
 
@@ -81,6 +82,12 @@ func (cl *CimList) VerifyRootCert(cert []byte) error  {
 	}
 	return nil
 }
+
+func (cl *CimList) VerifyPermission(operatorFrom common.Address,tx *types.Transaction) bool  {
+	return true
+}
+
+
 
 
 type cimimpl struct {
