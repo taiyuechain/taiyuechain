@@ -40,12 +40,11 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
-	"github.com/crypto/gm/gmsm/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm4"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"hash"
-	//ethcrypto "github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var (
