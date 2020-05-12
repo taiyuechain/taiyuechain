@@ -379,22 +379,25 @@ func zeroBytes(bytes []byte) {
 	}
 }
 func Hash256(auth, s, h []byte) hash.Hash {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
 		mac := sha3.NewLegacyKeccak256()
 		mac.Write(xor(s, h))
 		mac.Write(auth)
 		return mac
-	}
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+
+	case CRYPTO_SM2_SM3_SM4:
 		mac := sm3.New()
 		mac.Write(xor(s, h))
 		mac.Write(auth)
 		return mac
+
 	}
 	return nil
 }
 func Hex(a []byte) string {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
 		unchecksummed := hex.EncodeToString(a[:])
 		sha := sha3.NewLegacyKeccak256()
 		sha.Write([]byte(unchecksummed))
@@ -413,8 +416,8 @@ func Hex(a []byte) string {
 			}
 		}
 		return "0x" + string(result)
-	}
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+
+	case CRYPTO_SM2_SM3_SM4:
 		unchecksummed := hex.EncodeToString(a[:])
 		s3 := sm3.New()
 		s3.Write([]byte(unchecksummed))
@@ -434,6 +437,7 @@ func Hex(a []byte) string {
 		}
 		return "0x" + string(result)
 	}
+
 	return ""
 }
 func xor(one, other []byte) (xor []byte) {
