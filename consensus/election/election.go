@@ -628,7 +628,7 @@ func (e *Election) electedCommittee(fastNumber *big.Int) *committee {
 		snailNumber = snailBlock.Number()
 	}*/
 
-	committee := e.getCommitteeBuyContract() //e.getCommittee(fastNumber, snailNumber)
+	committee := e.getCommitteeByContract() //e.getCommittee(fastNumber, snailNumber)
 	if committee == nil {
 		return nil
 	}
