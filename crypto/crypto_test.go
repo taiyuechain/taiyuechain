@@ -13,7 +13,7 @@ import (
 
 func TestDecrypt(t *testing.T) {
 	//1 is guoji 2 is guomi
-	cryptotype = CRYPTO_SM2_SM3_SM4
+	CryptoType = CRYPTO_SM2_SM3_SM4
 	ecdsapri, _ := GenerateKey()
 	fmt.Println(ecdsapri)
 	ecdsabyte := FromECDSA(ecdsapri)
@@ -37,11 +37,14 @@ func TestDecrypt(t *testing.T) {
 	ecdsapub, _ := DecompressPubkey(compreebyte)
 	fmt.Println(ecdsapub)
 	//	sigtopub
-	pubkey, _ := SigToPub(hash, sign)
+	pubkey, err := SigToPub(hash, sign)
+	if err != nil {
+		panic(err)
+	}
 	//     Encryt and Decrypt test
 	src := "caoliang"
 	data := []byte(src)
-	//ct,_:=Encrypt(cryptotype,ecdsapub,data,nil,nil)
+	//ct,_:=Encrypt(CryptoType,ecdsapub,data,nil,nil)
 	ct, _ := Encrypt(pubkey, data, nil, nil)
 	fmt.Println(ct)
 	m, _ := Decrypt(ecdsapri, ct, nil, nil)
@@ -50,12 +53,12 @@ func TestDecrypt(t *testing.T) {
 }
 
 func Test_zeroBytes(t *testing.T) {
-	cryptotype = CRYPTO_SM2_SM3_SM4
+	CryptoType = CRYPTO_SM2_SM3_SM4
 	ecdsapri, _ := GenerateKey()
 	pubkeybyte := FromECDSAPub(&ecdsapri.PublicKey)
 	stringsm2pub := hex.EncodeToString(pubkeybyte)
 	fmt.Println(stringsm2pub)
-	cryptotype = CRYPTO_P256_SH3_AES
+	CryptoType = CRYPTO_P256_SH3_AES
 	ecdpub, _ := UnmarshalPubkey(pubkeybyte)
 	fmt.Println(ecdpub)
 	byte, _ := hex.DecodeString(stringsm2pub)
@@ -64,7 +67,7 @@ func Test_zeroBytes(t *testing.T) {
 
 }
 func TestSm2(t *testing.T) {
-	cryptotype = CRYPTO_P256_SH3_AES
+	CryptoType = CRYPTO_P256_SH3_AES
 	priv, err := GenerateKey()
 	if err != nil {
 		log.Fatal(err)
@@ -102,4 +105,19 @@ func TestSm2(t *testing.T) {
 		fmt.Printf("Verify ok\n")
 	}
 
+}
+
+func TestString(t *testing.T) {
+	CryptoType = CRYPTO_SM2_SM3_SM4
+	priv, err := GenerateKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(hex.EncodeToString(FromECDSA(priv)), " pub ", hex.EncodeToString(FromECDSAPub(&priv.PublicKey)))
+	CryptoType = CRYPTO_P256_SH3_AES
+	priv, err = GenerateKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(hex.EncodeToString(FromECDSA(priv)), " pub ", hex.EncodeToString(FromECDSAPub(&priv.PublicKey)))
 }

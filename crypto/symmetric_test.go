@@ -29,8 +29,8 @@ var testData1 = []sm4CbcTestData{
 }
 
 func TestNewCipher(t *testing.T) {
-	cryptotype = CRYPTO_P256_SH3_AES
-	//cryptotype=CRYPTO_SM2_SM3_SM4
+	CryptoType = CRYPTO_P256_SH3_AES
+	//CryptoType=CRYPTO_SM2_SM3_SM4
 	block, err := NewCipher(testData1[0].key)
 	if err != nil {
 		fmt.Println(err)

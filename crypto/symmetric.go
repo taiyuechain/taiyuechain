@@ -7,10 +7,10 @@ import (
 )
 
 func NewCipher(key []byte) (cipher.Block, error) {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		return aes.NewCipher(key)
 	}
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		return sm4.NewCipher(key)
 	}
 	return nil, nil

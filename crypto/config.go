@@ -6,8 +6,8 @@ const (
 	CRYPTO_S256_SH3_AES = 3
 )
 
-var cryptotype = CRYPTO_SM2_SM3_SM4
+var CryptoType = CRYPTO_SM2_SM3_SM4
 
 func SetCrtptoType(cryptoType uint8) {
-	cryptotype = int(cryptoType)
+	CryptoType = int(cryptoType)
 }

@@ -17,19 +17,12 @@ import (
 	//"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
-
 )
 
-
-
-var(
-
+var (
 	CryptoType = uint8(1)
-	CryptoSM2 = uint8(2)
-
+	CryptoSM2  = uint8(2)
 )
-
-
 
 func TestCertCIMAndVerfiyCert(t *testing.T) {
 	cimList := NewCIMList(CryptoType)
@@ -69,8 +62,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		t.Fatalf("cert error")
 	}
 
-
-	err =rootCert.CheckSignature(rootCert.SignatureAlgorithm,rootCert.RawTBSCertificate,rootCert.Signature)
+	err = rootCert.CheckSignature(rootCert.SignatureAlgorithm, rootCert.RawTBSCertificate, rootCert.Signature)
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -82,7 +74,7 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 		t.Fatalf("error for new cim")
 	}
 
-	err = cimCa.SetUpFromCA(ca_b,CryptoType)
+	err = cimCa.SetUpFromCA(ca_b)
 	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
@@ -135,8 +127,6 @@ func TestCertCIMAndVerfiyCert(t *testing.T) {
 
 }
 
-
-
 func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	cimList := NewCIMList(CryptoSM2)
 
@@ -147,10 +137,10 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//var rootpri, _ = sm2.RawBytesToPrivateKey(pribytebyte)
 	//var rootPuk = sm2.PrivteToPublickey(*rootpri)
 	rootpri, rootPuk, err := sm2.GenerateKey(rand.Reader)
-	ca_b :=sm2_cert.CreateCertBySMPrivte(rootpri,rootPuk)
+	ca_b := sm2_cert.CreateCertBySMPrivte(rootpri, rootPuk)
 
 	rootCert, err := sm2_cert.ParseCertificate(ca_b)
-	if err != nil{
+	if err != nil {
 		t.Fatalf("cert error")
 	}
 
@@ -161,7 +151,7 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 		t.Fatalf("error for new cim")
 	}
 
-	err = cimCa.SetUpFromCA(ca_b,CryptoSM2)
+	err = cimCa.SetUpFromCA(ca_b)
 	if err != nil {
 		//fmt.Println(err)
 		t.Fatalf("set cimCa error")
@@ -182,13 +172,13 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//var sonPuk = sm2.PrivteToPublickey(*son)
 	_, sonPuk, err := sm2.GenerateKey(rand.Reader)
 
-	rootcert,err :=sm2_cert.ParseCertificate(ca_b)
-	if err!=nil{
+	rootcert, err := sm2_cert.ParseCertificate(ca_b)
+	if err != nil {
 		t.Fatalf("ParseCertificate error")
 	}
 
-	son_byte,err:=sm2_cert.IssueCert(rootcert,rootpri,sonPuk)
-	if err!=nil{
+	son_byte, err := sm2_cert.IssueCert(rootcert, rootpri, sonPuk)
+	if err != nil {
 		t.Fatalf("IssueCert error")
 	}
 	err = cimList.VerifyCert(son_byte)
@@ -197,8 +187,6 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	}
 
 }
-
-
 
 func TestCreateCertByPrivate(t *testing.T) {
 
@@ -260,8 +248,6 @@ func TestCreatePubk(t *testing.T) {
 	pkbyte4 := crypto.FromECDSAPub(&prv4.PublicKey)
 	pkstring4 := hexutil.Encode(pkbyte4)
 	fmt.Println(pkstring4)
-
-
 
 	b, err := hexutil.Decode(pkstring1)
 
@@ -455,8 +441,6 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 		t.Fatalf("3")
 	}
 
-
-
 	cert1, err := x509.ParseCertificate(ca_b)
 	if err != nil {
 		t.Fatalf("1")
@@ -467,17 +451,14 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 		t.Fatalf("1")
 	}
 
-	if !cert1.Equal(cert2){
+	if !cert1.Equal(cert2) {
 		t.Fatalf("not equl")
 	}
 }
 
-func TestReadPemFile(t *testing.T)  {
-	path :="./testdata/testcert/peer-expired.pem"
-	byte ,_:=ReadPemFileByPath(path)
+func TestReadPemFile(t *testing.T) {
+	path := "./testdata/testcert/peer-expired.pem"
+	byte, _ := ReadPemFileByPath(path)
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
 }
-
-
-

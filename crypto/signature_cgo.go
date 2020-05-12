@@ -33,7 +33,7 @@ import (
 	return secp256k1.RecoverPubkey(hash, sig)
 }*/
 func Ecrecover(hash, sig []byte) ([]byte, error) {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.ECRecovery(hash, sig[:65])
 		if err != nil {
 			return nil, err
@@ -41,12 +41,12 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 		return FromECDSAPub(p256pub), nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub := sm2.Decompress(sig[65:])
 		return FromECDSAPub(sm2.ToECDSAPublickey(smpub)), nil
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		return secp256k1.RecoverPubkey(hash, sig)
 	}
 	return nil, nil
@@ -54,7 +54,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		//p256pub,err:=p256.ECRecovery(hash, sig)
 		p256pub, err := DecompressPubkey(sig[65:])
 		if err != nil {
@@ -63,7 +63,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
 			return nil, err
@@ -71,7 +71,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return smpub, nil
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		s, err := Ecrecover(hash, sig)
 		if err != nil {
 			return nil, err
@@ -92,7 +92,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
 func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256sign, err := p256.Sign(prv, digestHash)
 		if err != nil {
 			return nil, err
@@ -102,7 +102,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		return p256sign, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smsign, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
 		if err != nil {
 			return nil, err
@@ -112,7 +112,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		return smsign, nil
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		if len(digestHash) != DigestLength {
 			return nil, fmt.Errorf("hash is required to be exactly %d bytes (%d)", DigestLength, len(digestHash))
 		}
@@ -128,7 +128,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 // The signature should have the 64 byte [R || S] format.
 
 func VerifySignature(pubkey, digestHash, signature []byte) bool {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		if len(pubkey) == 33 {
 			p256pub, err := DecompressPubkey(pubkey)
 			if err != nil {
@@ -144,7 +144,7 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 		return p256.Verify(p256pub, digestHash, signature)
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		if len(pubkey) == 33 {
 			smpub, err := DecompressPubkey(pubkey)
 			if err != nil {
@@ -160,7 +160,7 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 		return sm2.Verify(sm2.ToSm2Publickey(smpub), nil, digestHash, signature)
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		return secp256k1.VerifySignature(pubkey, digestHash, signature)
 	}
 	return false
@@ -168,7 +168,7 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
 func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.DecompressPubkey(pubkey)
 		if err != nil {
 			return nil, err
@@ -176,12 +176,12 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		return sm2.ToECDSAPublickey(sm2.Decompress(pubkey)), nil
 
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		x, y := secp256k1.DecompressPubkey(pubkey)
 		if x == nil {
 			return nil, fmt.Errorf("invalid public key")
@@ -194,16 +194,16 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
 func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
-	if cryptotype == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES {
 		return p256.CompressPubkey(pubkey)
 	}
 	//guomi
-	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		return sm2.Compress(sm2.ToSm2Publickey(pubkey))
 
 	}
 	//guoji S256
-	if cryptotype == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES {
 		return secp256k1.CompressPubkey(pubkey.X, pubkey.Y)
 	}
 	return nil
