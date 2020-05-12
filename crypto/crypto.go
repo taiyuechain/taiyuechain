@@ -30,6 +30,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
+	"hash"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -376,4 +377,69 @@ func zeroBytes(bytes []byte) {
 	for i := range bytes {
 		bytes[i] = 0
 	}
+}
+func Hash256(auth, s, h []byte) hash.Hash {
+	if cryptotype == CRYPTO_P256_SH3_AES {
+		mac := sha3.NewLegacyKeccak256()
+		mac.Write(xor(s, h))
+		mac.Write(auth)
+		return mac
+	}
+	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+		mac := sm3.New()
+		mac.Write(xor(s, h))
+		mac.Write(auth)
+		return mac
+	}
+	return nil
+}
+func Hex(a []byte) string {
+	if cryptotype == CRYPTO_P256_SH3_AES {
+		unchecksummed := hex.EncodeToString(a[:])
+		sha := sha3.NewLegacyKeccak256()
+		sha.Write([]byte(unchecksummed))
+		hash := sha.Sum(nil)
+
+		result := []byte(unchecksummed)
+		for i := 0; i < len(result); i++ {
+			hashByte := hash[i/2]
+			if i%2 == 0 {
+				hashByte = hashByte >> 4
+			} else {
+				hashByte &= 0xf
+			}
+			if result[i] > '9' && hashByte > 7 {
+				result[i] -= 32
+			}
+		}
+		return "0x" + string(result)
+	}
+	if cryptotype == CRYPTO_SM2_SM3_SM4 {
+		unchecksummed := hex.EncodeToString(a[:])
+		s3 := sm3.New()
+		s3.Write([]byte(unchecksummed))
+		hash := s3.Sum(nil)
+
+		result := []byte(unchecksummed)
+		for i := 0; i < len(result); i++ {
+			hashByte := hash[i/2]
+			if i%2 == 0 {
+				hashByte = hashByte >> 4
+			} else {
+				hashByte &= 0xf
+			}
+			if result[i] > '9' && hashByte > 7 {
+				result[i] -= 32
+			}
+		}
+		return "0x" + string(result)
+	}
+	return ""
+}
+func xor(one, other []byte) (xor []byte) {
+	xor = make([]byte, len(one))
+	for i := 0; i < len(one); i++ {
+		xor[i] = one[i] ^ other[i]
+	}
+	return xor
 }
