@@ -17,8 +17,8 @@
 package discover
 
 import (
-	"encoding/hex"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/rand"
 	"net"
 	"sync"
@@ -156,10 +156,9 @@ func sortedByDistanceTo(distbase enode.ID, slice []*node) bool {
 }
 
 func hexEncPubkey(h string) (ret encPubkey) {
-	b, err := hex.DecodeString(h)
-	if err != nil {
-		panic(err)
-	}
+	key := newkey()
+	data := crypto.FromECDSAPub(&key.PublicKey)
+	b := data[1:]
 	if len(b) != len(ret) {
 		panic("invalid length")
 	}

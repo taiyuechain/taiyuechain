@@ -30,9 +30,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/crypto"
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
-	"crypto/ecdsa"
 )
 
 // Errors
@@ -191,10 +191,10 @@ type udp struct {
 	conn        conn
 	netrestrict *netutil.Netlist
 	priv        *ecdsa.PrivateKey
-	localNode *enode.LocalNode
-	db        *enode.DB
-	tab       *Table
-	wg        sync.WaitGroup
+	localNode   *enode.LocalNode
+	db          *enode.DB
+	tab         *Table
+	wg          sync.WaitGroup
 
 	addReplyMatcher chan *replyMatcher
 	gotreply        chan reply
@@ -525,8 +525,8 @@ func (t *udp) loop() {
 }
 
 const (
-	macSize  = 256 / 8
-	sigSize  = 520 / 8
+	macSize  = 256 / 8           //32
+	sigSize  = 784 / 8           //65
 	headSize = macSize + sigSize // space of packet frame data
 )
 

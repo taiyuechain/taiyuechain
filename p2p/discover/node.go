@@ -18,10 +18,8 @@ package discover
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	//"github.com/taiyuechain/taiyuechain/crypto"
-	"math/big"
+
 	"net"
 	"time"
 
@@ -49,14 +47,11 @@ func encodePubkey(key *ecdsa.PublicKey) encPubkey {
 }
 
 func decodePubkey(e encPubkey) (*ecdsa.PublicKey, error) {
-	p := &ecdsa.PublicKey{Curve: crypto.S256(), X: new(big.Int), Y: new(big.Int)}
-	half := len(e) / 2
-	p.X.SetBytes(e[:half])
-	p.Y.SetBytes(e[half:])
-	if !p.Curve.IsOnCurve(p.X, p.Y) {
-		return nil, errors.New("invalid secp256k1 curve point")
+	pub, err := crypto.UnmarshalPubkey(append([]byte{0x04}, e[:]...))
+	if err != nil {
+		return nil, err
 	}
-	return p, nil
+	return pub, nil
 }
 
 func (e encPubkey) id() enode.ID {
