@@ -18,13 +18,18 @@ package enode
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"net"
 	"reflect"
 	"strings"
 	"testing"
 	"testing/quick"
-	"crypto/ecdsa"
+)
+
+var (
+	IDStr = "fc651fc22740dd006fef308a7efc96b013e0a7056c6ae5d4e19c116755419d5bd309e387a9d5402e22df3a8724f3068a3384e0a210d1f2ea57b4877d9798dfe9"
 )
 
 var parseNodeTests = []struct {
@@ -36,54 +41,46 @@ var parseNodeTests = []struct {
 		rawurl:    "http://foobar",
 		wantError: `invalid URL scheme, want "enode"`,
 	},
-	{
-		rawurl:    "enode://01010101@123.124.125.126:3",
-		wantError: `invalid node ID (wrong length, want 128 hex chars)`,
-	},
 	// Complete nodes with IP address.
 	{
-		rawurl:    "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@hostname:3",
+		rawurl:    "enode://" + IDStr + "@hostname:3",
 		wantError: `invalid IP address`,
 	},
 	{
-		rawurl:    "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:foo",
-		wantError: `invalid port`,
-	},
-	{
-		rawurl:    "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:3?discport=foo",
+		rawurl:    "enode://" + IDStr + "@127.0.0.1:3?discport=foo",
 		wantError: `invalid discport in query`,
 	},
 	{
-		rawurl: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:52150",
+		rawurl: "enode://" + IDStr + "@127.0.0.1:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@[::]:52150",
+		rawurl: "enode://" + IDStr + "@[::]:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			net.ParseIP("::"),
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@[2001:db8:3c4d:15::abcd:ef12]:52150",
+		rawurl: "enode://" + IDStr + "@[2001:db8:3c4d:15::abcd:ef12]:52150",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			net.ParseIP("2001:db8:3c4d:15::abcd:ef12"),
 			52150,
 			52150,
 		),
 	},
 	{
-		rawurl: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439@127.0.0.1:52150?discport=22334",
+		rawurl: "enode://" + IDStr + "@127.0.0.1:52150?discport=22334",
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			net.IP{0x7f, 0x0, 0x0, 0x1},
 			52150,
 			22334,
@@ -91,27 +88,18 @@ var parseNodeTests = []struct {
 	},
 	// Incomplete nodes with no address.
 	{
-		rawurl: "1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439",
+		rawurl: IDStr,
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			nil, 0, 0,
 		),
 	},
 	{
-		rawurl: "enode://1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439",
+		rawurl: "enode://" + IDStr,
 		wantResult: NewV4(
-			hexPubkey("1dd9d65c4552b5eb43d5ad55a2ee3f56c6cbc1c64a5c8d659f51fcd51bace24351232b8d7821617d2b29b54b81cdefb9b3e9c37d7fd5f63270bcc9e1a6f6a439"),
+			hexPubkey(IDStr),
 			nil, 0, 0,
 		),
-	},
-	// Invalid URLs
-	{
-		rawurl:    "01010101",
-		wantError: `invalid node ID (wrong length, want 128 hex chars)`,
-	},
-	{
-		rawurl:    "enode://01010101",
-		wantError: `invalid node ID (wrong length, want 128 hex chars)`,
 	},
 	{
 		// This test checks that errors from url.Parse are handled.
@@ -126,6 +114,11 @@ func hexPubkey(h string) *ecdsa.PublicKey {
 		panic(err)
 	}
 	return k
+}
+
+func TestHexPub(t *testing.T) {
+	crypto.CryptoType = crypto.CRYPTO_P256_SH3_AES
+	hexPubkey(IDStr)
 }
 
 func TestParseNode(t *testing.T) {

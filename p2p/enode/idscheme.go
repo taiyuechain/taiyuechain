@@ -30,7 +30,6 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-
 // List of known secure identity schemes.
 var ValidSchemes = enr.SchemeMap{
 	"v4": V4ID{},
@@ -57,7 +56,6 @@ func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	if err != nil {
 		return err
 	}
-	sig = sig[:len(sig)-1] // remove v
 	if err = cpy.SetSig(V4ID{}, sig); err == nil {
 		*r = cpy
 	}
