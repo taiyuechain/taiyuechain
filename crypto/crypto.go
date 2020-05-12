@@ -295,7 +295,7 @@ func GenerateKey() (*ecdsa.PrivateKey, error) {
 		return (ecdsapri.ExportECDSA()), nil
 	//	guomi
 	case CRYPTO_SM2_SM3_SM4:
-		smpri, _ := ecies.GenerateKey(rand.Reader, sm2.GetSm2P256V1(), nil)
+		smpri, _ := ecies.GenerateKey(rand.Reader, sm2.P256Sm2(), nil)
 		return (smpri.ExportECDSA()), nil
 	//	guoji S256
 	case CRYPTO_S256_SH3_AES:
