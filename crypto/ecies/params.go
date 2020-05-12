@@ -40,7 +40,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/crypto/gm/gmsm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm4"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
@@ -110,11 +110,11 @@ var (
 )
 
 var paramsFromCurve = map[elliptic.Curve]*ECIESParams{
-	secp256k1.S256():   ECIES_AES128_SHA256,
-	elliptic.P256():    ECIES_AES128_SHA256,
-	elliptic.P384():    ECIES_AES256_SHA384,
-	elliptic.P521():    ECIES_AES256_SHA512,
-	sm2.GetSm2P256V1(): ECIES_SM4_SM3256,
+	secp256k1.S256(): ECIES_AES128_SHA256,
+	elliptic.P256():  ECIES_AES128_SHA256,
+	elliptic.P384():  ECIES_AES256_SHA384,
+	elliptic.P521():  ECIES_AES256_SHA512,
+	sm2.P256Sm2():    ECIES_SM4_SM3256,
 }
 
 func AddParamsForCurve(curve elliptic.Curve, params *ECIESParams) {
