@@ -22,6 +22,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/utils"
@@ -30,6 +31,7 @@ import (
 	"sync"
 	"time"
 
+	"crypto/ecdsa"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -45,7 +47,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"crypto/ecdsa"
 )
 
 const (
@@ -98,8 +99,10 @@ type PbftAgent struct {
 	committeeIds             []*big.Int
 	endFastNumber            map[uint64]*big.Int
 
-	server   types.PbftServerProxy
-	election *elect.Election
+	server     types.PbftServerProxy
+	election   *elect.Election
+	caCertList *vm.CACertList
+	cIMList    *cim.CimList
 
 	mu           *sync.Mutex //generateBlock mutex
 	cacheBlockMu *sync.Mutex //PbftAgent.cacheBlock mutex
@@ -119,7 +122,7 @@ type PbftAgent struct {
 	committeeNode *types.CommitteeNode
 	privateKey    *ecdsa.PrivateKey
 
-	vmConfig   vm.Config
+	vmConfig vm.Config
 
 	cacheBlock map[*big.Int]*types.Block //prevent receive same block
 	singleNode bool
@@ -152,7 +155,8 @@ type AgentWork struct {
 }
 
 // NewPbftAgent creates a new pbftAgent ,receive events from election and communicate with pbftServer
-func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.Engine, election *elect.Election, gasFloor, gasCeil uint64) *PbftAgent {
+func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.Engine,
+	election *elect.Election, cIMList *cim.CimList, caCertList *vm.CACertList, gasFloor, gasCeil uint64) *PbftAgent {
 	agent := &PbftAgent{
 		config:    config,
 		engine:    engine,
@@ -167,6 +171,8 @@ func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.En
 		chainHeadCh:          make(chan types.FastChainHeadEvent, chainHeadSize),
 		cryNodeInfoCh:        make(chan *types.EncryptNodeMessage, nodeSize),
 		election:             election,
+		caCertList:           caCertList,
+		cIMList:              cIMList,
 		mux:                  new(event.TypeMux),
 		mu:                   new(sync.Mutex),
 		cacheBlockMu:         new(sync.Mutex),
@@ -196,12 +202,11 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 	agent.privateKey = config.PrivateKey
 
 	agent.committeeNode = &types.CommitteeNode{
-		IP:       config.Host,
-		Port:     uint32(config.Port),
-		Port2:    uint32(config.StandbyPort),
-		Coinbase: coinbase,
+		IP:        config.Host,
+		Port:      uint32(config.Port),
+		Port2:     uint32(config.StandbyPort),
+		Coinbase:  coinbase,
 		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
-
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {
@@ -375,7 +380,8 @@ func (agent *PbftAgent) loop() {
 					continue
 				}
 				agent.setCommitteeInfo(currentCommittee, types.CopyCommitteeInfo(agent.nextCommitteeInfo))
-				if agent.isCommitteeMember(agent.currentCommitteeInfo) {
+				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
+				if agent.isCommitteeMemberByCert() {
 					agent.isCurrentCommitteeMember = true
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				} else {
@@ -387,7 +393,8 @@ func (agent *PbftAgent) loop() {
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
 				}
-				if agent.isCommitteeMember(agent.currentCommitteeInfo) {
+				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
+				if agent.isCommitteeMemberByCert() {
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				}
 				agent.stopSend()
@@ -409,6 +416,7 @@ func (agent *PbftAgent) loop() {
 				receivedCommitteeInfo := types.CopyCommitteeInfo(rawCommitteeInfo)
 				agent.setCommitteeInfo(nextCommittee, receivedCommitteeInfo)
 
+				//if agent.IsUsedOrUnusedMember(receivedCommitteeInfo, agent.committeeNode.Publickey) {
 				if agent.IsUsedOrUnusedMember(receivedCommitteeInfo, agent.committeeNode.Publickey) {
 					agent.startSend(receivedCommitteeInfo, true)
 					help.CheckAndPrintError(agent.server.PutCommittee(receivedCommitteeInfo))
@@ -500,6 +508,10 @@ func (agent *PbftAgent) loop() {
 			go agent.putCacheInsertChain(ch.Block)
 		}
 	}
+}
+func (agent *PbftAgent) isCommitteeMemberByCert() bool {
+	err := agent.cIMList.VerifyRootCert(agent.committeeNode.LocalCert)
+	return err == nil
 }
 
 func copyCommitteeID(CommitteeID *big.Int) *big.Int {
@@ -785,7 +797,6 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 	//caoliang test
 	pubKey, _ := crypto.UnmarshalPubkey(agent.committeeNode.Publickey)
 	header.Proposer = crypto.PubkeyToAddress(*pubKey)
-
 
 	//getParent by height and hash
 	if err := agent.engine.Prepare(agent.fastChain, header); err != nil {
@@ -1216,10 +1227,10 @@ func (agent *PbftAgent) getMemberFlagFromCommittee(committeeInfo *types.Committe
 }
 
 //IsCommitteeMember  whether agent in  committee member
-func (agent *PbftAgent) isCommitteeMember(committeeInfo *types.CommitteeInfo) bool {
-	flag := agent.getMemberFlagFromCommittee(committeeInfo)
-	return flag == types.StateUsedFlag
-}
+//func (agent *PbftAgent) isCommitteeMember(committeeInfo *types.CommitteeInfo) bool {
+//	flag := agent.getMemberFlagFromCommittee(committeeInfo)
+//	return flag == types.StateUsedFlag
+//}
 
 // VerifyCommitteeSign verify sign of node is in committee
 func (agent *PbftAgent) VerifyCommitteeSign(sign *types.PbftSign) bool {

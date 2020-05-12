@@ -43,12 +43,12 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	"github.com/taiyuechain/taiyuechain/tai/downloader"
 	"github.com/taiyuechain/taiyuechain/tai/filters"
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
 	"github.com/taiyuechain/taiyuechain/taidb"
-	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	//"github.com/taiyuechain/taiyuechain/miner"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -260,7 +260,8 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	/*if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}*/
-	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election, config.MinerGasFloor, config.MinerGasCeil)
+	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election,
+		NewCIMList, caCertList, config.MinerGasFloor, config.MinerGasCeil)
 	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList); err != nil {
 		return nil, err
 	}

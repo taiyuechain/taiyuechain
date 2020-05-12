@@ -632,7 +632,6 @@ func (e *Election) electedCommittee(fastNumber *big.Int) *committee {
 	if committee == nil {
 		return nil
 	}
-
 	return committee
 }
 

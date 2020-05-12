@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	//"crypto/ecdsa"
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -15,7 +16,6 @@ import (
 	"math/big"
 	"strings"
 	"sync/atomic"
-	"crypto/ecdsa"
 )
 
 const (
@@ -143,6 +143,7 @@ type CommitteeNode struct {
 	Port      uint32
 	Port2     uint32
 	Coinbase  common.Address
+	LocalCert []byte
 	Publickey []byte
 }
 
