@@ -3,10 +3,11 @@ package crypto
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/common"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"log"
-
+	"math/big"
 	"os"
 	"testing"
 )
@@ -120,4 +121,42 @@ func TestString(t *testing.T) {
 		log.Fatal(err)
 	}
 	fmt.Println(hex.EncodeToString(FromECDSA(priv)), " pub ", hex.EncodeToString(FromECDSAPub(&priv.PublicKey)))
+}
+func Testrlp(t *testing.T) {
+
+}
+
+const BloomByteLength = 256
+
+type Header struct {
+	ParentHash    common.Hash    `json:"parentHash"       gencodec:"required"`
+	Root          common.Hash    `json:"stateRoot"        gencodec:"required"`
+	TxHash        common.Hash    `json:"transactionsRoot" gencodec:"required"`
+	ReceiptHash   common.Hash    `json:"receiptsRoot"     gencodec:"required"`
+	CommitteeHash common.Hash    `json:"committeeRoot"    gencodec:"required"`
+	Proposer      common.Address `json:"maker"            gencodec:"required"`
+	Bloom         Bloom          `json:"logsBloom"        gencodec:"required"`
+	SnailHash     common.Hash    `json:"snailHash"        gencodec:"required"`
+	SnailNumber   *big.Int       `json:"snailNumber"      gencodec:"required"`
+	Number        *big.Int       `json:"number"           gencodec:"required"`
+	GasLimit      uint64         `json:"gasLimit"         gencodec:"required"`
+	GasUsed       uint64         `json:"gasUsed"          gencodec:"required"`
+	Time          *big.Int       `json:"timestamp"        gencodec:"required"`
+	Extra         []byte         `json:"extraData"        gencodec:"required"`
+}
+type Bloom [BloomByteLength]byte
+
+func TestHash256(t *testing.T) {
+	//var he interface{}
+	var header Header
+	h := RlpHash(header)
+	fmt.Println(h)
+	doublebyte := Double256(h.Bytes())
+	fmt.Println(doublebyte)
+	hexstring := Hex(doublebyte)
+	fmt.Println(hexstring)
+	byte := Hash256Byte(doublebyte, doublebyte)
+	fmt.Println(byte)
+	hash256 := Hash256(doublebyte, doublebyte, doublebyte)
+	fmt.Println(hash256)
 }

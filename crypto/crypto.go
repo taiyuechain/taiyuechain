@@ -20,6 +20,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -378,6 +379,10 @@ func zeroBytes(bytes []byte) {
 		bytes[i] = 0
 	}
 }
+
+/*
+hash method
+*/
 func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
 	case CRYPTO_P256_SH3_AES:
@@ -392,6 +397,22 @@ func Hash256(auth, s, h []byte) hash.Hash {
 		mac.Write(auth)
 		return mac
 
+	}
+	return nil
+}
+func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
+		h := sha256.New()
+		h.Write(seedBytes)
+		h.Write(riseedBytes)
+		return h.Sum(nil)
+
+	case CRYPTO_SM2_SM3_SM4:
+		h := sm3.New()
+		h.Write(seedBytes)
+		h.Write(riseedBytes)
+		return h.Sum(nil)
 	}
 	return nil
 }
@@ -446,4 +467,47 @@ func xor(one, other []byte) (xor []byte) {
 		xor[i] = one[i] ^ other[i]
 	}
 	return xor
+}
+func Double256(b []byte) []byte {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
+		hasher := sha256.New()
+		hasher.Write(b) // nolint: errcheck, gas
+		sum := hasher.Sum(nil)
+		hasher.Reset()
+		hasher.Write(sum) // nolint: errcheck, gas
+		return hasher.Sum(nil)
+	case CRYPTO_SM2_SM3_SM4:
+		hasher := sm3.New()
+		hasher.Write(b) // nolint: errcheck, gas
+		sum := hasher.Sum(nil)
+		hasher.Reset()
+		hasher.Write(sum) // nolint: errcheck, gas
+		return hasher.Sum(nil)
+	}
+	return nil
+}
+func RlpHash(x interface{}) (h common.Hash) {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
+		hw := sha3.NewLegacyKeccak256()
+		rlp.Encode(hw, x)
+		hw.Sum(h[:0])
+		return h
+	case CRYPTO_SM2_SM3_SM4:
+		hw := sm3.New()
+		rlp.Encode(hw, x)
+		hw.Sum(h[:0])
+		return h
+	}
+	return h
+}
+func NewHash() hash.Hash {
+	switch CryptoType {
+	case CRYPTO_P256_SH3_AES:
+		return sha256.New()
+	case CRYPTO_SM2_SM3_SM4:
+		return sm3.New()
+	}
+	return nil
 }
