@@ -69,17 +69,11 @@ const (
 	NewPooledTransactionHashesMsg = 0x08
 	GetPooledTransactionsMsg      = 0x09
 	PooledTransactionsMsg         = 0x0a
-)
 
-const (
 	// Protocol messages belonging to etrue/63
-	TxMsg           = 0x02
-	TbftNodeInfoMsg = 0x08
-
+	TbftNodeInfoMsg     = 0x14
 	TbftNodeInfoHashMsg = 0x15
 	GetTbftNodeInfoMsg  = 0x16
-
-	Camsg = 0x18
 )
 
 type errCode int

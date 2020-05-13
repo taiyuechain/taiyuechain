@@ -23,7 +23,6 @@ import (
 
 var (
 	propTxnInPacketsMeter     = metrics.NewRegisteredMeter("etrue/prop/txns/in/packets", nil)
-	propTxnInTxsMeter         = metrics.NewRegisteredMeter("etrue/prop/txns/in/txs", nil)
 	propTxnInTrafficMeter     = metrics.NewRegisteredMeter("etrue/prop/txns/in/traffic", nil)
 	propTxnOutPacketsMeter    = metrics.NewRegisteredMeter("etrue/prop/txns/out/packets", nil)
 	propTxnOutTrafficMeter    = metrics.NewRegisteredMeter("etrue/prop/txns/out/traffic", nil)
@@ -141,7 +140,7 @@ func (rw *meteredMsgReadWriter) ReadMsg() (p2p.Msg, error) {
 	case msg.Code == ReceiptsMsg:
 		packets, traffic = reqReceiptInPacketsMeter, reqReceiptInTrafficMeter
 
-	case msg.Code == TxMsg:
+	case msg.Code == TransactionMsg:
 		packets, traffic = propTxnInPacketsMeter, propTxnInTrafficMeter
 	case msg.Code == TbftNodeInfoMsg:
 		packets, traffic = propNodeInfoInPacketsMeter, propNodeInfoInTrafficMeter
@@ -165,7 +164,7 @@ func (rw *meteredMsgReadWriter) WriteMsg(msg p2p.Msg) error {
 	case msg.Code == ReceiptsMsg:
 		packets, traffic = reqReceiptOutPacketsMeter, reqReceiptOutTrafficMeter
 
-	case msg.Code == TxMsg:
+	case msg.Code == TransactionMsg:
 		packets, traffic = propTxnOutPacketsMeter, propTxnOutTrafficMeter
 	case msg.Code == TbftNodeInfoMsg:
 		packets, traffic = propNodeInfoOutPacketsMeter, propNodeInfoOutTrafficMeter

@@ -776,26 +776,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		for _, block := range unknown {
 			pm.blockFetcher.Notify(p.id, block.Hash, block.Number, time.Now(), p.RequestOneHeader, p.RequestBodies)
 		}
-	case msg.Code == TxMsg:
-		// Transactions arrived, make sure we have a valid and fresh chain to handle them
-		if atomic.LoadUint32(&pm.acceptTxs) == 0 {
-			break
-		}
-		// Transactions can be processed, parse all of them and deliver to the pool
-		var txs []*types.Transaction
-		if err := msg.Decode(&txs); err != nil {
-			return errResp(ErrDecode, "msg %v: %v", msg, err)
-		}
-		for i, tx := range txs {
-			// Validate and mark the remote transaction
-			if tx == nil {
-				return errResp(ErrDecode, "transaction %d is nil", i)
-			}
-			propTxnInTxsMeter.Mark(1)
-			p.MarkTransaction(tx.Hash())
-		}
-		log.Trace("Receive tx", "peer", p.id, "txs", len(txs), "ip", p.RemoteAddr())
-		go pm.txpool.AddRemotes(txs)
 
 	case msg.Code == TbftNodeInfoMsg:
 		// EncryptNodeMessage can be processed, parse all of them and deliver to the queue
