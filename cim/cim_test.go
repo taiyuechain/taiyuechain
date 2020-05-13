@@ -17,12 +17,47 @@ import (
 	//"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	"crypto/ecdsa"
+	"encoding/hex"
+	"os"
+	"encoding/pem"
 )
 
 var (
 	CryptoType = uint8(1)
 	CryptoSM2  = uint8(2)
+
+	pbft1PrivString ="7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
+	pbft2PrivString ="bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
+	pbft3PrivString ="122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab"
+	pbft4PrivString ="fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f"
+
+	p2p1PrivString ="d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
+	p2p2PrivString ="ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec"
+	p2p3PrivString ="86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc"
+	p2p4PrivString ="cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801"
+
+	pbft1Name = "pbft1priv"
+	pbft2Name = "pbft2priv"
+	pbft3Name = "pbft3priv"
+	pbft4Name = "pbft4priv"
+
+	p2p1Name = "p2p1cert"
+	p2p2Name = "p2p2cert"
+	p2p3Name = "p2p3cert"
+	p2p4Name = "p2p4cert"
+
+	pbft1path ="./testdata/testcert/"+pbft1Name+".pem"
+	pbft2path ="./testdata/testcert/"+pbft2Name+".pem"
+	pbft3path ="./testdata/testcert/"+pbft3Name+".pem"
+	pbft4path ="./testdata/testcert/"+pbft4Name+".pem"
+
+	p2p1path ="./testdata/testcert/"+p2p1Name+".pem"
+	p2p2path ="./testdata/testcert/"+p2p2Name+".pem"
+	p2p3path ="./testdata/testcert/"+p2p3Name+".pem"
+	p2p4path ="./testdata/testcert/"+p2p4Name+".pem"
 )
+
 
 func TestCertCIMAndVerfiyCert(t *testing.T) {
 	cimList := NewCIMList(CryptoType)
@@ -461,4 +496,247 @@ func TestReadPemFile(t *testing.T) {
 	byte, _ := crypto.ReadPemFileByPath(path)
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
+}
+
+func TestCreatePrivateKeyAndPublick(t *testing.T)  {
+	pbft1Priv,_ := crypto.GenerateKey()
+	pbft2Priv,_ := crypto.GenerateKey()
+	pbft3Priv,_ := crypto.GenerateKey()
+	pbft4Priv,_ := crypto.GenerateKey()
+
+	p2p1Priv,_ := crypto.GenerateKey()
+	p2p2Priv,_ := crypto.GenerateKey()
+	p2p3Priv,_ := crypto.GenerateKey()
+	p2p4Priv,_ := crypto.GenerateKey()
+
+	fmt.Println("pbft1Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(pbft1Priv)))
+	fmt.Println("pbft2Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(pbft2Priv)))
+	fmt.Println("pbft3Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(pbft3Priv)))
+	fmt.Println("pbft4Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(pbft4Priv)))
+
+	fmt.Println("p2p1Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p1Priv)))
+	fmt.Println("p2p2Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p2Priv)))
+	fmt.Println("p2p3Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p3Priv)))
+	fmt.Println("p2p4Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p4Priv)))
+}
+
+func TestCreateRootCert(t *testing.T)  {
+	pbft1priv,_:=crypto.HexToECDSA(pbft1PrivString)
+	pbft2priv,_:=crypto.HexToECDSA(pbft2PrivString)
+	pbft3priv,_:=crypto.HexToECDSA(pbft3PrivString)
+	pbft4priv,_:=crypto.HexToECDSA(pbft4PrivString)
+
+	createRootCert(pbft1priv,pbft1Name)
+	createRootCert(pbft2priv,pbft2Name)
+	createRootCert(pbft3priv,pbft3Name)
+	createRootCert(pbft4priv,pbft4Name)
+
+}
+
+func TestIsuseP2PCert(t *testing.T)  {
+
+
+
+	pbft1priv,_:=crypto.HexToECDSA(pbft1PrivString)
+	pbft2priv,_:=crypto.HexToECDSA(pbft2PrivString)
+	pbft3priv,_:=crypto.HexToECDSA(pbft3PrivString)
+	pbft4priv,_:=crypto.HexToECDSA(pbft4PrivString)
+
+	p2p1priv,_:=crypto.HexToECDSA(p2p1PrivString)
+	p2p2priv,_:=crypto.HexToECDSA(p2p2PrivString)
+	p2p3priv,_:=crypto.HexToECDSA(p2p3PrivString)
+	p2p4priv,_:=crypto.HexToECDSA(p2p4PrivString)
+
+	//pbft1RootCert
+	pbft1Byte,_:=crypto.ReadPemFileByPath(pbft1path)
+	pbft1Cert ,_:=crypto.ParseCertificate(pbft1Byte)
+	IssueCert(pbft1Cert,pbft1priv,&p2p1priv.PublicKey,p2p1Name)
+
+
+	//pbft2RootCert
+	pbft2Byte,_:=crypto.ReadPemFileByPath(pbft2path)
+	pbft2Cert ,_:=crypto.ParseCertificate(pbft2Byte)
+	IssueCert(pbft2Cert,pbft2priv,&p2p2priv.PublicKey,p2p2Name)
+
+	//pbft3RootCert
+	pbft3Byte,_:=crypto.ReadPemFileByPath(pbft3path)
+	pbft3Cert ,_:=crypto.ParseCertificate(pbft3Byte)
+	IssueCert(pbft3Cert,pbft3priv,&p2p3priv.PublicKey,p2p3Name)
+
+
+	//pbft4RootCert
+	pbft4Byte,_:=crypto.ReadPemFileByPath(pbft4path)
+	pbft4Cert ,_:=crypto.ParseCertificate(pbft4Byte)
+	IssueCert(pbft4Cert,pbft4priv,&p2p4priv.PublicKey,p2p4Name)
+
+}
+
+func TestVerifyCert(t *testing.T)  {
+
+	pbft1Byte,_:=crypto.ReadPemFileByPath(pbft1path)
+	pbft2Byte,_:=crypto.ReadPemFileByPath(pbft2path)
+	pbft3Byte,_:=crypto.ReadPemFileByPath(pbft3path)
+	pbft4Byte,_:=crypto.ReadPemFileByPath(pbft4path)
+
+	p2p1Byte,_:=crypto.ReadPemFileByPath(p2p1path)
+	p2p2Byte,_:=crypto.ReadPemFileByPath(p2p2path)
+	p2p3Byte,_:=crypto.ReadPemFileByPath(p2p3path)
+	p2p4Byte,_:=crypto.ReadPemFileByPath(p2p4path)
+
+	//new cimList
+	cimList := NewCIMList(CryptoSM2)
+	cimList.AddCim(createCim(pbft1Byte))
+	cimList.AddCim(createCim(pbft2Byte))
+	cimList.AddCim(createCim(pbft3Byte))
+	cimList.AddCim(createCim(pbft4Byte))
+
+	err :=cimList.VerifyCert(p2p1Byte)
+	if err !=nil{
+		t.Fatalf("verify cert 1 error")
+	}
+
+	err =cimList.VerifyCert(p2p2Byte)
+	if err !=nil{
+		t.Fatalf("verify cert 2 error")
+	}
+
+	err =cimList.VerifyCert(p2p3Byte)
+	if err !=nil{
+		t.Fatalf("verify cert 3 error")
+	}
+
+	err =cimList.VerifyCert(p2p4Byte)
+	if err !=nil{
+		t.Fatalf("verify cert 4 error")
+	}
+
+
+
+
+
+
+}
+
+func createRootCert(priKey *ecdsa.PrivateKey,name string )(cert []byte, err error)  {
+
+	filepath :="./testdata/testcert/"+name+".pem"
+	if crypto.CryptoType == crypto.CRYPTO_P256_SH3_AES{
+		serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+		serialNumber, _ := rand.Int(rand.Reader, serialNumberLimit)
+		ca := &x509.Certificate{
+			SerialNumber: serialNumber,
+			Subject: pkix.Name{
+				Country:            []string{"China"},
+				Organization:       []string{"Yjwt"},
+				OrganizationalUnit: []string{"YjwtU"},
+			},
+			NotBefore:             time.Now(),
+			NotAfter:              time.Now().AddDate(10, 0, 0),
+			SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+			BasicConstraintsValid: true,
+			IsCA:                  true,
+			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+			KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		}
+
+		ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &priKey.PublicKey, priKey)
+
+		withPemFile(filepath,ca_b)
+
+
+		return ca_b,err
+	}
+
+	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4{
+		ca_b ,err :=sm2_cert.CreateRootCert(sm2.ToSm2privatekey(priKey))
+
+		File, err := os.Create(filepath)
+		defer File.Close()
+		if err != nil {
+			return nil,err
+		}
+		b := &pem.Block{Bytes: ca_b, Type: "CERTIFICATE"}
+		pem.Encode(File, b)
+
+		return ca_b,err
+	}
+	return nil,nil
+}
+
+func IssueCert(rootCert *x509.Certificate, rootPri *ecdsa.PrivateKey,sonPuk *ecdsa.PublicKey,name string) (cert []byte, err error) {
+	filepath :="./testdata/testcert/"+name+".pem"
+	if crypto.CryptoType == crypto.CRYPTO_P256_SH3_AES{
+		serialNumberLimit2 := new(big.Int).Lsh(big.NewInt(1), 128)
+		serialNumber2, err := rand.Int(rand.Reader, serialNumberLimit2)
+		ca2 := &x509.Certificate{
+			SerialNumber: serialNumber2,
+			Subject: pkix.Name{
+				Country:            []string{"China"},
+				Organization:       []string{"Yjwt"},
+				OrganizationalUnit: []string{"YjwtU"},
+			},
+			NotBefore:             time.Now(),
+			NotAfter:              time.Now().AddDate(10, 0, 0),
+			SubjectKeyId:          []byte{1, 2, 3, 4, 5},
+			BasicConstraintsValid: true,
+			IsCA:                  true,
+			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+			KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		}
+
+		ca_b2, err := x509.CreateCertificate(rand.Reader, ca2, rootCert, sonPuk, rootPri)
+		if err != nil{
+			return nil,err
+		}
+		withPemFile(filepath,ca_b2)
+		return ca_b2,nil
+	}
+
+	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4{
+		ca_b,err := sm2_cert.IssueCert(rootCert,sm2.ToSm2privatekey(rootPri),sm2.ToSm2Publickey(sonPuk))
+		if err != nil{
+			return nil,err
+		}
+		withPemFile(filepath,ca_b)
+
+		return ca_b,nil
+
+	}
+	return nil,nil
+}
+
+func withPemFile(path string,cert []byte) error  {
+	File, err := os.Create(path)
+	defer File.Close()
+	if err != nil {
+		return err
+	}
+	b := &pem.Block{Bytes: cert, Type: "CERTIFICATE"}
+	pem.Encode(File, b)
+
+	return nil
+}
+
+func createCim(certbyte []byte) CIM  {
+	cimCa, err := NewCIM()
+	if err != nil {
+		return nil
+	}
+
+	err = cimCa.SetUpFromCA(certbyte)
+	if err != nil {
+		//fmt.Println(err)
+		return nil
+	}
+
+	return cimCa
+
 }
