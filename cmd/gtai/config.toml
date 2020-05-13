@@ -1,5 +1,5 @@
 [Etrue]
-NodeType = true
+#NodeType = true
 CryptoType = 2
 
 [Etrue.TxPool]

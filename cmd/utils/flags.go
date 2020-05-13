@@ -1227,6 +1227,11 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 			cfg.NetworkId = 100
 		}
 		cfg.Genesis = core.DefaultDevGenesisBlock()
+	case ctx.GlobalBool(SingleNodeFlag.Name):
+		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
+			cfg.NetworkId = 100
+		}
+		cfg.Genesis = core.DefaultSingleNodeGenesisBlock()
 	}
 	// TODO(fjl): move trie cache generations into config
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
