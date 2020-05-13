@@ -92,6 +92,7 @@ const (
 	ErrNetworkIDMismatch
 	ErrGenesisMismatch
 	ErrForkIDRejected
+	ErrCertRejected
 	ErrNoStatusMsg
 	ErrExtraStatusMsg
 	ErrCamsg
@@ -110,6 +111,7 @@ var errorToString = map[int]string{
 	ErrNetworkIDMismatch:       "Network ID mismatch",
 	ErrGenesisMismatch:         "Genesis mismatch",
 	ErrForkIDRejected:          "Fork ID rejected",
+	ErrCertRejected:            "Cert  rejected",
 	ErrNoStatusMsg:             "No status message",
 	ErrExtraStatusMsg:          "Extra status message",
 }
@@ -176,6 +178,7 @@ type statusData struct {
 	Head            common.Hash
 	Genesis         common.Hash
 	ForkID          forkid.ID
+	NodeCert        []byte
 }
 
 // getBlockHeadersData represents a block header query.

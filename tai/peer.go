@@ -710,7 +710,7 @@ func (p *peer) Send(msgcode uint64, data interface{}) error {
 
 // Handshake executes the eth protocol handshake, negotiating version number,
 // network IDs, difficulties, head and genesis blocks.
-func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis common.Hash, forkID forkid.ID, forkFilter forkid.Filter, list *cim.CimList) error {
+func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis common.Hash, forkID forkid.ID, forkFilter forkid.Filter, list *cim.CimList, nodeCert []byte) error {
 	// Send out own handshake in a new thread
 	errc := make(chan error, 2)
 
@@ -736,6 +736,7 @@ func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis 
 				Head:            head,
 				Genesis:         genesis,
 				ForkID:          forkID,
+				NodeCert:        nodeCert,
 			})
 		default:
 			panic(fmt.Sprintf("unsupported eth protocol version: %d", p.version))
@@ -746,7 +747,7 @@ func (p *peer) Handshake(network uint64, td *big.Int, head common.Hash, genesis 
 		case p.version == eth63:
 			errc <- p.readStatusLegacy(network, &status63, genesis)
 		case p.version >= eth64:
-			errc <- p.readStatus(network, &status, genesis, forkFilter)
+			errc <- p.readStatus(network, &status, genesis, forkFilter, list)
 		default:
 			panic(fmt.Sprintf("unsupported eth protocol version: %d", p.version))
 		}
@@ -801,7 +802,7 @@ func (p *peer) readStatusLegacy(network uint64, status *statusData63, genesis co
 	return nil
 }
 
-func (p *peer) readStatus(network uint64, status *statusData, genesis common.Hash, forkFilter forkid.Filter) error {
+func (p *peer) readStatus(network uint64, status *statusData, genesis common.Hash, forkFilter forkid.Filter, list *cim.CimList) error {
 	msg, err := p.rw.ReadMsg()
 	if err != nil {
 		return err
@@ -828,6 +829,10 @@ func (p *peer) readStatus(network uint64, status *statusData, genesis common.Has
 	if err := forkFilter(status.ForkID); err != nil {
 		return errResp(ErrForkIDRejected, "%v", err)
 	}
+	if err := list.VerifyCert(status.NodeCert); err != nil {
+		return errResp(ErrCertRejected, "%v", err)
+	}
+
 	return nil
 }
 
