@@ -1130,12 +1130,14 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	}
 
 	//set node cert
-	if !ctx.GlobalBool(SingleNodeFlag.Name) {
-		cfg.NodeCert = stack.Config().BftCommitteeCert()
-		if cfg.NodeCert == nil {
-			log.Error("not cert file ")
-			//return
-		}
+	/*if !ctx.GlobalBool(SingleNodeFlag.Name) {
+
+	}*/
+
+	cfg.NodeCert = stack.Config().BftCommitteeCert()
+	if cfg.NodeCert == nil {
+		log.Error("not cert file ")
+		//return
 	}
 
 	//set PrivateKey by config,file or hex

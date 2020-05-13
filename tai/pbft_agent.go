@@ -205,6 +205,7 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 		Port2:     uint32(config.StandbyPort),
 		Coinbase:  coinbase,
 		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
+		LocalCert: config.NodeCert,
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {
@@ -792,8 +793,10 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 
 	//assign Proposer
 	//caoliang test
-	//pubKey, _ := crypto.UnmarshalPubkey(agent.committeeNode.Publickey)
-	//header.Proposer = crypto.PubkeyToAddress(*pubKey)
+	s := hex.EncodeToString(agent.committeeNode.Publickey)
+	fmt.Println(s)
+	pubKey, _ := crypto.UnmarshalPubkey(agent.committeeNode.Publickey)
+	header.Proposer = crypto.PubkeyToAddress(*pubKey)
 
 	//getParent by height and hash
 	if err := agent.engine.Prepare(agent.fastChain, header); err != nil {
