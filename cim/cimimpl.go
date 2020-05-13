@@ -56,10 +56,16 @@ func (cl *CimList) DelCim(cimTemp *CIM) error  {
 func (cl *CimList) VerifyCert(cert []byte) error  {
 
 	//var err error
+	errNumber :=0;
 	for _,ci:= range cl.CimMap{
 		err := ci.ValidateByByte(cert)
 		if err != nil{
-			return err
+			errNumber++;
+		}else{
+			return nil
+		}
+		if errNumber == len(cl.CimMap){
+			return errors.New("can not find right root cert")
 		}
 	}
 	return nil
