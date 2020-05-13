@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math"
 	"math/big"
 	"sort"
@@ -30,10 +29,10 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
@@ -275,7 +274,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		config:      config,
 		chainconfig: chainconfig,
 		chain:       chain,
-		signer:      types.NewSigner(constant.CryptoType, chainconfig.ChainID),
+		signer:      types.NewSigner(chainconfig.ChainID),
 		pending:     make(map[common.Address]*txList),
 		queue:       make(map[common.Address]*txList),
 		beats:       make(map[common.Address]time.Time),

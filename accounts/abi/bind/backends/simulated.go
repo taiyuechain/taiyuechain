@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"sync"
 	"time"
 
-	taiyuechain "github.com/taiyuechain/taiyuechain"
+	"github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
@@ -20,11 +19,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/tai/filters"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/tai/filters"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -283,7 +282,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	sender, err := types.Sender(types.NewSigner(constant.CryptoType, tx.ChainId()), tx)
+	sender, err := types.Sender(types.NewSigner(tx.ChainId()), tx)
 	if err != nil {
 		panic(fmt.Errorf("invalid transaction: %v", err))
 	}

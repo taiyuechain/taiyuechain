@@ -24,7 +24,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"io"
 	"math/big"
 
@@ -217,7 +216,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 	signature := append(append(response.GetSignatureR(), response.GetSignatureS()...), byte(response.GetSignatureV()))
 
 	// Create the correct signer and signature transform based on the chain ID
-	signer := types.NewSigner(constant.CryptoType, chainID)
+	signer := types.NewSigner(chainID)
 	signature[64] -= byte(chainID.Uint64()*2 + 35)
 
 	// Inject the final signature into the transaction and sanity check the sender

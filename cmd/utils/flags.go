@@ -64,7 +64,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
 	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/taistats"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -1118,11 +1117,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	}
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
 		cfg.NodeType = true
-	}
-
-	if ctx.GlobalIsSet(CryptoTypeFlag.Name) {
-		//cfg.CryptoType = uint8(int(ctx.GlobalUint64(CryptoTypeFlag.Name)))
-		constant.CryptoType = uint8(ctx.GlobalUint64(CryptoTypeFlag.Name))
 	}
 
 	if ctx.GlobalIsSet(BFTIPFlag.Name) {

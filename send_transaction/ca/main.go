@@ -5,13 +5,13 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taiclient"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taiclient"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -181,7 +181,7 @@ func SendP256Transtion(ip string) {
 	//send erc20 transfer tx
 	//tx := sendErc20TokenTx(nonce, fromcert, chainID)
 
-	signer := types.NewSigner(constant.CryptoType, chainID)
+	signer := types.NewSigner(chainID)
 	signTx, _ := types.SignTx(tx, signer, fromPrive)
 
 	fmt.Println("--start send ")

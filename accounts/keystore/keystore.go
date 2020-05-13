@@ -22,12 +22,10 @@ package keystore
 
 import (
 	"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
-
 	crand "crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -280,7 +278,7 @@ func (ks *KeyStore) SignTx(a accounts.Account, tx *types.Transaction, chainID *b
 		return nil, ErrLocked
 	}
 	// Depending on the presence of the chain ID, sign with EIP155 or homestead
-	return types.SignTx(tx, types.NewSigner(constant.CryptoType, chainID), unlockedKey.PrivateKey)
+	return types.SignTx(tx, types.NewSigner(chainID), unlockedKey.PrivateKey)
 }
 
 func (ks *KeyStore) SignTx_Payment(a accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
@@ -293,7 +291,7 @@ func (ks *KeyStore) SignTx_Payment(a accounts.Account, tx *types.Transaction, ch
 		return nil, ErrLocked
 	}
 	// Depending on the presence of the chain ID, sign with EIP155 or homestead
-	return types.SignTx_Payment(tx, types.NewSigner(constant.CryptoType, chainID), unlockedKey.PrivateKey)
+	return types.SignTx_Payment(tx, types.NewSigner(chainID), unlockedKey.PrivateKey)
 }
 
 // SignHashWithPassphrase signs hash if the private key matching the given address
@@ -319,7 +317,7 @@ func (ks *KeyStore) SignTxWithPassphrase(a accounts.Account, passphrase string, 
 	defer zeroKey(key.PrivateKey)
 
 	// Depending on the presence of the chain ID, sign with EIP155 or homestead
-	return types.SignTx(tx, types.NewSigner(constant.CryptoType, chainID), key.PrivateKey)
+	return types.SignTx(tx, types.NewSigner(chainID), key.PrivateKey)
 }
 
 // Unlock unlocks the given account indefinitely.

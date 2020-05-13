@@ -27,22 +27,21 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
 //go:generate gencodec -type GenesisAccount -field-override genesisAccountMarshaling -out gen_genesis_account.go
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
-
 
 const (
 	SYMMETRICCRYPTOSM4    = 1
@@ -51,8 +50,6 @@ const (
 	ASYMMETRICCRYPTOSM2   = 4
 	HASHCRYPTOSM3         = 5
 	HASHCRYPTOHAS3        = 6
-
-
 )
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
@@ -75,8 +72,6 @@ type Genesis struct {
 	Number     uint64      `json:"number"`
 	GasUsed    uint64      `json:"gasUsed"`
 	ParentHash common.Hash `json:"parentHash"`
-
-
 }
 
 // GenesisAccount is an account in the state of the genesis block.
@@ -480,7 +475,6 @@ func DefaultGenesisBlock() *Genesis {
 			&types.CommitteeMember{Coinbase: common.HexToAddress("0xfC5659050350eB76F9Ebcc6c2b1598C3a2fFc625"), Publickey: key13},
 			&types.CommitteeMember{Coinbase: common.HexToAddress("0xfC5659050350eB76F9Ebcc6c2b1598C3a2fFc625"), Publickey: key14},
 		},
-
 	}
 }
 
@@ -560,14 +554,14 @@ func DefaultDevGenesisBlock() *Genesis {
 			{Coinbase: common.HexToAddress("0x41acde8dd7611338c2a30e90149e682566716e9d"), Publickey: key6},
 			{Coinbase: common.HexToAddress("0x0ffd116a3bf97a7112ff8779cc770b13ea3c66a5"), Publickey: key7},
 		},
-
-
 	}
 }
 
 func DefaultSingleNodeGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
-	key1 := hexutil.MustDecode("0x04044308742b61976de7344edb8662d6d10be1c477dd46e8e4c433c1288442a79183480894107299ff7b0706490f1fb9c9b7c9e62ae62d57bd84a1e469460d8ac1")
+	key1 := hexutil.MustDecode(
+		//"0x04044308742b61976de7344edb8662d6d10be1c477dd46e8e4c433c1288442a79183480894107299ff7b0706490f1fb9c9b7c9e62ae62d57bd84a1e469460d8ac1")
+		"04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
 
 	return &Genesis{
 		Config:     params.SingleNodeChainConfig,
@@ -625,6 +619,5 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			&types.CommitteeMember{Coinbase: coinbase, Publickey: seedkey4, LocalCert: cert4},
 		},
 		CertList: certList,
-
 	}
 }

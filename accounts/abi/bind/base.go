@@ -237,7 +237,7 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")
 	}
-	signedTx, err := opts.Signer(types.NewSigner(constant.CryptoType, rawTx.ChainId()), opts.From, rawTx)
+	signedTx, err := opts.Signer(types.NewSigner(rawTx.ChainId()), opts.From, rawTx)
 	if err != nil {
 		return nil, err
 	}

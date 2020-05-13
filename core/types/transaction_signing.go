@@ -18,12 +18,10 @@ package types
 
 import (
 	"crypto/ecdsa"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
-
-	"crypto/x509"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/log"
@@ -132,7 +130,6 @@ func VerfiySignTxBySM(tx *Transaction, s Signer) error {
 	return errors.New("verfiy tx sm2 err")
 }*/
 
-
 func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash_Payment(tx)
 	sig, err := crypto.Sign(h[:], prv)
@@ -238,7 +235,7 @@ type Signer interface {
 	//SenderP256(tx *Transaction) (common.Address, error)
 }
 
-func NewSigner(cryptoType uint8, chainId *big.Int) Signer {
+func NewSigner(chainId *big.Int) Signer {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
@@ -246,7 +243,7 @@ func NewSigner(cryptoType uint8, chainId *big.Int) Signer {
 		chainId:    chainId,
 		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
 	}
-	switch cryptoType {
+	/*switch cryptoType {
 	case 1:
 		return CommonSigner
 	case 2:
@@ -255,7 +252,8 @@ func NewSigner(cryptoType uint8, chainId *big.Int) Signer {
 		}
 	default:
 		return CommonSigner
-	}
+	}*/
+	return CommonSigner
 }
 
 type CommonSigner struct {
@@ -263,7 +261,7 @@ type CommonSigner struct {
 }
 
 func NewCommonSigner(chainId *big.Int) Signer {
-	return NewSigner(constant.COMMON_CRYPTO, chainId)
+	return NewSigner(chainId)
 }
 
 func (s CommonSigner) Equal(s2 Signer) bool {
@@ -363,8 +361,14 @@ func (s CommonSigner) Hash_Payment(tx *Transaction) common.Hash {
 	})
 }
 
+/*
 type GMSigner struct {
 	CommonSigner *CommonSigner
+}
+
+
+func NewGMSigner(chainId *big.Int) Signer {
+	return NewSigner(constant.GM_CRYPTO, chainId)
 }
 
 func (s GMSigner) Equal(s2 Signer) bool {
@@ -377,17 +381,6 @@ func (s GMSigner) Sender(tx *Transaction) (common.Address, error) {
 		return common.Address{}, ErrInvalidChainId
 	}
 	return recoverPlainP256(tx)
-}
-
-func (s CommonSigner) SenderP256(tx *Transaction) (common.Address, error) {
-	if tx.ChainId256().Cmp(s.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-	return recoverPlainP256(tx)
-}
-
-func (s GMSigner) SenderP256(tx *Transaction) (common.Address, error) {
-	return s.CommonSigner.SenderP256(tx)
 }
 
 func (s GMSigner) Payer(tx *Transaction) (common.Address, error) {
@@ -405,10 +398,7 @@ func (s GMSigner) Hash(tx *Transaction) common.Hash {
 func (s GMSigner) Hash_Payment(tx *Transaction) common.Hash {
 	return s.CommonSigner.Hash_Payment(tx)
 }
-
-func NewGMSigner(chainId *big.Int) Signer {
-	return NewSigner(constant.GM_CRYPTO, chainId)
-}
+*/
 
 /*
 // EIP155Transaction implements Signer using the EIP155 rules.

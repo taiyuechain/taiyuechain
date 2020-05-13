@@ -19,7 +19,6 @@ package light
 import (
 	"context"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"sync"
 	"time"
 
@@ -28,11 +27,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 const (
@@ -88,7 +87,7 @@ type TxRelayBackend interface {
 func NewTxPool(config *params.ChainConfig, chain *LightChain, relay TxRelayBackend) *TxPool {
 	pool := &TxPool{
 		config:      config,
-		signer:      types.NewSigner(constant.CryptoType, config.ChainID),
+		signer:      types.NewSigner(config.ChainID),
 		nonce:       make(map[common.Address]uint64),
 		pending:     make(map[common.Hash]*types.Transaction),
 		mined:       make(map[common.Hash][]*types.Transaction),

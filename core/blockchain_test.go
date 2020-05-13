@@ -24,9 +24,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"sync"
@@ -197,7 +197,7 @@ func TestFastVsFullChains(t *testing.T) {
 			Alloc:  types.GenesisAlloc{address: {Balance: funds}},
 		}
 		genesis = gspec.MustFastCommit(gendb)
-		signer  = types.NewSigner(constant.CryptoType, gspec.Config.ChainID)
+		signer  = types.NewSigner(gspec.Config.ChainID)
 		engine  = ethash.NewFaker()
 	)
 	blocks, receipts := GenerateChain(gspec.Config, genesis, engine, gendb, 1024, func(i int, block *BlockGen) {
@@ -451,7 +451,7 @@ func TestTrieForkGC(t *testing.T) {
 // Benchmarks large blocks with value transfers to non-existing accounts
 func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks int, recipientFn func(uint64) common.Address, dataFn func(uint64) []byte) {
 	var (
-		signer          = types.NewSigner(constant.CryptoType, nil)
+		signer          = types.NewSigner(nil)
 		testBankKey, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 		testBankAddress = crypto.PubkeyToAddress(testBankKey.PublicKey)
 		bankFunds       = big.NewInt(100000000000000000)
