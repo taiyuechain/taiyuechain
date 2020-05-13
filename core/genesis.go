@@ -524,14 +524,6 @@ func GenesisSnailBlockForTesting(db taidb.Database, addr common.Address, balance
 func DefaultDevGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
 
-	key1 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
-	key2 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
-	key3 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
-	key4 := hexutil.MustDecode("0x049541ea46024886dadc3eecb6a7ca9f85f9afb0529578c9d1222fd91a1f7c780f5a6b93f113a7580c2001fe872dbda701d874b69ea8dc969c361463f12b8b1575")
-	key5 := hexutil.MustDecode("0x04b2be096ebd8fe4829e204c76f4ea36132df2f0705110193c1940ca44632511a0c33d2d605e99802efa625051729240c5508b63d4b06b366a18a673f71c9d0dbc")
-	key6 := hexutil.MustDecode("0x043e0f5ad76101625deb568e03ff7a09b2bfdfd47211192d2b55f45888881fa37890ccdf64c7c382d34527d9bd938b58fa78a461bfc364cc8e5ac54c0e3d41637c")
-	key7 := hexutil.MustDecode("0x043979431a588e09d9a2811d9e8fc73c4d2b341030d18ba02e387651fcb3e3dd7b362fcb396894156f44cb36729278b3907c9afa74210635a88d9d9920dc84f198")
-
 	return &Genesis{
 		Config:     params.DevnetChainConfig,
 		Nonce:      928,
@@ -545,15 +537,7 @@ func DefaultDevGenesisBlock() *Genesis {
 			common.HexToAddress("0x41acde8dd7611338c2a30e90149e682566716e9d"): {Balance: i},
 			common.HexToAddress("0x0ffd116a3bf97a7112ff8779cc770b13ea3c66a5"): {Balance: i},
 		},
-		Committee: []*types.CommitteeMember{
-			{Coinbase: common.HexToAddress("0x3f9061bf173d8f096c94db95c40f3658b4c7eaad"), Publickey: key1},
-			{Coinbase: common.HexToAddress("0x2cdac3658f85b5da3b70223cc3ad3b2dfe7c1930"), Publickey: key2},
-			{Coinbase: common.HexToAddress("0x41acde8dd7611338c2a30e90149e682566716e9d"), Publickey: key3},
-			{Coinbase: common.HexToAddress("0x0ffd116a3bf97a7112ff8779cc770b13ea3c66a5"), Publickey: key4},
-			{Coinbase: common.HexToAddress("0x2cdac3658f85b5da3b70223cc3ad3b2dfe7c1930"), Publickey: key5},
-			{Coinbase: common.HexToAddress("0x41acde8dd7611338c2a30e90149e682566716e9d"), Publickey: key6},
-			{Coinbase: common.HexToAddress("0x0ffd116a3bf97a7112ff8779cc770b13ea3c66a5"), Publickey: key7},
-		},
+		Committee: []*types.CommitteeMember{},
 	}
 }
 
