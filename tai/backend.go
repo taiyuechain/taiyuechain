@@ -185,18 +185,21 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	if err != nil {
 		return nil, err
 	}
-	/*CaCertAddress := types.CACertListAddress
-	key := common.BytesToHash(CaCertAddress[:])
-	obj := stateDB.GetCAState(CaCertAddress, key)
-	if len(obj) == 0 {
-		i := vm.NewCACertList()
-		i.LoadCACertList(stateDB,CaCertAddress)
-		log.Info("----config.Genesis.CertList","len", len(config.Genesis.CertList))
-		i.InitCACertList(config.Genesis.CertList)
-		i.SaveCACertList(stateDB,CaCertAddress)
-		stateDB.SetNonce(CaCertAddress,1)
-		stateDB.SetCode(CaCertAddress,CaCertAddress[:])
-	}*/
+
+	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	for _, caCert := range caCertList.GetCACertMap() {
+		//log.Info("cart List ", "is", caCert)
+		cimCa, err := cim.NewCIM()
+		if err != nil {
+			return nil, err
+		}
+
+		cimCa.SetUpFromCA(caCert.GetByte())
+		//cim.CimMap[string(i)] = cimCa
+		NewCIMList.AddCim(cimCa)
+	}
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
@@ -231,20 +234,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
-	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	for _, caCert := range caCertList.GetCACertMap() {
-		//log.Info("cart List ", "is", caCert)
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			return nil, err
-		}
 
-		cimCa.SetUpFromCA(caCert.GetByte())
-		//cim.CimMap[string(i)] = cimCa
-		NewCIMList.AddCim(cimCa)
-	}
 
 	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
 
