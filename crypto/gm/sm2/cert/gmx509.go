@@ -1774,6 +1774,90 @@ func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 
 }
 
+func CreateRootCert(rootPri *sm2.PrivateKey)  (cert []byte, err error) {
+
+	pri := rootPri
+	pub :=&rootPri.PublicKey
+	sanContents, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
+	if err != nil {
+		return nil,err
+	}
+
+	template := x509.CertificateRequest{
+		Subject: pkix.Name{
+			CommonName:   "test.example.com",
+			Organization: []string{"Σ Acme Co"},
+		},
+		DNSNames: []string{"test.example.com"},
+
+		// An explicit extension should override the DNSNames from the
+		// template.
+		ExtraExtensions: []pkix.Extension{
+			{
+				Id:    oidExtensionSubjectAltName,
+				Value: sanContents,
+			},
+		},
+	}
+
+	derBytes, err := CreateCertificateRequest(&template, pub, pri, nil)
+	if err != nil {
+		return nil,err
+	}
+
+	csr, err := ParseCertificateRequest(derBytes)
+	if err != nil {
+		return nil,err
+	}
+
+	testExtKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth}
+	testUnknownExtKeyUsage := []asn1.ObjectIdentifier{[]int{1, 2, 3}, []int{2, 59, 1}}
+	cerTemplate := x509.Certificate{
+		// SerialNumber is negative to ensure that negative
+		// values are parsed. This is due to the prevalence of
+		// buggy code that produces certificates with negative
+		// serial numbers.
+		SerialNumber: big.NewInt(-1),
+		NotBefore:    time.Now(),
+		NotAfter:     time.Unix(time.Now().Unix()+100000000, 0),
+
+		SubjectKeyId: []byte{1, 2, 3, 4},
+		KeyUsage:     x509.KeyUsageCertSign,
+
+		ExtKeyUsage:        testExtKeyUsage,
+		UnknownExtKeyUsage: testUnknownExtKeyUsage,
+
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+
+		OCSPServer:            []string{"http://ocsp.example.com"},
+		IssuingCertificateURL: []string{"http://crt.example.com/ca1.crt"},
+
+		PolicyIdentifiers: []asn1.ObjectIdentifier{[]int{1, 2, 3}},
+
+		CRLDistributionPoints: []string{"http://crl1.example.com/ca1.crl", "http://crl2.example.com/ca1.crl"},
+	}
+
+	FillCertificateTemplateByCSR(&cerTemplate, csr)
+
+	cinfo, err := CreateCertificateInfo(&cerTemplate, &cerTemplate, csr)
+	if err != nil {
+		return nil,err
+	}
+
+	sign, err := sm2.Sign(pri, nil, cinfo.Raw)
+	if err != nil {
+		return nil,err
+	}
+
+	cer, err := CreateCertificate(cinfo, sign)
+	if err != nil {
+		return nil,err
+	}
+
+	return cer,nil
+}
+
 func IssueCert(rootcert  *x509.Certificate, rootPri *sm2.PrivateKey,sonPuk *sm2.PublicKey) (cert []byte, err error) {
 	sanContents_son, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
 	if err != nil {
