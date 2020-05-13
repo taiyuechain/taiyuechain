@@ -33,3 +33,5 @@ var TestnetBootnodes = []string{
 var DevnetBootnodes = []string{
 	"enode://5f8f37510d880693e3b8f68f76c2d12fa11074bdf0f11695743af4546b374065fb1dc2ec83dc0f31e1ae7d5304102d429c664869aa7f6b2b70bda45d2a1716ee@39.98.240.34:30314",
 }
+
+var SingleNodeBootnodes = []string{}

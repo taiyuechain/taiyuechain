@@ -194,7 +194,6 @@ func NewPbftAgent(etrue Backend, config *params.ChainConfig, engine consensus.En
 
 //initialize node info
 func (agent *PbftAgent) initNodeInfo(etrue Backend) {
-
 	config := etrue.Config()
 	coinbase, _ := etrue.Etherbase()
 	agent.initNodeWork()

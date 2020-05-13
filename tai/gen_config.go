@@ -18,6 +18,7 @@ var _ = (*configMarshaling)(nil)
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
+		CryptoType              uint8         `toml:",omitempty"`
 		NetworkId               uint64
 		SyncMode                downloader.SyncMode
 		LightServ               int           `toml:",omitempty"`
@@ -39,8 +40,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
 		DocRoot                 string `toml:"-"`
-		CryptoType        uint8
-
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -72,6 +71,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
 		NetworkId               *uint64
+		CryptoType              *uint8
 		SyncMode                *downloader.SyncMode
 		EnableElection          *bool          `toml:",omitempty"`
 		NodeType                *bool          `toml:",omitempty"`

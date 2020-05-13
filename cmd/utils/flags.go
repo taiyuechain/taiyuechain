@@ -49,11 +49,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
-	"github.com/taiyuechain/taiyuechain/tai"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
-	"github.com/taiyuechain/taiyuechain/taistats"
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
@@ -63,9 +59,13 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/tai/gasprice"
+	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/taistats"
 	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"gopkg.in/urfave/cli.v1"
-	"crypto/ecdsa"
 )
 
 var (
@@ -645,7 +645,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
 		key  *ecdsa.PrivateKey
-		err error
+		err  error
 	)
 	switch {
 	case file != "" && hex != "":
@@ -668,9 +668,9 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *tai.Config) {
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
 		file = ctx.GlobalString(BftKeyFileFlag.Name)
-		key *ecdsa.PrivateKey
+		key  *ecdsa.PrivateKey
 
-		err  error
+		err error
 	)
 	log.Debug("", "file:", file, "hex:", hex)
 	switch {
@@ -708,6 +708,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		urls = params.TestnetBootnodes
 	case ctx.GlobalBool(DevnetFlag.Name):
 		urls = params.DevnetBootnodes
+	case ctx.GlobalBool(SingleNodeFlag.Name):
+		urls = params.SingleNodeBootnodes
 	case cfg.BootstrapNodes != nil:
 		return // already set, don't apply defaults.
 	}

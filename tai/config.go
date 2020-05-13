@@ -24,14 +24,14 @@ import (
 	"runtime"
 	"time"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/tai/downloader"
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/params"
-	"crypto/ecdsa"
 )
 
 // DefaultConfig contains default settings for use on the Taiyuechain main net.
@@ -118,7 +118,6 @@ type Config struct {
 	// caoliang modify
 	PrivateKey *ecdsa.PrivateKey `toml:"-"`
 
-
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
@@ -169,7 +168,7 @@ type Config struct {
 	NodeType bool `toml:",omitempty"`
 
 	//use crypto type 1 represent gm , 0 represent common crypto
-	CryptoType uint8
+	CryptoType uint8 `toml:",omitempty"`
 
 	//true indicate only mine fruit
 	MineFruit bool `toml:",omitempty"`
@@ -184,9 +183,6 @@ type Config struct {
 
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`
-
-
-
 }
 
 func (c *Config) GetNodeType() bool {
