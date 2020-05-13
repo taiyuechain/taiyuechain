@@ -32,6 +32,11 @@ var (
 	pbft3PrivString ="122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab"
 	pbft4PrivString ="fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f"
 
+	pbft1PubString = "04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd"
+	pbft2PubString = "045e1711b6cd8550a5e5466f7f0868b5507929cb69c2f0fca84f8f94816eb40a808ea8a77c3d83c9d16341acb037fbea2f7d9d4af46326defa39b408f40f28fb98"
+	pbft3PubString = "041b931d350257e881f27bce2563d98c99b13ca4f525a0662f5e7d53f085edff0dca8ceaae550c9f4ceecf217f72806a48a48fb024916392ae41d7c45168e89b94"
+	pbft4PubString = "049923777d866fd80485be57a126d638cc7dda78a5d6958aff784ca7ed9d9c7be494125bf75fd0328490ae51020274427b9fbb07f59e4c9b5104ac6924721a4438"
+
 	p2p1PrivString ="d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
 	p2p2PrivString ="ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec"
 	p2p3PrivString ="86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc"
@@ -526,6 +531,24 @@ func TestCreatePrivateKeyAndPublick(t *testing.T)  {
 	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p3Priv)))
 	fmt.Println("p2p4Priv:")
 	fmt.Println(hex.EncodeToString(crypto.FromECDSA(p2p4Priv)))
+}
+
+func TestCreatePublick(t *testing.T) {
+	pbft1priv,_:=crypto.HexToECDSA(pbft1PrivString)
+	pbft2priv,_:=crypto.HexToECDSA(pbft2PrivString)
+	pbft3priv,_:=crypto.HexToECDSA(pbft3PrivString)
+	pbft4priv,_:=crypto.HexToECDSA(pbft4PrivString)
+
+	fmt.Println("pbft1Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft1priv.PublicKey)))
+	fmt.Println("pbft2Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft2priv.PublicKey)))
+	fmt.Println("pbft3Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft3priv.PublicKey)))
+	fmt.Println("pbft4Priv:")
+	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft4priv.PublicKey)))
+
+
 }
 
 func TestCreateRootCert(t *testing.T)  {
