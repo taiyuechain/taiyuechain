@@ -44,7 +44,11 @@ const (
 	datadirStaticNodes     = "static-nodes.json"  // Path within the datadir to the static node list
 	datadirTrustedNodes    = "trusted-nodes.json" // Path within the datadir to the trusted node list
 	datadirNodeDatabase    = "truenodes"          // Path within the datadir to store the node infos
-	datadirLocalCert       = "localCert.pem"      // Path within the datadir to store the node infos
+	dataDirCert			   = "cert"
+	dataDirpbftCert			   = "pbftcert"
+	dataDirp2pCert			   = "p2pcert"
+	datadirpbftCertfile       = "pbftCert.pem"      // Path within the datadir to store the node infos
+	datadirp2pCertfile      = "p2pCert.pem"      // Path within the datadir to store the node infos
 )
 
 // Config represents a small collection of configuration values to fine tune the
@@ -478,7 +482,9 @@ func (c *Config) BftCommitteeCert() []byte {
 	if c.DataDir == "" {
 		return cert
 	}
-	certfile := c.ResolvePath(datadirLocalCert)
+	certDir :=filepath.Join(c.DataDir, dataDirCert)
+	certpbftDir :=filepath.Join(certDir, dataDirpbftCert)
+	certfile := filepath.Join(certpbftDir, datadirpbftCertfile)
 	var err error
 	cert, err = crypto.ReadPemFileByPath(certfile)
 	if err != nil {
