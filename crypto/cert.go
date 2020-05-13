@@ -95,6 +95,7 @@ func IsEqulCert(cert *x509.Certificate, idBytes []byte) error {
 	return nil
 }
 
+
 func ReadPemFileByPath(path string) ([]byte, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -115,4 +116,15 @@ func ReadPemFileByPath(path string) ([]byte, error) {
 		data = block.Bytes
 	}
 	return data,nil
+}
+
+func PemDecode(data []byte) []byte {
+	block, _ := pem.Decode(data)
+	if block == nil {
+		panic(fmt.Sprintf(
+			"Failed to PEM decode test certificate from %q - "+
+				"Does a unit test have a buggy test cert file?\n"))
+	}
+	return block.Bytes
+
 }
