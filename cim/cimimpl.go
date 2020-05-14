@@ -64,11 +64,14 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 		}else{
 			return nil
 		}
-		if errNumber == len(cl.CimMap){
-			return errors.New("can not find right root cert")
-		}
+
 	}
-	return nil
+	if errNumber == len(cl.CimMap){
+		return errors.New("can not find right root cert")
+	}else{
+		return nil
+	}
+
 }
 
 func (cl *CimList) VerifyRootCert(cert []byte) error  {
