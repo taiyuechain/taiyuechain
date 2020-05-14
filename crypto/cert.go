@@ -118,13 +118,18 @@ func ReadPemFileByPath(path string) ([]byte, error) {
 	return data,nil
 }
 
-func PemDecode(data []byte) []byte {
-	block, _ := pem.Decode(data)
-	if block == nil {
-		panic(fmt.Sprintf(
-			"Failed to PEM decode test certificate from %q - "+
-				"Does a unit test have a buggy test cert file?\n"))
+func GetPubByteFromCert(asn1Data []byte) ([]byte ,error) {
+	cert,err := ParseCertificate(asn1Data)
+	if err!=nil{
+		return nil,err
 	}
-	return block.Bytes
+	pubk := cert.PublicKey
+	switch pub2 := pubk.(type) {
+	case *ecdsa.PublicKey:
 
+		return elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y),nil
+
+	}
+
+	return nil,errors.New("err public curve")
 }
