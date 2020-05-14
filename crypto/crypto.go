@@ -52,7 +52,7 @@ var (
 	secp256k1halfN = new(big.Int).Div(secp256k1N, big.NewInt(2))
 )
 
-var errInvalidPubkey = errors.New("invalid secp256k1 public key")
+var errInvalidPubkey = errors.New("invalid public key")
 
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
 
