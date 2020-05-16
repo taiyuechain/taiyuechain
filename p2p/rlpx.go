@@ -343,7 +343,7 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 			return s, err
 		}
 
-		if !reflect.DeepEqual(pub, h.remote) {
+		if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(crypto.FromECDSAPub(h.remote)) {
 			fmt.Println("pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), " remote ", hex.EncodeToString(crypto.FromECDSAPub(h.remote)))
 			return s, errors.New("cert not match private key")
 		}
