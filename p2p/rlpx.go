@@ -193,6 +193,9 @@ func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ec
 	} else {
 		sec, err = t.initiatorEncHandshake(t.fd, prv, dial)
 	}
+
+	fmt.Println("doEncHandshake ", err, " ", dial)
+
 	if err != nil {
 		return nil, err
 	}
