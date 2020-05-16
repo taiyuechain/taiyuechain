@@ -51,7 +51,6 @@ type Identity interface {
 	//Verify(msg []byte, sig []byte) error
 	VerifyByte(cert []byte) error
 	isEqulIdentity(cert []byte) error
-
 }
 
 // sign identity
@@ -59,4 +58,18 @@ type SigningIdentity interface {
 	Identity
 	Sign(msg []byte) ([]byte, error)
 	GetPublicVersion() Identity
+}
+
+func CreateCim(certbyte []byte) CIM {
+	cimCa, err := NewCIM()
+	if err != nil {
+		return nil
+	}
+
+	err = cimCa.SetUpFromCA(certbyte)
+	if err != nil {
+		return nil
+	}
+
+	return cimCa
 }

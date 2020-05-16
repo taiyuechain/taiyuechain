@@ -5,13 +5,13 @@ import (
 	"crypto/elliptic"
 
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 	"io/ioutil"
-	"encoding/pem"
 	"strings"
-	"fmt"
 )
 
 func IsCorrectSY(syCrypto interface{}) bool {
@@ -95,7 +95,6 @@ func IsEqulCert(cert *x509.Certificate, idBytes []byte) error {
 	return nil
 }
 
-
 func ReadPemFileByPath(path string) ([]byte, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -115,21 +114,36 @@ func ReadPemFileByPath(path string) ([]byte, error) {
 		}
 		data = block.Bytes
 	}
-	return data,nil
+	return data, nil
 }
 
-func GetPubByteFromCert(asn1Data []byte) ([]byte ,error) {
-	cert,err := ParseCertificate(asn1Data)
-	if err!=nil{
-		return nil,err
+func GetPubByteFromCert(asn1Data []byte) ([]byte, error) {
+	cert, err := ParseCertificate(asn1Data)
+	if err != nil {
+		return nil, err
 	}
 	pubk := cert.PublicKey
 	switch pub2 := pubk.(type) {
 	case *ecdsa.PublicKey:
 
-		return elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y),nil
+		return elliptic.Marshal(pub2.Curve, pub2.X, pub2.Y), nil
 
 	}
 
-	return nil,errors.New("err public curve")
+	return nil, errors.New("err public curve")
+}
+
+func FromCertBytesToPubKey(asn1Data []byte) (*ecdsa.PublicKey, error) {
+	cert, err := ParseCertificate(asn1Data)
+	if err != nil {
+		return nil, err
+	}
+	pubk := cert.PublicKey
+	switch pub2 := pubk.(type) {
+	case *ecdsa.PublicKey:
+
+		return pub2, nil
+	}
+
+	return nil, errors.New("err public curve")
 }
