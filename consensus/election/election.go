@@ -18,6 +18,8 @@ package election
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 
 	//"crypto/ecdsa"
@@ -306,6 +308,7 @@ func (e *Election) GetMemberByPubkey(members []*types.CommitteeMember, pubKey []
 		return nil
 	}
 	for _, member := range members {
+		fmt.Println("GetMemberByPubkey pubkey=", hexutil.Encode(member.Publickey))
 		if bytes.Equal(pubKey, member.Publickey) {
 			return member
 		}
@@ -378,13 +381,15 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 	}
 
 	//todo ignore singlenode model sign validate
-	if e.singleNode {
+	/*if e.singleNode {
 		return committeeMembers, nil
-	}
+	}*/
 
 	for i, sign := range signs {
 		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
-		member := e.GetMemberByPubkey(committeeMembers, crypto.FromECDSAPub(pubkey))
+		pubBytes := crypto.FromECDSAPub(pubkey)
+		fmt.Println("VerifySigns pubkey=", hexutil.Encode(pubBytes))
+		member := e.GetMemberByPubkey(committeeMembers, pubBytes)
 		if member == nil {
 			errs[i] = ErrInvalidMember
 		} else {
