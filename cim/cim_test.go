@@ -540,6 +540,7 @@ func TestCreatePublick(t *testing.T) {
 	pbft4priv,_:=crypto.HexToECDSA(pbft4PrivString)
 
 	fmt.Println("pbft1Priv:")
+	fmt.Println(crypto.FromECDSAPub(&pbft1priv.PublicKey))
 	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft1priv.PublicKey)))
 	fmt.Println("pbft2Priv:")
 	fmt.Println(hex.EncodeToString(crypto.FromECDSAPub(&pbft2priv.PublicKey)))
@@ -682,7 +683,10 @@ func TestVerifyCert(t *testing.T)  {
 		t.Fatalf("verify cert 4 error")
 	}
 
-
+	err =cimList.VerifyCert([]byte{})
+	if err !=nil{
+		t.Fatalf("verify cert 5 error")
+	}
 
 
 
