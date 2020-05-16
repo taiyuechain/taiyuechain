@@ -507,7 +507,7 @@ func (c *Config) NodeKeyCert() []byte {
 	certpbftDir := filepath.Join(certDir, dataDirp2pCert)
 	certfile := filepath.Join(certpbftDir, datadirp2pCertfile)
 	if !common.FileExist(certfile) {
-		log.Error("BftCommitteeCert not exist")
+		log.Error("NodeKeyCert not exist")
 		return nil
 	}
 	var err error
