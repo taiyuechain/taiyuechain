@@ -63,6 +63,29 @@ const (
 	PerminType_delGroup
 )
 
+type ModifyPerminType int
+
+const (
+	ModifyPerminType_Nil ModifyPerminType = iota
+	ModifyPerminType_AddSendTxPerm //add send tx permission
+	ModifyPerminType_DelSendTxPerm //del send tx permission
+	ModifyPerminType_AddSendTxManagerPerm
+	ModifyPerminType_DelSendTxManagerPerm
+	ModifyPerminType_AddCrtContractPerm
+	ModifyPerminType_DelCrtContractPerm
+	ModifyPerminType_AddCrtContractManagerPerm
+	ModifyPerminType_DelCrtContractManagerPerm
+	ModifyPerminType_AddGropManagerPerm
+	ModifyPerminType_DelGropManagerPerm
+	ModifyPerminType_AddGropMamberPerm
+	ModifyPerminType_DelGropMamberPerm
+	ModifyPerminType_AddWhitListPerm
+	ModifyPerminType_DelWhitListPerm
+	ModifyPerminType_AddBlockListPerm
+	ModifyPerminType_DelBlockListPerm
+)
+
+
 var (
 	ErrorMemberAlreadIn = errors.New("Mamber alread have this perminssion")
 )
@@ -227,49 +250,35 @@ func (pt *PerminTable)Save(state StateDB) error{
 }
 
 //Grant Perminission
-func (pt *PerminTable)Grantpermission(to,member common.Address, pType PerminType) error  {
-	switch pType {
-	case PerminType_Supervision:
-		pt.WhiteList = append(pt.WhiteList,member)
-	case PerminType_NodeIn:
-	case PerminType_PbftIn:
-	case PerminType_SendTx:
-		if pt.UserBasisPermi[member].MemberID == member{
-			return ErrorMemberAlreadIn
-		}
-		pt.UserBasisPermi[member].MemberID = member
-		pt.UserBasisPermi[member].SendTran =  true
-
-		//pt.SendTranPermi[to]
-	case PerminType_AddSendTxPerm:
-	case PerminType_DelSendTxPerm:
-	case PerminType_CreateContract:
-	case PerminType_AddCrtCtractPrem:
-	case PerminType_DelCrtCtractPrem:
-	case PerminType_CreateGroup:
-	case PerminType_AddGroupManager:
-	case PerminType_DelGropManager:
-	case PerminType_AddGroupMember:
-	case PerminType_DelGropMember:
-	case PerminType_AddCtractManager:
-	case PerminType_DelCtractManager:
-	case PerminType_AddCtractAccess:
-	case PerminType_DelCtractAccess:
-	case PerminType_AddWhiteListMember:
-	case PerminType_DelWhiteListMember:
-	case PerminType_AddBlackListMember:
-	case PerminType_DelBlockListMember:
-	case PerminType_AddCrtGroupPrem:
-	case PerminType_DelCrtGroupPrem:
-	case PerminType_AddSendTxManager:
-	case PerminType_DelSendTxManager:
-	case PerminType_AddCrtCtractManager:
-	case PerminType_DelCrtCtractManager:
-	case PerminType_delGroup:
-
+func (pt *PerminTable)Grantpermission(from,to,member common.Address, mPermType ModifyPerminType) error  {
+	switch mPermType {
+	case ModifyPerminType_AddSendTxPerm:
+	case ModifyPerminType_DelSendTxPerm:
+	case ModifyPerminType_AddSendTxManagerPerm:
+	case ModifyPerminType_DelSendTxManagerPerm:
+	case ModifyPerminType_AddCrtContractPerm:
+	case ModifyPerminType_DelCrtContractPerm:
+	case ModifyPerminType_AddCrtContractManagerPerm:
+	case ModifyPerminType_DelCrtContractManagerPerm:
+	case ModifyPerminType_AddGropManagerPerm:
+	case ModifyPerminType_DelGropManagerPerm:
+	case ModifyPerminType_AddGropMamberPerm:
+	case ModifyPerminType_DelGropMamberPerm:
+	case ModifyPerminType_AddWhitListPerm:
+	case ModifyPerminType_DelWhitListPerm:
+	case ModifyPerminType_AddBlockListPerm:
+	case ModifyPerminType_DelBlockListPerm:
 	}
 	return nil
 }
+
+/*func (pt *PerminTable)setSendTxPerm(from ,member common.Address, isAdd bool) error  {
+	//check member
+	if pt.UserBasisPermi[member].SendTran == true{
+		return
+	}
+	return nil
+}*/
 
 func (pt *PerminTable)CheckPerim()  {
 
