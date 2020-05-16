@@ -1140,6 +1140,11 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 		//return
 	}
 
+	cfg.P2PNodeCert = stack.Config().NodeKeyCert()
+	if cfg.P2PNodeCert == nil {
+		log.Error("not p2p cert file ")
+	}
+
 	//set PrivateKey by config,file or hex
 	setBftCommitteeKey(ctx, cfg)
 	if cfg.PrivateKey == nil {

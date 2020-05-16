@@ -181,6 +181,8 @@ type Config struct {
 
 	NodeCert []byte
 
+	P2PNodeCert []byte
+
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`
 }

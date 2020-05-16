@@ -496,3 +496,25 @@ func (c *Config) BftCommitteeCert() []byte {
 	}
 	return cert
 }
+
+func (c *Config) NodeKeyCert() []byte {
+	// Generate ephemeral key if no datadir is being used.
+	cert := []byte{}
+	if c.DataDir == "" {
+		return cert
+	}
+	certDir := filepath.Join(c.DataDir, dataDirCert)
+	certpbftDir := filepath.Join(certDir, dataDirp2pCert)
+	certfile := filepath.Join(certpbftDir, datadirp2pCertfile)
+	if !common.FileExist(certfile) {
+		log.Error("BftCommitteeCert not exist")
+		return nil
+	}
+	var err error
+	cert, err = crypto.ReadPemFileByPath(certfile)
+	if err != nil {
+		log.Error("ReadPemFileByPath", "err", err)
+		return nil
+	}
+	return cert
+}
