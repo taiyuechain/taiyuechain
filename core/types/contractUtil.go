@@ -10,6 +10,7 @@ import (
 
 var (
 	CACertListAddress = common.BytesToAddress([]byte("CACertList"))
+	PermiTableAddress = common.BytesToAddress([]byte("PermiTableAddress"))
 )
 
 var (
