@@ -195,7 +195,7 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 				return nil
 			},
 			CimList: func() (*cim.CimList, []byte) {
-				return nil, nodeCert
+				return cimList, nodeCert
 			},
 		})
 	}
