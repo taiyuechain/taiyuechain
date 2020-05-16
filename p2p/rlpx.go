@@ -194,9 +194,13 @@ func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ec
 		sec, err = t.initiatorEncHandshake(t.fd, prv, dial)
 	}
 
-	fmt.Println("doEncHandshake ", err, " ", dial)
-
 	if err != nil {
+		if dial == nil {
+			fmt.Println("doEncHandshake ", err)
+		} else {
+			fmt.Println("doEncHandshake ", err, " ", hex.EncodeToString(crypto.FromECDSAPub(dial)))
+		}
+
 		return nil, err
 	}
 	t.wmu.Lock()
