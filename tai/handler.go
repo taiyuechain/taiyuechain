@@ -194,6 +194,9 @@ func NewProtocolManager(config *params.ChainConfig, checkpoint *params.TrustedCh
 				}
 				return nil
 			},
+			CimList: func() (*cim.CimList, []byte) {
+				return nil, nodeCert
+			},
 		})
 	}
 	if len(manager.SubProtocols) == 0 {
@@ -397,7 +400,7 @@ func (pm *ProtocolManager) handle(p *peer) error {
 		number  = head.Number
 	)
 
-	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter, pm.cimList, pm.nodeCert); err != nil {
+	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
 		p.Log().Debug("etrue handshake failed", "err", err)
 		return err
 	}

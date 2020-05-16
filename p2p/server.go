@@ -22,6 +22,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
@@ -162,7 +163,7 @@ type Server struct {
 
 	// Hooks for testing. These are useful because we can inhibit
 	// the whole protocol stack.
-	newTransport func(net.Conn) transport
+	newTransport func(net.Conn, *certManager) transport
 	newPeerHook  func(*Peer)
 
 	lock    sync.Mutex // protects running
@@ -191,6 +192,12 @@ type Server struct {
 	loopWG        sync.WaitGroup // loop, listenLoop
 	peerFeed      event.Feed
 	log           log.Logger
+	cm            *certManager
+}
+
+type certManager struct {
+	list *cim.CimList
+	cert []byte
 }
 
 type peerOpFunc func(map[enode.ID]*Peer)
@@ -474,6 +481,10 @@ func (srv *Server) setupLocalNode() error {
 	pubkey := crypto.FromECDSAPub(&srv.PrivateKey.PublicKey)
 	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey[1:]}
 	for _, p := range srv.Protocols {
+		list, cert := p.CimList()
+		if list != nil {
+			srv.cm = &certManager{list: list, cert: cert}
+		}
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
 		log.Debug("Setup local node", "cap", p.cap(), "database", srv.Config.NodeDatabase)
 	}
@@ -892,7 +903,7 @@ func (srv *Server) listenLoop() {
 // as a peer. It returns when the connection has been added as a peer
 // or the handshakes have failed.
 func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Node) error {
-	c := &conn{fd: fd, transport: srv.newTransport(fd), flags: flags, cont: make(chan error)}
+	c := &conn{fd: fd, transport: srv.newTransport(fd, srv.cm), flags: flags, cont: make(chan error)}
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
 		c.close(err)
@@ -949,7 +960,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	}
 
 	if id := c.node.ID(); !bytes.Equal(crypto.Keccak256(phs.ID), id[:]) {
-	//if id := c.node.ID(); !bytes.Equal(thash.Keccak256(phs.ID), id[:]) {
+		//if id := c.node.ID(); !bytes.Equal(thash.Keccak256(phs.ID), id[:]) {
 		clog.Trace("Wrong devp2p handshake identity", "phsid", hex.EncodeToString(phs.ID))
 		return DiscUnexpectedIdentity
 	}

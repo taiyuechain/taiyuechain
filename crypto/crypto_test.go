@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -167,8 +168,15 @@ func TestFromCertBytesToPubKey(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	_, err = FromCertBytesToPubKey(data)
+	pub, err := FromCertBytesToPubKey(data)
 	if err != nil {
 		fmt.Println(err)
+	}
+	prv1, err := HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+	if err != nil {
+		fmt.Println(err)
+	}
+	if !reflect.DeepEqual(pub, &prv1.PublicKey) {
+		fmt.Println("1111")
 	}
 }

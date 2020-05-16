@@ -20,7 +20,9 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"encoding/hex"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"reflect"
 
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -47,13 +49,16 @@ import (
 const (
 	maxUint24 = ^uint32(0) >> 8
 
-	sskLen = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
-	sigLen = 98 // elliptic S256
-	pubLen = 64 // 512 bit pubkey in uncompressed representation without format byte
-	shaLen = 32 // hash length (for nonce etc)
+	sskLen            = 16 // ecies.MaxSharedKeyLength(pubKey) / 2
+	sigLen            = 98 // elliptic S256
+	pubLen            = 64 // 512 bit pubkey in uncompressed representation without format byte
+	shaLen            = 32 // hash length (for nonce etc)
+	authRLPDecLen     = -25
+	authRespRLPIncLen = 5
+	certSize          = 2
 
-	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1
-	authRespLen = pubLen + shaLen + 1
+	authMsgLen  = sigLen + shaLen + pubLen + shaLen + 1 + authRLPDecLen + certSize
+	authRespLen = pubLen + shaLen + 1 + authRespRLPIncLen + certSize
 
 	eciesOverhead = 65 /* pubkey */ + 16 /* IV */ + 32 /* MAC */
 
@@ -80,14 +85,15 @@ var errPlainMessageTooLarge = errors.New("message length >= 16MB")
 // It wraps the frame encoder with locks and read/write deadlines.
 type rlpx struct {
 	fd net.Conn
+	cm *certManager
 
 	rmu, wmu sync.Mutex
 	rw       *rlpxFrameRW
 }
 
-func newRLPX(fd net.Conn) transport {
+func newRLPX(fd net.Conn, cm *certManager) transport {
 	fd.SetDeadline(time.Now().Add(handshakeTimeout))
-	return &rlpx{fd: fd}
+	return &rlpx{fd: fd, cm: cm}
 }
 
 func (t *rlpx) ReadMsg() (Msg, error) {
@@ -183,9 +189,9 @@ func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ec
 		err error
 	)
 	if dial == nil {
-		sec, err = receiverEncHandshake(t.fd, prv)
+		sec, err = t.receiverEncHandshake(t.fd, prv)
 	} else {
-		sec, err = initiatorEncHandshake(t.fd, prv, dial)
+		sec, err = t.initiatorEncHandshake(t.fd, prv, dial)
 	}
 	if err != nil {
 		return nil, err
@@ -198,6 +204,7 @@ func (t *rlpx) doEncHandshake(prv *ecdsa.PrivateKey, dial *ecdsa.PublicKey) (*ec
 
 // encHandshake contains the state of the encryption handshake.
 type encHandshake struct {
+	CertSize             uint16
 	initiator            bool
 	remote               *ecdsa.PublicKey  // remote-pubk
 	initNonce, respNonce []byte            // nonce
@@ -218,15 +225,12 @@ type secrets struct {
 
 // RLPx v4 handshake auth (defined in EIP-8).
 type authMsgV4 struct {
-	gotPlain bool // whether read packet had plain format.
-
 	Signature       [sigLen]byte
 	InitiatorPubkey [pubLen]byte
 	Nonce           [shaLen]byte
 	Version         uint
 
-	// Ignore additional fields (forward-compatibility)
-	Rest []rlp.RawValue `rlp:"tail"`
+	CertSize uint16 `rlp:"-"`
 }
 
 // RLPx v4 handshake response (defined in EIP-8).
@@ -235,8 +239,7 @@ type authRespV4 struct {
 	Nonce        [shaLen]byte
 	Version      uint
 
-	// Ignore additional fields (forward-compatibility)
-	Rest []rlp.RawValue `rlp:"tail"`
+	CertSize uint16 `rlp:"-"`
 }
 
 // secrets is called after the handshake is completed.
@@ -281,8 +284,12 @@ func (h *encHandshake) staticSharedSecret(prv *ecdsa.PrivateKey) ([]byte, error)
 // it should be called on the dialing side of the connection.
 //
 // prv is the local client's private key.
-func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
-	h := &encHandshake{initiator: true, remote: remote}
+func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
+	size := 0
+	if t.cm != nil {
+		size = len(t.cm.cert)
+	}
+	h := &encHandshake{initiator: true, remote: remote, CertSize: uint16(size)}
 	authMsg, err := h.makeAuthMsg(prv)
 	if err != nil {
 		return s, err
@@ -303,6 +310,37 @@ func initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ec
 	if err := h.handleAuthResp(authRespMsg); err != nil {
 		return s, err
 	}
+
+	if t.cm != nil && len(t.cm.cert) != 0 {
+		if authRespMsg.CertSize == 0 {
+			return s, errors.New("initiator remote cert size  equal 0")
+		}
+		if uint16(len(t.cm.cert)) != authRespMsg.CertSize {
+			return s, errors.New("remote cert size error")
+		}
+		fmt.Println("initiator packet ", len(authPacket), "", len(authRespPacket))
+		fmt.Println("initiator ", len(t.cm.cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.cert))
+		if _, err = conn.Write(t.cm.cert); err != nil {
+			return s, err
+		}
+		buf := make([]byte, authRespMsg.CertSize)
+		if _, err := io.ReadFull(conn, buf); err != nil {
+			return s, err
+		}
+
+		if err = t.cm.list.VerifyCert(buf); err != nil {
+			return s, err
+		}
+		pub, err := crypto.FromCertBytesToPubKey(buf)
+		if err != nil {
+			return s, err
+		}
+
+		if !reflect.DeepEqual(pub, h.remote) {
+			return s, errors.New("cert not match private key")
+		}
+	}
+
 	return h.secrets(authPacket, authRespPacket)
 }
 
@@ -338,6 +376,7 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = TaiRLPXVersion
+	msg.CertSize = h.CertSize
 	return msg, nil
 }
 
@@ -354,7 +393,7 @@ func (h *encHandshake) handleAuthResp(msg *authRespV4) (err error) {
 // it should be called on the listening side of the connection.
 //
 // prv is the local client's private key.
-func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets, err error) {
+func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets, err error) {
 
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
@@ -362,18 +401,30 @@ func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets,
 		return s, err
 	}
 	h := new(encHandshake)
+	if t.cm != nil {
+		h.CertSize = uint16(len(t.cm.cert))
+	}
 	if err := h.handleAuthMsg(authMsg, prv); err != nil {
 		return s, err
+	}
+
+	find := false
+	if t.cm != nil && len(t.cm.cert) != 0 {
+		if authMsg.CertSize == 0 {
+			return s, errors.New("receiver remote cert size  equal 0")
+		}
+		if uint16(len(t.cm.cert)) != authMsg.CertSize {
+			return s, errors.New("remote cert size error")
+		}
+		find = true
 	}
 
 	authRespMsg, err := h.makeAuthResp()
 	if err != nil {
 		return s, err
 	}
-	var authRespPacket []byte
-	if authMsg.gotPlain {
-		authRespPacket, err = authRespMsg.sealPlain(h)
-	}
+
+	authRespPacket, err := authRespMsg.sealPlain(h)
 	if err != nil {
 		return s, err
 	}
@@ -382,6 +433,29 @@ func receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (s secrets,
 	}
 	if authMsg.Version != TaiRLPXVersion {
 		return s, fmt.Errorf("enc handshake %d version error", authMsg.Version)
+	}
+	if find {
+		buf := make([]byte, authMsg.CertSize)
+		if _, err := io.ReadFull(conn, buf); err != nil {
+			return s, err
+		}
+
+		fmt.Println("receiver ", len(t.cm.cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.cert))
+		fmt.Println("receiver packet ", len(authPacket), "", len(authRespPacket), " cert ", authMsg.CertSize, " ", len(buf), " ", hex.EncodeToString(buf))
+		if err = t.cm.list.VerifyCert(buf); err != nil {
+			return s, err
+		}
+		pub, err := crypto.FromCertBytesToPubKey(buf)
+		if err != nil {
+			return s, err
+		}
+		if !reflect.DeepEqual(pub, h.remote) {
+			return s, errors.New("cert not match private key")
+		}
+
+		if _, err = conn.Write(t.cm.cert); err != nil {
+			return s, err
+		}
 	}
 	return h.secrets(authPacket, authRespPacket)
 }
@@ -428,48 +502,54 @@ func (h *encHandshake) makeAuthResp() (msg *authRespV4, err error) {
 	copy(msg.Nonce[:], h.respNonce)
 	copy(msg.RandomPubkey[:], exportPubkey(&h.randomPrivKey.PublicKey))
 	msg.Version = TaiRLPXVersion
+	msg.CertSize = h.CertSize
 	return msg, nil
 }
 
 func (msg *authMsgV4) sealPlain(h *encHandshake) ([]byte, error) {
-
-	buf := make([]byte, authMsgLen)
-	n := copy(buf, msg.Signature[:])
-	n += copy(buf[n:], crypto.Keccak256(exportPubkey(&h.randomPrivKey.PublicKey)))
-
-	n += copy(buf[n:], msg.InitiatorPubkey[:])
-	n += copy(buf[n:], msg.Nonce[:])
-	buf[n] = 0 // token-flag
-	//
-	return crypto.Encrypt(h.remote, buf, nil, nil)
+	data, err := rlp.EncodeToBytes(msg)
+	if err != nil {
+		return nil, err
+	}
+	buf := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, msg.CertSize)
+	return crypto.Encrypt(h.remote, append(buf, data...), nil, nil)
 }
 
 func (msg *authMsgV4) decodePlain(input []byte) {
-	n := copy(msg.Signature[:], input)
-	n += shaLen // skip sha3(initiator-ephemeral-pubk)
-	n += copy(msg.InitiatorPubkey[:], input[n:])
-	copy(msg.Nonce[:], input[n:])
-	msg.Version = TaiRLPXVersion
-	msg.gotPlain = true
+	if err := rlp.Decode(bytes.NewReader(input), msg); err != nil {
+		panic("authRespV4 decode error")
+	}
+}
+
+func (msg *authMsgV4) setCertSize(size uint16) {
+	msg.CertSize = size
 }
 
 func (msg *authRespV4) sealPlain(hs *encHandshake) ([]byte, error) {
-
-	buf := make([]byte, authRespLen)
-	n := copy(buf, msg.RandomPubkey[:])
-	copy(buf[n:], msg.Nonce[:])
-	return crypto.Encrypt(hs.remote, buf, nil, nil)
+	data, err := rlp.EncodeToBytes(msg)
+	if err != nil {
+		return nil, err
+	}
+	buf := make([]byte, 2)
+	binary.BigEndian.PutUint16(buf, msg.CertSize)
+	return crypto.Encrypt(hs.remote, append(buf, data...), nil, nil)
 
 }
 
 func (msg *authRespV4) decodePlain(input []byte) {
-	n := copy(msg.RandomPubkey[:], input)
-	copy(msg.Nonce[:], input[n:])
-	msg.Version = TaiRLPXVersion
+	if err := rlp.Decode(bytes.NewReader(input), msg); err != nil {
+		panic("authRespV4 decode error")
+	}
+}
+
+func (msg *authRespV4) setCertSize(size uint16) {
+	msg.CertSize = size
 }
 
 type plainDecoder interface {
 	decodePlain([]byte)
+	setCertSize(uint16)
 }
 
 func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r io.Reader) ([]byte, error) {
@@ -478,29 +558,15 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return buf, err
 	}
-	// Attempt decoding pre-EIP-8 "plain" format.
+
 	if dec, err := crypto.Decrypt(prv, buf, nil, nil); err == nil {
-		msg.decodePlain(dec)
+		prefix := dec[:2]
+		size := binary.BigEndian.Uint16(prefix)
+		msg.decodePlain(dec[2:])
+		msg.setCertSize(size)
 		return buf, nil
 	}
-	// Could be EIP-8 format, try that.
-	prefix := buf[:2]
-	size := binary.BigEndian.Uint16(prefix)
-	if size < uint16(plainSize) {
-		return buf, fmt.Errorf("size underflow, need at least %d bytes", plainSize)
-	}
-	buf = append(buf, make([]byte, size-uint16(plainSize)+2)...)
-	if _, err := io.ReadFull(r, buf[plainSize:]); err != nil {
-		return buf, err
-	}
-	dec, err := crypto.Decrypt(prv, buf[2:], nil, prefix)
-	if err != nil {
-		return buf, err
-	}
-	// Can't use rlp.DecodeBytes here because it rejects
-	// trailing data (forward-compatibility).
-	s := rlp.NewStream(bytes.NewReader(dec), 0)
-	return buf, s.Decode(msg)
+	return nil, errors.New("Decrypt error")
 }
 
 // importPublicKey unmarshals 512 bit public keys.

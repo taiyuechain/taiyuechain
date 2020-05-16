@@ -22,6 +22,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"io/ioutil"
 	"net"
 	"reflect"
@@ -86,7 +87,7 @@ func testEncHandshake(token []byte) error {
 		prv0, _  = crypto.GenerateKey()
 		prv1, _  = crypto.GenerateKey()
 		fd0, fd1 = net.Pipe()
-		c0, c1   = newRLPX(fd0).(*rlpx), newRLPX(fd1).(*rlpx)
+		c0, c1   = newRLPX(fd0, nil).(*rlpx), newRLPX(fd1, nil).(*rlpx)
 		output   = make(chan result)
 	)
 
@@ -144,16 +145,40 @@ func testEncHandshake(token []byte) error {
 
 func TestProtocolHandshake(t *testing.T) {
 	var (
-		prv0, _ = crypto.GenerateKey()
+		prv0, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
 		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)[1:]
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
 
-		prv1, _ = crypto.GenerateKey()
+		prv1, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
 		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)[1:]
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
 		wg sync.WaitGroup
+
+		pbft1Name = "pbft1priv"
+		pbft2Name = "pbft2priv"
+		p2p1Name  = "p2p1cert"
+		p2p2Name  = "p2p2cert"
+
+		pbft1path = "../cim/testdata/testcert/" + pbft1Name + ".pem"
+		pbft2path = "../cim/testdata/testcert/" + pbft2Name + ".pem"
+		p2p1path  = "../cim/testdata/testcert/" + p2p1Name + ".pem"
+		p2p2path  = "../cim/testdata/testcert/" + p2p2Name + ".pem"
+		CryptoSM2 = uint8(2)
 	)
+
+	pbft1Byte, err := crypto.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
+
+	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := crypto.ReadPemFileByPath(p2p2path)
+
+	//new cimList
+	cimList := cim.NewCIMList(CryptoSM2)
+	cimList.AddCim(cim.CreateCim(pbft1Byte))
+	cimList.AddCim(cim.CreateCim(pbft2Byte))
+	cm1 := &certManager{list: cimList, cert: p2p1Byte}
+	cm2 := &certManager{list: cimList, cert: p2p2Byte}
 
 	fd0, fd1, err := pipes.TCPPipe()
 	if err != nil {
@@ -164,7 +189,7 @@ func TestProtocolHandshake(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		defer fd0.Close()
-		rlpx := newRLPX(fd0)
+		rlpx := newRLPX(fd0, cm1)
 		rpubkey, err := rlpx.doEncHandshake(prv0, &prv1.PublicKey)
 		if err != nil {
 			t.Errorf("dial side enc handshake failed: %v", err)
@@ -190,7 +215,7 @@ func TestProtocolHandshake(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		defer fd1.Close()
-		rlpx := newRLPX(fd1)
+		rlpx := newRLPX(fd1, cm2)
 		rpubkey, err := rlpx.doEncHandshake(prv1, nil)
 		if err != nil {
 			t.Errorf("listen side enc handshake failed: %v", err)

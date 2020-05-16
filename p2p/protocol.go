@@ -18,6 +18,7 @@ package p2p
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
@@ -53,6 +54,8 @@ type Protocol struct {
 	// about a certain peer in the network. If an info retrieval function is set,
 	// but returns nil, it is assumed that the protocol handshake is still running.
 	PeerInfo func(id enode.ID) interface{}
+
+	CimList func() (*cim.CimList, []byte)
 
 	// Attributes contains protocol specific information for the node record.
 	Attributes []enr.Entry
