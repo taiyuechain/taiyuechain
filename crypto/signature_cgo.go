@@ -33,6 +33,10 @@ import (
 	return secp256k1.RecoverPubkey(hash, sig)
 }*/
 func Ecrecover(hash, sig []byte) ([]byte, error) {
+	if len(sig) != 98 {
+		fmt.Println("----------this is publickey: ", sig[65:])
+		fmt.Println("-----------publickey legth is: ", len(sig[65:]))
+	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.ECRecovery(hash, sig[:65])
 		if err != nil {
