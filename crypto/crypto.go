@@ -330,6 +330,9 @@ func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 }
 
 func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
+	if pub == nil || m == nil {
+		return nil, errors.New("Encrypt pub is nil or m is nil ")
+	}
 	switch CryptoType {
 	//guoji P256
 	case CRYPTO_P256_SH3_AES:
@@ -345,6 +348,9 @@ func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	return nil, nil
 }
 func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
+	if pri == nil || c == nil {
+		return nil, errors.New("Decrypt pri is nil or c is nil")
+	}
 	switch CryptoType {
 	//guoji P256
 	case CRYPTO_P256_SH3_AES:
@@ -360,6 +366,12 @@ func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 	return nil, nil
 }
 func GenerateShared(pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
+	if pri == nil || pub == nil {
+		return nil, errors.New("GenerateShared pri is nil or pub is nil")
+	}
+	if skLen == 0 || macLen == 0 {
+		return nil, errors.New("GenerateShared skLen is 0 or macLen is 0")
+	}
 	switch CryptoType {
 	//guoji P256
 	case CRYPTO_P256_SH3_AES:
