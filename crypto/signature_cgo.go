@@ -102,7 +102,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(p256sign) != 98 {
+		if len(p256sign) != 65 {
 			return nil, errors.New("sig length is wrong !!!" + string(len(p256sign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
@@ -115,7 +115,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(smsign) != 98 {
+		if len(smsign) != 65 {
 			return nil, errors.New("sig length is wrong !!!" + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
