@@ -4,11 +4,15 @@ import (
 	"bytes"
 	crand "crypto/rand"
 	"crypto/sha256"
+	"fmt"
+
+	//"crypto/sha256"
+
 	"encoding/binary"
 	"errors"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
-	tcrypyo  "github.com/taiyuechain/taiyuechain/crypto"
+	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
@@ -293,6 +297,7 @@ func sort32(foo, bar *[32]byte) (lo, hi *[32]byte) {
 
 func signChallenge(challenge *[32]byte, locPrivKey crypto.PrivKey) (signature []byte) {
 	signature, err := locPrivKey.Sign(challenge[:])
+	fmt.Println("----------signChallenge" + string(len(signature)))
 	// TODO(ismail): let signChallenge return an error instead
 	if err != nil {
 		panic(err)
