@@ -5,7 +5,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
-	//tycrpto "github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 )
 
@@ -34,8 +33,7 @@ func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	sign := make([]byte, 65)
 	sign = append(sign, r.Bytes()...)
 	sign = append(sign, s.Bytes()...)
-	v := sign[65] - 27
-	sign = append(sign, v)
+	sign = append(sign, 4)
 	return sign[65:], nil
 }
 
@@ -177,8 +175,3 @@ func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
 		return false
 	}
 }
-
-/*func SaveP256Private(file string, key *ecdsa.PrivateKey) error {
-	k := hex.EncodeToString(tycrpto.FromECDSAP256(key))
-	return ioutil.WriteFile(file, []byte(k), 0600)
-}*/
