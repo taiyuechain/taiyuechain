@@ -928,6 +928,9 @@ func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, resul
 	//caoliang modify
 	voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
 
+	if len(voteSign.Sign) == 0{
+		log.Error("sine len is zero==================================")
+	}
 	if err != nil {
 		log.Error("fb GenerateSign error ", "err", err)
 	}

@@ -124,7 +124,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			return nil, errors.New("sig length is wrong !!!" + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
-		fmt.Println("---pubtype len","is",len(pubtype))
+		//fmt.Println("---pubtype len","is",len(pubtype))
 		smsign = append(smsign, pubtype...)
 		return smsign, nil
 	}
