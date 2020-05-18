@@ -484,6 +484,14 @@ func (srv *Server) setupLocalNode() error {
 		list, cert := p.CimList()
 		if list != nil {
 			srv.cm = &certManager{list: list, cert: cert}
+			pub, err := crypto.FromCertBytesToPubKey(cert)
+			if err != nil {
+				return err
+			}
+			if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
+				log.Debug("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
+				return errors.New("local cert not match private nodekey")
+			}
 		}
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
 		log.Debug("Setup local node", "cap", p.cap(), "database", srv.Config.NodeDatabase)
