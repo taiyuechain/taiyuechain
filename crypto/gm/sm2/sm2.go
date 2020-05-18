@@ -388,7 +388,6 @@ func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []b
 	if skLen+macLen > KeyBytes {
 		return nil, errors.New("ErrSharedKeyTooBig")
 	}
-
 	x, _ := pub.Curve.ScalarMult(pub.X, pub.Y, prv.D.Bytes())
 	if x == nil {
 		return nil, errors.New("ErrSharedKeyIsPointAtInfinity")
@@ -541,7 +540,6 @@ func UnmarshalCipher(in []byte, cipherTextType Sm2CipherTextType) (out []byte, e
 
 func getZ(digest hash.Hash, curve *P256V1Curve, pubX *big.Int, pubY *big.Int, userId []byte) []byte {
 	digest.Reset()
-
 	userIdLen := uint16(len(userId) * 8)
 	var userIdLenBytes [2]byte
 	binary.BigEndian.PutUint16(userIdLenBytes[:], userIdLen)
@@ -594,7 +592,7 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 		userId = sm2SignDefaultUserId
 	}
 	e := calculateE(digest, &priv.Curve, pubX, pubY, userId, in)
-
+	//hash
 	intZero := new(big.Int).SetInt64(0)
 	intOne := new(big.Int).SetInt64(1)
 	for {
@@ -641,8 +639,7 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	sign := make([]byte, 65)
 	sign = append(sign, r.Bytes()...)
 	sign = append(sign, s.Bytes()...)
-	v := sign[65] - 27
-	sign = append(sign, v)
+	sign = append(sign, 4)
 	return sign[65:], nil
 
 }
@@ -830,3 +827,173 @@ func SaveSm2Private(file string, key *PrivateKey) error {
 	k := hex.EncodeToString(key.GetRawBytes())
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
+func ECRecovery(data *big.Int, rawSign []byte, key PublicKey) (*PublicKey, error) {
+	/*		r := big.Int{}
+		s := big.Int{}
+	    //hash := big.Int{}
+		sigLen := len(rawSign)
+		r.SetBytes(rawSign[:(sigLen / 2)])
+		s.SetBytes(rawSign[(sigLen / 2):64])
+		//hash.SetBytes(data)
+		r1:=util.Sub(&r,data)
+		expy := util.Sub(sm2P256V1.Params().N, big.NewInt(2))
+		rinv := new(big.Int).Exp(r1, expy, sm2P256V1.Params().N)
+		z := data
+
+		xxx := util.Mul(&r, &r)
+		xxx.Mul(xxx, &r)
+
+		ax := util.Mul(sm2P256V1.A, &r)
+
+		yy := util.Sub(xxx, ax)
+		yy.Add(yy, sm2P256V1.Params().B)
+
+		//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
+
+		y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
+		if y1 == nil {
+			return nil, fmt.Errorf("can not revcovery public key")
+		}
+
+		y2 := new(big.Int).Neg(y1)
+		y2.Mod(y2, sm2P256V1.Params().P)
+		p1, p2 := sm2P256V1.ScalarMult(r1, y1, s.Bytes())
+		p3, p4 := sm2P256V1.ScalarBaseMult(z.Bytes())
+
+		p5 := new(big.Int).Neg(p4)
+		p5.Mod(p5, sm2P256V1.Params().P)
+
+		q1, q2 := sm2P256V1.Add(p1, p2, p3, p5)
+		q3, q4 := sm2P256V1.ScalarMult(q1, q2, rinv.Bytes())
+
+		n1, n2 := sm2P256V1.ScalarMult(r1, y2, s.Bytes())
+		n3, n4 := sm2P256V1.ScalarBaseMult(z.Bytes())
+
+		n5 := new(big.Int).Neg(n4)
+		n5.Mod(n5, sm2P256V1.Params().P)
+
+		q5, q6 := sm2P256V1.Add(n1, n2, n3, n5)
+		q7, q8 :=sm2P256V1.ScalarMult(q5, q6, rinv.Bytes())
+		key1 := PublicKey{Curve: sm2P256V1, X: q3, Y: q4}
+		key2 := PublicKey{Curve: sm2P256V1, X: q7 ,Y: q8}
+		fmt.Println(key1)
+		return &key2, nil*/
+
+	r := big.Int{}
+	s := big.Int{}
+	j := big.Int{}
+	for i := 0; ; i++ {
+		j.Add(big.NewInt(1), &j)
+		sigLen := len(rawSign)
+		r.SetBytes(rawSign[:(sigLen / 2)])
+		s.SetBytes(rawSign[(sigLen / 2):64])
+		t := util.Add(&r, &s)
+		t = util.Mod(t, key.Curve.N)
+
+		sgx1, _ := key.Curve.ScalarBaseMult(s.Bytes())
+		/*	tpx, tpy := key.Curve.ScalarMult(pub.X, pub.Y, t.Bytes())
+			x, y := pub.Curve.Add(sgx, sgy, tpx, tpy)*/
+
+		jn := util.Mul(key.Curve.N, &j)
+		x := util.Add(&r, jn)
+		x1 := util.Sub(x, data)
+		tpx := util.Sub(x1, sgx1)
+		pubx := util.Mul(tpx, t)
+		fmt.Println(pubx)
+		if key.X == pubx {
+			fmt.Println("恢复公钥成功！！！")
+			return &key, nil
+		}
+
+		kg := new(big.Int).Sub(&r, data)
+		kg1 := new(big.Int).Add(kg, sm2P256V1.Params().N.Mul(sm2P256V1.Params().N, &j))
+		sgx := new(big.Int).Mul(&s, sm2P256V1.Params().Gx)
+		ks := new(big.Int).Sub(kg1, sgx)
+		rs := new(big.Int).Add(&r, &s)
+		dg := new(big.Int).Div(ks, rs)
+		xxx := util.Mul(dg, dg)
+		xxx.Mul(xxx, dg)
+
+		ax := util.Mul(sm2P256V1.A, dg)
+
+		yy := util.Sub(xxx, ax)
+		yy.Add(yy, sm2P256V1.Params().B)
+
+		//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
+
+		y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
+		/*	if y1 == nil {
+			return nil, fmt.Errorf("can not revcovery public key")
+		}*/
+
+		//y2 := new(big.Int).Neg(y1)
+		key2 := PublicKey{Curve: sm2P256V1, X: dg, Y: y1}
+		if key.X == key2.X {
+			return &key2, nil
+		}
+		//return &key2, nil
+	}
+	return nil, nil
+} /*	r := big.Int{}
+	s := big.Int{}
+	sigLen := len(rawSign)
+	r.SetBytes(rawSign[:(sigLen / 2)])
+	s.SetBytes(rawSign[(sigLen / 2):64])
+
+	expy := new(big.Int).Sub(sm2P256V1.Params().N, big.NewInt(2))
+	rinv := new(big.Int).Exp(&r, expy, sm2P256V1.Params().N)
+	z := new(big.Int).SetBytes(data)
+
+	xxx := new(big.Int).Mul(&r, &r)
+	xxx.Mul(xxx, &r)
+
+	ax := new(big.Int).Mul(sm2P256V1.A, &r)
+
+	yy := new(big.Int).Sub(xxx, ax)
+	yy.Add(yy, sm2P256V1.Params().B)
+
+	//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
+
+	y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
+	if y1 == nil {
+		return nil, fmt.Errorf("can not revcovery public key")
+	}
+
+	y2 := new(big.Int).Neg(y1)
+	y2.Mod(y2, sm2P256V1.Params().P)
+	p1, p2 := sm2P256V1.ScalarMult(&r, y1, s.Bytes())
+	p3, p4 := sm2P256V1.ScalarBaseMult(z.Bytes())
+
+	p5 := new(big.Int).Neg(p4)
+	p5.Mod(p5, sm2P256V1.Params().P)
+
+	q1, q2 := sm2P256V1.Add(p1, p2, p3, p5)
+	q3, q4 := sm2P256V1.ScalarMult(q1, q2, rinv.Bytes())
+
+	n1, n2 := sm2P256V1.ScalarMult(&r, y2, s.Bytes())
+	n3, n4 := sm2P256V1.ScalarBaseMult(z.Bytes())
+
+	n5 := new(big.Int).Neg(n4)
+	n5.Mod(n5, sm2P256V1.Params().P)
+
+	q5, q6 := sm2P256V1.Add(n1, n2, n3, n5)
+	q7, q8 :=sm2P256V1.ScalarMult(q5, q6, rinv.Bytes())
+	q9:=new(big.Int).Sub(q7, z)
+	q10:=new(big.Int).Sub(q8, z)
+	key1 := PublicKey{Curve: sm2P256V1, X: q3, Y: q4}
+	key2 := PublicKey{Curve: sm2P256V1, X: q9, Y: q10}
+	fmt.Println(key1)
+	return &key2, nil*/
+
+/*func ECRecovery(data []byte, rawSign []byte) (*PublicKey, error) {
+	r := big.Int{}
+	s := big.Int{}
+	sigLen := len(rawSign)
+	r.SetBytes(rawSign[:(sigLen / 2)])
+	s.SetBytes(rawSign[(sigLen / 2):64])
+	t := util.Add(&r, &s)
+	t = util.Mod(t, sm2P256V1.Params().N)
+
+	sgx, sgy := sm2P256V1.Params().ScalarBaseMult(s.Bytes())
+	tpx, tpy := sm2P256V1.Params().ScalarMult(pub.X, pub.Y, t.Bytes())
+}*/
