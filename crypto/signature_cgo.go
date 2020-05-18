@@ -60,7 +60,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	if len(sig) != 98 || len(hash) != 32 {
-		fmt.Println("error len","sin len",len(sig),"hash len",len(Hash))
+		fmt.Println("error len","sin len",len(sig),"hash len",len(hash))
 		return nil, errors.New("SigToPub sign length is wrong ")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
