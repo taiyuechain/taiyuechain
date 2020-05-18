@@ -939,7 +939,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	// Run the encryption handshake.
 	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)
 	if err != nil {
-		srv.log.Trace("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
+		srv.log.Info("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		return err
 	}
 	if dialDest != nil {
