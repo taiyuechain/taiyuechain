@@ -20,6 +20,7 @@ import (
 	"io"
 	"net"
 	"time"
+	"fmt"
 )
 
 // 4 + 1024 == 1028 total frame size
@@ -90,6 +91,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	// Sign the challenge bytes for authentication.
 	locSignature := signChallenge(challenge, locPrivKey)
+	fmt.Println("===========11111111len sign ","len",len(locSignature))
+	fmt.Println("sing is ?? 222 ","is",locSignature)
 
 	// Share (in secret) each other's pubkey & challenge signature
 	authSigMsg, err := shareAuthSignature(sc, locPubKey, locSignature)
@@ -103,7 +106,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println("===========len sign ","len",len(remSignature))
+	fmt.Println("sing is ??","is",remSignature)
 	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
 		return nil, errors.New("Challenge verification failed")

@@ -68,6 +68,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
+	fmt.Println("---------------sin len","is", len(sig))
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
@@ -111,6 +112,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	}
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
+
 		smsign, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
 		if err != nil {
 			return nil, err
@@ -119,6 +121,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			return nil, errors.New("sig length is wrong !!!" + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
+		fmt.Println("---pubtype len","is",len(pubtype))
 		smsign = append(smsign, pubtype...)
 		return smsign, nil
 	}

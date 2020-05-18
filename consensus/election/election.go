@@ -386,6 +386,7 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 	}*/
 
 	for i, sign := range signs {
+		fmt.Println("block---sign.Sign","len",len(sign.Sign),"i",i)
 		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 		pubBytes := crypto.FromECDSAPub(pubkey)
 		fmt.Println("VerifySigns pubkey=", hexutil.Encode(pubBytes))
