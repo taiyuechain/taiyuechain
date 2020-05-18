@@ -21,6 +21,7 @@ package crypto
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
@@ -101,6 +102,9 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		if err != nil {
 			return nil, err
 		}
+		if len(p256sign) != 98 {
+			return nil, errors.New("sig length is wrong !!!" + string(len(p256sign)))
+		}
 		pubtype := CompressPubkey(&prv.PublicKey)
 		p256sign = append(p256sign, pubtype...)
 		return p256sign, nil
@@ -110,6 +114,9 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		smsign, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
 		if err != nil {
 			return nil, err
+		}
+		if len(smsign) != 98 {
+			return nil, errors.New("sig length is wrong !!!" + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
 		smsign = append(smsign, pubtype...)
@@ -132,6 +139,9 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 // The signature should have the 64 byte [R || S] format.
 
 func VerifySignature(pubkey, digestHash, signature []byte) bool {
+	if len(signature) != 98 || len(digestHash) != 32 || len(pubkey) != 33 {
+		return false
+	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		if len(pubkey) == 33 {
 			p256pub, err := DecompressPubkey(pubkey)
@@ -172,6 +182,9 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
 func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
+	if len(pubkey) != 33 {
+		return nil, errors.New("DecompressPubkey length is wrong !" + string(len(pubkey)))
+	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.DecompressPubkey(pubkey)
 		if err != nil {
@@ -198,6 +211,9 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
 func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
+	if pubkey == nil {
+		return nil
+	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		return p256.CompressPubkey(pubkey)
 	}
