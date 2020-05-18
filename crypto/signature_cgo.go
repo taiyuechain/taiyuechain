@@ -139,7 +139,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 // The signature should have the 64 byte [R || S] format.
 
 func VerifySignature(pubkey, digestHash, signature []byte) bool {
-	if len(signature) != 98 || len(digestHash) != 32 || len(pubkey) != 33 {
+	if len(signature) != 98 || len(digestHash) != 32 {
 		return false
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
