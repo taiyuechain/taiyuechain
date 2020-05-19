@@ -930,7 +930,8 @@ func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, resul
 	log.Info("the privat ","is",hex.EncodeToString(crypto.FromECDSA(agent.privateKey)),"hash",signHash)
 	voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
 	if err != nil{
-		log.Error("GenerateSignWithVote sign is nil")
+
+		log.Error("GenerateSignWithVote sign is nil","err is",err)
 		return nil ,err
 	}
 	if len(voteSign.Sign) == 0{
