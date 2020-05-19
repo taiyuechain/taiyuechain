@@ -27,6 +27,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 // Ecrecover returns the uncompressed public key that created the given signature.
@@ -60,7 +61,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	if len(sig) != 98 || len(hash) != 32 {
-		fmt.Println("error len","sin len",len(sig),"hash len",len(hash))
+		fmt.Println("error len", "sin len", len(sig), "hash len", len(hash))
 		return nil, errors.New("SigToPub sign length is wrong ")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
@@ -72,7 +73,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	fmt.Println("---------------sin len","is", len(sig))
+	fmt.Println("---------------sin len", "is", len(sig))
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
@@ -102,6 +103,10 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 //
 // The produced signature is in the [R || S || V] format where V is 0 or 1.
 func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
+	if len(digestHash) != 32 {
+		return nil, errors.New("sign digestHash is wrong")
+	}
+	log.Info("sign digestHash length is", len(digestHash))
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256sign, err := p256.Sign(prv, digestHash)
 		if err != nil {
@@ -122,7 +127,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			return nil, err
 		}
 		if len(smsign) != 65 {
-			return nil, errors.New("sig length is wrong !!!" + string(len(smsign)))
+			return nil, errors.New("sig length is wrong !!!  " + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
 		//fmt.Println("---pubtype len","is",len(pubtype))
