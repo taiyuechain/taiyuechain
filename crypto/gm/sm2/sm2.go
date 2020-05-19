@@ -14,6 +14,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
+	"github.com/taiyuechain/taiyuechain/log"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -638,8 +639,11 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	//return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
 	sign := make([]byte, 65)
 	sign = append(sign, r.Bytes()...)
+	log.Info("sm2 r ", "is", len(r.Bytes()))
+	log.Info("sm2 s ", "is", len(s.Bytes()))
 	sign = append(sign, s.Bytes()...)
 	sign = append(sign, 4)
+	log.Info("sm2 sign length ", "is", len(sign))
 	return sign[65:], nil
 
 }
