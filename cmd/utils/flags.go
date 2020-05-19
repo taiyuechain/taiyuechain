@@ -682,6 +682,7 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *tai.Config) {
 		cfg.PrivateKey = key
 
 	case hex != "":
+		fmt.Println("pbft key hex is ","is ", hex)
 		if key, err = crypto.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
@@ -1156,6 +1157,7 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	// need do verfiy the private key and cert
 
 	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
+	fmt.Println("----------------=-=-=-hexutil.Encode(pkbyte1)","privkey",cfg.CommitteeKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
 		Fatalf("init load CommitteeKey  nil.")
 	}

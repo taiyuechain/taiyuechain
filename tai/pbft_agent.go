@@ -694,8 +694,9 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	}
 	cryNodeInfo.Nodes = encryptNodes
 	hash := cryNodeInfo.HashWithoutSign().Bytes()
+	log.Info("hash is","what",hash)
 	cryNodeInfo.Sign, err = crypto.Sign(hash, privateKey)
-
+	log.Info("---the pbft encryptNodeInfo is nill? ","len",len(cryNodeInfo.Sign),"sin",cryNodeInfo.Sign)
 	if err != nil {
 		log.Error("sign node error", "err", err)
 	}
@@ -925,9 +926,13 @@ func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, resul
 	}
 	var err error
 	signHash := voteSign.HashWithNoSign().Bytes()
-	//caoliang modify
-	voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
 
+	log.Info("the privat ","is",hex.EncodeToString(crypto.FromECDSA(agent.privateKey)),"hash",signHash)
+	voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
+	if err != nil{
+		log.Error("GenerateSignWithVote sign is nil")
+		return nil ,err
+	}
 	if len(voteSign.Sign) == 0{
 		log.Error("sine len is zero==================================")
 	}
