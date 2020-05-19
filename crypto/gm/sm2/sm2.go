@@ -659,7 +659,7 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	if signmark == 4 {
 		sign = append(sign, 4)
 	}
-	log.Info("sm2 sign length ", "sm2 r is", len(r.Bytes()), "is", "sm2 s is", len(s.Bytes()), len(sign))
+	log.Debug("sm2 sign length ", "sm2 r is", len(r.Bytes()), "sm2 s is", len(s.Bytes()), len(sign))
 	return sign, nil
 
 }

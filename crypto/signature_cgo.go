@@ -37,8 +37,7 @@ import (
 }*/
 func Ecrecover(hash, sig []byte) ([]byte, error) {
 	if len(sig) != 98 {
-		fmt.Println("----------this is publickey: ", sig[65:])
-		fmt.Println("-----------publickey legth is: ", len(sig[65:]))
+		log.Info("sig length", "is", len(sig))
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.ECRecovery(hash, sig[:65])
@@ -62,7 +61,6 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	if len(sig) != 98 || len(hash) != 32 {
-		fmt.Println("error len", "sin len", len(sig), "hash len", len(hash))
 		return nil, errors.New("SigToPub sign length is wrong ")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
@@ -74,7 +72,6 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return p256pub, nil
 	}
 	//guomi
-	fmt.Println("---------------sin len", "is", len(sig))
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub, err := DecompressPubkey(sig[65:])
 		if err != nil {
@@ -107,7 +104,6 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	if len(digestHash) != 32 {
 		return nil, errors.New("sign digestHash is wrong")
 	}
-	log.Info("sign digestHash length is", "digestHash ", len(digestHash))
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256sign, err := p256.Sign(prv, digestHash)
 		if err != nil {
