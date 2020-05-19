@@ -44,22 +44,23 @@ func P256Sm2() elliptic.Curve {
 	return sm2P256
 }
 
-func (curve sm2P256Curve) Params() *elliptic.CurveParams {
+func (curve P256V1Curve) Params() *elliptic.CurveParams {
 	return sm2P256.CurveParams
 }
 
 // y^2 = x^3 + ax + b
-func (curve sm2P256Curve) IsOnCurve(X, Y *big.Int) bool {
-	var a, x, y, y2, x3 sm2P256FieldElement
+func (curve P256V1Curve) IsOnCurve(X, Y *big.Int) bool {
+	var a, b, x, y, y2, x3 sm2P256FieldElement
 
 	sm2P256FromBig(&x, X)
 	sm2P256FromBig(&y, Y)
-
-	sm2P256Square(&x3, &x)       // x3 = x ^ 2
-	sm2P256Mul(&x3, &x3, &x)     // x3 = x ^ 2 * x
-	sm2P256Mul(&a, &curve.a, &x) // a = a * x
+	sm2P256FromBig(&a, curve.A)
+	sm2P256FromBig(&b, curve.B)
+	sm2P256Square(&x3, &x)   // x3 = x ^ 2
+	sm2P256Mul(&x3, &x3, &x) // x3 = x ^ 2 * x
+	sm2P256Mul(&a, &a, &x)   // a = a * x
 	sm2P256Add(&x3, &x3, &a)
-	sm2P256Add(&x3, &x3, &curve.b)
+	sm2P256Add(&x3, &x3, &b)
 
 	sm2P256Square(&y2, &y) // y2 = y ^ 2
 	return sm2P256ToBig(&x3).Cmp(sm2P256ToBig(&y2)) == 0
@@ -73,7 +74,7 @@ func zForAffine(x, y *big.Int) *big.Int {
 	return z
 }
 
-func (curve sm2P256Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
+func (curve P256V1Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 	var X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3 sm2P256FieldElement
 
 	z1 := zForAffine(x1, y1)
@@ -88,7 +89,7 @@ func (curve sm2P256Curve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
 	return sm2P256ToAffine(&X3, &Y3, &Z3)
 }
 
-func (curve sm2P256Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
+func (curve P256V1Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	var X1, Y1, Z1 sm2P256FieldElement
 
 	z1 := zForAffine(x1, y1)
@@ -99,7 +100,7 @@ func (curve sm2P256Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 	return sm2P256ToAffine(&X1, &Y1, &Z1)
 }
 
-func (curve sm2P256Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.Int) {
+func (curve P256V1Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.Int) {
 	var scalarReversed [32]byte
 	var X, Y, Z, X1, Y1 sm2P256FieldElement
 
@@ -110,7 +111,7 @@ func (curve sm2P256Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.
 	return sm2P256ToAffine(&X, &Y, &Z)
 }
 
-func (curve sm2P256Curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
+func (curve P256V1Curve) ScalarBaseMult(k []byte) (*big.Int, *big.Int) {
 	var scalarReversed [32]byte
 	var X, Y, Z sm2P256FieldElement
 
@@ -770,8 +771,6 @@ func sm2P256ReduceCarry(a *sm2P256FieldElement, carry uint32) {
 	a[7] += sm2P256Carry[carry*9+7]
 }
 
-// 这代码真是丑比了，我也是对自己醉了。。。
-// 你最好别改这个代码，不然你会死的很惨。。
 func sm2P256ReduceDegree(a *sm2P256FieldElement, b *sm2P256LargeFieldElement) {
 	var tmp [18]uint32
 	var carry, x, xMask uint32
