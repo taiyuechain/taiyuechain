@@ -2,8 +2,6 @@ package crypto
 
 import (
 	"bytes"
-	"github.com/taiyuechain/taiyuechain/log"
-
 	//"crypto/ecdsa"
 
 	//"crypto/ecdsa"
@@ -114,7 +112,6 @@ func (pub PubKeyTrue) Bytes() []byte {
 //VerifyBytes is check msg
 func (pub PubKeyTrue) VerifyBytes(msg []byte, sig []byte) bool {
 	// make sure we use the same algorithm to sign
-	log.Info("PubKeyTrue msg length", "is ", len(msg), "sig length is", len(sig))
 	if pub0, err := tcrypyo.SigToPub(msg, sig); err == nil {
 		pub1 := PubKeyTrue(*pub0)
 		return pub.Equals(pub1)
