@@ -639,11 +639,15 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	//return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
 	sign := make([]byte, 65)
 	sign = append(sign, r.Bytes()...)
-	log.Info("sm2 r ", "is", len(r.Bytes()))
-	log.Info("sm2 s ", "is", len(s.Bytes()))
+	if len(r.Bytes()) == 31 {
+		sign = append(sign, 5)
+	}
 	sign = append(sign, s.Bytes()...)
+	if len(s.Bytes()) == 31 {
+		sign = append(sign, 6)
+	}
 	sign = append(sign, 4)
-	log.Info("sm2 sign length ", "is", len(sign))
+	log.Info("sm2 sign length ", "sm2 r is", len(r.Bytes()), "is", "sm2 s is", len(s.Bytes()), len(sign))
 	return sign[65:], nil
 
 }
@@ -687,7 +691,12 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 		if err != nil {
 			return false
 		}*/
-
+	if sign[64] == 5 {
+		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[32:64]))
+	}
+	if sign[64] == 6 {
+		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:63]))
+	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
@@ -905,7 +914,7 @@ func ECRecovery(data *big.Int, rawSign []byte, key PublicKey) (*PublicKey, error
 		pubx := util.Mul(tpx, t)
 		fmt.Println(pubx)
 		if key.X == pubx {
-			fmt.Println("恢复公钥成功！！！")
+			fmt.Println("recover success")
 			return &key, nil
 		}
 
