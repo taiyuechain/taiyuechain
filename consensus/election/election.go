@@ -386,7 +386,7 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 	}*/
 
 	for i, sign := range signs {
-		fmt.Println("block---sign.Sign","len",len(sign.Sign),"i",i)
+		fmt.Println("block---sign.Sign", "len", len(sign.Sign), "i", i)
 		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
 		pubBytes := crypto.FromECDSAPub(pubkey)
 		fmt.Println("VerifySigns pubkey=", hexutil.Encode(pubBytes))
@@ -1435,7 +1435,10 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList) []*types
 	caCertMap := caCertList.GetCACertMap()
 	members := make([]*types.CommitteeMember, len(caCertMap))
 	publicKeys := make([][]byte, len(caCertMap))
+	log.Warn("caCertMap", "caCertMap", len(caCertMap))
 	for i, caCert := range caCertMap {
+		log.Error("assignmentCommitteeMember", "caCert", caCert)
+		log.Error("assignmentCommitteeMember", "bytes", caCert.GetByte())
 		if !caCert.GetIsStore() {
 			continue
 		}
