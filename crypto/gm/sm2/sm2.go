@@ -643,10 +643,12 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	sign = BytesCombine(sign, s.Bytes())
 
 	if len(r.Bytes()) == 31 {
+		fmt.Println("r.Bytes( is 31")
 		sign = append(sign, 1)
 		signmark = signmark - 1
 	}
 	if len(s.Bytes()) == 31 {
+		fmt.Println("r.Bytes( is 31")
 		sign = append(sign, 2)
 		signmark = signmark - 2
 	}
@@ -706,13 +708,13 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 			return false
 		}*/
 	if sign[64] == 3 {
-		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[32:64]))
+		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[31:63]))
 	}
 	if sign[64] == 2 {
 		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:63]))
 	}
 	if sign[64] == 1 {
-		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[32:63]))
+		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[31:63]))
 	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
