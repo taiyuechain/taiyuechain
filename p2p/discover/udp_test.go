@@ -24,6 +24,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/rand"
@@ -137,7 +138,7 @@ func TestUDP_packetErrors(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
 
-	test.packetIn(errExpired, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 520})
+	test.packetIn(errExpired, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 515})
 	test.packetIn(errUnsolicitedReply, pongPacket, &pong{ReplyTok: []byte{}, Expiration: futureExp})
 	test.packetIn(errUnknownNode, findnodePacket, &findnode{Expiration: futureExp})
 	test.packetIn(errUnsolicitedReply, neighborsPacket, &neighbors{Expiration: futureExp})
@@ -367,7 +368,7 @@ func TestUDP_pingMatch(t *testing.T) {
 	randToken := make([]byte, 32)
 	crand.Read(randToken)
 
-	test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 520, Expiration: futureExp})
+	test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 515, Expiration: futureExp})
 	test.waitPacketOut(func(*pong) error { return nil })
 	test.waitPacketOut(func(*ping) error { return nil })
 	test.packetIn(errUnsolicitedReply, pongPacket, &pong{ReplyTok: randToken, To: testLocalAnnounced, Expiration: futureExp})
@@ -377,7 +378,7 @@ func TestUDP_pingMatchIP(t *testing.T) {
 	test := newUDPTest(t)
 	defer test.close()
 
-	test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 520, Expiration: futureExp})
+	test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 515, Expiration: futureExp})
 	test.waitPacketOut(func(*pong) error { return nil })
 
 	_, hash, _ := test.waitPacketOut(func(*ping) error { return nil })
@@ -391,12 +392,29 @@ func TestUDP_pingMatchIP(t *testing.T) {
 
 func TestUDP_successfulPing(t *testing.T) {
 	test := newUDPTest(t)
+	prv0, _ := crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+	prv1, _ := crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+	test.localkey = prv0
+	test.localkey = prv1
+	pbft1Name := "pbft1priv"
+	pbft1path := "../../cim/testdata/testcert/" + pbft1Name + ".pem"
+	p2p1Name := "p2p1cert"
+	p2p1path := "../../cim/testdata/testcert/" + p2p1Name + ".pem"
+
+	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
+	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
+
+	CryptoSM2 := uint8(2)
+	cimList := cim.NewCIMList(CryptoSM2)
+	cimList.AddCim(cim.CreateCim(pbft1Byte))
+	test.udp.localNode.CM = &enode.CertManager{List: cimList, Cert: p2p1Byte}
+
 	added := make(chan *node, 1)
 	test.table.nodeAddedHook = func(n *node) { added <- n }
 	defer test.close()
 
 	// The remote side sends a ping packet to initiate the exchange.
-	go test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 520, Expiration: futureExp})
+	go test.packetIn(nil, pingPacket, &ping{From: testRemote, To: testLocalAnnounced, Version: 515, Expiration: futureExp, Cert: p2p1Byte})
 
 	// the ping is replied to.
 	test.waitPacketOut(func(p *pong) {

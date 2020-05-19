@@ -19,6 +19,7 @@ package discover
 import (
 	"bytes"
 	"container/list"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -45,7 +46,6 @@ var (
 	errTimeout          = errors.New("RPC timeout")
 	errClockWarp        = errors.New("reply deadline too far in the future")
 	errClosed           = errors.New("socket closed")
-	errVersion          = errors.New("error version number")
 )
 
 // Timeouts
@@ -82,6 +82,7 @@ type (
 		Version    uint
 		From, To   rpcEndpoint
 		Expiration uint64
+		Cert       []byte
 		// Ignore additional fields (for forward compatibility).
 		Rest []rlp.RawValue `rlp:"tail"`
 	}
@@ -346,6 +347,9 @@ func (t *udp) sendPing(toid enode.ID, toaddr *net.UDPAddr, callback func()) <-ch
 		From:       t.ourEndpoint(),
 		To:         makeEndpoint(toaddr, 0), // TODO: maybe use known TCP port from DB
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
+	}
+	if t.localNode.CM != nil {
+		req.Cert = t.localNode.CM.Cert
 	}
 	packet, hash, err := encodePacket(t.priv, pingPacket, req)
 	if err != nil {
@@ -697,6 +701,16 @@ func (req *ping) handle(t *udp, from *net.UDPAddr, fromID enode.ID, mac []byte) 
 	if req.Version != trueVersion {
 		log.Debug("ping", "error", fmt.Sprintf("error %d version number", req.Version))
 		return
+	}
+	if t.localNode.CM != nil {
+		if req.Cert == nil {
+			log.Debug("ping", "error", fmt.Sprintf("cert not exist"))
+			return
+		}
+		if err := t.localNode.CM.List.VerifyCert(req.Cert); err != nil {
+			log.Debug("ping", "error", fmt.Sprintf("cert error  %s", hex.EncodeToString(req.Cert)))
+			return
+		}
 	}
 	t.send(from, fromID, pongPacket, &pong{
 		To:         makeEndpoint(from, req.From.TCP),

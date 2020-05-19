@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"io/ioutil"
 	"net"
 	"reflect"
@@ -177,8 +178,8 @@ func TestProtocolHandshake(t *testing.T) {
 	cimList := cim.NewCIMList(CryptoSM2)
 	cimList.AddCim(cim.CreateCim(pbft1Byte))
 	cimList.AddCim(cim.CreateCim(pbft2Byte))
-	cm1 := &certManager{list: cimList, cert: p2p1Byte}
-	cm2 := &certManager{list: cimList, cert: p2p2Byte}
+	cm1 := &enode.CertManager{List: cimList, Cert: p2p1Byte}
+	cm2 := &enode.CertManager{List: cimList, Cert: p2p2Byte}
 
 	fd0, fd1, err := pipes.TCPPipe()
 	if err != nil {

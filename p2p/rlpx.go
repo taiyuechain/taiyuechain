@@ -22,6 +22,7 @@ import (
 	"crypto/cipher"
 	"encoding/hex"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"reflect"
 
 	"crypto/ecdsa"
@@ -85,13 +86,13 @@ var errPlainMessageTooLarge = errors.New("message length >= 16MB")
 // It wraps the frame encoder with locks and read/write deadlines.
 type rlpx struct {
 	fd net.Conn
-	cm *certManager
+	cm *enode.CertManager
 
 	rmu, wmu sync.Mutex
 	rw       *rlpxFrameRW
 }
 
-func newRLPX(fd net.Conn, cm *certManager) transport {
+func newRLPX(fd net.Conn, cm *enode.CertManager) transport {
 	fd.SetDeadline(time.Now().Add(handshakeTimeout))
 	return &rlpx{fd: fd, cm: cm}
 }
@@ -288,7 +289,7 @@ func (h *encHandshake) staticSharedSecret(prv *ecdsa.PrivateKey) ([]byte, error)
 func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, remote *ecdsa.PublicKey) (s secrets, err error) {
 	size := 0
 	if t.cm != nil {
-		size = len(t.cm.cert)
+		size = len(t.cm.Cert)
 	}
 	h := &encHandshake{initiator: true, remote: remote, CertSize: uint16(size)}
 	authMsg, err := h.makeAuthMsg(prv)
@@ -312,16 +313,16 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 		return s, err
 	}
 
-	if t.cm != nil && len(t.cm.cert) != 0 {
+	if t.cm != nil && len(t.cm.Cert) != 0 {
 		if authRespMsg.CertSize == 0 {
 			return s, errors.New("initiator remote cert size  equal 0")
 		}
-		if uint16(len(t.cm.cert)) != authRespMsg.CertSize {
+		if uint16(len(t.cm.Cert)) != authRespMsg.CertSize {
 			return s, errors.New("remote cert size error")
 		}
 		fmt.Println("initiator packet ", len(authPacket), "", len(authRespPacket))
-		fmt.Println("initiator ", len(t.cm.cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.cert))
-		if _, err = conn.Write(t.cm.cert); err != nil {
+		fmt.Println("initiator ", len(t.cm.Cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.Cert))
+		if _, err = conn.Write(t.cm.Cert); err != nil {
 			return s, err
 		}
 		buf := make([]byte, authRespMsg.CertSize)
@@ -329,7 +330,7 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 			return s, err
 		}
 
-		if err = t.cm.list.VerifyCert(buf); err != nil {
+		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
 		pub, err := crypto.FromCertBytesToPubKey(buf)
@@ -408,18 +409,18 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 	}
 	h := new(encHandshake)
 	if t.cm != nil {
-		h.CertSize = uint16(len(t.cm.cert))
+		h.CertSize = uint16(len(t.cm.Cert))
 	}
 	if err := h.handleAuthMsg(authMsg, prv); err != nil {
 		return s, err
 	}
 
 	find := false
-	if t.cm != nil && len(t.cm.cert) != 0 {
+	if t.cm != nil && len(t.cm.Cert) != 0 {
 		if authMsg.CertSize == 0 {
 			return s, errors.New("receiver remote cert size  equal 0")
 		}
-		if uint16(len(t.cm.cert)) != authMsg.CertSize {
+		if uint16(len(t.cm.Cert)) != authMsg.CertSize {
 			return s, errors.New("remote cert size error")
 		}
 		find = true
@@ -446,9 +447,9 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 			return s, err
 		}
 
-		fmt.Println("receiver ", len(t.cm.cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.cert))
+		fmt.Println("receiver ", len(t.cm.Cert), " ", authRespMsg.CertSize, " ", hex.EncodeToString(t.cm.Cert))
 		fmt.Println("receiver packet ", len(authPacket), "", len(authRespPacket), " cert ", authMsg.CertSize, " ", len(buf), " ", hex.EncodeToString(buf))
-		if err = t.cm.list.VerifyCert(buf); err != nil {
+		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
 		pub, err := crypto.FromCertBytesToPubKey(buf)
@@ -459,7 +460,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 			return s, errors.New("cert not match private key")
 		}
 
-		if _, err = conn.Write(t.cm.cert); err != nil {
+		if _, err = conn.Write(t.cm.Cert); err != nil {
 			return s, err
 		}
 	}

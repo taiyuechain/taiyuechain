@@ -22,7 +22,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
@@ -163,7 +162,7 @@ type Server struct {
 
 	// Hooks for testing. These are useful because we can inhibit
 	// the whole protocol stack.
-	newTransport func(net.Conn, *certManager) transport
+	newTransport func(net.Conn, *enode.CertManager) transport
 	newPeerHook  func(*Peer)
 
 	lock    sync.Mutex // protects running
@@ -192,12 +191,6 @@ type Server struct {
 	loopWG        sync.WaitGroup // loop, listenLoop
 	peerFeed      event.Feed
 	log           log.Logger
-	cm            *certManager
-}
-
-type certManager struct {
-	list *cim.CimList
-	cert []byte
 }
 
 type peerOpFunc func(map[enode.ID]*Peer)
@@ -481,18 +474,6 @@ func (srv *Server) setupLocalNode() error {
 	pubkey := crypto.FromECDSAPub(&srv.PrivateKey.PublicKey)
 	srv.ourHandshake = &protoHandshake{Version: baseProtocolVersion, Name: srv.Name, ID: pubkey[1:]}
 	for _, p := range srv.Protocols {
-		list, cert := p.CimList()
-		if list != nil {
-			srv.cm = &certManager{list: list, cert: cert}
-			pub, err := crypto.FromCertBytesToPubKey(cert)
-			if err != nil {
-				return err
-			}
-			if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
-				log.Debug("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
-				return errors.New("local cert not match private nodekey")
-			}
-		}
 		srv.ourHandshake.Caps = append(srv.ourHandshake.Caps, p.cap())
 		log.Debug("Setup local node", "cap", p.cap(), "database", srv.Config.NodeDatabase)
 	}
@@ -509,6 +490,18 @@ func (srv *Server) setupLocalNode() error {
 	srv.localnode.Set(capsByNameAndVersion(srv.ourHandshake.Caps))
 	// TODO: check conflicts
 	for _, p := range srv.Protocols {
+		list, cert := p.CimList()
+		if list != nil {
+			srv.localnode.CM = &enode.CertManager{List: list, Cert: cert}
+			pub, err := crypto.FromCertBytesToPubKey(cert)
+			if err != nil {
+				return err
+			}
+			if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
+				log.Debug("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
+				return errors.New("local cert not match private nodekey")
+			}
+		}
 		for _, e := range p.Attributes {
 			srv.localnode.Set(e)
 		}
@@ -911,7 +904,7 @@ func (srv *Server) listenLoop() {
 // as a peer. It returns when the connection has been added as a peer
 // or the handshakes have failed.
 func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Node) error {
-	c := &conn{fd: fd, transport: srv.newTransport(fd, srv.cm), flags: flags, cont: make(chan error)}
+	c := &conn{fd: fd, transport: srv.newTransport(fd, srv.localnode.CM), flags: flags, cont: make(chan error)}
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
 		c.close(err)

@@ -18,6 +18,7 @@ package enode
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"net"
 	"reflect"
 	"strconv"
@@ -25,10 +26,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
-	"crypto/ecdsa"
 )
 
 const (
@@ -46,7 +47,7 @@ type LocalNode struct {
 	id  ID
 	key *ecdsa.PrivateKey
 
-	db  *DB
+	db *DB
 
 	// everything below is protected by a lock
 	mu          sync.Mutex
@@ -56,6 +57,12 @@ type LocalNode struct {
 	staticIP    net.IP
 	fallbackIP  net.IP
 	fallbackUDP int
+	CM          *CertManager
+}
+
+type CertManager struct {
+	List *cim.CimList
+	Cert []byte
 }
 
 // NewLocalNode creates a local node.
