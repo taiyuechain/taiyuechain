@@ -21,6 +21,7 @@ package crypto
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common/math"
@@ -127,6 +128,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			return nil, err
 		}
 		if len(smsign) != 65 {
+			log.Warn("Sign", "digestHash", hex.EncodeToString(digestHash), "priv", hex.EncodeToString(FromECDSA(prv)), " smsign", len(smsign))
 			return nil, errors.New("sig length is wrong !!!  " + string(len(smsign)))
 		}
 		pubtype := CompressPubkey(&prv.PublicKey)
