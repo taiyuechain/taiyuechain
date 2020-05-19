@@ -1,9 +1,12 @@
 package crypto
 
 import (
+	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"log"
@@ -16,17 +19,19 @@ import (
 func TestDecrypt(t *testing.T) {
 	//1 is guoji 2 is guomi
 	CryptoType = CRYPTO_SM2_SM3_SM4
-	ecdsapri, _ := GenerateKey()
+	ecdsapri, _ := ecies.GenerateKey(rand.Reader, elliptic.P256(), nil)
+	ecdsapri1 := ecdsapri.ExportECDSA()
 	fmt.Println(ecdsapri)
-	ecdsabyte := FromECDSA(ecdsapri)
-	ecdsapri, _ = ToECDSA(ecdsabyte)
+	ecdsabyte := FromECDSA(ecdsapri1)
+	ecdsapri1, _ = ToECDSA(ecdsabyte)
 	fmt.Println(ecdsapri)
 	h := sha3.NewLegacyKeccak256()
 	//h:=sm3.New()
 	hash := h.Sum(nil)
 	//sign and verify test
-	sign, _ := Sign(hash, ecdsapri)
-	pubbyte := FromECDSAPub(&ecdsapri.PublicKey)
+	sign, _ := Sign(hash, ecdsapri1)
+	fmt.Println(len(sign))
+	pubbyte := FromECDSAPub(&ecdsapri1.PublicKey)
 	ecdpub, _ := UnmarshalPubkey(pubbyte)
 	fmt.Println(ecdpub)
 	fmt.Println(ecdsapri.PublicKey)
@@ -34,42 +39,48 @@ func TestDecrypt(t *testing.T) {
 	boolverify := VerifySignature(pubbyte, hash, sign)
 	fmt.Println(boolverify)
 	//	compress and uncompress test
-	compreebyte := CompressPubkey(&ecdsapri.PublicKey)
+	compreebyte := CompressPubkey(&ecdsapri1.PublicKey)
 	fmt.Println(compreebyte)
 	ecdsapub, _ := DecompressPubkey(compreebyte)
-	fmt.Println(ecdsapub)
+	//fmt.Println(ecdsapub)
 	//	sigtopub
-	pubkey, err := SigToPub(hash, sign)
-	if err != nil {
-		panic(err)
-	}
+	//pubkey, err := SigToPub(hash, sign)
+
+	/* if err != nil {
+		 panic(err)
+	 }*/
 	//     Encryt and Decrypt test
 	src := "caoliang"
 	data := []byte(src)
-	//ct,_:=Encrypt(CryptoType,ecdsapub,data,nil,nil)
-	ct, _ := Encrypt(pubkey, data, nil, nil)
-	fmt.Println(ct)
-	m, _ := Decrypt(ecdsapri, ct, nil, nil)
+	ct, _ := Encrypt(ecdsapub, data, nil, nil)
+	//ct, _ := Encrypt(pubkey, data, nil, nil)
+	//fmt.Println(ct)
+	m, _ := Decrypt(ecdsapri1, ct, nil, nil)
 	fmt.Println(string(m))
-
 }
 
 func Test_zeroBytes(t *testing.T) {
-	CryptoType = CRYPTO_SM2_SM3_SM4
-	ecdsapri, _ := GenerateKey()
-	pubkeybyte := FromECDSAPub(&ecdsapri.PublicKey)
-	stringsm2pub := hex.EncodeToString(pubkeybyte)
-	fmt.Println(stringsm2pub)
-	CryptoType = CRYPTO_P256_SH3_AES
-	ecdpub, _ := UnmarshalPubkey(pubkeybyte)
-	fmt.Println(ecdpub)
-	byte, _ := hex.DecodeString(stringsm2pub)
-	ecdpub1, _ := UnmarshalPubkey(byte)
-	fmt.Println(ecdpub1)
+	/*	CryptoType = CRYPTO_SM2_SM3_SM4
+		ecdsapri, _ := GenerateKey()
+		pubkeybyte := FromECDSAPub(&ecdsapri.PublicKey)
+		stringsm2pub := hex.EncodeToString(pubkeybyte)
+		fmt.Println(stringsm2pub)
+		CryptoType = CRYPTO_P256_SH3_AES
+		ecdpub, _ := UnmarshalPubkey(pubkeybyte)
+		fmt.Println(ecdpub)
+		byte, _ := hex.DecodeString(stringsm2pub)
+		ecdpub1, _ := UnmarshalPubkey(byte)
+		fmt.Println(ecdpub1)*/
+	digestHash := "009feb9d89b8cf6e82900bc9ec642ab6278788c9d44ed26b2c3c3d13ac56cb9a"
+	priv := "bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
+	digestHash1, _ := hex.DecodeString(digestHash)
+	pri, _ := HexToECDSA(priv)
+	sign, _ := Sign(digestHash1, pri)
+	fmt.Println(sign)
 
 }
 func TestSm2(t *testing.T) {
-	CryptoType = CRYPTO_P256_SH3_AES
+	CryptoType = CRYPTO_SM2_SM3_SM4
 	priv, err := GenerateKey()
 	if err != nil {
 		log.Fatal(err)
