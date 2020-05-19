@@ -375,6 +375,10 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 	msg := new(authMsgV4)
 	copy(msg.Signature[:], signature)
 	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
+	if len(signature) != 98 || len(crypto.FromECDSAPub(&prv.PublicKey)[1:]) != 64 {
+		fmt.Println("signed ", hex.EncodeToString(signed), " priv ", hex.EncodeToString(crypto.FromECDSA(h.randomPrivKey)), " signature ", len(signature))
+		panic("signature not equal 98")
+	}
 
 	copy(msg.Nonce[:], h.initNonce)
 	msg.Version = TaiRLPXVersion
@@ -561,14 +565,15 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 		return buf, err
 	}
 
-	if dec, err := crypto.Decrypt(prv, buf, nil, nil); err == nil {
+	dec, err := crypto.Decrypt(prv, buf, nil, nil)
+	if err == nil {
 		prefix := dec[:2]
 		size := binary.BigEndian.Uint16(prefix)
 		msg.decodePlain(dec[2:])
 		msg.setCertSize(size)
 		return buf, nil
 	}
-	return nil, errors.New("Decrypt error")
+	return nil, errors.New(fmt.Sprintf("Decrypt error :%v %v", msg, err))
 }
 
 // importPublicKey unmarshals 512 bit public keys.

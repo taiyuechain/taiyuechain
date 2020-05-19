@@ -307,7 +307,7 @@ func (t *udp) checkHostIP(ip string) {
 	for {
 		select {
 		case <-t.ticker.C:
-			if strings.Compare(ip, t.host) != 0 {
+			if !netutil.IsLAN(net.ParseIP(ip)) && strings.Compare(ip, t.host) != 0 {
 				log.Info("Check host ip", "committee ip must be", t.host, "config ip", ip)
 				if addr := t.localNode.PredictAddr(); addr != "" {
 					t.host = addr
