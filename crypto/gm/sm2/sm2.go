@@ -643,12 +643,10 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	sign = BytesCombine(sign, s.Bytes())
 
 	if len(r.Bytes()) == 31 {
-		fmt.Println("r.Bytes( is 31")
 		sign = append(sign, 1)
 		signmark = signmark - 1
 	}
 	if len(s.Bytes()) == 31 {
-		fmt.Println("r.Bytes( is 31")
 		sign = append(sign, 2)
 		signmark = signmark - 2
 	}
