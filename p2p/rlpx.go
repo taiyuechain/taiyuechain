@@ -573,7 +573,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 		msg.setCertSize(size)
 		return buf, nil
 	}
-	return nil, errors.New(fmt.Sprintf("Decrypt error :%v %v", msg, err))
+	return nil, errors.New(fmt.Sprintf("Decrypt error :%s %d %v", hex.EncodeToString(buf), len(buf), err))
 }
 
 // importPublicKey unmarshals 512 bit public keys.
