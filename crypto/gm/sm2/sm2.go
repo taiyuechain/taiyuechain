@@ -638,20 +638,24 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	}
 	//return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
 	sign := make([]byte, 65)
-	sign = append(sign, r.Bytes()...)
+	sign = BytesCombine(r.Bytes())
+	sign = BytesCombine(sign, s.Bytes())
 	if len(r.Bytes()) == 31 {
-		sign = append(sign, 5)
+		sign = append(sign, 2)
+		sign[64] = 4 - 2
 	}
-	sign = append(sign, s.Bytes()...)
 	if len(s.Bytes()) == 31 {
-		sign = append(sign, 6)
+		sign = append(sign, 3)
+		sign[64] = 4 - 3
 	}
 	sign = append(sign, 4)
 	log.Info("sm2 sign length ", "sm2 r is", len(r.Bytes()), "is", "sm2 s is", len(s.Bytes()), len(sign))
-	return sign[65:], nil
+	return sign, nil
 
 }
-
+func BytesCombine(pBytes ...[]byte) []byte {
+	return bytes.Join(pBytes, []byte(""))
+}
 func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 	intOne := new(big.Int).SetInt64(1)
 	if r.Cmp(intOne) == -1 || r.Cmp(pub.Curve.N) >= 0 {
@@ -691,10 +695,10 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 		if err != nil {
 			return false
 		}*/
-	if sign[64] == 5 {
+	if sign[64] == 2 {
 		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:31]), new(big.Int).SetBytes(sign[32:64]))
 	}
-	if sign[64] == 6 {
+	if sign[64] == 1 {
 		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:63]))
 	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
