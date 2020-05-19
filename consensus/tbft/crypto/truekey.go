@@ -2,16 +2,18 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/taiyuechain/taiyuechain/log"
+
 	//"crypto/ecdsa"
 
 	//"crypto/ecdsa"
 	"fmt"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/tendermint/go-amino"
-	"crypto/ecdsa"
 )
 
 //-------------------------------------
@@ -37,7 +39,6 @@ func init() {
 
 // PrivKeyTrue implements PrivKey.
 type PrivKeyTrue ecdsa.PrivateKey
-
 
 // Bytes marshals the privkey using amino encoding.
 func (priv PrivKeyTrue) Bytes() []byte {
@@ -92,7 +93,6 @@ func GenPrivKey() PrivKeyTrue {
 // PubKeyTrue implements PubKey for the ecdsa.PublicKey signature scheme.
 type PubKeyTrue ecdsa.PublicKey
 
-
 // Address is the Keccak256 of the raw pubkey bytes.
 func (pub PubKeyTrue) Address() help.Address {
 	pub1 := ecdsa.PublicKey(pub)
@@ -114,6 +114,7 @@ func (pub PubKeyTrue) Bytes() []byte {
 //VerifyBytes is check msg
 func (pub PubKeyTrue) VerifyBytes(msg []byte, sig []byte) bool {
 	// make sure we use the same algorithm to sign
+	log.Info("PubKeyTrue msg length", "is ", len(msg), "sig length is", len(sig))
 	if pub0, err := tcrypyo.SigToPub(msg, sig); err == nil {
 		pub1 := PubKeyTrue(*pub0)
 		return pub.Equals(pub1)
