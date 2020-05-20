@@ -19,6 +19,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"math"
@@ -153,6 +154,7 @@ type blockChain interface {
 
 // TxPoolConfig are the configuration parameters of the transaction pool.
 type TxPoolConfig struct {
+	CimList    *cim.CimList
 	NoGasUsage bool          // Whether to use gas or not
 	NoLocals   bool          // Whether local transaction handling should be disabled
 	Journal    string        // Journal of local transactions to survive node restarts
@@ -709,6 +711,12 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 // whitelisted, preventing any associated transaction from being dropped out of
 // the pool due to pricing constraints.
 func (pool *TxPool) add(tx *types.Transaction, local bool) (bool, error) {
+	err := pool.config.CimList.VerifyCert(tx.Cert())
+	if err != nil {
+		log.Trace("Discarding VerifyCert false", "Cert", tx.Cert())
+		return false, fmt.Errorf("known transaction: %x", tx.Hash())
+	}
+
 	// If the transaction is already known, discard it
 	hash := tx.Hash()
 	fmt.Println("----------------add tx hash", "is", hexutil.Encode(hash[:]))
