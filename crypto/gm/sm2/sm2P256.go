@@ -2,6 +2,7 @@ package sm2
 
 import (
 	"crypto/elliptic"
+	"github.com/ethereum/go-ethereum/log"
 	"math/big"
 	"sync"
 )
@@ -101,6 +102,9 @@ func (curve P256V1Curve) Double(x1, y1 *big.Int) (*big.Int, *big.Int) {
 }
 
 func (curve P256V1Curve) ScalarMult(x1, y1 *big.Int, k []byte) (*big.Int, *big.Int) {
+	if x1 == nil || y1 == nil || k == nil {
+		log.Info("P256V1Curve ScalarMult", "x1 is", x1, "y1 is", y1, "k is ", k)
+	}
 	var scalarReversed [32]byte
 	var X, Y, Z, X1, Y1 sm2P256FieldElement
 
