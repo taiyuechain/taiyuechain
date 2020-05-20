@@ -128,8 +128,9 @@ func SendP256Transtion(ip string) {
 		msg <- false
 		return
 	}
-
-	fromPrivateStr := "c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47"
+//ok fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f
+//bad 4a41d5c5fa542bb313f7457b3404f134f5d33ecee68d6cef07f0bbc9e12320ed
+	fromPrivateStr := "fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f"
 	toPrivateStr := "696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
 
 	//sendRawTransaction(client *rpc.Client, from string, to string, value string) (string, error)
@@ -143,23 +144,25 @@ func SendP256Transtion(ip string) {
 	//nonce := client.GetNonceAtBlockNumber(context.Background(),from,)
 
 	//to
-	tocertbyte := cim.CreateCertP256(toPrive)
+	//tocertbyte := crypto.CreateCertP256(toPrive)
 
-	toCert, err := x509.ParseCertificate(tocertbyte)
-	if err != nil {
-		return
-	}
+	//toCert, err := x509.ParseCertificate(tocertbyte)
+	//if err != nil {
+	//	return
+	//}
 	//fmt.Println(tocert.Version)
-	var topubk ecdsa.PublicKey
-	switch pub := toCert.PublicKey.(type) {
-	case *ecdsa.PublicKey:
-		topubk.Curve = pub.Curve
-		topubk.X = pub.X
-		topubk.Y = pub.Y
-	}
+	//var topubk ecdsa.PublicKey
+	//switch pub := toCert.PublicKey.(type) {
+	//case *ecdsa.PublicKey:
+	//	topubk.Curve = pub.Curve
+	//	topubk.X = pub.X
+	//	topubk.Y = pub.Y
+	//}
 
 	// from
-	fromcert := cim.CreateCertP256(fromPrive)
+	path :="../../cim/testdata/testcert/testOkp2p.pem"
+	fromcert,err := crypto.ReadPemFileByPath(path)
+
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
@@ -169,7 +172,7 @@ func SendP256Transtion(ip string) {
 
 	fmt.Println("the chain id ", "is", chainID)
 	//from := crypto.PubkeyToAddressP256(fromPrive.PublicKey)
-	to := crypto.PubkeyToAddress(topubk)
+	to := crypto.PubkeyToAddress(toPrive.PublicKey)
 	fmt.Println("--from address", hexutil.Encode(from.Bytes()), "--to address", hexutil.Encode(to.Bytes()))
 
 	//send true transfer
