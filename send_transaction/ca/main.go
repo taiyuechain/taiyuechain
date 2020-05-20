@@ -12,8 +12,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/taiclient"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
-
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -131,9 +129,12 @@ func SendP256Transtion(ip string) {
 		return
 	}
 
+	fromPrivateStr := "c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47"
+	toPrivateStr := "696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+
 	//sendRawTransaction(client *rpc.Client, from string, to string, value string) (string, error)
-	var toPrive, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
-	var fromPrive, _ = crypto.HexToECDSA("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
+	var fromPrive, _ = crypto.HexToECDSA(fromPrivateStr)
+	var toPrive, _ = crypto.HexToECDSA(toPrivateStr)
 
 	from := crypto.PubkeyToAddress(fromPrive.PublicKey)
 	amount := new(big.Int).SetInt64(1000000000000000000)
