@@ -60,7 +60,6 @@ func (ec *Client) Close() {
 	ec.c.Close()
 }
 
-// SnailBlockchain Access
 // ChainId retrieves the current chain ID for transaction replay protection.
 func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 	var result hexutil.Big
@@ -69,139 +68,6 @@ func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 		return nil, err
 	}
 	return (*big.Int)(&result), err
-}
-
-// SnailBlockByHash returns the given full block.
-//
-// Note that loading full blocks requires two requests.
-func (ec *Client) SnailBlockByHash(ctx context.Context, hash Hash) (*rpcSnailBlock, error) {
-	return ec.getSnailBlock(ctx, "etrue_getSnailBlockByHash", hash, true)
-}
-
-// SnailBlockByNumber returns a block from the current canonical chain. If number is nil, the
-// latest known block is returned.
-//
-// Note that loading full blocks requires two requests.
-func (ec *Client) SnailBlockByNumber(ctx context.Context, number *big.Int) (*rpcSnailBlock, error) {
-	return ec.getSnailBlock(ctx, "etrue_getSnailBlockByNumber", toBlockNumArg(number), true)
-}
-
-type rpcSnailBlock struct {
-	Hash             common.Hash      `json:"hash"`
-	Number           *hexutil.Big     `json:"number"`
-	ParentHash       common.Hash      `json:"parentHash"`
-	FruitsHash       common.Hash      `json:"fruitsHash"`
-	Nonce            types.BlockNonce `json:"nonce"`
-	MixHash          common.Hash      `json:"mixHash"`
-	Miner            common.Address   `json:"miner"`
-	Difficulty       *hexutil.Big     `json:"difficulty"`
-	ExtraData        hexutil.Bytes    `json:"extraData"`
-	Size             hexutil.Uint64   `json:"size"`
-	Timestamp        *hexutil.Big     `json:"timestamp"`
-	Fruits           interface{}      `json:"fruits"`
-	BeginFruitNumber *hexutil.Big     `json:"beginFruitNumber"`
-	EndFruitNumber   *hexutil.Big     `json:"endFruitNumber"`
-}
-
-func (ec *Client) getSnailBlock(ctx context.Context, method string, args ...interface{}) (*rpcSnailBlock, error) {
-	var raw json.RawMessage
-	err := ec.c.CallContext(ctx, &raw, method, args...)
-	if err != nil {
-		return nil, err
-	} else if len(raw) == 0 {
-		return nil, taiyuechain.NotFound
-	}
-	// Decode snail block
-	var block rpcSnailBlock
-	if err := json.Unmarshal(raw, &block); err != nil {
-		return nil, err
-	}
-
-	return &block, nil
-}
-
-// FruitByHash returns the given fruit.
-//
-// Note that loading full blocks requires three requests.
-func (ec *Client) FruitByHash(ctx context.Context, hash Hash, fullSigns bool) (*rpcFruit, error) {
-	return ec.getFruit(ctx, "etrue_getFruitByHash", hash, fullSigns)
-}
-
-// FruitByNumber returns a block from the current canonical chain. If number is nil, the
-// latest known fruit is returned.
-//
-// Note that loading full blocks requires three requests.
-func (ec *Client) FruitByNumber(ctx context.Context, number *big.Int, fullSigns bool) (*rpcFruit, error) {
-	return ec.getFruit(ctx, "etrue_getFruitByNumber", toBlockNumArg(number), fullSigns)
-}
-
-type rpcFruit struct {
-	Hash            common.Hash      `json:"hash"`
-	Number          *hexutil.Big     `json:"number"`
-	FastHash        common.Hash      `json:"fastHash"`
-	FastNumber      *hexutil.Big     `json:"fastNumber"`
-	Nonce           types.BlockNonce `json:"nonce"`
-	MixHash         common.Hash      `json:"mixHash"`
-	Miner           common.Address   `json:"miner"`
-	FruitDifficulty *hexutil.Big     `json:"fruitDifficulty"`
-	ExtraData       hexutil.Bytes    `json:"extraData"`
-	Size            hexutil.Uint64   `json:"size"`
-	Timestamp       *hexutil.Big     `json:"timestamp"`
-	PointerHash     common.Hash      `json:"pointerHash"`
-	PointerNumber   *hexutil.Big     `json:"pointerNumber"`
-	Signs           interface{}      `json:"signs"`
-}
-
-func (ec *Client) getFruit(ctx context.Context, method string, args ...interface{}) (*rpcFruit, error) {
-	var raw json.RawMessage
-	err := ec.c.CallContext(ctx, &raw, method, args...)
-	if err != nil {
-		return nil, err
-	} else if len(raw) == 0 {
-		return nil, taiyuechain.NotFound
-	}
-	// Decode fruit
-	var block rpcFruit
-	if err := json.Unmarshal(raw, &block); err != nil {
-		return nil, err
-	}
-
-	return &block, nil
-}
-
-type rpcSnailHeader struct {
-	Hash       common.Hash      `json:"hash"`
-	Number     *hexutil.Big     `json:"number"`
-	ParentHash common.Hash      `json:"parentHash"`
-	FruitsHash common.Hash      `json:"fruitsHash"`
-	Nonce      types.BlockNonce `json:"nonce"`
-	MixHash    common.Hash      `json:"mixHash"`
-	Miner      common.Address   `json:"miner"`
-	Difficulty *hexutil.Big     `json:"difficulty"`
-	ExtraData  hexutil.Bytes    `json:"extraData"`
-	Size       hexutil.Uint64   `json:"size"`
-	Timestamp  *hexutil.Big     `json:"timestamp"`
-}
-
-// SnailHeaderByHash returns the block header with the given hash.
-func (ec *Client) SnailHeaderByHash(ctx context.Context, hash Hash) (*rpcSnailHeader, error) {
-	var head *rpcSnailHeader
-	err := ec.c.CallContext(ctx, &head, "etrue_getSnailBlockByHash", hash, false)
-	if err == nil && head == nil {
-		err = taiyuechain.NotFound
-	}
-	return head, err
-}
-
-// SnailHeaderByNumber returns a block header from the current canonical chain. If number is
-// nil, the latest known header is returned.
-func (ec *Client) SnailHeaderByNumber(ctx context.Context, number *big.Int) (*rpcSnailHeader, error) {
-	var head *rpcSnailHeader
-	err := ec.c.CallContext(ctx, &head, "etrue_getSnailBlockByNumber", toBlockNumArg(number), false)
-	if err == nil && head == nil {
-		err = taiyuechain.NotFound
-	}
-	return head, err
 }
 
 // Blockchain Access
@@ -376,13 +242,6 @@ func (ec *Client) TransactionCount(ctx context.Context, blockHash Hash) (uint, e
 	return uint(num), err
 }
 
-// FruitCount returns the total number of fruits in the given block.
-func (ec *Client) FruitCount(ctx context.Context, blockHash Hash) (uint, error) {
-	var num hexutil.Uint
-	err := ec.c.CallContext(ctx, &num, "etrue_getBlockFruitCountByHash", blockHash)
-	return uint(num), err
-}
-
 // TransactionInBlock returns a single transaction at index in the given block.
 func (ec *Client) TransactionInBlock(ctx context.Context, blockHash Hash, index uint) (*types.Transaction, error) {
 	var json *rpcTransaction
@@ -398,20 +257,6 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash Hash, index 
 		setSenderFromServer(json.tx, *json.From, *json.BlockHash)
 	}
 	return json.tx, err
-}
-
-// FruitInBlockByHash returns a single fruit at index in the given block.
-func (ec *Client) FruitInBlockByHash(ctx context.Context, snailBlockHash Hash, index uint, fullSigns bool) (*rpcFruit, error) {
-	var json *rpcFruit
-	err := ec.c.CallContext(ctx, &json, "etrue_getFruitByBlockHashAndIndex", snailBlockHash, hexutil.Uint64(index), fullSigns)
-	return json, err
-}
-
-// FruitInBlockByNumber returns a single fruit at index in the given block.
-func (ec *Client) FruitInBlockByNumber(ctx context.Context, snailBlockNumber *big.Int, index uint, fullSigns bool) (*rpcFruit, error) {
-	var json *rpcFruit
-	err := ec.c.CallContext(ctx, &json, "etrue_getFruitByBlockNumberAndIndex", toBlockNumArg(snailBlockNumber), hexutil.Uint64(index), fullSigns)
-	return json, err
 }
 
 // TransactionReceipt returns the receipt of a transaction by transaction hash.
@@ -433,18 +278,6 @@ func toBlockNumArg(number *big.Int) string {
 	}
 	return hexutil.EncodeBig(number)
 }
-
-/*type rpcProgress struct {
-	//StartingFastBlock uint64 // Snail Block number where sync began
-	//CurrentFastBlock  uint64 // Current block number where sync is at
-	//HighestFastBlock  uint64 // Highest alleged block number in the chain
-
-	StartingSnailBlock hexutil.Uint64
-	CurrentSnailBlock  hexutil.Uint64
-	HighestSnailBlock  hexutil.Uint64
-	PulledStates       hexutil.Uint64
-	KnownStates        hexutil.Uint64
-}*/
 
 type rpcProgress struct {
 	StartingBlock hexutil.Uint64
@@ -470,17 +303,6 @@ func (ec *Client) SyncProgress(ctx context.Context) (*taiyuechain.SyncProgress, 
 	if err := json.Unmarshal(raw, &progress); err != nil {
 		return nil, err
 	}
-	/*return &taiyuechain.SyncProgress{
-		//StartingFastBlock: uint64(progress.StartingFastBlock),
-		//CurrentFastBlock:  uint64(progress.CurrentFastBlock),
-		//HighestFastBlock:  uint64(progress.HighestFastBlock),
-
-		//StartingSnailBlock: uint64(progress.StartingSnailBlock),
-		//CurrentSnailBlock:  uint64(progress.CurrentSnailBlock),
-		//HighestSnailBlock:  uint64(progress.HighestSnailBlock),
-		PulledStates:       uint64(progress.PulledStates),
-		KnownStates:        uint64(progress.KnownStates),
-	}, nil*/
 	return &taiyuechain.SyncProgress{
 		StartingBlock: uint64(progress.StartingBlock),
 		CurrentBlock:  uint64(progress.CurrentBlock),
@@ -621,13 +443,6 @@ func (ec *Client) PendingNonceAt(ctx context.Context, account Address) (uint64, 
 func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 	var num hexutil.Uint
 	err := ec.c.CallContext(ctx, &num, "etrue_getBlockTransactionCountByNumber", "pending")
-	return uint(num), err
-}
-
-// PendingFruitCount returns the total number of fruits in the pending state.
-func (ec *Client) PendingFruitCount(ctx context.Context) (uint, error) {
-	var num hexutil.Uint
-	err := ec.c.CallContext(ctx, &num, "etrue_getBlockFruitCountByNumber", "pending")
 	return uint(num), err
 }
 
