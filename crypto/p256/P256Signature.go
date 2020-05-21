@@ -34,7 +34,7 @@ func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	sign := make([]byte, 65)
 	sign = append(sign, r.Bytes()...)
 	sign = append(sign, s.Bytes()...)
-	sign = append(sign, 4)
+	sign = append(sign, 1)
 	return sign[65:], nil
 }
 
