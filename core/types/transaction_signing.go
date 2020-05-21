@@ -18,7 +18,6 @@ package types
 
 import (
 	"crypto/ecdsa"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -243,16 +242,6 @@ func NewSigner(chainId *big.Int) Signer {
 		chainId:    chainId,
 		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
 	}
-	/*switch cryptoType {
-	case 1:
-		return CommonSigner
-	case 2:
-		return GMSigner{
-			CommonSigner: &CommonSigner,
-		}
-	default:
-		return CommonSigner
-	}*/
 	return CommonSigner
 }
 
@@ -277,7 +266,7 @@ func (s CommonSigner) Sender(tx *Transaction) (common.Address, error) {
 	}
 	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
 	V.Sub(V, big8)
-	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
+	return recoverPlain(s.Hash(tx), tx.data.Sig, true)
 }
 
 func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
@@ -286,12 +275,13 @@ func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
 	}
 	PV := new(big.Int).Sub(tx.data.PV, s.chainIdMul)
 	PV.Sub(PV, big8)
-	return recoverPlain(s.Hash_Payment(tx), tx.data.PR, tx.data.PS, PV, true)
+	return recoverPlain(s.Hash_Payment(tx), tx.data.Sig, true)
 }
 
 // WithSignature returns a new transaction with the given signature. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
 func (s CommonSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
+	tx.data.Sig = sig
 	R, S, V, err = SignatureValues(tx, sig)
 	if err != nil {
 		return nil, nil, nil, err
@@ -361,153 +351,6 @@ func (s CommonSigner) Hash_Payment(tx *Transaction) common.Hash {
 	})
 }
 
-/*
-type GMSigner struct {
-	CommonSigner *CommonSigner
-}
-
-
-func NewGMSigner(chainId *big.Int) Signer {
-	return NewSigner(constant.GM_CRYPTO, chainId)
-}
-
-func (s GMSigner) Equal(s2 Signer) bool {
-	singer, ok := s2.(GMSigner)
-	return ok && singer.CommonSigner.chainId.Cmp(s.CommonSigner.chainId) == 0
-}
-
-func (s GMSigner) Sender(tx *Transaction) (common.Address, error) {
-	if tx.ChainId256().Cmp(s.CommonSigner.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-	return recoverPlainP256(tx)
-}
-
-func (s GMSigner) Payer(tx *Transaction) (common.Address, error) {
-	return s.CommonSigner.Payer(tx)
-}
-
-func (s GMSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
-	return nil, nil, nil, nil
-}
-
-func (s GMSigner) Hash(tx *Transaction) common.Hash {
-	return s.CommonSigner.Hash(tx)
-}
-
-func (s GMSigner) Hash_Payment(tx *Transaction) common.Hash {
-	return s.CommonSigner.Hash_Payment(tx)
-}
-*/
-
-/*
-// EIP155Transaction implements Signer using the EIP155 rules.
-type EIP155Signer struct {
-	chainId, chainIdMul *big.Int
-}
-
-func NewEIP155Signer(chainId *big.Int) EIP155Signer {
-	if chainId == nil {
-		chainId = new(big.Int)
-	}
-	return EIP155Signer{
-		chainId:    chainId,
-		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
-	}
-}
-
-func (s EIP155Signer) Equal(s2 Signer) bool {
-	eip155, ok := s2.(EIP155Signer)
-	return ok && eip155.chainId.Cmp(s.chainId) == 0
-}
-
-var big8 = big.NewInt(8)
-
-func (s EIP155Signer) Sender(tx *Transaction) (common.Address, error) {
-	if !tx.Protected() {
-		return HomesteadSigner{}.Sender(tx)
-	}
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
-	V.Sub(V, big8)
-	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
-}
-
-func (s EIP155Signer) Payer(tx *Transaction) (common.Address, error) {
-	if !tx.Protected_Payment() {
-		return HomesteadSigner{}.Payer(tx)
-	}
-	if tx.ChainId().Cmp(s.chainId) != 0 {
-		return common.Address{}, ErrInvalidChainId
-	}
-	PV := new(big.Int).Sub(tx.data.PV, s.chainIdMul)
-	PV.Sub(PV, big8)
-	return recoverPlain(s.Hash_Payment(tx), tx.data.PR, tx.data.PS, PV, true)
-}
-
-// WithSignature returns a new transaction with the given signature. This signature
-// needs to be in the [R || S || V] format where V is 0 or 1.
-func (s EIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
-	R, S, V, err = HomesteadSigner{}.SignatureValues(tx, sig)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	if s.chainId.Sign() != 0 {
-		V = big.NewInt(int64(sig[64] + 35))
-		V.Add(V, s.chainIdMul)
-	}
-	return R, S, V, nil
-}
-
-// Hash returns the hash to be signed by the sender.
-// It does not uniquely identify the transaction.
-func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
-	//fmt.Println("Hash method,tx.data.Payer", tx.data.Payer)
-	if tx.data.Payer == nil || *tx.data.Payer == (common.Address{}) {
-		return rlpHash([]interface{}{
-			tx.data.AccountNonce,
-			tx.data.Price,
-			tx.data.GasLimit,
-			tx.data.Recipient,
-			tx.data.Amount,
-			tx.data.Payload,
-			s.chainId, uint(0), uint(0),
-		})
-	}
-	return rlpHash([]interface{}{
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.GasLimit,
-		tx.data.Recipient,
-		tx.data.Amount,
-		tx.data.Payload,
-		tx.data.Payer,
-		s.chainId, uint(0), uint(0),
-	})
-}
-
-func (s EIP155Signer) Hash_Payment(tx *Transaction) common.Hash {
-	return rlpHash([]interface{}{
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.GasLimit,
-		tx.data.Recipient,
-		tx.data.Amount,
-		tx.data.Payload,
-		tx.data.Payer,
-		tx.data.V,
-		tx.data.R,
-		tx.data.S,
-		s.chainId, uint(0), uint(0),
-	})
-}*/
-
-// HomesteadTransaction implements TransactionInterface using the
-// homestead rules.
-//type HomesteadSigner struct{ FrontierSigner }
-
 func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
 	if len(sig) != 98 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
@@ -518,44 +361,8 @@ func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) 
 	return r, s, v, nil
 }
 
-//type FrontierSigner struct{}
-
-func recoverPlainP256(tx *Transaction) (common.Address, error) {
-	fromCertByte := tx.Cert()
-	fromCert, err := x509.ParseCertificate(fromCertByte)
-	if err != nil {
-		return common.Address{}, err
-	}
-	//fmt.Println(tocert.Version)
-	var frompubkTx ecdsa.PublicKey
-	switch pub := fromCert.PublicKey.(type) {
-	case *ecdsa.PublicKey:
-		frompubkTx.Curve = pub.Curve
-		frompubkTx.X = pub.X
-		frompubkTx.Y = pub.Y
-	}
-
-	from := crypto.PubkeyToAddress(frompubkTx)
-
-	return from, nil
-
-}
-
-func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (common.Address, error) {
-	if Vb.BitLen() > 8 {
-		return common.Address{}, ErrInvalidSig
-	}
-	V := byte(Vb.Uint64() - 27)
-	if !crypto.ValidateSignatureValues(V, R, S, homestead) {
-		return common.Address{}, ErrInvalidSig
-	}
+func recoverPlain(sighash common.Hash, sig []byte, homestead bool) (common.Address, error) {
 	// encode the snature in uncompressed format
-	r, s := R.Bytes(), S.Bytes()
-	sig := make([]byte, 65)
-	copy(sig[32-len(r):32], r)
-	copy(sig[64-len(s):64], s)
-	sig[64] = V
-	// recover the public key from the snature
 	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
 		return common.Address{}, err
@@ -569,14 +376,14 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (commo
 }
 
 // deriveChainId derives the chain id from the given v parameter
-func deriveChainId(v *big.Int) *big.Int {
+func deriveChainId(v *big.Int, vv byte) *big.Int {
 	if v.BitLen() <= 64 {
 		v := v.Uint64()
 		if v == 27 || v == 28 {
 			return new(big.Int)
 		}
-		return new(big.Int).SetUint64((v - 35) / 2)
+		return new(big.Int).SetUint64((v - uint64(vv) - 35) / 2)
 	}
-	v = new(big.Int).Sub(v, big.NewInt(35))
+	v = new(big.Int).Sub(v, big.NewInt(35-int64(vv)))
 	return v.Div(v, big.NewInt(2))
 }
