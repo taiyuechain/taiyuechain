@@ -29,6 +29,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
 	"hash"
@@ -57,7 +58,7 @@ var errInvalidPubkey = errors.New("invalid public key")
 // Keccak256 calculates and returns the Keccak256 hash of the input data.
 
 func Keccak256(data ...[]byte) []byte {
-	if CryptoType == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
 			d.Write(b)
@@ -77,7 +78,7 @@ func Keccak256(data ...[]byte) []byte {
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h common.Hash) {
-	if CryptoType == CRYPTO_P256_SH3_AES {
+	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
 		d := sha3.NewLegacyKeccak256()
 		for _, b := range data {
 			d.Write(b)
@@ -308,16 +309,25 @@ func GenerateKey() (*ecdsa.PrivateKey, error) {
 // ValidateSignatureValues verifies whether the signature values are valid with
 // the given chain rules. The v value is assumed to be either 0 or 1.
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
-	if r.Cmp(common.Big1) < 0 || s.Cmp(common.Big1) < 0 {
-		return false
+	switch CryptoType {
+	//guoji P256
+	case CRYPTO_P256_SH3_AES:
+		return p256.ValidateSignatureValues(v, r, s, homestead)
+	case CRYPTO_SM2_SM3_SM4:
+		return sm2.ValidateSignatureValues(v, r, s, homestead)
+	case CRYPTO_S256_SH3_AES:
+		if r.Cmp(common.Big1) < 0 || s.Cmp(common.Big1) < 0 {
+			return false
+		}
+		// reject upper range of s values (ECDSA malleability)
+		// see discussion in secp256k1/libsecp256k1/include/secp256k1.h
+		if homestead && s.Cmp(secp256k1halfN) > 0 {
+			return false
+		}
+		// Frontier: allow s to be in full N range
+		return r.Cmp(secp256k1N) < 0 && s.Cmp(secp256k1N) < 0 && (v == 0 || v == 1)
 	}
-	// reject upper range of s values (ECDSA malleability)
-	// see discussion in secp256k1/libsecp256k1/include/secp256k1.h
-	if homestead && s.Cmp(secp256k1halfN) > 0 {
-		return false
-	}
-	// Frontier: allow s to be in full N range
-	return r.Cmp(secp256k1N) < 0 && s.Cmp(secp256k1N) < 0 && (v == 0 || v == 1)
+	return false
 }
 
 /*func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
@@ -397,6 +407,7 @@ hash method
 */
 func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		mac := sha3.NewLegacyKeccak256()
 		mac.Write(xor(s, h))
@@ -414,6 +425,7 @@ func Hash256(auth, s, h []byte) hash.Hash {
 }
 func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		h := sha256.New()
 		h.Write(seedBytes)
@@ -430,6 +442,7 @@ func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 }
 func Hex(a []byte) string {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		unchecksummed := hex.EncodeToString(a[:])
 		sha := sha3.NewLegacyKeccak256()
@@ -482,6 +495,7 @@ func xor(one, other []byte) (xor []byte) {
 }
 func Double256(b []byte) []byte {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		hasher := sha256.New()
 		hasher.Write(b) // nolint: errcheck, gas
@@ -501,6 +515,7 @@ func Double256(b []byte) []byte {
 }
 func RlpHash(x interface{}) (h common.Hash) {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		hw := sha3.NewLegacyKeccak256()
 		rlp.Encode(hw, x)
@@ -516,6 +531,7 @@ func RlpHash(x interface{}) (h common.Hash) {
 }
 func NewHash() hash.Hash {
 	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		return sha256.New()
 	case CRYPTO_SM2_SM3_SM4:
