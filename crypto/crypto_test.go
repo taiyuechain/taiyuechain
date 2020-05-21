@@ -71,53 +71,69 @@ func Test_zeroBytes(t *testing.T) {
 		byte, _ := hex.DecodeString(stringsm2pub)
 		ecdpub1, _ := UnmarshalPubkey(byte)
 		fmt.Println(ecdpub1)*/
-	digestHash := "009feb9d89b8cf6e82900bc9ec642ab6278788c9d44ed26b2c3c3d13ac56cb9a"
-	priv := "bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
-	digestHash1, _ := hex.DecodeString(digestHash)
-	pri, _ := HexToECDSA(priv)
-	sign, _ := Sign(digestHash1, pri)
-	fmt.Println(sign)
+	for i := 0; i < 10000; i++ {
+		digestHash := "009feb9d89b8cf6e82900bc9ec642ab6278788c9d44ed26b2c3c3d13ac56cb9a"
+		priv := "bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
+		digestHash1, _ := hex.DecodeString(digestHash)
+		pri, _ := HexToECDSA(priv)
+		sign, _ := Sign(digestHash1, pri)
+		if sign[64] == 2 || sign[64] == 3 {
+			fmt.Println(sign)
+		}
+		boolverify := VerifySignature(FromECDSAPub(&pri.PublicKey), digestHash1, sign)
+		if boolverify == false {
+			fmt.Println(boolverify)
+		}
+
+	}
 
 }
 func TestSm2(t *testing.T) {
 	CryptoType = CRYPTO_SM2_SM3_SM4
-	priv, err := GenerateKey()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y))
-	pub := &priv.PublicKey
-	msg := []byte("123456")
-	d0, err := Encrypt(pub, msg, nil, nil)
-	if err != nil {
-		fmt.Printf("Error: failed to encrypt %s: %v\n", msg, err)
-		return
-	}
-	fmt.Printf("Cipher text = %v\n", d0)
-	d1, err := Decrypt(priv, d0, nil, nil)
-	if err != nil {
-		fmt.Printf("Error: failed to decrypt: %v\n", err)
-	}
-	fmt.Printf("clear text = %s\n", d1)
+	for i := 0; i < 100000; i++ {
+		priv, err := GenerateKey()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y))
+		pub := &priv.PublicKey
+		msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+		d0, err := Encrypt(pub, msg, nil, nil)
+		if err != nil {
+			fmt.Printf("Error: failed to encrypt %s: %v\n", msg, err)
+			return
+		}
+		fmt.Printf("Cipher text = %v\n", d0)
+		d1, err := Decrypt(priv, d0, nil, nil)
+		if err != nil {
+			fmt.Printf("Error: failed to decrypt: %v\n", err)
+		}
+		fmt.Printf("clear text = %s\n", d1)
 
-	msg, _ = ioutil.ReadFile("ifile")
-	//Keccak256(msg)
-	sign, err := Sign(Keccak256(msg), priv)
-	if err != nil {
-		log.Fatal(err)
+		msg, _ = ioutil.ReadFile("ifile")
+		//Keccak256(msg)
+		sign, err := Sign(Keccak256(msg), priv)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = ioutil.WriteFile("ofile", sign, os.FileMode(0644))
+		if err != nil {
+			log.Fatal(err)
+		}
+		signdata, _ := ioutil.ReadFile("ofile")
+		ok1 := VerifySignatureTransaction(Keccak256(msg), signdata)
+		if ok1 != true {
+			fmt.Printf("VerifyTransaction error\n")
+		} else {
+			fmt.Printf("VerifyTransaction ok\n")
+		}
+		ok := VerifySignature(FromECDSAPub(pub), Keccak256(msg), signdata)
+		if ok != true {
+			fmt.Printf("Verify error\n")
+		} else {
+			fmt.Printf("Verify ok\n")
+		}
 	}
-	err = ioutil.WriteFile("ofile", sign, os.FileMode(0644))
-	if err != nil {
-		log.Fatal(err)
-	}
-	signdata, _ := ioutil.ReadFile("ofile")
-	ok := VerifySignature(FromECDSAPub(pub), Keccak256(msg), signdata)
-	if ok != true {
-		fmt.Printf("Verify error\n")
-	} else {
-		fmt.Printf("Verify ok\n")
-	}
-
 }
 
 func TestString(t *testing.T) {

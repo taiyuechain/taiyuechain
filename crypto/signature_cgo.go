@@ -189,6 +189,37 @@ func VerifySignature(pubkey, digestHash, signature []byte) bool {
 	}
 	return false
 }
+func VerifySignatureTransaction(digestHash, signature []byte) bool {
+	if len(signature) != 98 || len(digestHash) != 32 {
+		return false
+	}
+	if CryptoType == CRYPTO_P256_SH3_AES {
+
+		p256pub, err := DecompressPubkey(signature[65:])
+		if err != nil {
+			return false
+		}
+		return p256.Verify(p256pub, digestHash, signature)
+	}
+	//guomi
+	if CryptoType == CRYPTO_SM2_SM3_SM4 {
+
+		smpub, err := DecompressPubkey(signature[65:])
+		if err != nil {
+			return false
+		}
+		return sm2.Verify(sm2.ToSm2Publickey(smpub), nil, digestHash, signature)
+	}
+	//guoji S256
+	if CryptoType == CRYPTO_S256_SH3_AES {
+		s256pub, err := DecompressPubkey(signature[65:])
+		if err != nil {
+			return false
+		}
+		return secp256k1.VerifySignature(FromECDSAPub(s256pub), digestHash, signature)
+	}
+	return false
+}
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
 func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
