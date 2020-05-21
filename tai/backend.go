@@ -173,6 +173,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 		cacheConfig = &core.CacheConfig{Deleted: config.DeletedState, Disabled: config.NoPruning, TrieNodeLimit: config.TrieCache, TrieTimeLimit: config.TrieTimeout}
 	)
+	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
 
 	etrue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, etrue.chainConfig, etrue.engine, vmConfig)
 	if err != nil {
@@ -186,7 +187,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		return nil, err
 	}
 
-	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
 	for _, caCert := range caCertList.GetCACertMap() {

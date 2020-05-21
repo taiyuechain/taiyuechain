@@ -18,7 +18,7 @@ func main() {
 }
 
 func t2() {
-	var toPrive, _ = crypto.HexToECDSAP256("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
+	var toPrive, _ = crypto.HexToECDSA("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 	pubKey := crypto.FromECDSAPub(&toPrive.PublicKey)
 	fmt.Println(len(pubKey))
 	tocertbyte := cim.CreateCertP256(toPrive)

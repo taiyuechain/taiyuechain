@@ -266,7 +266,7 @@ func (s CommonSigner) Sender(tx *Transaction) (common.Address, error) {
 	}
 	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
 	V.Sub(V, big8)
-	return recoverPlain(s.Hash(tx), tx.data.Sig, true)
+	return recoverPlain(s.Hash(tx), tx.data.Sig, tx.data.Cert)
 }
 
 func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
@@ -275,7 +275,7 @@ func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
 	}
 	PV := new(big.Int).Sub(tx.data.PV, s.chainIdMul)
 	PV.Sub(PV, big8)
-	return recoverPlain(s.Hash_Payment(tx), tx.data.Sig, true)
+	return recoverPlain(s.Hash_Payment(tx), tx.data.Sig, tx.data.Cert)
 }
 
 // WithSignature returns a new transaction with the given signature. This signature
@@ -361,7 +361,7 @@ func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) 
 	return r, s, v, nil
 }
 
-func recoverPlain(sighash common.Hash, sig []byte, homestead bool) (common.Address, error) {
+func recoverPlain(sighash common.Hash, sig, cert []byte) (common.Address, error) {
 	// encode the snature in uncompressed format
 	pub, err := crypto.Ecrecover(sighash[:], sig)
 	if err != nil {
