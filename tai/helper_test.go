@@ -36,11 +36,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 var (
@@ -86,7 +86,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, sBlocks int, g
 	}
 
 	//snailPool	etrue.snailblockchain
-	pm, err := NewProtocolManager(gspec.Config, nil, mode, DefaultConfig.NetworkId, evmux, new(testTxPool), engine, blockchain, db, pbftAgent, 1, nil, nil)
+	pm, err := NewProtocolManager(gspec.Config, nil, mode, DefaultConfig.NetworkId, evmux, new(testTxPool), engine, blockchain, db, pbftAgent, 1, nil, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/common"

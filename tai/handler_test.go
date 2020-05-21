@@ -18,7 +18,6 @@ package tai
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math"
 	"math/big"
 	"math/rand"
@@ -32,11 +31,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 // Tests that protocol versions and modes of operations are matched up properly.

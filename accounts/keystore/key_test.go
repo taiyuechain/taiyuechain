@@ -8,7 +8,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"testing"
 )
