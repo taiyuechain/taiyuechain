@@ -38,6 +38,7 @@ import (
 func Ecrecover(hash, sig []byte) ([]byte, error) {
 	if len(sig) != 98 {
 		log.Info("sig length", "is", len(sig))
+		return nil, errors.New("sig length is err")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256pub, err := p256.ECRecovery(hash, sig[:65])
