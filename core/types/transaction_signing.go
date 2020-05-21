@@ -509,7 +509,7 @@ func (s EIP155Signer) Hash_Payment(tx *Transaction) common.Hash {
 //type HomesteadSigner struct{ FrontierSigner }
 
 func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	if len(sig) != 65 {
+	if len(sig) != 98 {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
 	}
 	r = new(big.Int).SetBytes(sig[:32])

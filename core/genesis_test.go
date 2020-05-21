@@ -26,8 +26,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -80,7 +80,6 @@ func TestSetupGenesis(t *testing.T) {
 			name: "mainnet block in DB, genesis == nil",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
 				DefaultGenesisBlock().MustFastCommit(db)
-				DefaultGenesisBlock().MustSnailCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -90,7 +89,6 @@ func TestSetupGenesis(t *testing.T) {
 			name: "custom block in DB, genesis == testnet",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
 				customg.MustFastCommit(db)
-				customg.MustSnailCommit(db)
 				return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 			},
 			wantErr:    &GenesisMismatchError{Stored: customghash, New: params.TestnetGenesisHash},
@@ -207,7 +205,6 @@ func TestSetupSnailGenesis(t *testing.T) {
 			name: "mainnet block in DB, genesis == nil",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
 				DefaultGenesisBlock().MustFastCommit(db)
-				DefaultGenesisBlock().MustSnailCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetSnailGenesisHash,
@@ -274,12 +271,6 @@ func TestSetupSnailGenesis(t *testing.T) {
 		}
 		if hash != test.wantHash {
 			t.Errorf("%s: returned hash %s, want %s", test.name, hash.Hex(), test.wantHash.Hex())
-		} else if err == nil {
-			// Check database content.
-			stored := snaildb.ReadBlock(db, test.wantHash, 0)
-			if stored.Hash() != test.wantHash {
-				t.Errorf("%s: block in DB has hash %s, want %s", test.name, stored.Hash(), test.wantHash)
-			}
 		}
 	}
 }

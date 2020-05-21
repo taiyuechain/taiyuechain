@@ -28,7 +28,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/taidb"
-	"github.com/taiyuechain/taiyuechain/utils/constant"
 	"math/big"
 	"os"
 	"testing"
@@ -43,9 +42,9 @@ func ExampleGenerateChain() {
 		chainId = big.NewInt(3)
 		db      = taidb.NewMemDatabase()
 
-		key1, _ = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
-		key2, _ = crypto.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
-		key3, _ = crypto.HexToECDSA("49a7b37aa6f6645917e7b807e9d1c00d4fa71f18343b0d4122a4d2df64dd6fee")
+		key1, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+		key2, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+		key3, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
 		addr1   = crypto.PubkeyToAddress(key1.PublicKey)
 		addr2   = crypto.PubkeyToAddress(key2.PublicKey)
 		addr3   = crypto.PubkeyToAddress(key3.PublicKey)
@@ -65,13 +64,13 @@ func ExampleGenerateChain() {
 		switch i {
 		case 0:
 			// In block 1, addr1 sends addr2 some ether.
-			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil), signer, key1)
+			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil, nil), signer, key1)
 			gen.AddTx(tx)
 		case 1:
 			// In block 2, addr1 sends some more ether to addr2.
 			// addr2 passes it on to addr3.
-			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil), signer, key1)
-			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil), signer, key2)
+			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil, nil), signer, key1)
+			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil, nil), signer, key2)
 			gen.AddTx(tx1)
 			gen.AddTx(tx2)
 		case 2:
@@ -145,7 +144,7 @@ func TestTransactionCost(t *testing.T) {
 	defer blockchain.Stop()
 
 	fastBlocks, _ := GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
-		tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addresses[0]), addresses[1], tx_amount, params.TxGas, tx_price, nil), signer, privateKeys[0])
+		tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addresses[0]), addresses[1], tx_amount, params.TxGas, tx_price, nil, nil), signer, privateKeys[0])
 		gen.AddTx(tx1)
 	})
 	if i, err := blockchain.InsertChain(fastBlocks); err != nil {
@@ -173,7 +172,7 @@ func TestTransactionCost(t *testing.T) {
 	}
 	//test transaction2  payment
 	fastBlocks, _ = GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
-		signTx_sender, _ := types.SignTx(types.NewTransaction_Payment(gen.TxNonce(addresses[0]), addresses[1], tx_amount, tx_fee, params.TxGas, tx_price, nil, addresses[2]), signer, privateKeys[0])
+		signTx_sender, _ := types.SignTx(types.NewTransaction_Payment(gen.TxNonce(addresses[0]), addresses[1], tx_amount, tx_fee, params.TxGas, tx_price, nil, addresses[2], nil), signer, privateKeys[0])
 		tx2, _ := types.SignTx_Payment(signTx_sender, signer, privateKeys[2])
 		gen.AddTx(tx2)
 	})
