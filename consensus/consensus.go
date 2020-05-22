@@ -20,7 +20,6 @@ package consensus
 import (
 	"math/big"
 
-	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
@@ -185,7 +184,6 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte) bool {
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := state.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
-		fmt.Println("-----------------come")
 		i := vm.NewCACertList()
 		i.InitCACertList(certList)
 		i.SaveCACertList(state, CaCertAddress)
