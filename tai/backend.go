@@ -175,7 +175,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	)
 	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
 
-	etrue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, etrue.chainConfig, etrue.engine, vmConfig)
+	etrue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, etrue.chainConfig, etrue.engine, vmConfig, NewCIMList)
 	if err != nil {
 		return nil, err
 	}

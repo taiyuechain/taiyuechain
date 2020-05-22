@@ -20,6 +20,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
@@ -38,13 +39,13 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/metrics"
+	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/taidb"
-	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/metrics"
-	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -157,7 +158,7 @@ type BlockChain struct {
 // Processor.
 func NewBlockChain(db taidb.Database, cacheConfig *CacheConfig,
 	chainConfig *params.ChainConfig, engine consensus.Engine,
-	vmConfig vm.Config) (*BlockChain, error) {
+	vmConfig vm.Config, mList *cim.CimList) (*BlockChain, error) {
 
 	if cacheConfig == nil {
 		cacheConfig = &CacheConfig{
@@ -197,7 +198,7 @@ func NewBlockChain(db taidb.Database, cacheConfig *CacheConfig,
 		isFallback:    false,
 	}
 	bc.SetValidator(NewBlockValidator(chainConfig, bc, engine))
-	bc.SetProcessor(NewStateProcessor(chainConfig, bc, engine))
+	bc.SetProcessor(NewStateProcessor(chainConfig, bc, engine, mList))
 
 	var err error
 	bc.hc, err = NewHeaderChain(db, chainConfig, engine, bc.getProcInterrupt)

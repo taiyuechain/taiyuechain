@@ -2,6 +2,8 @@ package cim
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/params"
 
 	"testing"
 
@@ -808,4 +810,70 @@ func withPemFile(path string, cert []byte) error {
 	pem.Encode(File, b)
 
 	return nil
+}
+
+func TestO1(t *testing.T) {
+	SendP256Transtion()
+	fmt.Println("finish")
+}
+func SendP256Transtion() {
+	crypto.SetCrtptoType(crypto.CRYPTO_P256_SH3_AES)
+	//ok fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f
+	//bad 4a41d5c5fa542bb313f7457b3404f134f5d33ecee68d6cef07f0bbc9e12320ed
+	fromPrivateStr := "fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f"
+	toPrivateStr := "696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
+
+	//sendRawTransaction(client *rpc.Client, from string, to string, value string) (string, error)
+	var fromPrive, _ = crypto.HexToECDSA(fromPrivateStr)
+	var toPrive, _ = crypto.HexToECDSA(toPrivateStr)
+
+	from := crypto.PubkeyToAddress(fromPrive.PublicKey)
+	amount := new(big.Int).SetInt64(1000000000000000000)
+	fmt.Println("amount", amount)
+	nonce := uint64(2)
+	//nonce := client.GetNonceAtBlockNumber(context.Background(),from,)
+
+	//to
+	//tocertbyte := crypto.CreateCertP256(toPrive)
+
+	//toCert, err := x509.ParseCertificate(tocertbyte)
+	//if err != nil {
+	//  return
+	//}
+	//fmt.Println(tocert.Version)
+	//var topubk ecdsa.PublicKey
+	//switch pub := toCert.PublicKey.(type) {
+	//case *ecdsa.PublicKey:
+	//  topubk.Curve = pub.Curve
+	//  topubk.X = pub.X
+	//  topubk.Y = pub.Y
+	//}
+
+	// from
+	path := "./testdata/testcert/testOkp2p.pem"
+	fromcert, err := crypto.ReadPemFileByPath(path)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	chainID := big.NewInt(100)
+
+	to := crypto.PubkeyToAddress(toPrive.PublicKey)
+	fmt.Println("--from address", hexutil.Encode(from.Bytes()), "--to address", hexutil.Encode(to.Bytes()))
+
+	//send true transfer
+	tx := types.NewP256Transaction(nonce, &to, nil, amount,
+		new(big.Int).SetInt64(0), params.TxGas, new(big.Int).SetInt64(0), nil, fromcert, chainID, nil)
+
+	signer := types.NewSigner(chainID)
+	signTx, _ := types.SignTx(tx, signer, fromPrive)
+
+	if addr, err := types.Sender(signer, signTx); err != nil {
+		fmt.Println("err:", err)
+	} else {
+		fmt.Println("addr:", addr)
+	}
+	fmt.Println("--end send ")
+	fmt.Println("tx Hash", "is", hexutil.Encode(signTx.Hash().Bytes()))
 }

@@ -216,7 +216,7 @@ func TestFastVsFullChains(t *testing.T) {
 	// Import the chain as an archive node for the comparison baseline
 	archiveDb := taidb.NewMemDatabase()
 	gspec.MustFastCommit(archiveDb)
-	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{})
+	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	defer archive.Stop()
 
 	if n, err := archive.InsertChain(blocks); err != nil {
@@ -225,7 +225,7 @@ func TestFastVsFullChains(t *testing.T) {
 	// Fast import the chain as a non-archive node to test
 	fastDb := taidb.NewMemDatabase()
 	gspec.MustFastCommit(fastDb)
-	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{})
+	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil)
 	defer fast.Stop()
 
 	headers := make([]*types.Header, len(blocks))
@@ -304,7 +304,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	gspec.MustFastCommit(archiveDb)
 
 	//engine1 := ethash.NewFaker()
-	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{})
+	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	if n, err := archive.InsertChain(blocks); err != nil {
 		t.Fatalf("failed to process block %d: %v", n, err)
 	}
@@ -321,7 +321,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 
 	engine = ethash.NewFaker()
 
-	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, engine, vm.Config{})
+	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	defer fast.Stop()
 
 	headers := make([]*types.Header, len(blocks))
@@ -425,7 +425,7 @@ func TestTrieForkGC(t *testing.T) {
 	diskdb := taidb.NewMemDatabase()
 	new(Genesis).MustFastCommit(diskdb)
 
-	chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{})
+	chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{}, nil)
 	if err != nil {
 		t.Fatalf("failed to create tester chain: %v", err)
 	}
@@ -493,7 +493,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 		diskdb := taidb.NewMemDatabase()
 		gspec.MustFastCommit(diskdb)
 
-		chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{})
+		chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{}, nil)
 		if err != nil {
 			b.Fatalf("failed to create tester chain: %v", err)
 		}

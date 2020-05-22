@@ -24,8 +24,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 // Tests that simple header verification works, for both good and bad blocks.
@@ -43,7 +43,7 @@ func TestHeaderVerification(t *testing.T) {
 		headers[i] = block.Header()
 	}
 	// Run the header checker for blocks one-by-one, checking for both valid and invalid nonces
-	blockchain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, engine, vm.Config{})
+	blockchain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, engine, vm.Config{}, nil)
 	defer blockchain.Stop()
 
 	for i := 0; i < len(blocks); i++ {
@@ -108,7 +108,7 @@ func testHeaderConcurrentVerification(t *testing.T, threads int) {
 		var results <-chan error
 
 		if valid {
-			chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFaker(), vm.Config{})
+			chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFaker(), vm.Config{}, nil)
 			_, results = chain.engine.VerifyHeaders(chain, headers, seals)
 			chain.Stop()
 		}
@@ -171,7 +171,7 @@ func testHeaderConcurrentAbortion(t *testing.T, threads int) {
 	defer runtime.GOMAXPROCS(old)
 
 	// Start the verifications and immediately abort
-	chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFakeDelayer(time.Millisecond), vm.Config{})
+	chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFakeDelayer(time.Millisecond), vm.Config{}, nil)
 	defer chain.Stop()
 
 	abort, results := chain.engine.VerifyHeaders(chain, headers, seals)

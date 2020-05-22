@@ -19,6 +19,7 @@ package core
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -39,12 +40,22 @@ func init() {
 
 func ExampleGenerateChain() {
 	var (
+		pbft1Name = "pbft1priv"
+		pbft2Name = "pbft2priv"
+		p2p1Name  = "p2p1cert"
+		p2p2Name  = "p2p2cert"
+		pbft1path = "../cim/testdata/testcert/" + pbft1Name + ".pem"
+		pbft2path = "../cim/testdata/testcert/" + pbft2Name + ".pem"
+		p2p1path  = "../cim/testdata/testcert/" + p2p1Name + ".pem"
+		p2p2path  = "../cim/testdata/testcert/" + p2p2Name + ".pem"
+		CryptoSM2 = uint8(2)
+
 		chainId = big.NewInt(3)
 		db      = taidb.NewMemDatabase()
 
 		key1, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
-		key2, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
-		key3, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+		key2, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+		key3, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
 		addr1   = crypto.PubkeyToAddress(key1.PublicKey)
 		addr2   = crypto.PubkeyToAddress(key2.PublicKey)
 		addr3   = crypto.PubkeyToAddress(key3.PublicKey)
@@ -57,6 +68,17 @@ func ExampleGenerateChain() {
 		signer  = types.NewSigner(gspec.Config.ChainID)
 	)
 
+	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
+
+	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := crypto.ReadPemFileByPath(p2p2path)
+
+	//new cimList
+	cimList := cim.NewCIMList(CryptoSM2)
+	cimList.AddCim(cim.CreateCim(pbft1Byte))
+	cimList.AddCim(cim.CreateCim(pbft2Byte))
+
 	// This call generates a chain of 5 blocks. The function runs for
 	// each block and adds different features to gen based on the
 	// block index.
@@ -64,13 +86,13 @@ func ExampleGenerateChain() {
 		switch i {
 		case 0:
 			// In block 1, addr1 sends addr2 some ether.
-			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil, nil), signer, key1)
+			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil, p2p1Byte), signer, key1)
 			gen.AddTx(tx)
 		case 1:
 			// In block 2, addr1 sends some more ether to addr2.
 			// addr2 passes it on to addr3.
-			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil, nil), signer, key1)
-			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil, nil), signer, key2)
+			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil, p2p1Byte), signer, key1)
+			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil, p2p2Byte), signer, key2)
 			gen.AddTx(tx1)
 			gen.AddTx(tx2)
 		case 2:
@@ -81,7 +103,7 @@ func ExampleGenerateChain() {
 	})
 
 	// Import the chain. This runs all block validation rules.
-	blockchain, _ := NewBlockChain(db, nil, gspec.Config, pow, vm.Config{})
+	blockchain, _ := NewBlockChain(db, nil, gspec.Config, pow, vm.Config{}, cimList)
 	defer blockchain.Stop()
 
 	if i, err := blockchain.InsertChain(chain); err != nil {
@@ -140,7 +162,7 @@ func TestTransactionCost(t *testing.T) {
 	)
 
 	//generate blockchain
-	blockchain, _ := NewBlockChain(db, nil, gspec.Config, pow, vm.Config{})
+	blockchain, _ := NewBlockChain(db, nil, gspec.Config, pow, vm.Config{}, nil)
 	defer blockchain.Stop()
 
 	fastBlocks, _ := GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {

@@ -17,6 +17,7 @@
 package core
 
 import (
+	"github.com/taiyuechain/taiyuechain/cim"
 	//"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/log"
@@ -38,14 +39,16 @@ type StateProcessor struct {
 	config *params.ChainConfig // Chain configuration options
 	bc     *BlockChain         // Canonical block chain
 	engine consensus.Engine    // Consensus engine used for block rewards
+	mList  *cim.CimList
 }
 
 // NewStateProcessor initialises a new StateProcessor.
-func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consensus.Engine) *StateProcessor {
+func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consensus.Engine, mList *cim.CimList) *StateProcessor {
 	return &StateProcessor{
 		config: config,
 		bc:     bc,
 		engine: engine,
+		mList:  mList,
 	}
 }
 
@@ -67,6 +70,11 @@ func (fp *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cf
 	)
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
+		if fp.mList != nil {
+			if err := fp.mList.VerifyCert(tx.Cert()); err != nil {
+				return nil, nil, 0, err
+			}
+		}
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
 		receipt, _, err := ApplyTransaction(fp.config, fp.bc, gp, statedb, header, tx, usedGas, feeAmount, cfg)
 		if err != nil {

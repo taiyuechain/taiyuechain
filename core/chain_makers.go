@@ -26,8 +26,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 // BlockGen creates blocks for testing.
@@ -373,7 +373,7 @@ func newCanonical(engine consensus.Engine, n int, full bool) (taidb.Database, *B
 	genesis := BaseGenesis.MustFastCommit(db)
 	// Initialize a fresh chain with only a genesis block
 	//Initialize a new chain
-	blockchain, _ := NewBlockChain(db, nil, params.AllMinervaProtocolChanges, engine, vm.Config{})
+	blockchain, _ := NewBlockChain(db, nil, params.AllMinervaProtocolChanges, engine, vm.Config{}, nil)
 	// Create and inject the requested chain
 	if n == 0 {
 		return db, blockchain, nil
