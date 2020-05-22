@@ -16,6 +16,7 @@
 package vm
 
 import (
+	"encoding/hex"
 	//"math/big"
 	"errors"
 	"strings"
@@ -308,7 +309,7 @@ func (ca *CACertList) GetCaCertAmount() uint64 {
 func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert []byte, evm *EVM, needDo uint8) (bool, error) {
 
 	if ca.proposalMap[pHash] == nil {
-		log.Info("--why is nil??", "senderCert", senderCert, "pHash", pHash)
+		log.Info("--why is nil??", "senderCert", hex.EncodeToString(senderCert), "pHash", pHash)
 		ca.proposalMap[pHash] = &ProposalState{pState: pStateNil}
 		ca.proposalMap[pHash].signMap = make(map[common.Hash]bool)
 	}
@@ -575,7 +576,7 @@ func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 	log.Info(" isApproveCaCert 1")
 	method, _ := abiCaCertStore.Methods["isApproveCaCert"]
 	err = method.Inputs.Unpack(&caCert, input)
-	log.Info(" isApproveCaCert 2", "ca", caCert)
+	log.Info(" isApproveCaCert 2", "ca", hex.EncodeToString(caCert))
 	caCertList := NewCACertList()
 	err = caCertList.LoadCACertList(evm.StateDB, types.CACertListAddress)
 	if err != nil {
@@ -585,7 +586,7 @@ func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 
 	//is in list
 	var ok bool
-	log.Info(" isApproveCaCert 3", "ca", caCert, "calist amount", caCertList.cAAmount)
+	log.Info(" isApproveCaCert 3", "ca", hex.EncodeToString(caCert), "calist amount", caCertList.cAAmount)
 	ok, _ = caCertList.IsInList(caCert)
 
 	ret, err = method.Outputs.Pack(ok)
@@ -615,7 +616,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	}
 
 	pHash := types.RlpHash(args.CaCert)
-	log.Info("multiProposal arg is ", "senderca", args.SenderCert, "ca", args.CaCert, "isAdd", args.IsAdd)
+	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 	//check cacert
 	if !args.IsAdd {
 		// del this cacert to this group
