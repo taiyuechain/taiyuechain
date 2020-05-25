@@ -2,6 +2,8 @@ package test
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
+	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"math"
 	"math/big"
@@ -86,55 +88,12 @@ func DefaulGenesisBlock() *core.Genesis {
 	}
 }
 
-type txPool interface {
-	// AddRemotes should add the given transactions to the pool.
-	AddRemotes([]*types.Transaction) []error
-	State() *state.ManagedState
-}
-
-func printTest(a ...interface{}) {
-	log.Info("test", "SendTX", a)
-}
-
-func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, method string, txPool txPool) (uint64, *state.StateDB) {
-	var nonce uint64
-	var stateDb *state.StateDB
-	if gen != nil {
-		nonce = gen.TxNonce(from)
-		stateDb = gen.GetStateDB()
-	} else {
-		stateDb = state1
-		nonce = txPool.State().GetNonce(from)
-	}
-	printBalance(stateDb, from, method)
-	return nonce, stateDb
-}
-
-func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte) {
-	if height == 10 {
-		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
-		balance := statedb.GetBalance(to)
-		remaining := new(big.Int).Sub(value, balance)
-		printTest("1----sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64())
-		if remaining.Sign() > 0 {
-			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
-			if gen != nil {
-				gen.AddTx(tx)
-			} else {
-				txPool.AddRemotes([]*types.Transaction{tx})
-			}
-		} else {
-			printTest("to ", to.String(), " have balance ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64())
-		}
-	}
-}
-
 func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB)) {
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)
-	cimList.AddCim(cim.CreateCim(pbft1Byte))
-	cimList.AddCim(cim.CreateCim(pbft2Byte))
+	//cimList.AddCim(cim.CreateCim(pbft1Byte))
+	//cimList.AddCim(cim.CreateCim(pbft2Byte))
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
@@ -142,6 +101,23 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	genesis := gspec.MustFastCommit(db)
 	blockchain, _ := core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, cimList)
+	//init cert list to
+	// need init cert list to statedb
+	stateDB, err := blockchain.State()
+	if err != nil {
+		panic(err)
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	for _, caCert := range caCertList.GetCACertMap() {
+		cimCa, err := cim.NewCIM()
+		if err != nil {
+			panic(err)
+		}
+
+		cimCa.SetUpFromCA(caCert.GetByte())
+		cimList.AddCim(cimCa)
+	}
 
 	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, db, sBlocks*60, func(i int, gen *core.BlockGen) {
 
@@ -192,7 +168,7 @@ func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from comm
 func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte, isAdd bool, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
-
+		fmt.Println("multiProposal ", hex.EncodeToString(cert), " ", hex.EncodeToString(certPar))
 		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar, cert, isAdd)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
@@ -250,4 +226,47 @@ func printBalance(stateDb *state.StateDB, from common.Address, method string) {
 	StakinValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
 
 	printTest(method, " from ", types.ToTai(stateDb.GetBalance(from)), " Staking fbalance ", fbalance, " StakinValue ", StakinValue, "from ", from.String())
+}
+
+type txPool interface {
+	// AddRemotes should add the given transactions to the pool.
+	AddRemotes([]*types.Transaction) []error
+	State() *state.ManagedState
+}
+
+func printTest(a ...interface{}) {
+	log.Info("test", "SendTX", a)
+}
+
+func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, method string, txPool txPool) (uint64, *state.StateDB) {
+	var nonce uint64
+	var stateDb *state.StateDB
+	if gen != nil {
+		nonce = gen.TxNonce(from)
+		stateDb = gen.GetStateDB()
+	} else {
+		stateDb = state1
+		nonce = txPool.State().GetNonce(from)
+	}
+	printBalance(stateDb, from, method)
+	return nonce, stateDb
+}
+
+func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte) {
+	if height == 10 {
+		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
+		balance := statedb.GetBalance(to)
+		remaining := new(big.Int).Sub(value, balance)
+		printTest("1----sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64())
+		if remaining.Sign() > 0 {
+			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
+			if gen != nil {
+				gen.AddTx(tx)
+			} else {
+				txPool.AddRemotes([]*types.Transaction{tx})
+			}
+		} else {
+			printTest("to ", to.String(), " have balance ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64())
+		}
+	}
 }
