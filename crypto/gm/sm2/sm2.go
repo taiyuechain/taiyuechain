@@ -11,7 +11,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/common"
 	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
 	"github.com/taiyuechain/taiyuechain/log"
@@ -772,11 +771,6 @@ func HexToGM2(hexkey string) (*PrivateKey, error) {
 	}
 	return d.Sum(nil)
 }*/
-
-func GMPubkeyToAddress(pubkey PublicKey) common.Address {
-	pubBytes := pubkey.GetRawBytes()
-	return common.BytesToAddress(sm3.Keccak256(pubBytes[1:])[12:])
-}
 
 func getLastBit(a *big.Int) uint {
 	return a.Bit(0)
