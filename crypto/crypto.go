@@ -545,13 +545,14 @@ func RlpHash(x interface{}) (h common.Hash) {
 	}
 	return h
 }
+
 func NewLegacyKeccak256() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		return sha3.NewLegacyKeccak256()
 	case CRYPTO_SM2_SM3_SM4:
-		return sha3.NewLegacyKeccak256()
+		return sm3.New()
 	}
 	return nil
 }
