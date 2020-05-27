@@ -551,7 +551,7 @@ func NewLegacyKeccak256() hash.Hash {
 	case CRYPTO_P256_SH3_AES:
 		return sha3.NewLegacyKeccak256()
 	case CRYPTO_SM2_SM3_SM4:
-		return sm3.New()
+		return sha3.NewLegacyKeccak256()
 	}
 	return nil
 }

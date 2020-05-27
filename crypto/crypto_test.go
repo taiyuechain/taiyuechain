@@ -3,6 +3,7 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -128,6 +129,7 @@ func TestSm2(t *testing.T) {
 			fmt.Printf("VerifyTransaction ok\n")
 		}
 		ok := VerifySignature(FromECDSAPub(pub), Keccak256(msg), signdata)
+		//ValidateSignatureValues(signdata[65],sign[])
 		if ok != true {
 			fmt.Printf("Verify error\n")
 		} else {
@@ -206,4 +208,17 @@ func TestFromCertBytesToPubKey(t *testing.T) {
 	if !reflect.DeepEqual(pub, &prv1.PublicKey) {
 		fmt.Println("1111")
 	}
+}
+
+func TestNewHashObject(t *testing.T) {
+	CryptoType = CRYPTO_P256_SH3_AES
+	publichash := Keccak256()
+	fmt.Println(publichash)
+	tt := sha3.NewLegacyKeccak256()
+	tt.Write(nil)
+	fmt.Println(tt.Sum(nil))
+	h := sha256.New()
+	h.Write(nil)
+	vv := h.Sum(nil)
+	fmt.Println(vv)
 }

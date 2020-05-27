@@ -18,7 +18,6 @@ package trie
 
 import (
 	"github.com/taiyuechain/taiyuechain/crypto"
-	//"golang.org/x/crypto/sha3"
 	"hash"
 	"sync"
 

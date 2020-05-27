@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/agl/ed25519"
 	"github.com/agl/ed25519/extra25519"
-	"github.com/tendermint/go-amino"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/tendermint/go-amino"
+
 	"io"
 )
 
@@ -118,7 +120,8 @@ func genPrivKey(rand io.Reader) PrivKeyEd25519 {
 // NOTE: secret should be the output of a KDF like bcrypt,
 // if it's derived from user input.
 func GenPrivKeyFromSecret(secret []byte) PrivKeyEd25519 {
-	privKey32 := crypto.Sha256(secret) // Not Ripemd160 because we want 32 bytes.
+	//privKey32 := sha3.Sha256(secret)
+	privKey32, _ := tcrypyo.Sum256(secret) // Not Ripemd160 because we want 32 bytes.
 	privKey := new([64]byte)
 	copy(privKey[:32], privKey32)
 	// ed25519.MakePublicKey(privKey) alters the last 32 bytes of privKey.
