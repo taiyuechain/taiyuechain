@@ -16,9 +16,7 @@
 
 package minerva
 
-import (
-	"golang.org/x/crypto/sha3"
-)
+import "golang.org/x/crypto/sha3"
 
 const DATALENGTH = 2048 //2048 520
 const PMTSIZE = 4

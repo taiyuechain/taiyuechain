@@ -1,7 +1,6 @@
 package crypto
 
 import (
-	"crypto/sha256"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 )
 
@@ -31,8 +30,8 @@ type Symmetric interface {
 }
 
 //Sha256 return new sha256
-func Sha256(bytes []byte) []byte {
+/*func Sha256(bytes []byte) []byte {
 	hasher := sha256.New()
 	hasher.Write(bytes)
 	return hasher.Sum(nil)
-}
+}*/

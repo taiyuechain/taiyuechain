@@ -28,12 +28,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 // Errors
@@ -654,6 +653,7 @@ func decodePacket(buf []byte) (packet, encPubkey, []byte, error) {
 		return nil, encPubkey{}, nil, errPacketTooSmall
 	}
 	hash, sig, sigdata := buf[:macSize], buf[macSize:headSize], buf[headSize:]
+
 	shouldhash := crypto.Keccak256(buf[macSize:])
 
 	if !bytes.Equal(hash, shouldhash) {

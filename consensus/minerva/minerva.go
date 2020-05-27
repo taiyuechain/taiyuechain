@@ -19,7 +19,6 @@ package minerva
 
 import (
 	"bytes"
-
 	//"crypto/ecdsa"
 
 	//"crypto/ecdsa"
@@ -32,15 +31,14 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/rlp"
 	//"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"golang.org/x/crypto/sha3"
+	//"golang.org/x/crypto/sha3"
+	"crypto/ecdsa"
 	"math/big"
 	//"math/rand"
 	"sync"
 	"time"
-	"crypto/ecdsa"
 )
 
 // ErrInvalidDumpMagic errorinfo
@@ -519,10 +517,8 @@ type fakeElection struct {
 	//caoliang modify
 	privates []*ecdsa.PrivateKey
 
-	members  []*types.CommitteeMember
+	members []*types.CommitteeMember
 }
-
-
 
 func newFakeElection() *fakeElection {
 	var members []*types.CommitteeMember
@@ -537,11 +533,9 @@ func newFakeElection() *fakeElection {
 	pk6, err := crypto.HexToECDSA("df47c4b6f0d5b72fc0bf98551dac344fe5f79a1993e8340c9f90e195939ccd30")
 	pk7, err := crypto.HexToECDSA("5b58e95edbf4db558d49ed15849a7cc5b7dc2e3530ff599cf1440285f7d4586e")
 
-
 	if err != nil {
 		log.Error("initMembers", "error", err)
 	}
-
 
 	priKeys := []*ecdsa.PrivateKey{pk1, pk2, pk3, pk4, pk5, pk6, pk7}
 	for _, priKey := range priKeys {
@@ -561,9 +555,8 @@ func (e *fakeElection) GetCommittee(fastNumber *big.Int) []*types.CommitteeMembe
 
 func (e *fakeElection) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMember, []error) {
 	var (
-		members   = make([]*types.CommitteeMember, len(signs))
-		errs      = make([]error, len(signs))
-
+		members = make([]*types.CommitteeMember, len(signs))
+		errs    = make([]error, len(signs))
 	)
 	for i, sign := range signs {
 		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
@@ -611,8 +604,9 @@ func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, er
 
 // for hash
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
+	/*	hw := sha3.NewLegacyKeccak256()
+		rlp.Encode(hw, x)
+		hw.Sum(h[:0])
+		return h*/
+	return crypto.RlpHash(x)
 }

@@ -3,13 +3,9 @@ package conn
 import (
 	"bytes"
 	crand "crypto/rand"
-	"crypto/sha256"
-	//"fmt"
-
-	//"crypto/sha256"
-
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
@@ -20,7 +16,6 @@ import (
 	"io"
 	"net"
 	"time"
-	"fmt"
 )
 
 // 4 + 1024 == 1028 total frame size
@@ -91,8 +86,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	// Sign the challenge bytes for authentication.
 	locSignature := signChallenge(challenge, locPrivKey)
-	fmt.Println("===========11111111len sign ","len",len(locSignature))
-	fmt.Println("sing is ?? 222 ","is",locSignature)
+	fmt.Println("===========11111111len sign ", "len", len(locSignature))
+	fmt.Println("sing is ?? 222 ", "is", locSignature)
 
 	// Share (in secret) each other's pubkey & challenge signature
 	authSigMsg, err := shareAuthSignature(sc, locPubKey, locSignature)
@@ -106,8 +101,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("===========len sign ","len",len(remSignature))
-	fmt.Println("sing is ??","is",remSignature)
+	fmt.Println("===========len sign ", "len", len(remSignature))
+	fmt.Println("sing is ??", "is", remSignature)
 	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
 		return nil, errors.New("Challenge verification failed")
@@ -252,7 +247,8 @@ func shareEphPubKey(conn io.ReadWriteCloser, locEphPub *[32]byte) (remEphPub *[3
 }
 
 func deriveSecretAndChallenge(dhSecret *[32]byte, locIsLeast bool) (recvSecret, sendSecret *[aeadKeySize]byte, challenge *[32]byte) {
-	hash := sha256.New
+	//hash := sha256.New
+	hash := tcrypyo.NewHashObject()
 	hkdf := hkdf.New(hash, dhSecret[:], nil, []byte("TAIYUECHAIN_SECRET_CONNECTION_KEY_AND_CHALLENGE_GEN"))
 	// get enough data for 2 aead keys, and a 32 byte challenge
 	res := new([2*aeadKeySize + 32]byte)

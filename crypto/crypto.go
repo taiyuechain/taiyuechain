@@ -405,6 +405,22 @@ func zeroBytes(bytes []byte) {
 /*
 hash method
 */
+func Sum256(input []byte) ([]byte, error) {
+	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
+	case CRYPTO_P256_SH3_AES:
+		h := sha256.Sum256(input)
+		return h[:], nil
+
+	case CRYPTO_SM2_SM3_SM4:
+		h := sm3.Sum(input)
+		return h[:], nil
+	}
+	return nil, errors.New("crypto type is errror")
+}
+
+/*	h := sha256.Sum256(input)
+	return h[:], nil*/
 func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -529,6 +545,16 @@ func RlpHash(x interface{}) (h common.Hash) {
 	}
 	return h
 }
+func NewLegacyKeccak256() hash.Hash {
+	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
+	case CRYPTO_P256_SH3_AES:
+		return sha3.NewLegacyKeccak256()
+	case CRYPTO_SM2_SM3_SM4:
+		return sm3.New()
+	}
+	return nil
+}
 func NewHash() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -536,6 +562,16 @@ func NewHash() hash.Hash {
 		return sha256.New()
 	case CRYPTO_SM2_SM3_SM4:
 		return sm3.New()
+	}
+	return nil
+}
+func NewHashObject() func() hash.Hash {
+	switch CryptoType {
+	case CRYPTO_S256_SH3_AES:
+	case CRYPTO_P256_SH3_AES:
+		return sha256.New
+	case CRYPTO_SM2_SM3_SM4:
+		return sm3.New
 	}
 	return nil
 }

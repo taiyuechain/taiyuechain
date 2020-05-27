@@ -17,12 +17,13 @@
 package trie
 
 import (
+	"github.com/taiyuechain/taiyuechain/crypto"
+	//"golang.org/x/crypto/sha3"
 	"hash"
 	"sync"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 type hasher struct {
@@ -57,7 +58,8 @@ var hasherPool = sync.Pool{
 	New: func() interface{} {
 		return &hasher{
 			tmp: make(sliceBuffer, 0, 550), // cap is as large as a full fullNode.
-			sha: sha3.NewLegacyKeccak256().(keccakState),
+			//sha: sha3.NewLegacyKeccak256().(keccakState),
+			sha: crypto.NewLegacyKeccak256().(keccakState),
 		}
 	},
 }

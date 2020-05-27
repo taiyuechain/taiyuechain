@@ -22,9 +22,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/log"
-
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/discover"
@@ -49,9 +47,9 @@ func main() {
 		runv5       = flag.Bool("v5", false, "run a v5 topic discovery bootnode")
 		verbosity   = flag.Int("verbosity", int(log.LvlInfo), "log verbosity (0-9)")
 		vmodule     = flag.String("vmodule", "", "log verbosity pattern")
-		nodeKey *ecdsa.PrivateKey
+		nodeKey     *ecdsa.PrivateKey
 
-		err       error
+		err error
 	)
 	flag.Parse()
 	glogger := log.NewGlogHandler(log.StreamHandler(os.Stderr, log.TerminalFormat(false)))

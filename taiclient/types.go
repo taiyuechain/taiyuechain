@@ -21,13 +21,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	//"golang.org/x/crypto/sha3"
 	"math/big"
 	"math/rand"
 	"reflect"
 	"strings"
 
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"golang.org/x/crypto/sha3"
+	//"golang.org/x/crypto/sha3"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -207,7 +209,7 @@ func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns an EIP55-compliant hex string representation of the address.
 func (a Address) Hex() string {
-	unchecksummed := hex.EncodeToString(a[:])
+	/*unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewLegacyKeccak256()
 	sha.Write([]byte(unchecksummed))
 	hash := sha.Sum(nil)
@@ -224,7 +226,8 @@ func (a Address) Hex() string {
 			result[i] -= 32
 		}
 	}
-	return "0x" + string(result)
+	return "0x" + string(result)*/
+	return crypto.Hex([]byte(hex.EncodeToString(a[:])))
 }
 
 // String implements fmt.Stringer.

@@ -26,11 +26,10 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"golang.org/x/crypto/sha3"
+	//"golang.org/x/crypto/sha3"
 	//"crypto/ecdsa"
 )
 
@@ -827,7 +826,6 @@ type nodeEvent uint
 //go:generate stringer -type=nodeEvent
 
 const (
-
 	// Packet type events.
 	// These correspond to packet types in the UDP protocol.
 	pingPacket = iota + 1
@@ -1236,10 +1234,11 @@ func (net *Network) checkTopicRegister(data *topicRegister) (*pong, error) {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
+	/*	hw := sha3.NewLegacyKeccak256()
+		rlp.Encode(hw, x)
+		hw.Sum(h[:0])
+		return h*/
+	return crypto.RlpHash(x)
 }
 
 func (net *Network) handleNeighboursPacket(n *Node, pkt *ingressPacket) error {

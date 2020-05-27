@@ -11,7 +11,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
+	//"golang.org/x/crypto/sha3"
 	"io"
 	"math/big"
 	"strings"
@@ -385,12 +385,13 @@ func (c *CommitteeNodeTag) Hash() common.Hash {
 }
 
 func RlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
-	if e := rlp.Encode(hw, x); e != nil {
-		log.Warn("RlpHash", "error", e.Error())
-	}
-	hw.Sum(h[:0])
-	return h
+	/*	hw := sha3.NewLegacyKeccak256()
+		if e := rlp.Encode(hw, x); e != nil {
+			log.Warn("RlpHash", "error", e.Error())
+		}
+		hw.Sum(h[:0])
+		return h*/
+	return crypto.RlpHash(x)
 }
 
 func (c *EncryptNodeMessage) Size() common.StorageSize {

@@ -17,7 +17,7 @@
 package vm
 
 import (
-	"crypto/sha256"
+	//"crypto/sha256"
 	"errors"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
@@ -131,8 +131,9 @@ func (c *sha256hash) RequiredGas(input []byte) uint64 {
 	return uint64(len(input)+31)/32*params.Sha256PerWordGas + params.Sha256BaseGas
 }
 func (c *sha256hash) Run(evm *EVM, contract *Contract, input []byte) ([]byte, error) {
-	h := sha256.Sum256(input)
-	return h[:], nil
+	/*	h := sha256.Sum256(input)
+		return h[:], nil*/
+	return crypto.Sum256(input)
 }
 
 // RIPEMD160 implemented as a native contract.

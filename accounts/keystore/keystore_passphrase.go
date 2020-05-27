@@ -29,22 +29,20 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/pborman/uuid"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/math"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
+	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/crypto/scrypt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/common/math"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/pborman/uuid"
-	"github.com/taiyuechain/taiyuechain/log"
-	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/crypto/scrypt"
 )
 
 const (
@@ -336,7 +334,7 @@ func getKDFKey(cryptoJSON CryptoJSON, auth string) ([]byte, error) {
 		if prf != "hmac-sha256" {
 			return nil, fmt.Errorf("Unsupported PBKDF2 PRF: %s", prf)
 		}
-		key := pbkdf2.Key(authArray, salt, c, dkLen, sha256.New)
+		key := pbkdf2.Key(authArray, salt, c, dkLen, crypto.NewHash)
 		return key, nil
 	}
 

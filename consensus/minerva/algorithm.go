@@ -18,7 +18,7 @@
 package minerva
 
 import (
-	"golang.org/x/crypto/sha3"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"hash"
 )
 
@@ -51,7 +51,8 @@ func seedHash(block uint64) []byte {
 	if block < epochLength {
 		return seed
 	}
-	sha256 := makeHasher(sha3.New256())
+	//sha256 := makeHasher(sha3.New256())
+	sha256 := makeHasher(crypto.NewHash())
 	for i := 0; i < int(block/epochLength); i++ {
 		sha256(seed, seed)
 	}

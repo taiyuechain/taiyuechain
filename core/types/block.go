@@ -30,12 +30,11 @@ import (
 	"unsafe"
 
 	"bytes"
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
-	"crypto/ecdsa"
 )
 
 var (
@@ -204,10 +203,11 @@ func (h *Header) Size() common.StorageSize {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
+	/*	hw := sha3.NewLegacyKeccak256()
+		rlp.Encode(hw, x)
+		hw.Sum(h[:0])
+		return h*/
+	return crypto.RlpHash(x)
 }
 
 // Body is a simple (mutable, non-safe) data container for storing and moving
