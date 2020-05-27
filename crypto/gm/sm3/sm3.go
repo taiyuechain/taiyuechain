@@ -3,8 +3,6 @@ package sm3
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/rlp"
 	"hash"
 	"math/bits"
 )
@@ -117,7 +115,6 @@ func (digest *sm3Digest) Write(p []byte) (n int, err error) {
 	}
 
 	digest.byteCount += int64(inLen)
-
 	n = inLen
 	return
 }
@@ -144,6 +141,14 @@ func (digest *sm3Digest) checkSum() [DigestLength]byte {
 		binary.BigEndian.PutUint32(out[i*4:(i+1)*4], digest.v[i])
 	}
 	return out
+}
+func (digest *sm3Digest) Read(out []byte) (n int, err error) {
+	//digest.finish()
+	h := digest.Sum(nil)
+	copy(out, h)
+	n = len(out)
+	return
+
 }
 
 func (digest *sm3Digest) processBlock() {
@@ -300,43 +305,4 @@ func PrintT() {
 			fmt.Printf("0x%08X, ", Tj)
 		}
 	}
-}
-func Keccak256(data ...[]byte) []byte {
-	d := New()
-	for _, b := range data {
-		d.Write(b)
-	}
-	return d.Sum(nil)
-}
-
-// Keccak256Hash calculates and returns the Keccak256 hash of the input data,
-// converting it to an internal Hash data structure.
-func Keccak256Hash(data ...[]byte) (h common.Hash) {
-	d := New()
-	for _, b := range data {
-		d.Write(b)
-	}
-	d.Sum(h[:0])
-	return h
-}
-
-// Keccak512 calculates and returns the Keccak512 hash of the input data.
-func Keccak512(data ...[]byte) []byte {
-	d := New()
-	for _, b := range data {
-		d.Write(b)
-	}
-	return d.Sum(nil)
-}
-
-// CreateAddress creates an ethereum address given the bytes and the nonce
-func CreateAddress(b common.Address, nonce uint64) common.Address {
-	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
-}
-
-// CreateAddress2 creates an ethereum address given the address bytes, initial
-// contract code hash and a salt.
-func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
