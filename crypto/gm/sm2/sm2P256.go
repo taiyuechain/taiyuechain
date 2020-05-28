@@ -8,15 +8,7 @@ import (
 	"sync"
 )
 
-/*type sm2P256Curve struct {
-	RInverse *big.Int
-	*elliptic.CurveParams
-	a, b, gx, gy sm2P256FieldElement
-}*/
-
 var initonce sync.Once
-
-/*var sm2P256 sm2P256Curve*/
 
 type sm2P256FieldElement [9]uint32
 type sm2P256LargeFieldElement [17]uint64
@@ -27,27 +19,6 @@ const (
 )
 
 var RInverse, _ = new(big.Int).SetString("7ffffffd80000002fffffffe000000017ffffffe800000037ffffffc80000002", 16)
-
-/*func initP256Sm2() {
-	sm2P256.CurveParams = &elliptic.CurveParams{Name: "SM2-P-256"} // sm2
-	A, _ := new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFC", 16)
-	sm2P256.P, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF", 16)
-	sm2P256.N, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFF7203DF6B21C6052B53BBF40939D54123", 16)
-	sm2P256.B, _ = new(big.Int).SetString("28E9FA9E9D9F5E344D5A9E4BCF6509A7F39789F515AB8F92DDBCBD414D940E93", 16)
-	sm2P256.Gx, _ = new(big.Int).SetString("32C4AE2C1F1981195F9904466A39C9948FE30BBFF2660BE1715A4589334C74C7", 16)
-	sm2P256.Gy, _ = new(big.Int).SetString("BC3736A2F4F6779C59BDCEE36B692153D0A9877CC62A474002DF32E52139F0A0", 16)
-	sm2P256.RInverse, _ = new(big.Int).SetString("7ffffffd80000002fffffffe000000017ffffffe800000037ffffffc80000002", 16)
-	sm2P256.BitSize = 256
-	sm2P256FromBig(&sm2P256.a, A)
-	sm2P256FromBig(&sm2P256.gx, sm2P256.Gx)
-	sm2P256FromBig(&sm2P256.gy, sm2P256.Gy)
-	sm2P256FromBig(&sm2P256.b, sm2P256.B)
-}*/
-
-/*func P256Sm2() elliptic.Curve {
-	initonce.Do(initP256Sm2)
-	return sm2P256
-}*/
 
 func (curve P256V1Curve) Params() *elliptic.CurveParams {
 	return sm2P256V1.CurveParams
