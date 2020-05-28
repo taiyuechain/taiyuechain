@@ -8,14 +8,15 @@ import (
 	"sync"
 )
 
-type sm2P256Curve struct {
+/*type sm2P256Curve struct {
 	RInverse *big.Int
 	*elliptic.CurveParams
 	a, b, gx, gy sm2P256FieldElement
-}
+}*/
 
 var initonce sync.Once
-var sm2P256 sm2P256Curve
+
+/*var sm2P256 sm2P256Curve*/
 
 type sm2P256FieldElement [9]uint32
 type sm2P256LargeFieldElement [17]uint64
@@ -25,7 +26,9 @@ const (
 	bottom29Bits = 0x1FFFFFFF
 )
 
-func initP256Sm2() {
+var RInverse, _ = new(big.Int).SetString("7ffffffd80000002fffffffe000000017ffffffe800000037ffffffc80000002", 16)
+
+/*func initP256Sm2() {
 	sm2P256.CurveParams = &elliptic.CurveParams{Name: "SM2-P-256"} // sm2
 	A, _ := new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFC", 16)
 	sm2P256.P, _ = new(big.Int).SetString("FFFFFFFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000FFFFFFFFFFFFFFFF", 16)
@@ -39,15 +42,15 @@ func initP256Sm2() {
 	sm2P256FromBig(&sm2P256.gx, sm2P256.Gx)
 	sm2P256FromBig(&sm2P256.gy, sm2P256.Gy)
 	sm2P256FromBig(&sm2P256.b, sm2P256.B)
-}
+}*/
 
-func P256Sm2() elliptic.Curve {
+/*func P256Sm2() elliptic.Curve {
 	initonce.Do(initP256Sm2)
 	return sm2P256
-}
+}*/
 
 func (curve P256V1Curve) Params() *elliptic.CurveParams {
-	return sm2P256.CurveParams
+	return sm2P256V1.CurveParams
 }
 
 // y^2 = x^3 + ax + b
@@ -192,8 +195,8 @@ func sm2P256GetScalar(b *[32]byte, a []byte) {
 	var scalarBytes []byte
 
 	n := new(big.Int).SetBytes(a)
-	if n.Cmp(sm2P256.N) >= 0 {
-		n.Mod(n, sm2P256.N)
+	if n.Cmp(sm2P256V1.N) >= 0 {
+		n.Mod(n, sm2P256V1.N)
 		scalarBytes = n.Bytes()
 	} else {
 		scalarBytes = a
@@ -431,7 +434,7 @@ func sm2P256PointToAffine(xOut, yOut, x, y, z *sm2P256FieldElement) {
 	var zInv, zInvSq sm2P256FieldElement
 
 	zz := sm2P256ToBig(z)
-	zz.ModInverse(zz, sm2P256.P)
+	zz.ModInverse(zz, sm2P256V1.P)
 	sm2P256FromBig(&zInv, zz)
 
 	sm2P256Square(&zInvSq, &zInv)
@@ -522,7 +525,7 @@ func sm2P256PointAdd(x1, y1, z1, x2, y2, z2, x3, y3, z3 *sm2P256FieldElement) {
 }
 
 func sm2P256PointDouble(x3, y3, z3, x, y, z *sm2P256FieldElement) {
-	var s, m, m2, x2, y2, z2, z4, y4, az4 sm2P256FieldElement
+	var s, m, m2, x2, y2, z2, z4, y4, az4, sma sm2P256FieldElement
 
 	sm2P256Square(&x2, x) // x2 = x ^ 2
 	sm2P256Square(&y2, y) // y2 = y ^ 2
@@ -542,7 +545,8 @@ func sm2P256PointDouble(x3, y3, z3, x, y, z *sm2P256FieldElement) {
 
 	sm2P256Dup(&m, &x2)
 	sm2P256Scalar(&m, 3)
-	sm2P256Mul(&az4, &sm2P256.a, &z4)
+	sm2P256FromBig(&sma, sm2P256V1.A)
+	sm2P256Mul(&az4, &sma, &z4)
 	sm2P256Add(&m, &m, &az4) // m = 3 * x ^ 2 + a * z ^ 4
 
 	sm2P256Square(&m2, &m) // m2 = m ^ 2
@@ -835,23 +839,23 @@ func sm2P256ReduceDegree(a *sm2P256FieldElement, b *sm2P256LargeFieldElement) {
 			}
 			if tmp[i+4] < 0x20000000 {
 				tmp[i+4] += 0x20000000 & xMask
-				tmp[i+4] -= set4 // 借位
+				tmp[i+4] -= set4
 				tmp[i+4] -= x >> 18
 				if tmp[i+5] < 0x10000000 {
 					tmp[i+5] += 0x10000000 & xMask
-					tmp[i+5] -= 1 // 借位
+					tmp[i+5] -= 1
 					if tmp[i+6] < 0x20000000 {
 						set7 = 1
 						tmp[i+6] += 0x20000000 & xMask
-						tmp[i+6] -= 1 // 借位
+						tmp[i+6] -= 1
 					} else {
-						tmp[i+6] -= 1 // 借位
+						tmp[i+6] -= 1
 					}
 				} else {
 					tmp[i+5] -= 1
 				}
 			} else {
-				tmp[i+4] -= set4 // 借位
+				tmp[i+4] -= set4
 				tmp[i+4] -= x >> 18
 			}
 			if tmp[i+7] < 0x10000000 {
@@ -870,7 +874,7 @@ func sm2P256ReduceDegree(a *sm2P256FieldElement, b *sm2P256LargeFieldElement) {
 					tmp[i+9] += (x >> 1) & xMask
 				}
 			} else {
-				tmp[i+7] -= set7 // 借位
+				tmp[i+7] -= set7
 				tmp[i+7] -= (x << 24) & bottom28Bits
 				tmp[i+8] += (x << 28) & bottom29Bits
 				if tmp[i+8] < 0x20000000 {
@@ -908,23 +912,23 @@ func sm2P256ReduceDegree(a *sm2P256FieldElement, b *sm2P256LargeFieldElement) {
 			}
 			if tmp[i+5] < 0x10000000 {
 				tmp[i+5] += 0x10000000 & xMask
-				tmp[i+5] -= set5 // 借位
+				tmp[i+5] -= set5
 				tmp[i+5] -= x >> 18
 				if tmp[i+6] < 0x20000000 {
 					tmp[i+6] += 0x20000000 & xMask
-					tmp[i+6] -= 1 // 借位
+					tmp[i+6] -= 1
 					if tmp[i+7] < 0x10000000 {
 						set8 = 1
 						tmp[i+7] += 0x10000000 & xMask
-						tmp[i+7] -= 1 // 借位
+						tmp[i+7] -= 1
 					} else {
-						tmp[i+7] -= 1 // 借位
+						tmp[i+7] -= 1
 					}
 				} else {
-					tmp[i+6] -= 1 // 借位
+					tmp[i+6] -= 1
 				}
 			} else {
-				tmp[i+5] -= set5 // 借位
+				tmp[i+5] -= set5
 				tmp[i+5] -= x >> 18
 			}
 			if tmp[i+8] < 0x20000000 {
@@ -938,11 +942,11 @@ func sm2P256ReduceDegree(a *sm2P256FieldElement, b *sm2P256LargeFieldElement) {
 			}
 			if tmp[i+9] < 0x10000000 {
 				tmp[i+9] += 0x10000000 & xMask
-				tmp[i+9] -= set9 // 借位
+				tmp[i+9] -= set9
 				tmp[i+9] -= x >> 4
 				tmp[i+10] += (x - 1) & xMask
 			} else {
-				tmp[i+9] -= set9 // 借位
+				tmp[i+9] -= set9
 				tmp[i+9] -= x >> 4
 				tmp[i+10] += x & xMask
 			}
@@ -978,7 +982,7 @@ func sm2P256Dup(b, a *sm2P256FieldElement) {
 // X = a * R mod P
 func sm2P256FromBig(X *sm2P256FieldElement, a *big.Int) {
 	x := new(big.Int).Lsh(a, 257)
-	x.Mod(x, sm2P256.P)
+	x.Mod(x, sm2P256V1.P)
 	for i := 0; i < 9; i++ {
 		if bits := x.Bits(); len(bits) > 0 {
 			X[i] = uint32(bits[0]) & bottom29Bits
@@ -1013,7 +1017,7 @@ func sm2P256ToBig(X *sm2P256FieldElement) *big.Int {
 		tm.SetInt64(int64(X[i]))
 		r.Add(r, tm)
 	}
-	r.Mul(r, sm2P256.RInverse)
-	r.Mod(r, sm2P256.P)
+	r.Mul(r, RInverse)
+	r.Mod(r, sm2P256V1.P)
 	return r
 }

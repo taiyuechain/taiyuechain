@@ -9,23 +9,7 @@ import (
 	"math/big"
 )
 
-type Signature struct {
-	R, S *big.Int
-	//X, Y *big.Int
-}
-
-func (p Signature) Reset() {
-	panic("implement me")
-}
-
-func (p Signature) String() string {
-	panic("implement me")
-}
-
-func (p Signature) ProtoMessage() {
-	panic("implement me")
-}
-
+// p256 Sign with privatekey
 func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	r, s, err := ecdsa.Sign(rand.Reader, priv, hash)
 	if err != nil {
@@ -38,14 +22,9 @@ func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
 	return sign[65:], nil
 }
 
+// p256 Verify with publickey
 func Verify(public *ecdsa.PublicKey, hash []byte, sign []byte) bool {
 	return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
-}
-
-// NewSigningKey generates a random P-256 ECDSA private key.
-func NewSigningKey() (*ecdsa.PrivateKey, error) {
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	return key, err
 }
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
@@ -98,8 +77,6 @@ func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {
 
 // CompressPubkey encodes a public key to the 33-byte compressed format.
 func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
-	//fmt.Println("cx:",pubkey.X)
-	//fmt.Println("cy:",pubkey.Y)
 	// big.Int.Bytes() will need padding in the case of leading zero bytes
 	params := pubkey.Curve.Params()
 	curveOrderByteSize := params.P.BitLen() / 8
@@ -114,7 +91,7 @@ func CompressPubkey(pubkey *ecdsa.PublicKey) []byte {
 	return signature
 }
 
-//func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, *ecdsa.PublicKey, error) {
+// According hash and sign to rccovery publickey
 func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
 	r := big.Int{}
 	s := big.Int{}
@@ -167,17 +144,8 @@ func ECRecovery(data []byte, rawSign []byte) (*ecdsa.PublicKey, error) {
 
 }
 
-func comparePublicKey(key1, key2 *ecdsa.PublicKey) bool {
-	x := key1.X.Cmp(key2.X)
-	y := key2.Y.Cmp(key2.Y)
-	if x == 0 && y == 0 {
-		return true
-	} else {
-		return false
-	}
-}
+// Validate v,r and s is true
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
-
 	if r.Cmp(common.Big1) < 0 || s.Cmp(common.Big1) < 0 {
 		return false
 	}

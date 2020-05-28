@@ -8,17 +8,13 @@ import (
 	"crypto/rand"
 	"encoding/asn1"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
-	"fmt"
-	"hash"
-	"io"
-	"io/ioutil"
-	"math/big"
-
 	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
 	"github.com/taiyuechain/taiyuechain/log"
+	"hash"
+	"io"
+	"math/big"
 )
 
 const (
@@ -29,24 +25,6 @@ const (
 const (
 	// DefaultUID The default user id as specified in GM/T 0009-2012
 	DefaultUID = "1234567812345678"
-)
-const (
-	pubkeyCompressed   byte = 0x2  // y_bit + x coord
-	pubkeyASN1         byte = 0x30 // asn1
-	pubkeyUncompressed byte = 0x4  // x coord + y coord
-)
-
-// These constants define the lengths of serialized public keys.
-const (
-	pubKeyBytesLenCompressed   = 33
-	pubKeyBytesLenASN1         = 91
-	pubKeyBytesLenUncompressed = 65
-)
-
-// These constants define the lengths of serialized signature. 70-72
-const (
-	minSigLen = 64
-	maxSigLen = 72
 )
 
 type Sm2CipherTextType int32
@@ -143,35 +121,6 @@ func GenerateKey(rand io.Reader) (*PrivateKey, *PublicKey, error) {
 	return privateKey, publicKey, nil
 }
 
-func RawBytesToPublicKey(bytes []byte) (*PublicKey, error) {
-	if len(bytes) != KeyBytes*2 {
-		return nil, errors.New("Public key raw bytes length must be " + string(KeyBytes*2))
-	}
-	publicKey := new(PublicKey)
-	publicKey.Curve = sm2P256V1
-	publicKey.X = new(big.Int).SetBytes(bytes[:KeyBytes])
-	publicKey.Y = new(big.Int).SetBytes(bytes[KeyBytes:])
-	return publicKey, nil
-}
-func RawBytesToPrivateKey(bytes []byte) (*PrivateKey, error) {
-	if len(bytes) != KeyBytes {
-		return nil, errors.New("Private key raw bytes length must be " + string(KeyBytes))
-	}
-	privateKey := new(PrivateKey)
-	privateKey.Curve = sm2P256V1
-	privateKey.D = new(big.Int).SetBytes(bytes)
-	return privateKey, nil
-}
-
-func PrivteToPublickey(pri PrivateKey) (pubk *PublicKey) {
-
-	pub := new(PublicKey)
-	pub.Curve = pri.Curve
-	pub.X, pub.Y = pri.Curve.ScalarBaseMult(pri.D.Bytes())
-	pubk = pub
-	return pubk
-}
-
 func (pub *PublicKey) GetUnCompressBytes() []byte {
 	xBytes := pub.X.Bytes()
 	yBytes := pub.Y.Bytes()
@@ -202,6 +151,7 @@ func (pub *PublicKey) GetRawBytes() []byte {
 	raw := pub.GetUnCompressBytes()
 	return raw[1:]
 }
+
 func (pri *PrivateKey) GetRawBytes() []byte {
 	dBytes := pri.D.Bytes()
 	dl := len(dBytes)
@@ -287,6 +237,7 @@ func notEncrypted(encData []byte, in []byte) bool {
 	}
 	return true
 }
+
 func incCounter(ctr []byte) {
 	if ctr[3]++; ctr[3] != 0 {
 		return
@@ -301,6 +252,7 @@ func incCounter(ctr []byte) {
 		return
 	}
 }
+
 func concatKDF(hash hash.Hash, z, s1 []byte, kdLen int) (k []byte, err error) {
 	if s1 == nil {
 		s1 = make([]byte, 0)
@@ -322,6 +274,7 @@ func concatKDF(hash hash.Hash, z, s1 []byte, kdLen int) (k []byte, err error) {
 	k = k[:kdLen]
 	return
 }
+
 func Encrypt(pub *PublicKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	R, _, err := GenerateKey(rand.Reader)
 	if err != nil {
@@ -399,6 +352,7 @@ func (prv *PrivateKey) GenerateShared(pub *PublicKey, skLen, macLen int) (sk []b
 	copy(sk[len(sk)-len(skBytes):], skBytes)
 	return sk, nil
 }
+
 func Decrypt(priv *PrivateKey, in []byte, cipherTextType Sm2CipherTextType) ([]byte, error) {
 	hash := sm3.New()
 	z, err := priv.GenerateShared(&priv.PublicKey, 16, 16)
@@ -572,24 +526,7 @@ func calculateE(digest hash.Hash, curve *P256V1Curve, pubX *big.Int, pubY *big.I
 	return new(big.Int).SetBytes(eHash)
 }
 
-func MarshalSign(r, s, X, Y *big.Int) ([]byte, error) {
-	result, err := asn1.Marshal(Sm2Signature{r, s, X, Y})
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func UnmarshalSign(sign []byte) (r, s, x, y *big.Int, err error) {
-	sm2Sign := new(Sm2Signature)
-	tt, err := asn1.Unmarshal(sign, sm2Sign)
-	fmt.Println(len(tt))
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	return sm2Sign.R, sm2Sign.S, sm2Sign.X, sm2Sign.Y, nil
-}
-
+// sign algorithm.
 func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err error) {
 	digest := sm3.New()
 	pubX, pubY := priv.Curve.ScalarBaseMult(priv.D.Bytes())
@@ -635,6 +572,8 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 	return r, s, nil
 }
 
+// gm sign with privatekey, r and s covert to byte array ,According to
+// byte array length to implementation method.
 func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	signrmark := 1
 	r, s, err := SignToRS(priv, userId, in)
@@ -679,9 +618,13 @@ SIGN:
 	return sign, nil
 
 }
+
+// Combine byte array
 func BytesCombine(pBytes ...[]byte) []byte {
 	return bytes.Join(pBytes, []byte(""))
 }
+
+// verify sign algorithm.
 func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 	intOne := new(big.Int).SetInt64(1)
 	if r.Cmp(intOne) == -1 || r.Cmp(pub.Curve.N) >= 0 {
@@ -716,11 +659,8 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 	return expectedR.Cmp(r) == 0
 }
 
+// Verift sign with publickey.
 func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
-	/*	r, s, _, _, err := UnmarshalSign(sign)
-		if err != nil {
-			return false
-		}*/
 	if sign[64] != 1 {
 		if (int)(sign[64])%3 == 0 {
 			return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32-(int)(sign[64])/3]), new(big.Int).SetBytes(sign[32-(int)(sign[64])/3:64-(int)(sign[64])/3]))
@@ -734,6 +674,8 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
+
+//  Validate sign value about v,r and s.
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	intOne := new(big.Int).SetInt64(1)
 	var curve P256V1Curve
@@ -752,19 +694,7 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	return true
 }
 
-func HexToGM2(hexkey string) (*PrivateKey, error) {
-	b, err := hex.DecodeString(hexkey)
-	if err != nil {
-		return nil, errors.New("invalid hex string")
-	}
-
-	gmPrivate, err := RawBytesToPrivateKey(b)
-	if err != nil {
-		return nil, err
-	}
-	return gmPrivate, nil
-}
-
+// Get last bit
 func getLastBit(a *big.Int) uint {
 	return a.Bit(0)
 }
@@ -782,6 +712,8 @@ func zeroByteSlice() []byte {
 		0, 0, 0, 0,
 	}
 }
+
+// Compress publickey to 33  bytes.
 func Compress(a *PublicKey) []byte {
 	buf := []byte{}
 	yp := getLastBit(a.Y)
@@ -803,27 +735,28 @@ func Compress(a *PublicKey) []byte {
 
 // Decompress transform  33 bytes publickey to publickey point struct.
 func Decompress(a []byte) *PublicKey {
-	var aa, xx, xx3 sm2P256FieldElement
+	var aa, xx, xx3, sma, smb sm2P256FieldElement
 
-	P256Sm2()
 	x := new(big.Int).SetBytes(a[1:])
-	curve := sm2P256
+	curve := sm2P256V1
 	sm2P256FromBig(&xx, x)
-	sm2P256Square(&xx3, &xx)       // x3 = x ^ 2
-	sm2P256Mul(&xx3, &xx3, &xx)    // x3 = x ^ 2 * x
-	sm2P256Mul(&aa, &curve.a, &xx) // a = a * x
+	sm2P256Square(&xx3, &xx)    // x3 = x ^ 2
+	sm2P256Mul(&xx3, &xx3, &xx) // x3 = x ^ 2 * x
+	sm2P256FromBig(&sma, curve.A)
+	sm2P256Mul(&aa, &sma, &xx) // a = a * x
 	sm2P256Add(&xx3, &xx3, &aa)
-	sm2P256Add(&xx3, &xx3, &curve.b)
+	sm2P256FromBig(&smb, curve.B)
+	sm2P256Add(&xx3, &xx3, &smb)
 
 	y2 := sm2P256ToBig(&xx3)
-	y := new(big.Int).ModSqrt(y2, sm2P256.P)
+	y := new(big.Int).ModSqrt(y2, sm2P256V1.P)
 
 	// RFC: GB/T 32918.1-2016 4.2.10
 	// if a[0] = 02, getLastBit(y) = 0
 	// if a[0] = 03, getLastBit(y) = 1
 	// if yp = 0, buf = 03||x
 	if getLastBit(y) != uint(a[0])-2 {
-		y.Sub(sm2P256.P, y)
+		y.Sub(sm2P256V1.P, y)
 	}
 	return &PublicKey{
 		Curve: sm2P256V1,
@@ -831,6 +764,8 @@ func Decompress(a []byte) *PublicKey {
 		Y:     y,
 	}
 }
+
+// gm publickey covert to ecdsa publickey.
 func ToECDSAPublickey(key *PublicKey) *ecdsa.PublicKey {
 	return &ecdsa.PublicKey{
 		Curve: key.Curve,
@@ -838,6 +773,8 @@ func ToECDSAPublickey(key *PublicKey) *ecdsa.PublicKey {
 		Y:     key.Y,
 	}
 }
+
+//ecdsa publickey covert to gm publickey.
 func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
 	return &PublicKey{
 		X:     key.X,
@@ -845,6 +782,8 @@ func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
 		Curve: sm2P256V1,
 	}
 }
+
+// ecdsa privatekey covert to gm privatekey.
 func ToSm2privatekey(key *ecdsa.PrivateKey) *PrivateKey {
 	return &PrivateKey{
 		D:         key.D,
@@ -852,183 +791,11 @@ func ToSm2privatekey(key *ecdsa.PrivateKey) *PrivateKey {
 		Curve:     sm2P256V1,
 	}
 }
+
+// gm privatekey covert to ecdsa privatekey.
 func ToEcdsaPrivate(key *PrivateKey) *ecdsa.PrivateKey {
 	return &ecdsa.PrivateKey{
 		D:         key.D,
 		PublicKey: *ToECDSAPublickey(&key.PublicKey),
 	}
 }
-func SaveSm2Private(file string, key *PrivateKey) error {
-	k := hex.EncodeToString(key.GetRawBytes())
-	return ioutil.WriteFile(file, []byte(k), 0600)
-}
-func ECRecovery(data *big.Int, rawSign []byte, key PublicKey) (*PublicKey, error) {
-	/*		r := big.Int{}
-		s := big.Int{}
-	    //hash := big.Int{}
-		sigLen := len(rawSign)
-		r.SetBytes(rawSign[:(sigLen / 2)])
-		s.SetBytes(rawSign[(sigLen / 2):64])
-		//hash.SetBytes(data)
-		r1:=util.Sub(&r,data)
-		expy := util.Sub(sm2P256V1.Params().N, big.NewInt(2))
-		rinv := new(big.Int).Exp(r1, expy, sm2P256V1.Params().N)
-		z := data
-
-		xxx := util.Mul(&r, &r)
-		xxx.Mul(xxx, &r)
-
-		ax := util.Mul(sm2P256V1.A, &r)
-
-		yy := util.Sub(xxx, ax)
-		yy.Add(yy, sm2P256V1.Params().B)
-
-		//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
-
-		y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
-		if y1 == nil {
-			return nil, fmt.Errorf("can not revcovery public key")
-		}
-
-		y2 := new(big.Int).Neg(y1)
-		y2.Mod(y2, sm2P256V1.Params().P)
-		p1, p2 := sm2P256V1.ScalarMult(r1, y1, s.Bytes())
-		p3, p4 := sm2P256V1.ScalarBaseMult(z.Bytes())
-
-		p5 := new(big.Int).Neg(p4)
-		p5.Mod(p5, sm2P256V1.Params().P)
-
-		q1, q2 := sm2P256V1.Add(p1, p2, p3, p5)
-		q3, q4 := sm2P256V1.ScalarMult(q1, q2, rinv.Bytes())
-
-		n1, n2 := sm2P256V1.ScalarMult(r1, y2, s.Bytes())
-		n3, n4 := sm2P256V1.ScalarBaseMult(z.Bytes())
-
-		n5 := new(big.Int).Neg(n4)
-		n5.Mod(n5, sm2P256V1.Params().P)
-
-		q5, q6 := sm2P256V1.Add(n1, n2, n3, n5)
-		q7, q8 :=sm2P256V1.ScalarMult(q5, q6, rinv.Bytes())
-		key1 := PublicKey{Curve: sm2P256V1, X: q3, Y: q4}
-		key2 := PublicKey{Curve: sm2P256V1, X: q7 ,Y: q8}
-		fmt.Println(key1)
-		return &key2, nil*/
-
-	r := big.Int{}
-	s := big.Int{}
-	j := big.Int{}
-	for i := 0; ; i++ {
-		j.Add(big.NewInt(1), &j)
-		sigLen := len(rawSign)
-		r.SetBytes(rawSign[:(sigLen / 2)])
-		s.SetBytes(rawSign[(sigLen / 2):64])
-		t := util.Add(&r, &s)
-		t = util.Mod(t, key.Curve.N)
-
-		sgx1, _ := key.Curve.ScalarBaseMult(s.Bytes())
-		/*	tpx, tpy := key.Curve.ScalarMult(pub.X, pub.Y, t.Bytes())
-			x, y := pub.Curve.Add(sgx, sgy, tpx, tpy)*/
-
-		jn := util.Mul(key.Curve.N, &j)
-		x := util.Add(&r, jn)
-		x1 := util.Sub(x, data)
-		tpx := util.Sub(x1, sgx1)
-		pubx := util.Mul(tpx, t)
-		fmt.Println(pubx)
-		if key.X == pubx {
-			fmt.Println("recover success")
-			return &key, nil
-		}
-
-		kg := new(big.Int).Sub(&r, data)
-		kg1 := new(big.Int).Add(kg, sm2P256V1.Params().N.Mul(sm2P256V1.Params().N, &j))
-		sgx := new(big.Int).Mul(&s, sm2P256V1.Params().Gx)
-		ks := new(big.Int).Sub(kg1, sgx)
-		rs := new(big.Int).Add(&r, &s)
-		dg := new(big.Int).Div(ks, rs)
-		xxx := util.Mul(dg, dg)
-		xxx.Mul(xxx, dg)
-
-		ax := util.Mul(sm2P256V1.A, dg)
-
-		yy := util.Sub(xxx, ax)
-		yy.Add(yy, sm2P256V1.Params().B)
-
-		//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
-
-		y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
-		/*	if y1 == nil {
-			return nil, fmt.Errorf("can not revcovery public key")
-		}*/
-
-		//y2 := new(big.Int).Neg(y1)
-		key2 := PublicKey{Curve: sm2P256V1, X: dg, Y: y1}
-		if key.X == key2.X {
-			return &key2, nil
-		}
-		//return &key2, nil
-	}
-	return nil, nil
-} /*	r := big.Int{}
-	s := big.Int{}
-	sigLen := len(rawSign)
-	r.SetBytes(rawSign[:(sigLen / 2)])
-	s.SetBytes(rawSign[(sigLen / 2):64])
-
-	expy := new(big.Int).Sub(sm2P256V1.Params().N, big.NewInt(2))
-	rinv := new(big.Int).Exp(&r, expy, sm2P256V1.Params().N)
-	z := new(big.Int).SetBytes(data)
-
-	xxx := new(big.Int).Mul(&r, &r)
-	xxx.Mul(xxx, &r)
-
-	ax := new(big.Int).Mul(sm2P256V1.A, &r)
-
-	yy := new(big.Int).Sub(xxx, ax)
-	yy.Add(yy, sm2P256V1.Params().B)
-
-	//y_squard := new(big.Int).Mod(tmp4,elliptic.P256().Params().P)
-
-	y1 := new(big.Int).ModSqrt(yy, sm2P256V1.Params().P)
-	if y1 == nil {
-		return nil, fmt.Errorf("can not revcovery public key")
-	}
-
-	y2 := new(big.Int).Neg(y1)
-	y2.Mod(y2, sm2P256V1.Params().P)
-	p1, p2 := sm2P256V1.ScalarMult(&r, y1, s.Bytes())
-	p3, p4 := sm2P256V1.ScalarBaseMult(z.Bytes())
-
-	p5 := new(big.Int).Neg(p4)
-	p5.Mod(p5, sm2P256V1.Params().P)
-
-	q1, q2 := sm2P256V1.Add(p1, p2, p3, p5)
-	q3, q4 := sm2P256V1.ScalarMult(q1, q2, rinv.Bytes())
-
-	n1, n2 := sm2P256V1.ScalarMult(&r, y2, s.Bytes())
-	n3, n4 := sm2P256V1.ScalarBaseMult(z.Bytes())
-
-	n5 := new(big.Int).Neg(n4)
-	n5.Mod(n5, sm2P256V1.Params().P)
-
-	q5, q6 := sm2P256V1.Add(n1, n2, n3, n5)
-	q7, q8 :=sm2P256V1.ScalarMult(q5, q6, rinv.Bytes())
-	q9:=new(big.Int).Sub(q7, z)
-	q10:=new(big.Int).Sub(q8, z)
-	key1 := PublicKey{Curve: sm2P256V1, X: q3, Y: q4}
-	key2 := PublicKey{Curve: sm2P256V1, X: q9, Y: q10}
-	fmt.Println(key1)
-	return &key2, nil*/
-
-/*func ECRecovery(data []byte, rawSign []byte) (*PublicKey, error) {
-	r := big.Int{}
-	s := big.Int{}
-	sigLen := len(rawSign)
-	r.SetBytes(rawSign[:(sigLen / 2)])
-	s.SetBytes(rawSign[(sigLen / 2):64])
-	t := util.Add(&r, &s)
-	t = util.Mod(t, sm2P256V1.Params().N)
-
-	sgx, sgy := sm2P256V1.Params().ScalarBaseMult(s.Bytes())
-	tpx, tpy := sm2P256V1.Params().ScalarMult(pub.X, pub.Y, t.Bytes())
-}*/

@@ -72,15 +72,14 @@ func Test_zeroBytes(t *testing.T) {
 		byte, _ := hex.DecodeString(stringsm2pub)
 		ecdpub1, _ := UnmarshalPubkey(byte)
 		fmt.Println(ecdpub1)*/
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 1000; i++ {
 		digestHash := "009feb9d89b8cf6e82900bc9ec642ab6278788c9d44ed26b2c3c3d13ac56cb9a"
 		priv := "bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
 		digestHash1, _ := hex.DecodeString(digestHash)
 		pri, _ := HexToECDSA(priv)
 		sign, _ := Sign(digestHash1, pri)
-		if sign[64] == 2 || sign[64] == 3 {
-			fmt.Println(sign)
-		}
+		fmt.Println(sign)
+
 		boolverify := VerifySignature(FromECDSAPub(&pri.PublicKey), digestHash1, sign)
 		if boolverify == false {
 			fmt.Println(boolverify)
@@ -91,7 +90,7 @@ func Test_zeroBytes(t *testing.T) {
 }
 func TestSm2(t *testing.T) {
 	CryptoType = CRYPTO_SM2_SM3_SM4
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000; i++ {
 		priv, err := GenerateKey()
 		if err != nil {
 			log.Fatal(err)
@@ -184,8 +183,6 @@ func TestHash256(t *testing.T) {
 	fmt.Println(h)
 	doublebyte := Double256(h.Bytes())
 	fmt.Println(doublebyte)
-	hexstring := Hex(doublebyte)
-	fmt.Println(hexstring)
 	byte := Hash256Byte(doublebyte, doublebyte)
 	fmt.Println(byte)
 	hash256 := Hash256(doublebyte, doublebyte, doublebyte)
