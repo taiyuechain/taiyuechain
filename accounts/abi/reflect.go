@@ -18,6 +18,7 @@ package abi
 
 import (
 	"fmt"
+	"math/big"
 	"reflect"
 	"strings"
 )
@@ -25,38 +26,46 @@ import (
 // indirect recursively dereferences the value until it either gets the value
 // or finds a big.Int
 func indirect(v reflect.Value) reflect.Value {
-	if v.Kind() == reflect.Ptr && v.Elem().Type() != derefbigT {
+	if v.Kind() == reflect.Ptr && v.Elem().Type() != reflect.TypeOf(big.Int{}) {
 		return indirect(v.Elem())
 	}
 	return v
 }
 
-// reflectIntKind returns the reflect using the given size and
+// indirectInterfaceOrPtr recursively dereferences the value until value is not interface.
+func indirectInterfaceOrPtr(v reflect.Value) reflect.Value {
+	if (v.Kind() == reflect.Interface || v.Kind() == reflect.Ptr) && v.Elem().IsValid() {
+		return indirect(v.Elem())
+	}
+	return v
+}
+
+// reflectIntType returns the reflect using the given size and
 // unsignedness.
-func reflectIntKindAndType(unsigned bool, size int) (reflect.Kind, reflect.Type) {
+func reflectIntType(unsigned bool, size int) reflect.Type {
+	if unsigned {
+		switch size {
+		case 8:
+			return reflect.TypeOf(uint8(0))
+		case 16:
+			return reflect.TypeOf(uint16(0))
+		case 32:
+			return reflect.TypeOf(uint32(0))
+		case 64:
+			return reflect.TypeOf(uint64(0))
+		}
+	}
 	switch size {
 	case 8:
-		if unsigned {
-			return reflect.Uint8, uint8T
-		}
-		return reflect.Int8, int8T
+		return reflect.TypeOf(int8(0))
 	case 16:
-		if unsigned {
-			return reflect.Uint16, uint16T
-		}
-		return reflect.Int16, int16T
+		return reflect.TypeOf(int16(0))
 	case 32:
-		if unsigned {
-			return reflect.Uint32, uint32T
-		}
-		return reflect.Int32, int32T
+		return reflect.TypeOf(int32(0))
 	case 64:
-		if unsigned {
-			return reflect.Uint64, uint64T
-		}
-		return reflect.Int64, int64T
+		return reflect.TypeOf(int64(0))
 	}
-	return reflect.Ptr, bigT
+	return reflect.TypeOf(&big.Int{})
 }
 
 // mustArrayToBytesSlice creates a new byte slice with the exact same size as value
@@ -71,20 +80,32 @@ func mustArrayToByteSlice(value reflect.Value) reflect.Value {
 //
 // set is a bit more lenient when it comes to assignment and doesn't force an as
 // strict ruleset as bare `reflect` does.
-func set(dst, src reflect.Value, output Argument) error {
-	dstType := dst.Type()
-	srcType := src.Type()
+func set(dst, src reflect.Value) error {
+	dstType, srcType := dst.Type(), src.Type()
 	switch {
-	case dstType.AssignableTo(srcType):
+	case dstType.Kind() == reflect.Interface && dst.Elem().IsValid():
+		return set(dst.Elem(), src)
+	case dstType.Kind() == reflect.Ptr && dstType.Elem() != reflect.TypeOf(big.Int{}):
+		return set(dst.Elem(), src)
+	case srcType.AssignableTo(dstType) && dst.CanSet():
 		dst.Set(src)
-	case dstType.Kind() == reflect.Interface:
-		dst.Set(src)
-	case dstType.Kind() == reflect.Ptr:
-		return set(dst.Elem(), src, output)
+	case dstType.Kind() == reflect.Slice && srcType.Kind() == reflect.Slice && dst.CanSet():
+		setSlice(dst, src)
 	default:
 		return fmt.Errorf("abi: cannot unmarshal %v in to %v", src.Type(), dst.Type())
 	}
 	return nil
+}
+
+// setSlice attempts to assign src to dst when slices are not assignable by default
+// e.g. src: [][]byte -> dst: [][15]byte
+// setSlice ignores if we cannot copy all of src' elements.
+func setSlice(dst, src reflect.Value) {
+	slice := reflect.MakeSlice(dst.Type(), src.Len(), src.Len())
+	for i := 0; i < src.Len(); i++ {
+		reflect.Copy(slice.Index(i), src.Index(i))
+	}
+	dst.Set(slice)
 }
 
 // requireAssignable assures that `dest` is a pointer and it's not an interface.
@@ -96,119 +117,18 @@ func requireAssignable(dst, src reflect.Value) error {
 }
 
 // requireUnpackKind verifies preconditions for unpacking `args` into `kind`
-func requireUnpackKind(v reflect.Value, t reflect.Type, k reflect.Kind,
-	args Arguments) error {
-
-	switch k {
+func requireUnpackKind(v reflect.Value, minLength int, args Arguments) error {
+	switch v.Kind() {
 	case reflect.Struct:
 	case reflect.Slice, reflect.Array:
-		if minLen := args.LengthNonIndexed(); v.Len() < minLen {
+		if v.Len() < minLength {
 			return fmt.Errorf("abi: insufficient number of elements in the list/array for unpack, want %d, got %d",
-				minLen, v.Len())
+				minLength, v.Len())
 		}
 	default:
-		return fmt.Errorf("abi: cannot unmarshal tuple into %v", t)
+		return fmt.Errorf("abi: cannot unmarshal tuple into %v", v.Type())
 	}
 	return nil
-}
-
-// mapAbiToStringField maps abi to struct fields.
-// first round: for each Exportable field that contains a `abi:""` tag
-//   and this field name exists in the arguments, pair them together.
-// second round: for each argument field that has not been already linked,
-//   find what variable is expected to be mapped into, if it exists and has not been
-//   used, pair them.
-func mapAbiToStructFields(args Arguments, value reflect.Value) (map[string]string, error) {
-
-	typ := value.Type()
-
-	abi2struct := make(map[string]string)
-	struct2abi := make(map[string]string)
-
-	// first round ~~~
-	for i := 0; i < typ.NumField(); i++ {
-		structFieldName := typ.Field(i).Name
-
-		// skip private struct fields.
-		if structFieldName[:1] != strings.ToUpper(structFieldName[:1]) {
-			continue
-		}
-
-		// skip fields that have no abi:"" tag.
-		var ok bool
-		var tagName string
-		if tagName, ok = typ.Field(i).Tag.Lookup("abi"); !ok {
-			continue
-		}
-
-		// check if tag is empty.
-		if tagName == "" {
-			return nil, fmt.Errorf("struct: abi tag in '%s' is empty", structFieldName)
-		}
-
-		// check which argument field matches with the abi tag.
-		found := false
-		for _, abiField := range args.NonIndexed() {
-			if abiField.Name == tagName {
-				if abi2struct[abiField.Name] != "" {
-					return nil, fmt.Errorf("struct: abi tag in '%s' already mapped", structFieldName)
-				}
-				// pair them
-				abi2struct[abiField.Name] = structFieldName
-				struct2abi[structFieldName] = abiField.Name
-				found = true
-			}
-		}
-
-		// check if this tag has been mapped.
-		if !found {
-			return nil, fmt.Errorf("struct: abi tag '%s' defined but not found in abi", tagName)
-		}
-
-	}
-
-	// second round ~~~
-	for _, arg := range args {
-
-		abiFieldName := arg.Name
-		structFieldName := capitalise(abiFieldName)
-
-		if structFieldName == "" {
-			return nil, fmt.Errorf("abi: purely underscored output cannot unpack to struct")
-		}
-
-		// this abi has already been paired, skip it... unless there exists another, yet unassigned
-		// struct field with the same field name. If so, raise an error:
-		//    abi: [ { "name": "value" } ]
-		//    struct { Value  *big.Int , Value1 *big.Int `abi:"value"`}
-		if abi2struct[abiFieldName] != "" {
-			if abi2struct[abiFieldName] != structFieldName &&
-				struct2abi[structFieldName] == "" &&
-				value.FieldByName(structFieldName).IsValid() {
-				return nil, fmt.Errorf("abi: multiple variables maps to the same abi field '%s'", abiFieldName)
-			}
-			continue
-		}
-
-		// return an error if this struct field has already been paired.
-		if struct2abi[structFieldName] != "" {
-			return nil, fmt.Errorf("abi: multiple outputs mapping to the same struct field '%s'", structFieldName)
-		}
-
-		if value.FieldByName(structFieldName).IsValid() {
-			// pair them
-			abi2struct[abiFieldName] = structFieldName
-			struct2abi[structFieldName] = abiFieldName
-		} else {
-			// not paired, but annotate as used, to detect cases like
-			//   abi : [ { "name": "value" }, { "name": "_value" } ]
-			//   struct { Value *big.Int }
-			struct2abi[structFieldName] = abiFieldName
-		}
-
-	}
-
-	return abi2struct, nil
 }
 
 // mapArgNamesToStructFields maps a slice of argument names to struct fields.
@@ -233,9 +153,8 @@ func mapArgNamesToStructFields(argNames []string, value reflect.Value) (map[stri
 			continue
 		}
 		// skip fields that have no abi:"" tag.
-		var ok bool
-		var tagName string
-		if tagName, ok = typ.Field(i).Tag.Lookup("abi"); !ok {
+		tagName, ok := typ.Field(i).Tag.Lookup("abi")
+		if !ok {
 			continue
 		}
 		// check if tag is empty.

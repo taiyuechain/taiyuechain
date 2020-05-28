@@ -44,13 +44,12 @@ type ArgumentMarshaling struct {
 // UnmarshalJSON implements json.Unmarshaler interface
 func (argument *Argument) UnmarshalJSON(data []byte) error {
 	var arg ArgumentMarshaling
-
 	err := json.Unmarshal(data, &arg)
 	if err != nil {
 		return fmt.Errorf("argument json err: %v", err)
 	}
 
-	argument.Type, err = NewType(arg.Type,arg.InternalType, arg.Components)
+	argument.Type, err = NewType(arg.Type, arg.InternalType, arg.Components)
 	if err != nil {
 		return err
 	}
@@ -58,18 +57,6 @@ func (argument *Argument) UnmarshalJSON(data []byte) error {
 	argument.Indexed = arg.Indexed
 
 	return nil
-}
-
-// LengthNonIndexed returns the number of arguments when not counting 'indexed' ones. Only events
-// can ever have 'indexed' arguments, it should always be false on arguments for method input/output
-func (arguments Arguments) LengthNonIndexed() int {
-	out := 0
-	for _, arg := range arguments {
-		if !arg.Indexed {
-			out++
-		}
-	}
-	return out
 }
 
 // NonIndexed returns the arguments with indexed arguments filtered out
@@ -90,7 +77,12 @@ func (arguments Arguments) isTuple() bool {
 
 // Unpack performs the operation hexdata -> Go format
 func (arguments Arguments) Unpack(v interface{}, data []byte) error {
-
+	if len(data) == 0 {
+		if len(arguments) != 0 {
+			return fmt.Errorf("abi: attempting to unmarshall an empty string while arguments are expected")
+		}
+		return nil // Nothing to unmarshal, return
+	}
 	// make sure the passed value is arguments pointer
 	if reflect.Ptr != reflect.ValueOf(v).Kind() {
 		return fmt.Errorf("abi: Unpack(non-pointer %T)", v)
@@ -99,55 +91,172 @@ func (arguments Arguments) Unpack(v interface{}, data []byte) error {
 	if err != nil {
 		return err
 	}
+	if len(marshalledValues) == 0 {
+		return fmt.Errorf("abi: Unpack(no-values unmarshalled %T)", v)
+	}
 	if arguments.isTuple() {
 		return arguments.unpackTuple(v, marshalledValues)
 	}
-	return arguments.unpackAtomic(v, marshalledValues)
+	return arguments.unpackAtomic(v, marshalledValues[0])
 }
 
-func (arguments Arguments) unpackTuple(v interface{}, marshalledValues []interface{}) error {
+// UnpackIntoMap performs the operation hexdata -> mapping of argument name to argument value
+func (arguments Arguments) UnpackIntoMap(v map[string]interface{}, data []byte) error {
+	// Make sure map is not nil
+	if v == nil {
+		return fmt.Errorf("abi: cannot unpack into a nil map")
+	}
+	if len(data) == 0 {
+		if len(arguments) != 0 {
+			return fmt.Errorf("abi: attempting to unmarshall an empty string while arguments are expected")
+		}
+		return nil // Nothing to unmarshal, return
+	}
+	marshalledValues, err := arguments.UnpackValues(data)
+	if err != nil {
+		return err
+	}
+	for i, arg := range arguments.NonIndexed() {
+		v[arg.Name] = marshalledValues[i]
+	}
+	return nil
+}
 
+// unpack sets the unmarshalled value to go format.
+// Note the dst here must be settable.
+func unpack(t *Type, dst interface{}, src interface{}) error {
 	var (
-		value = reflect.ValueOf(v).Elem()
-		typ   = value.Type()
-		kind  = value.Kind()
+		dstVal = reflect.ValueOf(dst).Elem()
+		srcVal = reflect.ValueOf(src)
 	)
+	tuple, typ := false, t
+	for {
+		if typ.T == SliceTy || typ.T == ArrayTy {
+			typ = typ.Elem
+			continue
+		}
+		tuple = typ.T == TupleTy
+		break
+	}
+	if !tuple {
+		return set(dstVal, srcVal)
+	}
 
-	if err := requireUnpackKind(value, typ, kind, arguments); err != nil {
+	// Dereferences interface or pointer wrapper
+	dstVal = indirectInterfaceOrPtr(dstVal)
+
+	switch t.T {
+	case TupleTy:
+		if dstVal.Kind() != reflect.Struct {
+			return fmt.Errorf("abi: invalid dst value for unpack, want struct, got %s", dstVal.Kind())
+		}
+		fieldmap, err := mapArgNamesToStructFields(t.TupleRawNames, dstVal)
+		if err != nil {
+			return err
+		}
+		for i, elem := range t.TupleElems {
+			fname := fieldmap[t.TupleRawNames[i]]
+			field := dstVal.FieldByName(fname)
+			if !field.IsValid() {
+				return fmt.Errorf("abi: field %s can't found in the given value", t.TupleRawNames[i])
+			}
+			if err := unpack(elem, field.Addr().Interface(), srcVal.Field(i).Interface()); err != nil {
+				return err
+			}
+		}
+		return nil
+	case SliceTy:
+		if dstVal.Kind() != reflect.Slice {
+			return fmt.Errorf("abi: invalid dst value for unpack, want slice, got %s", dstVal.Kind())
+		}
+		slice := reflect.MakeSlice(dstVal.Type(), srcVal.Len(), srcVal.Len())
+		for i := 0; i < slice.Len(); i++ {
+			if err := unpack(t.Elem, slice.Index(i).Addr().Interface(), srcVal.Index(i).Interface()); err != nil {
+				return err
+			}
+		}
+		dstVal.Set(slice)
+	case ArrayTy:
+		if dstVal.Kind() != reflect.Array {
+			return fmt.Errorf("abi: invalid dst value for unpack, want array, got %s", dstVal.Kind())
+		}
+		array := reflect.New(dstVal.Type()).Elem()
+		for i := 0; i < array.Len(); i++ {
+			if err := unpack(t.Elem, array.Index(i).Addr().Interface(), srcVal.Index(i).Interface()); err != nil {
+				return err
+			}
+		}
+		dstVal.Set(array)
+	}
+	return nil
+}
+
+// unpackAtomic unpacks ( hexdata -> go ) a single value
+func (arguments Arguments) unpackAtomic(v interface{}, marshalledValues interface{}) error {
+	nonIndexedArgs := arguments.NonIndexed()
+	if len(nonIndexedArgs) == 0 {
+		return nil
+	}
+	argument := nonIndexedArgs[0]
+	elem := reflect.ValueOf(v).Elem()
+
+	if elem.Kind() == reflect.Struct && argument.Type.T != TupleTy {
+		fieldmap, err := mapArgNamesToStructFields([]string{argument.Name}, elem)
+		if err != nil {
+			return err
+		}
+		field := elem.FieldByName(fieldmap[argument.Name])
+		if !field.IsValid() {
+			return fmt.Errorf("abi: field %s can't be found in the given value", argument.Name)
+		}
+		return unpack(&argument.Type, field.Addr().Interface(), marshalledValues)
+	}
+	return unpack(&argument.Type, elem.Addr().Interface(), marshalledValues)
+}
+
+// unpackTuple unpacks ( hexdata -> go ) a batch of values.
+func (arguments Arguments) unpackTuple(v interface{}, marshalledValues []interface{}) error {
+	var (
+		value          = reflect.ValueOf(v).Elem()
+		typ            = value.Type()
+		kind           = value.Kind()
+		nonIndexedArgs = arguments.NonIndexed()
+	)
+	if err := requireUnpackKind(value, len(nonIndexedArgs), arguments); err != nil {
 		return err
 	}
 
 	// If the interface is a struct, get of abi->struct_field mapping
-
 	var abi2struct map[string]string
 	if kind == reflect.Struct {
+		argNames := make([]string, len(nonIndexedArgs))
+		for i, arg := range nonIndexedArgs {
+			argNames[i] = arg.Name
+		}
 		var err error
-		abi2struct, err = mapAbiToStructFields(arguments, value)
-		if err != nil {
+		if abi2struct, err = mapArgNamesToStructFields(argNames, value); err != nil {
 			return err
 		}
 	}
-	for i, arg := range arguments.NonIndexed() {
-
-		reflectValue := reflect.ValueOf(marshalledValues[i])
-
+	for i, arg := range nonIndexedArgs {
 		switch kind {
 		case reflect.Struct:
-			if structField, ok := abi2struct[arg.Name]; ok {
-				if err := set(value.FieldByName(structField), reflectValue, arg); err != nil {
-					return err
-				}
+			field := value.FieldByName(abi2struct[arg.Name])
+			if !field.IsValid() {
+				return fmt.Errorf("abi: field %s can't be found in the given value", arg.Name)
+			}
+			if err := unpack(&arg.Type, field.Addr().Interface(), marshalledValues[i]); err != nil {
+				return err
 			}
 		case reflect.Slice, reflect.Array:
 			if value.Len() < i {
 				return fmt.Errorf("abi: insufficient number of arguments for unpack, want %d, got %d", len(arguments), value.Len())
 			}
 			v := value.Index(i)
-			if err := requireAssignable(v, reflectValue); err != nil {
+			if err := requireAssignable(v, reflect.ValueOf(marshalledValues[i])); err != nil {
 				return err
 			}
-
-			if err := set(v.Elem(), reflectValue, arg); err != nil {
+			if err := unpack(&arg.Type, v.Addr().Interface(), marshalledValues[i]); err != nil {
 				return err
 			}
 		default:
@@ -155,59 +264,19 @@ func (arguments Arguments) unpackTuple(v interface{}, marshalledValues []interfa
 		}
 	}
 	return nil
-}
 
-// unpackAtomic unpacks ( hexdata -> go ) a single value
-func (arguments Arguments) unpackAtomic(v interface{}, marshalledValues []interface{}) error {
-	if len(marshalledValues) != 1 {
-		return fmt.Errorf("abi: wrong length, expected single value, got %d", len(marshalledValues))
-	}
-
-	elem := reflect.ValueOf(v).Elem()
-	kind := elem.Kind()
-	reflectValue := reflect.ValueOf(marshalledValues[0])
-
-	var abi2struct map[string]string
-	if kind == reflect.Struct {
-		var err error
-		if abi2struct, err = mapAbiToStructFields(arguments, elem); err != nil {
-			return err
-		}
-		arg := arguments.NonIndexed()[0]
-		if structField, ok := abi2struct[arg.Name]; ok {
-			return set(elem.FieldByName(structField), reflectValue, arg)
-		}
-		return nil
-	}
-
-	return set(elem, reflectValue, arguments.NonIndexed()[0])
-
-}
-
-// Computes the full size of an array;
-// i.e. counting nested arrays, which count towards size for unpacking.
-func getArraySize(arr *Type) int {
-	size := arr.Size
-	// Arrays can be nested, with each element being the same size
-	arr = arr.Elem
-	for arr.T == ArrayTy {
-		// Keep multiplying by elem.Size while the elem is an array.
-		size *= arr.Size
-		arr = arr.Elem
-	}
-	// Now we have the full array size, including its children.
-	return size
 }
 
 // UnpackValues can be used to unpack ABI-encoded hexdata according to the ABI-specification,
 // without supplying a struct to unpack into. Instead, this method returns a list containing the
 // values. An atomic argument will be a list with one element.
 func (arguments Arguments) UnpackValues(data []byte) ([]interface{}, error) {
-	retval := make([]interface{}, 0, arguments.LengthNonIndexed())
+	nonIndexedArgs := arguments.NonIndexed()
+	retval := make([]interface{}, 0, len(nonIndexedArgs))
 	virtualArgs := 0
-	for index, arg := range arguments.NonIndexed() {
-		marshalledValue, err := toGoType((index+virtualArgs)*32, arg.Type, data)
-		if arg.Type.T == ArrayTy {
+	for index, arg := range nonIndexedArgs {
+		marshalledValue, err := ToGoType((index+virtualArgs)*32, arg.Type, data)
+		if arg.Type.T == ArrayTy && !isDynamicType(arg.Type) {
 			// If we have a static array, like [3]uint256, these are coded as
 			// just like uint256,uint256,uint256.
 			// This means that we need to add two 'virtual' arguments when
@@ -218,7 +287,11 @@ func (arguments Arguments) UnpackValues(data []byte) ([]interface{}, error) {
 			//
 			// Calculate the full array size to get the correct offset for the next argument.
 			// Decrement it by 1, as the normal index increment is still applied.
-			virtualArgs += getArraySize(&arg.Type) - 1
+			virtualArgs += getTypeSize(arg.Type)/32 - 1
+		} else if arg.Type.T == TupleTy && !isDynamicType(arg.Type) {
+			// If we have a static tuple, like (uint256, bool, uint256), these are
+			// coded as just like uint256,bool,uint256
+			virtualArgs += getTypeSize(arg.Type)/32 - 1
 		}
 		if err != nil {
 			return nil, err
@@ -238,54 +311,6 @@ func (arguments Arguments) PackValues(args []interface{}) ([]byte, error) {
 func (arguments Arguments) Pack(args ...interface{}) ([]byte, error) {
 	// Make sure arguments match up and pack them
 	abiArgs := arguments
-	if len(args) != len(abiArgs) {
-		return nil, fmt.Errorf("argument count mismatch: %d for %d", len(args), len(abiArgs))
-	}
-	// variable input is the output appended at the end of packed
-	// output. This is used for strings and bytes types input.
-	var variableInput []byte
-
-	// input offset is the bytes offset for packed output
-	inputOffset := 0
-	for _, abiArg := range abiArgs {
-		if abiArg.Type.T == ArrayTy {
-			inputOffset += 32 * abiArg.Type.Size
-		} else {
-			inputOffset += 32
-		}
-	}
-	var ret []byte
-	for i, a := range args {
-		input := abiArgs[i]
-		// pack the input
-		packed, err := input.Type.pack(reflect.ValueOf(a))
-		if err != nil {
-			return nil, err
-		}
-		// check for a slice type (string, bytes, slice)
-		if input.Type.requiresLengthPrefix() {
-			// calculate the offset
-			offset := inputOffset + len(variableInput)
-			// set the offset
-			ret = append(ret, packNum(reflect.ValueOf(offset))...)
-			// Append the packed output to the variable input. The variable input
-			// will be appended at the end of the input.
-			variableInput = append(variableInput, packed...)
-		} else {
-			// append the packed value to the input
-			ret = append(ret, packed...)
-		}
-	}
-	// append the variable input at the end of the packed input
-	ret = append(ret, variableInput...)
-
-	return ret, nil
-}
-
-// PackNonIndexed performs the operation Go format -> Hexdata
-func (arguments Arguments) PackNonIndexed(args ...interface{}) ([]byte, error) {
-	// Make sure arguments match up and pack them
-	abiArgs := arguments.NonIndexed()
 	if len(args) != len(abiArgs) {
 		return nil, fmt.Errorf("argument count mismatch: %d for %d", len(args), len(abiArgs))
 	}
@@ -323,18 +348,6 @@ func (arguments Arguments) PackNonIndexed(args ...interface{}) ([]byte, error) {
 	ret = append(ret, variableInput...)
 
 	return ret, nil
-}
-
-// capitalise makes the first character of a string upper case, also removing any
-// prefixing underscores from the variable names.
-func capitalise(input string) string {
-	for len(input) > 0 && input[0] == '_' {
-		input = input[1:]
-	}
-	if len(input) == 0 {
-		return ""
-	}
-	return strings.ToUpper(input[:1]) + input[1:]
 }
 
 // ToCamelCase converts an under-score string to a camel-case string
