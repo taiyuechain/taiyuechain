@@ -43,8 +43,6 @@ import (
 	"github.com/golang/snappy"
 	"github.com/taiyuechain/taiyuechain/common/bitutil"
 	"github.com/taiyuechain/taiyuechain/rlp"
-
-	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -261,12 +259,13 @@ func (h *encHandshake) secrets(auth, authResp []byte) (secrets, error) {
 		MAC:    crypto.Keccak256(ecdheSecret, aesSecret),
 	}
 	// setup sha3 instances for the MACs
-	mac1 := sha3.NewLegacyKeccak256()
-	mac1.Write(xor(s.MAC, h.respNonce))
-	mac1.Write(auth)
-	mac2 := sha3.NewLegacyKeccak256()
-	mac2.Write(xor(s.MAC, h.initNonce))
-	mac2.Write(authResp)
+	mac1 := crypto.Hash256(auth, s.MAC, h.respNonce)
+	/*	mac1.Write(xor(s.MAC, h.respNonce))
+		mac1.Write(auth)*/
+	/*	mac2 := sha3.NewLegacyKeccak256()
+		mac2.Write(xor(s.MAC, h.initNonce))
+		mac2.Write(authResp)*/
+	mac2 := crypto.Hash256(authResp, s.MAC, h.initNonce)
 	if h.initiator {
 		s.EgressMAC, s.IngressMAC = mac1, mac2
 	} else {

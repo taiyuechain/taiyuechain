@@ -28,10 +28,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/rlp"
-	"golang.org/x/crypto/sha3"
+	"github.com/taiyuechain/taiyuechain/taidb"
 	"math/big"
 	"strings"
 )
@@ -158,7 +156,7 @@ func (t *StateTest) Run(subtest StateSubtest, vmconfig vm.Config) (*state.StateD
 	if root != common.Hash(post.Root) {
 		return statedb, fmt.Errorf("post state root mismatch: got %x, want %x", root, post.Root)
 	}
-	if logs := rlpHash(statedb.Logs()); logs != common.Hash(post.Logs) {
+	if logs := crypto.RlpHash(statedb.Logs()); logs != common.Hash(post.Logs) {
 		return statedb, fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, post.Logs)
 	}
 	return statedb, nil
@@ -247,9 +245,9 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	return msg, nil
 }
 
-func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewLegacyKeccak256()
+/*func rlpHash(x interface{}) (h common.Hash) {
+	hw := crypto.NewHash()
 	rlp.Encode(hw, x)
 	hw.Sum(h[:0])
 	return h
-}
+}*/

@@ -388,7 +388,7 @@ func opSha3(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory 
 
 	if interpreter.hasher == nil {
 		//interpreter.hasher = sha3.NewLegacyKeccak256().(keccakState)
-		interpreter.hasher = crypto.NewLegacyKeccak256().(keccakState)
+		interpreter.hasher = crypto.NewHash().(keccakState)
 	} else {
 		interpreter.hasher.Reset()
 	}

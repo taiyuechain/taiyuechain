@@ -20,7 +20,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -59,7 +58,7 @@ var errInvalidPubkey = errors.New("invalid public key")
 
 func Keccak256(data ...[]byte) []byte {
 	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
-		d := sha3.NewLegacyKeccak256()
+		d := sha3.New256()
 		for _, b := range data {
 			d.Write(b)
 		}
@@ -79,7 +78,7 @@ func Keccak256(data ...[]byte) []byte {
 // converting it to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
-		d := sha3.NewLegacyKeccak256()
+		d := sha3.New256()
 		for _, b := range data {
 			d.Write(b)
 		}
@@ -99,7 +98,7 @@ func Keccak256Hash(data ...[]byte) (h common.Hash) {
 
 // Keccak512 calculates and returns the Keccak512 hash of the input data.
 func Keccak512(data ...[]byte) []byte {
-	d := sha3.NewLegacyKeccak512()
+	d := sha3.New512()
 	for _, b := range data {
 		d.Write(b)
 	}
@@ -409,7 +408,7 @@ func Sum256(input []byte) ([]byte, error) {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		h := sha256.Sum256(input)
+		h := sha3.New256().Sum(input)
 		return h[:], nil
 
 	case CRYPTO_SM2_SM3_SM4:
@@ -425,7 +424,7 @@ func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		mac := sha3.NewLegacyKeccak256()
+		mac := sha3.New256()
 		mac.Write(xor(s, h))
 		mac.Write(auth)
 		return mac
@@ -443,7 +442,7 @@ func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		h := sha256.New()
+		h := sha3.New256()
 		h.Write(seedBytes)
 		h.Write(riseedBytes)
 		return h.Sum(nil)
@@ -461,7 +460,7 @@ func Hex(a []byte) string {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		unchecksummed := hex.EncodeToString(a[:])
-		sha := sha3.NewLegacyKeccak256()
+		sha := sha3.New256()
 		sha.Write([]byte(unchecksummed))
 		hash := sha.Sum(nil)
 
@@ -513,7 +512,7 @@ func Double256(b []byte) []byte {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		hasher := sha256.New()
+		hasher := sha3.New256()
 		hasher.Write(b) // nolint: errcheck, gas
 		sum := hasher.Sum(nil)
 		hasher.Reset()
@@ -533,7 +532,7 @@ func RlpHash(x interface{}) (h common.Hash) {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		hw := sha3.NewLegacyKeccak256()
+		hw := sha3.New256()
 		rlp.Encode(hw, x)
 		hw.Sum(h[:0])
 		return h
@@ -545,22 +544,11 @@ func RlpHash(x interface{}) (h common.Hash) {
 	}
 	return h
 }
-
-func NewLegacyKeccak256() hash.Hash {
-	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
-		return sha3.NewLegacyKeccak256()
-	case CRYPTO_SM2_SM3_SM4:
-		return sm3.New()
-	}
-	return nil
-}
 func NewHash() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		return sha256.New()
+		return sha3.New256()
 	case CRYPTO_SM2_SM3_SM4:
 		return sm3.New()
 	}
@@ -570,7 +558,7 @@ func NewHashObject() func() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
-		return sha256.New
+		return sha3.New256
 	case CRYPTO_SM2_SM3_SM4:
 		return sm3.New
 	}
