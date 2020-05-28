@@ -76,7 +76,7 @@ func (ec *Client) ChainID(ctx context.Context) (*big.Int, error) {
 //
 // Note that loading full blocks requires two requests. Use HeaderByHash
 // if you don't need all transactions or uncle headers.
-func (ec *Client) BlockByHash(ctx context.Context, hash Hash) (*types.Block, error) {
+func (ec *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
 	return ec.getBlock(ctx, "etrue_getBlockByHash", hash, true)
 }
 
@@ -153,7 +153,7 @@ func (ec *Client) GetCa(ctx context.Context, args ...interface{}) (*cim.ReIdenti
 }
 
 // HeaderByHash returns the block header with the given hash.
-func (ec *Client) HeaderByHash(ctx context.Context, hash Hash) (*types.Header, error) {
+func (ec *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	var head *types.Header
 	err := ec.c.CallContext(ctx, &head, "etrue_getBlockByHash", hash, false)
 	if err == nil && head == nil {
@@ -192,7 +192,7 @@ func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
 }
 
 // TransactionByHash returns the transaction with the given hash.
-func (ec *Client) TransactionByHash(ctx context.Context, hash Hash) (tx *types.Transaction, isPending bool, err error) {
+func (ec *Client) TransactionByHash(ctx context.Context, hash common.Hash) (tx *types.Transaction, isPending bool, err error) {
 	var json *rpcTransaction
 	err = ec.c.CallContext(ctx, &json, "etrue_getTransactionByHash", hash)
 	if err != nil {
@@ -214,7 +214,7 @@ func (ec *Client) TransactionByHash(ctx context.Context, hash Hash) (tx *types.T
 //
 // There is a fast-path for transactions retrieved by TransactionByHash and
 // TransactionInBlock. Getting their sender address can be done without an RPC interaction.
-func (ec *Client) TransactionSender(ctx context.Context, tx *types.Transaction, block Hash, index uint) (common.Address, error) {
+func (ec *Client) TransactionSender(ctx context.Context, tx *types.Transaction, block common.Hash, index uint) (common.Address, error) {
 	byteHash := block.Bytes()
 	hash := common.BytesToHash(byteHash)
 	// Try to load the address from the cache.
@@ -236,14 +236,14 @@ func (ec *Client) TransactionSender(ctx context.Context, tx *types.Transaction, 
 }
 
 // TransactionCount returns the total number of transactions in the given block.
-func (ec *Client) TransactionCount(ctx context.Context, blockHash Hash) (uint, error) {
+func (ec *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
 	var num hexutil.Uint
 	err := ec.c.CallContext(ctx, &num, "etrue_getBlockTransactionCountByHash", blockHash)
 	return uint(num), err
 }
 
 // TransactionInBlock returns a single transaction at index in the given block.
-func (ec *Client) TransactionInBlock(ctx context.Context, blockHash Hash, index uint) (*types.Transaction, error) {
+func (ec *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.Transaction, error) {
 	var json *rpcTransaction
 	err := ec.c.CallContext(ctx, &json, "etrue_getTransactionByBlockHashAndIndex", blockHash, hexutil.Uint64(index))
 	if err == nil {
@@ -261,7 +261,7 @@ func (ec *Client) TransactionInBlock(ctx context.Context, blockHash Hash, index 
 
 // TransactionReceipt returns the receipt of a transaction by transaction hash.
 // Note that the receipt is not available for pending transactions.
-func (ec *Client) TransactionReceipt(ctx context.Context, txHash Hash) (*types.Receipt, error) {
+func (ec *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	var r *types.Receipt
 	err := ec.c.CallContext(ctx, &r, "etrue_getTransactionReceipt", txHash)
 	if err == nil {
@@ -343,7 +343,7 @@ func (ec *Client) BalanceAt(ctx context.Context, account common.Address, blockNu
 
 // GetBalanceAtBlockNumber returns the wei balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.
-func (ec *Client) GetBalanceAtBlockNumber(ctx context.Context, account Address, blockNumber *big.Int) (*big.Int, error) {
+func (ec *Client) GetBalanceAtBlockNumber(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	var result hexutil.Big
 	err := ec.c.CallContext(ctx, &result, "etrue_getBalance", account, toBlockNumArg(blockNumber))
 	return (*big.Int)(&result), err
@@ -351,7 +351,7 @@ func (ec *Client) GetBalanceAtBlockNumber(ctx context.Context, account Address, 
 
 // StorageAt returns the value of key in the contract storage of the given account.
 // The block number can be nil, in which case the value is taken from the latest known block.
-func (ec *Client) StorageAt(ctx context.Context, account Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
 	var result hexutil.Bytes
 	err := ec.c.CallContext(ctx, &result, "etrue_getStorageAt", account, key, toBlockNumArg(blockNumber))
 	return result, err
@@ -359,7 +359,7 @@ func (ec *Client) StorageAt(ctx context.Context, account Address, key common.Has
 
 // CodeAt returns the contract code of the given account.
 // The block number can be nil, in which case the code is taken from the latest known block.
-func (ec *Client) CodeAt(ctx context.Context, account Address, blockNumber *big.Int) ([]byte, error) {
+func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	var result hexutil.Bytes
 	err := ec.c.CallContext(ctx, &result, "etrue_getCode", account, toBlockNumArg(blockNumber))
 	return result, err
@@ -375,7 +375,7 @@ func (ec *Client) NonceAt(ctx context.Context, account common.Address, blockNumb
 
 // GetNonceAtBlockNumber returns the account nonce of the given account.
 // The block number can be nil, in which case the nonce is taken from the latest known block.
-func (ec *Client) GetNonceAtBlockNumber(ctx context.Context, account Address, blockNumber *big.Int) (uint64, error) {
+func (ec *Client) GetNonceAtBlockNumber(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
 	var result hexutil.Uint64
 	err := ec.c.CallContext(ctx, &result, "etrue_getTransactionCount", account, toBlockNumArg(blockNumber))
 	return uint64(result), err
@@ -411,21 +411,21 @@ func toFilterArg(q taiyuechain.FilterQuery) interface{} {
 // Pending State
 
 // PendingBalanceAt returns the wei balance of the given account in the pending state.
-func (ec *Client) PendingBalanceAt(ctx context.Context, account Address) (*big.Int, error) {
+func (ec *Client) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
 	var result hexutil.Big
 	err := ec.c.CallContext(ctx, &result, "etrue_getBalance", account, "pending")
 	return (*big.Int)(&result), err
 }
 
 // PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
-func (ec *Client) PendingStorageAt(ctx context.Context, account Address, key Hash) ([]byte, error) {
+func (ec *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
 	var result hexutil.Bytes
 	err := ec.c.CallContext(ctx, &result, "etrue_getStorageAt", account, key, "pending")
 	return result, err
 }
 
 // PendingCodeAt returns the contract code of the given account in the pending state.
-func (ec *Client) PendingCodeAt(ctx context.Context, account Address) ([]byte, error) {
+func (ec *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
 	var result hexutil.Bytes
 	err := ec.c.CallContext(ctx, &result, "etrue_getCode", account, "pending")
 	return result, err
@@ -433,7 +433,7 @@ func (ec *Client) PendingCodeAt(ctx context.Context, account Address) ([]byte, e
 
 // PendingNonceAt returns the account nonce of the given account in the pending state.
 // This is the nonce that should be used for the next transaction.
-func (ec *Client) PendingNonceAt(ctx context.Context, account Address) (uint64, error) {
+func (ec *Client) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
 	var result hexutil.Uint64
 	err := ec.c.CallContext(ctx, &result, "etrue_getTransactionCount", account, "pending")
 	return uint64(result), err
