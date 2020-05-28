@@ -54,8 +54,8 @@ var (
 
 var errInvalidPubkey = errors.New("invalid public key")
 
-// Keccak256 calculates and returns the Keccak256 hash of the input data.
-
+//According to gm,s256 or p256 param to Keccak256 calculates and returns
+//the Keccak256 hash of the input data.
 func Keccak256(data ...[]byte) []byte {
 	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
 		d := sha3.New256()
@@ -74,8 +74,9 @@ func Keccak256(data ...[]byte) []byte {
 	return nil
 }
 
-// Keccak256Hash calculates and returns the Keccak256 hash of the input data,
-// converting it to an internal Hash data structure.
+//According to gm,s256 or p256 param to Keccak256Hash calculates
+//and returns the Keccak256 hash of the input data,converting it
+//to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	if CryptoType == CRYPTO_P256_SH3_AES || CryptoType == CRYPTO_S256_SH3_AES {
 		d := sha3.New256()
@@ -96,7 +97,8 @@ func Keccak256Hash(data ...[]byte) (h common.Hash) {
 	return h
 }
 
-// Keccak512 calculates and returns the Keccak512 hash of the input data.
+//According to gm,s256 or p256 param to Keccak512 calculates and returns
+//the Keccak512 hash of the input data.
 func Keccak512(data ...[]byte) []byte {
 	d := sha3.New512()
 	for _, b := range data {
@@ -105,19 +107,19 @@ func Keccak512(data ...[]byte) []byte {
 	return d.Sum(nil)
 }
 
-// CreateAddress creates an ethereum address given the bytes and the nonce
+//CreateAddress creates an ethereum address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
 	return common.BytesToAddress(Keccak256(data)[12:])
 }
 
-// CreateAddress2 creates an ethereum address given the address bytes, initial
-// contract code hash and a salt.
+//According to gm,s256 or p256 param to CreateAddress2 creates an ethereum address
+//given the address bytes, initial　contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
 	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
-// ToECDSA creates a private key with the given D value.
+//According to gm,s256 or p256 param  ToECDSA creates a private key with the given D value.
 func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		ecdsapri, err := toECDSA(elliptic.P256(), d, true)
@@ -144,6 +146,9 @@ func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	}
 	return nil, nil
 }
+
+//According to gm,s256 or p256 param to ToECDSA creates a private key with
+//the given D value. but not return error
 func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		ecdsapri, _ := toECDSA(elliptic.P256(), d, true)
@@ -163,9 +168,9 @@ func ToECDSAUnsafe(d []byte) *ecdsa.PrivateKey {
 	return nil
 }
 
-// toECDSA creates a private key with the given D value. The strict parameter
-// controls whether the key's length should be enforced at the curve size or
-// it can also accept legacy encodings (0 prefixes).
+//According to gm,s256 or p256 param to toECDSA creates a private key with the given D value.
+//The strict parameter　controls whether the key's length should be enforced at the curve size or
+//it can also accept legacy encodings (0 prefixes).
 func toECDSA(curve elliptic.Curve, d []byte, strict bool) (*ecdsa.PrivateKey, error) {
 	priv := new(ecdsa.PrivateKey)
 	//priv.PublicKey.Curve = S256()
@@ -191,13 +196,16 @@ func toECDSA(curve elliptic.Curve, d []byte, strict bool) (*ecdsa.PrivateKey, er
 	return priv, nil
 }
 
-// FromECDSA exports a private key into a binary dump.
+//According to gm,s256 or p256 param to FromECDSA exports a private key into a binary dump.
 func FromECDSA(priv *ecdsa.PrivateKey) []byte {
 	if priv == nil {
 		return nil
 	}
 	return math.PaddedBigBytes(priv.D, priv.Params().BitSize/8)
 }
+
+//According to gm,s256 or p256 param to UnmarshalPubkey exports a binary dump. into
+//ecdsa.PublicKey key.
 func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		x, y := elliptic.Unmarshal(elliptic.P256(), pub)
@@ -226,6 +234,7 @@ func UnmarshalPubkey(pub []byte) (*ecdsa.PublicKey, error) {
 	return nil, nil
 }
 
+//According to gm,s256 or p256 param to FromECDSA exports a publickey key into a binary dump.
 func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		if pub == nil || pub.X == nil || pub.Y == nil {
@@ -250,7 +259,7 @@ func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
 	return nil
 }
 
-// HexToECDSA parses a secp256k1 private key.
+//According to gm,s256 or p256 param to HexToECDSA parses a secp256k1 private key.
 func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 	b, err := hex.DecodeString(hexkey)
 	if err != nil {
@@ -259,7 +268,8 @@ func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 	return ToECDSA(b)
 }
 
-// LoadECDSA loads a secp256k1 private key from the given file.
+//According to gm,s256 or p256 param  to LoadECDSA loads a secp256k1 private key
+//from the given file.
 func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	buf := make([]byte, 64)
 	fd, err := os.Open(file)
@@ -278,12 +288,15 @@ func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	return ToECDSA(key)
 }
 
-// SaveECDSA saves a secp256k1 private key to the given file with
-// restrictive permissions. The key data is saved hex-encoded.
+//According to gm,s256 or p256 param to saveECDSA saves a secp256k1
+//private key to the given file with restrictive permissions.
+//The key data is saved hex-encoded.
 func SaveECDSA(file string, key *ecdsa.PrivateKey) error {
 	k := hex.EncodeToString(FromECDSA(key))
 	return ioutil.WriteFile(file, []byte(k), 0600)
 }
+
+//According to gm,s256 or p256 param to generate publickey and privatekey.
 func GenerateKey() (*ecdsa.PrivateKey, error) {
 	switch CryptoType {
 	//guoji P256
@@ -305,8 +318,8 @@ func GenerateKey() (*ecdsa.PrivateKey, error) {
 	return nil, nil
 }
 
-// ValidateSignatureValues verifies whether the signature values are valid with
-// the given chain rules. The v value is assumed to be either 0 or 1.
+//According to gm,s256 or p256 param,validateSignatureValues verifies whether the signature values are valid with
+//the given chain rules. The v value is assumed to be either 0 or 1.
 func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	switch CryptoType {
 	//guoji P256
@@ -329,15 +342,13 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 	return false
 }
 
-/*func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
-	pubBytes := FromECDSAPubCA(&p)
-	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
-}*/
+//According to gm,s256 or p256 param,publickey to address.
 func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPub(&p)
 	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
 }
 
+//According to gm,s256 or p256 param,encrypt message.
 func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	if pub == nil || m == nil {
 		return nil, errors.New("Encrypt pub is nil or m is nil ")
@@ -356,6 +367,8 @@ func Encrypt(pub *ecdsa.PublicKey, m, s1, s2 []byte) (ct []byte, err error) {
 	}
 	return nil, nil
 }
+
+//According to gm,s256 or p256 param,decrypt message.
 func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 	if pri == nil || c == nil {
 		return nil, errors.New("Decrypt pri is nil or c is nil")
@@ -374,6 +387,8 @@ func Decrypt(pri *ecdsa.PrivateKey, c, s1, s2 []byte) (m []byte, err error) {
 	}
 	return nil, nil
 }
+
+//According to gm,s256 or p256 param,to generate communication key.
 func GenerateShared(pri *ecdsa.PrivateKey, pub *ecdsa.PublicKey, skLen, macLen int) (sk []byte, err error) {
 	if pri == nil || pub == nil {
 		return nil, errors.New("GenerateShared pri is nil or pub is nil")
@@ -402,15 +417,16 @@ func zeroBytes(bytes []byte) {
 }
 
 /*
-hash method
+Method arrangement of hash in Engineering.
 */
+
+// According to gm,s256 or p256 param to sum hash.
 func Sum256(input []byte) ([]byte, error) {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		h := sha3.New256().Sum(input)
 		return h[:], nil
-
 	case CRYPTO_SM2_SM3_SM4:
 		h := sm3.Sum(input)
 		return h[:], nil
@@ -418,8 +434,7 @@ func Sum256(input []byte) ([]byte, error) {
 	return nil, errors.New("crypto type is errror")
 }
 
-/*	h := sha256.Sum256(input)
-	return h[:], nil*/
+//According to gm,s256 or p256 param write two param to Hash value,but xor s and h to write.
 func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -428,16 +443,16 @@ func Hash256(auth, s, h []byte) hash.Hash {
 		mac.Write(xor(s, h))
 		mac.Write(auth)
 		return mac
-
 	case CRYPTO_SM2_SM3_SM4:
 		mac := sm3.New()
 		mac.Write(xor(s, h))
 		mac.Write(auth)
 		return mac
-
 	}
 	return nil
 }
+
+//According to gm,s256 or p256 param write two param to Hash value.
 func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -455,6 +470,8 @@ func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	}
 	return nil
 }
+
+//According to gm,s256 or p256 param,convert address to string.
 func AddressToHex(a common.Address) string {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -501,6 +518,8 @@ func AddressToHex(a common.Address) string {
 
 	return ""
 }
+
+//xor computations.
 func xor(one, other []byte) (xor []byte) {
 	xor = make([]byte, len(one))
 	for i := 0; i < len(one); i++ {
@@ -508,26 +527,30 @@ func xor(one, other []byte) (xor []byte) {
 	}
 	return xor
 }
+
+//According to gm,s256 or p256 param double to Hash value.
 func Double256(b []byte) []byte {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:
 		hasher := sha3.New256()
-		hasher.Write(b) // nolint: errcheck, gas
+		hasher.Write(b)
 		sum := hasher.Sum(nil)
 		hasher.Reset()
-		hasher.Write(sum) // nolint: errcheck, gas
+		hasher.Write(sum)
 		return hasher.Sum(nil)
 	case CRYPTO_SM2_SM3_SM4:
 		hasher := sm3.New()
-		hasher.Write(b) // nolint: errcheck, gas
+		hasher.Write(b)
 		sum := hasher.Sum(nil)
 		hasher.Reset()
-		hasher.Write(sum) // nolint: errcheck, gas
+		hasher.Write(sum)
 		return hasher.Sum(nil)
 	}
 	return nil
 }
+
+//According to gm,s256 or p256 param to Hash value,but pass RLP encode.
 func RlpHash(x interface{}) (h common.Hash) {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -544,6 +567,8 @@ func RlpHash(x interface{}) (h common.Hash) {
 	}
 	return h
 }
+
+//According to gm,s256 or p256 param to new distinct hash.Hash interface.
 func NewHash() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
@@ -554,6 +579,8 @@ func NewHash() hash.Hash {
 	}
 	return nil
 }
+
+//According to gm,s256 or p256 param to new distinct hash method.
 func NewHashObject() func() hash.Hash {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
