@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	//"golang.org/x/crypto/sha3"
+
 	"io"
 	"math/rand"
 	"os"
@@ -131,10 +132,6 @@ func Kill() error {
 	return p.Signal(syscall.SIGTERM)
 }
 func RlpHash(x interface{}) (h common.Hash) {
-	/*	hw := sha3.NewLegacyKeccak256()
-		rlp.Encode(hw, x)
-		hw.Sum(h[:0])
-		return h*/
 	return crypto.RlpHash(x)
 }
 func EnsureDir(dir string, mode os.FileMode) error {

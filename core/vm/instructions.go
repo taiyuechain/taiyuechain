@@ -18,13 +18,13 @@ package vm
 
 import (
 	"errors"
+	"math/big"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
-	"math/big"
-	//"golang.org/x/crypto/sha3"
 )
 
 var (
@@ -387,7 +387,6 @@ func opSha3(pc *uint64, interpreter *EVMInterpreter, contract *Contract, memory 
 	data := memory.Get(offset.Int64(), size.Int64())
 
 	if interpreter.hasher == nil {
-		//interpreter.hasher = sha3.NewLegacyKeccak256().(keccakState)
 		interpreter.hasher = crypto.NewHash().(keccakState)
 	} else {
 		interpreter.hasher.Reset()

@@ -29,8 +29,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
-	//"golang.org/x/crypto/sha3"
-	//"crypto/ecdsa"
 )
 
 var (
@@ -1234,10 +1232,6 @@ func (net *Network) checkTopicRegister(data *topicRegister) (*pong, error) {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	/*	hw := sha3.NewLegacyKeccak256()
-		rlp.Encode(hw, x)
-		hw.Sum(h[:0])
-		return h*/
 	return crypto.RlpHash(x)
 }
 

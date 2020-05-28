@@ -21,7 +21,6 @@ import (
 	//"crypto/ecdsa"
 	//"crypto/ecdsa"
 	"encoding/binary"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"sort"
@@ -29,8 +28,11 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/taiyuechain/taiyuechain/crypto"
+
 	"bytes"
 	"crypto/ecdsa"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -203,10 +205,6 @@ func (h *Header) Size() common.StorageSize {
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
-	/*	hw := sha3.NewLegacyKeccak256()
-		rlp.Encode(hw, x)
-		hw.Sum(h[:0])
-		return h*/
 	return crypto.RlpHash(x)
 }
 

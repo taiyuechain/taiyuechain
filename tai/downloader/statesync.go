@@ -18,10 +18,11 @@ package downloader
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"hash"
 	"sync"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
@@ -29,7 +30,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/trie"
-	//"golang.org/x/crypto/sha3"
 )
 
 // stateReq represents a batch of state fetch requests grouped together into
@@ -240,9 +240,8 @@ type stateTask struct {
 // yet start the sync. The user needs to call run to initiate.
 func newStateSync(d *Downloader, root common.Hash) *stateSync {
 	return &stateSync{
-		d:     d,
-		sched: state.NewStateSync(root, d.stateDB),
-		//keccak:  sha3.NewLegacyKeccak256(),
+		d:       d,
+		sched:   state.NewStateSync(root, d.stateDB),
 		keccak:  crypto.NewHash(),
 		tasks:   make(map[common.Hash]*stateTask),
 		deliver: make(chan *stateReq),

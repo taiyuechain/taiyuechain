@@ -11,13 +11,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
-	"github.com/taiyuechain/taiyuechain/log"
 	"hash"
 	"io"
 	"io/ioutil"
 	"math/big"
+
+	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 const (
@@ -763,14 +764,6 @@ func HexToGM2(hexkey string) (*PrivateKey, error) {
 	}
 	return gmPrivate, nil
 }
-
-/*func Keccak256(data ...[]byte) []byte {
-	d := sha3.NewLegacyKeccak256()
-	for _, b := range data {
-		d.Write(b)
-	}
-	return d.Sum(nil)
-}*/
 
 func getLastBit(a *big.Int) uint {
 	return a.Bit(0)

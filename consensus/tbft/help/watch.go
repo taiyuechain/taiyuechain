@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	// "golang.org/x/crypto/sha3"
 	// "github.com/taiyuechain/taiyuechain/rlp"
 	// "github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/log"

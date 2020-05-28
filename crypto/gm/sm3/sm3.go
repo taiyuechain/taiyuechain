@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"hash"
 	"math/bits"
+
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 const (
@@ -42,6 +45,12 @@ func (digest *sm3Digest) Sum(b []byte) []byte {
 	d1 := digest
 	h := d1.checkSum()
 	return append(b, h[:]...)
+}
+func (digest *sm3Digest) Read(out []byte) (n int, err error) {
+	h := digest.Sum(nil)
+	copy(out, h)
+	n = len(out)
+	return
 }
 
 // Size returns the number of bytes Sum will return.

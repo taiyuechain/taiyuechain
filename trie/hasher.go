@@ -17,9 +17,10 @@
 package trie
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"hash"
 	"sync"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/rlp"
@@ -57,7 +58,6 @@ var hasherPool = sync.Pool{
 	New: func() interface{} {
 		return &hasher{
 			tmp: make(sliceBuffer, 0, 550), // cap is as large as a full fullNode.
-			//sha: sha3.NewLegacyKeccak256().(keccakState),
 			sha: crypto.NewHash().(keccakState),
 		}
 	},

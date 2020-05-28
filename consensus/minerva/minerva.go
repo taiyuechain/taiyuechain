@@ -25,17 +25,21 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"errors"
+
 	"github.com/taiyuechain/taiyuechain/common"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
+
 	//"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	//"golang.org/x/crypto/sha3"
 	"crypto/ecdsa"
 	"math/big"
+
 	//"math/rand"
 	"sync"
 	"time"
@@ -604,9 +608,5 @@ func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, er
 
 // for hash
 func rlpHash(x interface{}) (h common.Hash) {
-	/*	hw := sha3.NewLegacyKeccak256()
-		rlp.Encode(hw, x)
-		hw.Sum(h[:0])
-		return h*/
 	return crypto.RlpHash(x)
 }

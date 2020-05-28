@@ -19,8 +19,9 @@ package enode
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
@@ -47,7 +48,6 @@ func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	cpy.Set(enr.ID("v4"))
 	cpy.Set(Secp256k1(privkey.PublicKey))
 
-	//h := sha3.NewLegacyKeccak256()
 	h := crypto.NewHash()
 	rlp.Encode(h, cpy.AppendElements(nil))
 	sig, err := crypto.Sign(h.Sum(nil), privkey)
@@ -68,7 +68,6 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 		return fmt.Errorf("invalid public key")
 	}
 
-	//h := sha3.NewLegacyKeccak256()
 	h := crypto.NewHash()
 	rlp.Encode(h, r.AppendElements(nil))
 	if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
