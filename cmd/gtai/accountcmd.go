@@ -200,11 +200,11 @@ func unlockAccount(ctx *cli.Context, ks *keystore.KeyStore, address string, i in
 		password := getPassPhrase(prompt, false, i, passwords)
 		err = ks.Unlock(account, password)
 		if err == nil {
-			log.Info("Unlocked account", "address", account.Address.Hex())
+			log.Info("Unlocked account", "address", crypto.AddressToHex(account.Address))
 			return account, password
 		}
 		if err, ok := err.(*keystore.AmbiguousAddrError); ok {
-			log.Info("Unlocked account", "address", account.Address.Hex())
+			log.Info("Unlocked account", "address", crypto.AddressToHex(account.Address))
 			return ambiguousAddrRecovery(ks, err, password), password
 		}
 		if err != keystore.ErrDecrypt {

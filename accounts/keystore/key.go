@@ -18,6 +18,7 @@ package keystore
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -31,7 +32,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"crypto/ecdsa"
 )
 
 const (
@@ -45,7 +45,6 @@ type Key struct {
 	// we only store privkey as pubkey/address can be derived from it
 	// privkey in this struct is always in plaintext
 	PrivateKey *ecdsa.PrivateKey
-
 }
 
 type keyStore interface {
@@ -156,7 +155,7 @@ func NewKeyForDirectICAP(rand io.Reader) *Key {
 		panic("key generation: ecdsa.GenerateKey failed: " + err.Error())
 	}
 	key := newKeyFromECDSA(privateKeyECDSA)
-	if !strings.HasPrefix(key.Address.Hex(), "0x00") {
+	if !strings.HasPrefix(crypto.AddressToHex(key.Address), "0x00") {
 		return NewKeyForDirectICAP(rand)
 	}
 	return key

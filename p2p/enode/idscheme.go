@@ -48,7 +48,7 @@ func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	cpy.Set(Secp256k1(privkey.PublicKey))
 
 	//h := sha3.NewLegacyKeccak256()
-	h := crypto.NewLegacyKeccak256()
+	h := crypto.NewHash()
 	rlp.Encode(h, cpy.AppendElements(nil))
 	sig, err := crypto.Sign(h.Sum(nil), privkey)
 	if err != nil {
@@ -69,7 +69,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 	}
 
 	//h := sha3.NewLegacyKeccak256()
-	h := crypto.NewLegacyKeccak256()
+	h := crypto.NewHash()
 	rlp.Encode(h, r.AppendElements(nil))
 	if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
 		return enr.ErrInvalidSig

@@ -19,14 +19,11 @@ package common
 import (
 	"database/sql/driver"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"golang.org/x/crypto/sha3"
 	"math/big"
 	"math/rand"
 	"reflect"
-	"strings"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -193,7 +190,7 @@ func (a Address) Big() *big.Int { return new(big.Int).SetBytes(a[:]) }
 func (a Address) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns an EIP55-compliant hex string representation of the address.
-func (a Address) Hex() string {
+/*func (a Address) Hex() string {
 	unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewLegacyKeccak256()
 	sha.Write([]byte(unchecksummed))
@@ -211,12 +208,12 @@ func (a Address) Hex() string {
 		}
 	}
 	return "0x" + string(result)
-}
+}*/
 
 // String implements fmt.Stringer.
-func (a Address) String() string {
+/*func (a Address) String() string {
 	return a.Hex()
-}
+}*/
 
 // Format implements fmt.Formatter, forcing the byte slice to be formatted as is,
 // without going through the stringer interface used for logging.
@@ -281,7 +278,7 @@ func (a UnprefixedAddress) MarshalText() ([]byte, error) {
 
 // MixedcaseAddress retains the original string, which may or may not be
 // correctly checksummed
-type MixedcaseAddress struct {
+/*type MixedcaseAddress struct {
 	addr     Address
 	original string
 }
@@ -337,4 +334,4 @@ func (ma *MixedcaseAddress) ValidChecksum() bool {
 // Original returns the mixed-case input string
 func (ma *MixedcaseAddress) Original() string {
 	return ma.original
-}
+}*/

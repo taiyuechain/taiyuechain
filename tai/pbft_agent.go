@@ -213,7 +213,7 @@ func (agent *PbftAgent) initNodeInfo(etrue Backend) {
 	}
 	log.Info("InitNodeInfo", "singleNode", agent.singleNode,
 		", port", config.Port, ", standByPort", config.StandbyPort, ", Host", config.Host,
-		", coinbase", agent.committeeNode.Coinbase.String(),
+		", coinbase", crypto.AddressToHex(agent.committeeNode.Coinbase),
 		",pubKey", hex.EncodeToString(agent.committeeNode.Publickey))
 }
 

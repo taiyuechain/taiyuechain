@@ -2,7 +2,8 @@ package sm2
 
 import (
 	"crypto/elliptic"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/taiyuechain/taiyuechain/log"
+
 	"math/big"
 	"sync"
 )

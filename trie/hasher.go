@@ -58,7 +58,7 @@ var hasherPool = sync.Pool{
 		return &hasher{
 			tmp: make(sliceBuffer, 0, 550), // cap is as large as a full fullNode.
 			//sha: sha3.NewLegacyKeccak256().(keccakState),
-			sha: crypto.NewLegacyKeccak256().(keccakState),
+			sha: crypto.NewHash().(keccakState),
 		}
 	},
 }

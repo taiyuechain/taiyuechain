@@ -3,11 +3,11 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"log"
@@ -98,6 +98,7 @@ func TestSm2(t *testing.T) {
 		}
 		fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y))
 		pub := &priv.PublicKey
+		fmt.Println(hex.EncodeToString(FromECDSAPub(pub)))
 		msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 		d0, err := Encrypt(pub, msg, nil, nil)
 		if err != nil {
@@ -211,14 +212,29 @@ func TestFromCertBytesToPubKey(t *testing.T) {
 }
 
 func TestNewHashObject(t *testing.T) {
-	CryptoType = CRYPTO_P256_SH3_AES
-	publichash := Keccak256()
-	fmt.Println(publichash)
-	tt := sha3.NewLegacyKeccak256()
-	tt.Write(nil)
-	fmt.Println(tt.Sum(nil))
-	h := sha256.New()
-	h.Write(nil)
-	vv := h.Sum(nil)
-	fmt.Println(vv)
+	/*	CryptoType = CRYPTO_SM2_SM3_SM4
+		publichash := Keccak256()
+		fmt.Println(publichash)
+		tt := sha3.NewLegacyKeccak256()
+		tt.Write(nil)
+		fmt.Println(tt.Sum(nil))
+		h := sha256.New()
+		h.Write(nil)
+		vv := h.Sum(nil)
+		fmt.Println(vv)*/
+
+	//var h hasher
+
+	src := "caoliang"
+	data := []byte(src)
+	hasher := sm3.New()
+	hasher.Write(data) // nolint: errcheck, gas
+	sum := hasher.Sum(nil)
+	fmt.Println(hex.EncodeToString(sum))
+	hasher1 := sm3.New()
+	hasher1.Write(data)
+
+	/*	tt:=h.makeHashNode(data)
+		fmt.Println(tt)*/
+
 }

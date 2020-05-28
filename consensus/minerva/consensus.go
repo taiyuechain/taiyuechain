@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"runtime"
 	"time"
@@ -875,7 +876,7 @@ func (m *Minerva) finalizeFastGas(state *state.StateDB, fastNumber *big.Int, fas
 
 //LogPrint log debug
 func LogPrint(info string, addr common.Address, amount *big.Int) {
-	log.Debug("[Consensus AddBalance]", "info", info, "CoinBase:", addr.String(), "amount", amount)
+	log.Debug("[Consensus AddBalance]", "info", info, "CoinBase:", crypto.AddressToHex(addr), "amount", amount)
 }
 
 // AccumulateRewardsFast credits the coinbase of the given block with the mining

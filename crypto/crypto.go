@@ -455,7 +455,7 @@ func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	}
 	return nil
 }
-func Hex(a []byte) string {
+func AddressToHex(a common.Address) string {
 	switch CryptoType {
 	case CRYPTO_S256_SH3_AES:
 	case CRYPTO_P256_SH3_AES:

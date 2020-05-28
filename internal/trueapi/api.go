@@ -131,7 +131,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string]*RPCTransac
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx)
 		}
-		content["pending"][account.Hex()] = dump
+		content["pending"][crypto.AddressToHex(account)] = dump
 	}
 	// Flatten the queued transactions
 	for account, txs := range queue {
@@ -139,7 +139,7 @@ func (s *PublicTxPoolAPI) Content() map[string]map[string]map[string]*RPCTransac
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = newRPCPendingTransaction(tx)
 		}
-		content["queued"][account.Hex()] = dump
+		content["queued"][crypto.AddressToHex(account)] = dump
 	}
 	return content
 }
@@ -165,7 +165,7 @@ func (s *PublicTxPoolAPI) Inspect() map[string]map[string]map[string]string {
 	// Define a formatter to flatten a transaction into a string
 	var format = func(tx *types.Transaction) string {
 		if to := tx.To(); to != nil {
-			return fmt.Sprintf("%s: %v wei + %v gas × %v wei", tx.To().Hex(), tx.Value(), tx.Gas(), tx.GasPrice())
+			return fmt.Sprintf("%s: %v wei + %v gas × %v wei", crypto.AddressToHex(*tx.To()), tx.Value(), tx.Gas(), tx.GasPrice())
 		}
 		return fmt.Sprintf("contract creation: %v wei + %v gas × %v wei", tx.Value(), tx.Gas(), tx.GasPrice())
 	}
@@ -175,7 +175,7 @@ func (s *PublicTxPoolAPI) Inspect() map[string]map[string]map[string]string {
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = format(tx)
 		}
-		content["pending"][account.Hex()] = dump
+		content["pending"][crypto.AddressToHex(account)] = dump
 	}
 	// Flatten the queued transactions
 	for account, txs := range queue {
@@ -183,7 +183,7 @@ func (s *PublicTxPoolAPI) Inspect() map[string]map[string]map[string]string {
 		for _, tx := range txs {
 			dump[fmt.Sprintf("%d", tx.Nonce())] = format(tx)
 		}
-		content["queued"][account.Hex()] = dump
+		content["queued"][crypto.AddressToHex(account)] = dump
 	}
 	return content
 }
@@ -1604,12 +1604,12 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 	//print message
 	from, err := types.Sender(signer, tx)
 	if err != nil {
-		log.Error("submitTransaction error", "from", from.String())
+		log.Error("submitTransaction error", "from", crypto.AddressToHex(from))
 		return common.Hash{}, err
 	}
 	payment, err := types.Payer(signer, tx)
 	if err != nil {
-		log.Error("submitTransaction signature error", "payemnt", payment.String())
+		log.Error("submitTransaction signature error", "payemnt", crypto.AddressToHex(payment))
 		return common.Hash{}, err
 	}
 	//fmt.Printf("submitTransaction:from=%v,payemnt=%v\n", from.String(), payment.String())
@@ -1621,7 +1621,7 @@ func submitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 			return common.Hash{}, err
 		}
 		addr := crypto.CreateAddress(from, tx.Nonce())
-		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", addr.Hex())
+		log.Info("Submitted contract creation", "fullhash", tx.Hash().Hex(), "contract", crypto.AddressToHex(addr))
 	} else {
 		//log.Info("Submitted transaction", "fullhash", tx.Hash().Hex(), "recipient", tx.To())
 	}
@@ -1644,7 +1644,7 @@ func (s *PublicTransactionPoolAPI) signPayment(payment common.Address, tx *types
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
 	log.Debug("SendTransaction", "args",
-		fmt.Sprintf("API recieved  from=%v\n ,Payment=%v", args.From.String(), args.Payment.String()))
+		fmt.Sprintf("API recieved  from=%v\n ,Payment=%v", crypto.AddressToHex(args.From), crypto.AddressToHex(args.Payment)))
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: args.From}
 	wallet, err := s.b.AccountManager().Find(account)

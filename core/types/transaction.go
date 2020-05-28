@@ -344,7 +344,7 @@ func (tx *Transaction) Info() string {
 func (tx *RawTransaction) Info() string {
 	recipient := ""
 	if tx.data.Recipient != nil {
-		recipient = tx.data.Recipient.String()
+		recipient = crypto.AddressToHex(*tx.data.Recipient)
 	}
 	str := ""
 	if tx != nil {

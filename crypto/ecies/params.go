@@ -37,13 +37,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/elliptic"
-	"crypto/sha256"
-	"crypto/sha512"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm4"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
+	"golang.org/x/crypto/sha3"
 	"hash"
 )
 
@@ -69,7 +68,7 @@ type ECIESParams struct {
 
 var (
 	ECIES_AES128_SHA256 = &ECIESParams{
-		Hash:      sha256.New,
+		Hash:      sha3.New256,
 		hashAlgo:  crypto.SHA256,
 		Cipher:    aes.NewCipher,
 		BlockSize: aes.BlockSize,
@@ -77,7 +76,7 @@ var (
 	}
 
 	ECIES_AES256_SHA256 = &ECIESParams{
-		Hash:      sha256.New,
+		Hash:      sha3.New256,
 		hashAlgo:  crypto.SHA256,
 		Cipher:    aes.NewCipher,
 		BlockSize: aes.BlockSize,
@@ -85,7 +84,7 @@ var (
 	}
 
 	ECIES_AES256_SHA384 = &ECIESParams{
-		Hash:      sha512.New384,
+		Hash:      sha3.New512,
 		hashAlgo:  crypto.SHA384,
 		Cipher:    aes.NewCipher,
 		BlockSize: aes.BlockSize,
@@ -93,7 +92,7 @@ var (
 	}
 
 	ECIES_AES256_SHA512 = &ECIESParams{
-		Hash:      sha512.New,
+		Hash:      sha3.New512,
 		hashAlgo:  crypto.SHA512,
 		Cipher:    aes.NewCipher,
 		BlockSize: aes.BlockSize,

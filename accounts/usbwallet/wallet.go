@@ -20,6 +20,7 @@ package usbwallet
 import (
 	"context"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"sync"
@@ -542,7 +543,7 @@ func (w *wallet) SignTx(account accounts.Account, tx *types.Transaction, chainID
 		return nil, err
 	}
 	if sender != account.Address {
-		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Address.Hex(), sender.Hex())
+		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", crypto.AddressToHex(account.Address), crypto.AddressToHex(sender))
 	}
 	return signed, nil
 }
