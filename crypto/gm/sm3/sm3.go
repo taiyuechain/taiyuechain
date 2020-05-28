@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"hash"
 	"math/bits"
-
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/rlp"
 )
 
 const (
@@ -150,14 +147,6 @@ func (digest *sm3Digest) checkSum() [DigestLength]byte {
 		binary.BigEndian.PutUint32(out[i*4:(i+1)*4], digest.v[i])
 	}
 	return out
-}
-func (digest *sm3Digest) Read(out []byte) (n int, err error) {
-	//digest.finish()
-	h := digest.Sum(nil)
-	copy(out, h)
-	n = len(out)
-	return
-
 }
 
 func (digest *sm3Digest) processBlock() {
