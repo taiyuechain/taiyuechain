@@ -506,7 +506,7 @@ func addCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, err erro
 		return nil, err
 	}
 	topics := []common.Hash{
-		event.ID(),
+		event.ID,
 		common.BytesToHash(from[:]),
 	}
 	logForReceipt(evm, contract, topics, logData)
@@ -562,7 +562,7 @@ func delCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, err erro
 		return nil, err
 	}
 	topics := []common.Hash{
-		event.ID(),
+		event.ID,
 		common.BytesToHash(from[:]),
 	}
 	logForReceipt(evm, contract, topics, logData)

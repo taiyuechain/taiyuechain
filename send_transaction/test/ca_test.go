@@ -50,7 +50,7 @@ func TestGetAddress(t *testing.T) {
 	skey4, _ := crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
 	saddr4 := crypto.PubkeyToAddress(skey4.PublicKey)
 
-	fmt.Println("saddr", saddr.String(), "saddr2", saddr2.String(), "saddr3", saddr3.String(), "saddr4 ", saddr4.String())
+	fmt.Println("saddr", crypto.AddressToHex(saddr), "saddr2", crypto.AddressToHex(saddr2), "saddr3", crypto.AddressToHex(saddr3), "saddr4 ", crypto.AddressToHex(saddr4))
 
 	pub101 := hex.EncodeToString(crypto.FromECDSAPub(&skey.PublicKey))
 	pub102 := hex.EncodeToString(crypto.FromECDSAPub(&skey2.PublicKey))
@@ -70,7 +70,7 @@ func TestGetAddress(t *testing.T) {
 	skey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
 	saddr4 = crypto.PubkeyToAddress(skey4.PublicKey)
 
-	fmt.Println("saddr", saddr.String(), "saddr2", saddr2.String(), "saddr3", saddr3.String(), "saddr4 ", saddr4.String())
+	fmt.Println("saddr", crypto.AddressToHex(saddr), "saddr2", crypto.AddressToHex(saddr2), "saddr3", crypto.AddressToHex(saddr3), "saddr4 ", crypto.AddressToHex(saddr4))
 
 	pub101 = hex.EncodeToString(crypto.FromECDSAPub(&skey.PublicKey))
 	pub102 = hex.EncodeToString(crypto.FromECDSAPub(&skey2.PublicKey))

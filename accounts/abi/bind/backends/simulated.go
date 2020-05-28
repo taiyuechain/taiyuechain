@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	taiyue "github.com/taiyuechain/taiyuechain"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/taidb"
@@ -57,10 +58,30 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database taidb.Database, alloc types.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.AllMinervaProtocolChanges, GasLimit: gasLimit, Alloc: alloc}
+func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
+	genesis := alloc
 	genesis.MustFastCommit(database)
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, nil)
+	cimList := cim.NewCIMList(uint8(2))
+
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, cimList)
+
+	//init cert list to
+	// need init cert list to statedb
+	stateDB, err := blockchain.State()
+	if err != nil {
+		panic(err)
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	for _, caCert := range caCertList.GetCACertMap() {
+		cimCa, err := cim.NewCIM()
+		if err != nil {
+			panic(err)
+		}
+
+		cimCa.SetUpFromCA(caCert.GetByte())
+		cimList.AddCim(cimCa)
+	}
 
 	backend := &SimulatedBackend{
 		database:   database,
@@ -74,7 +95,7 @@ func NewSimulatedBackendWithDatabase(database taidb.Database, alloc types.Genesi
 
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes.
-func NewSimulatedBackend(alloc types.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
+func NewSimulatedBackend(alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
 	return NewSimulatedBackendWithDatabase(taidb.NewMemDatabase(), alloc, gasLimit)
 }
 

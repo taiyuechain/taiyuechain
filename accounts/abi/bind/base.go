@@ -54,6 +54,8 @@ type TransactOpts struct {
 	GasLimit uint64   // Gas limit to set for the transaction execution (0 = estimate)
 
 	Context context.Context // Network context to support cancellation and timeouts (nil = no timeout)
+	Cert    []byte
+	signer  types.Signer
 }
 
 // FilterOpts is the collection of options to fine tune filtering for events
@@ -235,14 +237,14 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	// Create the transaction, sign it and schedule it for execution
 	var rawTx *types.Transaction
 	if contract == nil {
-		rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input, nil)
+		rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input, opts.Cert)
 	} else {
-		rawTx = types.NewTransaction(nonce, c.address, value, gasLimit, gasPrice, input, nil)
+		rawTx = types.NewTransaction(nonce, c.address, value, gasLimit, gasPrice, input, opts.Cert)
 	}
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")
 	}
-	signedTx, err := opts.Signer(types.NewSigner(rawTx.ChainId()), opts.From, rawTx)
+	signedTx, err := opts.Signer(opts.signer, opts.From, rawTx)
 	if err != nil {
 		return nil, err
 	}

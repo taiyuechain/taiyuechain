@@ -95,8 +95,6 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)
-	//cimList.AddCim(cim.CreateCim(pbft1Byte))
-	//cimList.AddCim(cim.CreateCim(pbft2Byte))
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
@@ -228,7 +226,7 @@ func printBalance(stateDb *state.StateDB, from common.Address, method string) {
 	fbalance.SetString(balance.String())
 	StakinValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
 
-	printTest(method, " from ", types.ToTai(stateDb.GetBalance(from)), " Staking fbalance ", fbalance, " StakinValue ", StakinValue, "from ", from.String())
+	printTest(method, " from ", types.ToTai(stateDb.GetBalance(from)), " Staking fbalance ", fbalance, " StakinValue ", StakinValue, "from ", crypto.AddressToHex(from))
 }
 
 type txPool interface {
@@ -269,7 +267,7 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 				txPool.AddRemotes([]*types.Transaction{tx})
 			}
 		} else {
-			printTest("to ", to.String(), " have balance ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64())
+			printTest("to ", crypto.AddressToHex(to), " have balance ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64())
 		}
 	}
 }

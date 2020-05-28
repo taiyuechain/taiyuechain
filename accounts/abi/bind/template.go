@@ -90,19 +90,19 @@ import (
 	"math/big"
 	"strings"
 
-	ethereum "taiyuechain/taiyuechain"
-	"taiyuechain/taiyuechain/accounts/abi"
-	"taiyuechain/taiyuechain/accounts/abi/bind"
-	"taiyuechain/taiyuechain/common"
-	"taiyuechain/taiyuechain/core/types"
-	"taiyuechain/taiyuechain/event"
+	taiyue "github.com/taiyuechain/taiyuechain"
+	"github.com/taiyuechain/taiyuechain/accounts/abi"
+	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
 	_ = big.NewInt
 	_ = strings.NewReader
-	_ = ethereum.NotFound
+	_ = taiyue.NotFound
 	_ = bind.Bind
 	_ = common.Big1
 	_ = types.BloomLookup
@@ -407,7 +407,7 @@ var (
 			event    string              // Event name to use for unpacking event data
 
 			logs chan types.Log        // Log channel receiving the found contract events
-			sub  ethereum.Subscription // Subscription for errors, completion and termination
+			sub  taiyue.Subscription // Subscription for errors, completion and termination
 			done bool                  // Whether the subscription completed delivering logs
 			fail error                 // Occurred error to stop iteration
 		}
