@@ -45,11 +45,11 @@ var (
 	signer   = types.NewSigner(gspec.Config.ChainID)
 
 	//p2p 1
-	priKey, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+	priKey, _ = crypto.HexToECDSA("41c8bcf352894b132db095b0ef67b1c7ea9f4d7afd72a36b16c62c9fc582a5df")
 	// p2p 2
-	skey1, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+	skey1, _ = crypto.HexToECDSA("200854f6bdcd2f94ecf97805ec95f340026375b347a6efe6913d5287afbabeed")
 	// pbft 1
-	dkey1, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+	dkey1, _ = crypto.HexToECDSA("8c2c3567667bf29509afabb7e1178e8a40a849b0bd22e0455cff9bab5c97a247")
 	mAccount = crypto.PubkeyToAddress(priKey.PublicKey)
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
