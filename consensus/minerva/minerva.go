@@ -484,39 +484,6 @@ func SeedHash(block uint64) []byte {
 	return seedHash(block)
 }
 
-/*func (m *Minerva) DataSetHash(epoch uint64) string {
-
-	//epoch := uint64((block - 1) / UPDATABLOCKLENGTH)
-	currentI, _ := m.datasets.get(epoch)
-	current := currentI.(*Dataset)
-
-	return current.datasetHash
-	//getDataset
-
-}*/
-/*func (d *Dataset) GetDatasetSeedhash(dataset []uint64) string {
-	//getDataset
-
-	var datas []byte
-	tmp := make([]byte, 8)
-	output := make([]byte, DGSTSIZE)
-
-	if len(dataset) == 0 {
-		return ""
-	}
-
-	sha256 := makeHasher(sha3.New256())
-
-	for _, v := range dataset {
-		binary.LittleEndian.PutUint64(tmp, v)
-		datas = append(datas, tmp...)
-	}
-	sha256(output, datas[:])
-
-	return "0x" + hex.EncodeToString(output)
-
-}
-*/
 type fakeElection struct {
 	//caoliang modify
 	privates []*ecdsa.PrivateKey
@@ -526,16 +493,16 @@ type fakeElection struct {
 
 func newFakeElection() *fakeElection {
 	var members []*types.CommitteeMember
-	pk1, err := crypto.HexToECDSA("68161a6bf59df3261038d99a132d9125c75bc2260e2f89c87b15b1b1b657baaa")
+	pk1, err := crypto.GenerateKey()
 	if err != nil {
 		log.Error("initMembers", "error", err)
 	}
-	pk2, err := crypto.HexToECDSA("17be747053f88bf4cd500785284a5c79ecca235081bda0d335c14e32e9d772db")
-	pk3, err := crypto.HexToECDSA("5e2108e3186b6dc0e723fd767978d59dc9fefb0290d85e5ed567d715776a7142")
-	pk4, err := crypto.HexToECDSA("9427c2357d2d87d4a8f88977af14277035889e09d43a5d58c0867fa68e4ae7dc")
-	pk5, err := crypto.HexToECDSA("61aca120387023b33ad46c7804fcb9deaa22d5185208548ef3f041eed4131efb")
-	pk6, err := crypto.HexToECDSA("df47c4b6f0d5b72fc0bf98551dac344fe5f79a1993e8340c9f90e195939ccd30")
-	pk7, err := crypto.HexToECDSA("5b58e95edbf4db558d49ed15849a7cc5b7dc2e3530ff599cf1440285f7d4586e")
+	pk2, err := crypto.GenerateKey()
+	pk3, err := crypto.GenerateKey()
+	pk4, err := crypto.GenerateKey()
+	pk5, err := crypto.GenerateKey()
+	pk6, err := crypto.GenerateKey()
+	pk7, err := crypto.GenerateKey()
 
 	if err != nil {
 		log.Error("initMembers", "error", err)
@@ -587,6 +554,7 @@ func (e *fakeElection) FinalizeCommittee(block *types.Block) error {
 
 func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, error) {
 	var signs []*types.PbftSign
+	var err error
 
 	for _, privateKey := range e.privates {
 		voteSign := &types.PbftSign{
@@ -594,16 +562,15 @@ func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, er
 			FastHeight: fb.Header().Number,
 			FastHash:   fb.Hash(),
 		}
-		var err error
 		signHash := voteSign.HashWithNoSign().Bytes()
 		voteSign.Sign, err = crypto.Sign(signHash, privateKey)
 
 		if err != nil {
-			log.Error("fb GenerateSign error ", "err", err)
+			log.Error("fb fake GenerateSign error ", "err", err)
 		}
 		signs = append(signs, voteSign)
 	}
-	return signs, nil
+	return signs, err
 }
 
 // for hash

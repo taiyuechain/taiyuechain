@@ -17,9 +17,12 @@
 package core
 
 import (
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"math/big"
+	"os"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -98,7 +101,38 @@ func (b *BlockGen) AddTxWithChain(bc *BlockChain, tx *types.Transaction) {
 	b.statedb.Prepare(tx.Hash(), common.Hash{}, len(b.txs))
 
 	feeAmount := big.NewInt(0)
-	receipt, _, err := ApplyTransaction(b.config, bc, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, feeAmount, vm.Config{})
+	debug := false
+	var (
+		vmConf    vm.Config
+		dump      *os.File
+		writer    *bufio.Writer
+		logConfig vm.LogConfig
+	)
+
+	logConfig.Debug = debug
+	// Generate a unique temporary file to dump it into
+	if debug {
+		prefix := fmt.Sprintf("block_%d-%d-%#x-", b.header.Number.Uint64(), 0, tx.Hash().Bytes()[:4])
+		dump, _ = ioutil.TempFile(os.TempDir(), prefix)
+		// Swap out the noop logger to the standard tracer
+		writer = bufio.NewWriter(dump)
+		vmConf = vm.Config{
+			Debug:                   true,
+			Tracer:                  vm.NewJSONLogger(&logConfig, writer),
+			EnablePreimageRecording: true,
+		}
+	}
+
+	receipt, _, err := ApplyTransaction(b.config, bc, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, feeAmount, vmConf)
+	if debug {
+		if writer != nil {
+			writer.Flush()
+		}
+		if dump != nil {
+			dump.Close()
+			fmt.Println("Wrote standard trace", "file", dump.Name())
+		}
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -221,6 +255,9 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 			block, _ := b.engine.Finalize(chainreader, b.header, statedb, b.txs, b.receipts, b.feeAmout)
 
 			sign, err := b.engine.GetElection().GenerateFakeSigns(block)
+			if err != nil {
+				panic(fmt.Sprintf("election generate error: %v %d", err, block.NumberU64()))
+			}
 			block.SetSign(sign)
 			// Write state changes to db
 			root, err := statedb.Commit(true)
