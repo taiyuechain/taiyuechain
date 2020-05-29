@@ -1,6 +1,7 @@
 package backends
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -8,8 +9,12 @@ import (
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
+	"github.com/taiyuechain/taiyuechain/consensus"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/taidb"
+	"io/ioutil"
 	"math/big"
+	"os"
 	"sync"
 	"time"
 
@@ -54,6 +59,7 @@ type SimulatedBackend struct {
 	events *filters.EventSystem // Event system for filtering log events live
 
 	config *params.ChainConfig
+	engine consensus.Engine
 }
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
@@ -61,9 +67,10 @@ type SimulatedBackend struct {
 func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
 	genesis := alloc
 	genesis.MustFastCommit(database)
-	cimList := cim.NewCIMList(uint8(2))
+	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
+	engine := ethash.NewFaker()
 
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, cimList)
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, engine, vm.Config{}, cimList)
 
 	//init cert list to
 	// need init cert list to statedb
@@ -88,6 +95,7 @@ func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesi
 		blockchain: blockchain,
 		config:     genesis.Config,
 		events:     filters.NewEventSystem(new(event.TypeMux), &filterBackend{database, blockchain}, false),
+		engine:     engine,
 	}
 	backend.rollback()
 	return backend
@@ -126,7 +134,7 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), b.engine, b.database, 1, func(int, *core.BlockGen) {})
 	statedb, _ := b.blockchain.State()
 
 	b.pendingBlock = blocks[0]
@@ -450,6 +458,7 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call taiyue.CallMsg
 	}
 	// Set infinite balance to the fake caller account.
 	from := statedb.GetOrNewStateObject(call.From)
+	fmt.Println("callContract", crypto.AddressToHex(from.Address()), " from ", crypto.AddressToHex(call.From))
 	from.SetBalance(math.MaxBig256)
 	// Execute the call.
 	msg := callmsg{call}
@@ -457,10 +466,43 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call taiyue.CallMsg
 	evmContext := core.NewEVMContext(msg, block.Header(), b.blockchain, nil, nil)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
-	vmenv := vm.NewEVM(evmContext, statedb, b.config, vm.Config{})
-	gaspool := new(core.GasPool).AddGas(math.MaxUint64)
+	debug := false
+	var (
+		vmConf    vm.Config
+		dump      *os.File
+		writer    *bufio.Writer
+		logConfig vm.LogConfig
+	)
 
-	return core.NewStateTransition(vmenv, msg, gaspool).TransitionDb()
+	logConfig.Debug = debug
+	// Generate a unique temporary file to dump it into
+	if debug {
+		prefix := fmt.Sprintf("block_%d-%d-%#x-", block.NumberU64(), 0, call.From.Hash().Bytes()[:4])
+		dump, _ = ioutil.TempFile(os.TempDir(), prefix)
+		// Swap out the noop logger to the standard tracer
+		writer = bufio.NewWriter(dump)
+		vmConf = vm.Config{
+			Debug:                   true,
+			Tracer:                  vm.NewJSONLogger(&logConfig, writer),
+			EnablePreimageRecording: true,
+		}
+	}
+	vmenv := vm.NewEVM(evmContext, statedb, b.config, vmConf)
+
+	gaspool := new(core.GasPool).AddGas(math.MaxUint64)
+	v1, v2, v3, v4 := core.NewStateTransition(vmenv, msg, gaspool).TransitionDb()
+
+	if debug {
+		if writer != nil {
+			writer.Flush()
+		}
+		if dump != nil {
+			dump.Close()
+			fmt.Println("Wrote SimulatedBackend standard trace", "file", dump.Name())
+		}
+	}
+
+	return v1, v2, v3, v4
 }
 
 // SendTransaction updates the pending block to include the given transaction.
@@ -478,7 +520,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 		panic(fmt.Errorf("invalid transaction nonce: got %d, want %d", tx.Nonce(), nonce))
 	}
 
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), b.engine, b.database, 1, func(number int, block *core.BlockGen) {
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
@@ -591,7 +633,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), b.engine, b.database, 1, func(number int, block *core.BlockGen) {
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTx(tx)
 		}

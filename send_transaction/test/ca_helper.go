@@ -35,7 +35,6 @@ var (
 	pbft4path = "../../cim/testdata/testcert/" + pbft4Name + ".pem"
 	p2p1path  = "../../cim/testdata/testcert/" + p2p1Name + ".pem"
 	p2p2path  = "../../cim/testdata/testcert/" + p2p2Name + ".pem"
-	CryptoSM2 = uint8(2)
 
 	engine   = minerva.NewFaker()
 	db       = taidb.NewMemDatabase()
@@ -96,7 +95,7 @@ func DefaulGenesisBlock() *core.Genesis {
 func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB)) {
 
 	//new cimList
-	cimList := cim.NewCIMList(CryptoSM2)
+	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)

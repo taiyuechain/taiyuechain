@@ -18,6 +18,7 @@ package bind
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -142,6 +143,7 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 			return ErrNoPendingState
 		}
 		output, err = pb.PendingCallContract(ctx, msg)
+		fmt.Println("output ", output)
 		if err == nil && len(output) == 0 {
 			// Make sure we have a contract to operate on, and bail out otherwise.
 			if code, err = pb.PendingCodeAt(ctx, c.address); err != nil {
@@ -152,12 +154,16 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 		}
 	} else {
 		output, err = c.caller.CallContract(ctx, msg, opts.BlockNumber)
+		fmt.Println("output ", output, " err ", err)
 		if err == nil && len(output) == 0 {
 			// Make sure we have a contract to operate on, and bail out otherwise.
 			if code, err = c.caller.CodeAt(ctx, c.address, opts.BlockNumber); err != nil {
+				fmt.Println("output ", output, " code ", len(code))
 				return err
 			} else if len(code) == 0 {
 				return ErrNoCode
+			} else {
+				fmt.Println("output11 ", output, " code ", len(code))
 			}
 		}
 	}
@@ -194,6 +200,8 @@ func (c *BoundContract) Transfer(opts *TransactOpts) (*types.Transaction, error)
 // authorization fields, and then scheduling the transaction for execution.
 func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, input []byte) (*types.Transaction, error) {
 	var err error
+
+	fmt.Println("SendTransaction transact ", hex.EncodeToString(input))
 
 	// Ensure a valid value field and resolve the account nonce
 	value := opts.Value
