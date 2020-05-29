@@ -1,29 +1,76 @@
 package p256
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 )
 
 // p256 Sign with privatekey
 func Sign(priv *ecdsa.PrivateKey, hash []byte) ([]byte, error) {
+	signrmark := 1
 	r, s, err := ecdsa.Sign(rand.Reader, priv, hash)
 	if err != nil {
 		return nil, err
 	}
 	sign := make([]byte, 65)
-	sign = append(sign, r.Bytes()...)
-	sign = append(sign, s.Bytes()...)
-	sign = append(sign, 1)
-	return sign[65:], nil
+	sign = BytesCombine(r.Bytes())
+	sign = BytesCombine(sign, s.Bytes())
+	if len(r.Bytes()) < 32 {
+		for i := 0; i < 32-len(r.Bytes()); i++ {
+			sign = append(sign, (byte)(len(r.Bytes())))
+			signrmark = signrmark * 3
+		}
+		if len(s.Bytes()) < 32 {
+			signsmark := 1
+			for i := 0; i < 32-len(r.Bytes()); i++ {
+				sign = append(sign, (byte)(len(s.Bytes())))
+				signsmark = signsmark * 7
+				signrmark = signrmark + signsmark
+			}
+			goto SIGN
+		}
+
+	}
+	if len(s.Bytes()) < 32 {
+		for i := 0; i < 32-len(s.Bytes()); i++ {
+			sign = append(sign, (byte)(len(s.Bytes())))
+			signrmark = signrmark * 7
+		}
+	}
+SIGN:
+	if signrmark == 1 {
+		sign = append(sign, 1)
+	}
+	if signrmark != 1 {
+		sign = append(sign, (byte)(signrmark))
+
+	}
+	log.Debug("p256 sign length ", "p256 r is", len(r.Bytes()), "p256 s is", len(s.Bytes()), "sign", len(sign))
+	return sign, nil
+}
+func BytesCombine(pBytes ...[]byte) []byte {
+	return bytes.Join(pBytes, []byte(""))
 }
 
 // p256 Verify with publickey
 func Verify(public *ecdsa.PublicKey, hash []byte, sign []byte) bool {
+	if sign[64] != 1 {
+		if (int)(sign[64])%3 == 0 {
+			return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:32-(int)(sign[64])/3]), new(big.Int).SetBytes(sign[32-(int)(sign[64])/3:64-(int)(sign[64])/3]))
+		}
+		if (int)(sign[64])%7 == 0 {
+			return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64-(int)(sign[64])/7]))
+		}
+		rlen := ((int)(sign[64]) - (32-(int)(sign[63]))*7) / 3
+
+		return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:rlen]), new(big.Int).SetBytes(sign[rlen:(rlen+(int)(sign[63]))]))
+	}
 	return ecdsa.Verify(public, hash, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
 
