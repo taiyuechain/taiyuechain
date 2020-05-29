@@ -10,7 +10,6 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -64,13 +63,16 @@ var (
 
 func DefaulGenesisBlock() *core.Genesis {
 	i, _ := new(big.Int).SetString("10000000000000000000000", 10)
-	key1 := hexutil.MustDecode("0x04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
-	key2 := hexutil.MustDecode("0x045e1711b6cd8550a5e5466f7f0868b5507929cb69c2f0fca84f8f94816eb40a808ea8a77c3d83c9d16341acb037fbea2f7d9d4af46326defa39b408f40f28fb98")
-	key3 := hexutil.MustDecode("0x041b931d350257e881f27bce2563d98c99b13ca4f525a0662f5e7d53f085edff0dca8ceaae550c9f4ceecf217f72806a48a48fb024916392ae41d7c45168e89b94")
-	key4 := hexutil.MustDecode("0x049923777d866fd80485be57a126d638cc7dda78a5d6958aff784ca7ed9d9c7be494125bf75fd0328490ae51020274427b9fbb07f59e4c9b5104ac6924721a4438")
+	key1 := crypto.FromECDSAPub(&dkey1.PublicKey)
+	prikey2, _ := crypto.HexToECDSA("f7f9ffe124547d3375765539aa3ccb4533057903e18f034045d233e547506d4e")
+	key2 := crypto.FromECDSAPub(&prikey2.PublicKey)
+	prikey3, _ := crypto.HexToECDSA("acac261a29d3abdff1a96859cebaacdf73744279986349a3f8bc98884fccb641")
+	key3 := crypto.FromECDSAPub(&prikey3.PublicKey)
+	prikey4, _ := crypto.HexToECDSA("7decea0bad634a9cfcaf5442321a2668b791c064f48c1f7a2112624d022fc5eb")
+	key4 := crypto.FromECDSAPub(&prikey4.PublicKey)
 
 	var certList = [][]byte{pbft1Byte, pbft2Byte, pbft3Byte, pbft4Byte}
-	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
+	coinbase := daddr1
 
 	return &core.Genesis{
 		Config:     params.DevnetChainConfig,
