@@ -498,7 +498,7 @@ func (srv *Server) setupLocalNode() error {
 				return err
 			}
 			if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
-				log.Debug("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
+				log.Info("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
 				return errors.New("local cert not match private nodekey")
 			}
 		}

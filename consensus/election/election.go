@@ -1434,22 +1434,31 @@ func (e *Election) getCACertList() *vm.CACertList {
 func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList) []*types.CommitteeMember {
 	caCertMap := caCertList.GetCACertMap()
 	members := make([]*types.CommitteeMember, len(caCertMap))
-	publicKeys := make([][]byte, len(caCertMap))
-	log.Warn("caCertMap", "caCertMap", len(caCertMap))
 	for i, caCert := range caCertMap {
-		log.Error("assignmentCommitteeMember", "caCert", caCert)
-		log.Error("assignmentCommitteeMember", "bytes", caCert.GetByte())
+		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap), "IsStore", caCert.GetIsStore(), "caCert", hex.EncodeToString(caCert.GetByte()))
 		if !caCert.GetIsStore() {
 			continue
 		}
-		var member *types.CommitteeMember
-		member.LocalCert = caCert.GetByte()
-		certificate, err := crypto.GetCertFromByte(caCert.GetByte()) //todo
+		pub, err := crypto.GetPubByteFromCert(caCert.GetByte())
 		if err != nil {
-			log.Error(" GetCertFromByte error", "err", err)
+			log.Warn("assignmentCommitteeMember", "GetPubByteFromCert err", err)
+			continue
 		}
-		publicKeys[i] = certificate.PublicKey.([]byte)
-		members[i] = member
+		pubkey, err := crypto.UnmarshalPubkey(pub)
+		if err != nil {
+			log.Warn("assignmentCommitteeMember", "UnmarshalPubkey err", err)
+			continue
+		}
+		address := crypto.PubkeyToAddress(*pubkey)
+
+		members[i] = &types.CommitteeMember{
+			CommitteeBase: address,
+			Coinbase:      address,
+			LocalCert:     caCert.GetByte(),
+			Publickey:     pub,
+			Flag:          types.StateUsedFlag,
+			MType:         types.TypeWorked,
+		}
 	}
 	return members
 }
