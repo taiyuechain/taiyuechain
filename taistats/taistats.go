@@ -34,12 +34,12 @@ import (
 	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/tai"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/tai"
 	"golang.org/x/net/websocket"
 )
 
@@ -181,10 +181,9 @@ func (s *Service) loop() {
 
 	// Start a goroutine that exhausts the subsciptions to avoid events piling up
 	var (
-		quitCh      = make(chan struct{})
-		headCh      = make(chan *types.Block, 1)
-		snailHeadCh = make(chan *types.SnailBlock, 1)
-		txCh        = make(chan struct{}, 1)
+		quitCh = make(chan struct{})
+		headCh = make(chan *types.Block, 1)
+		txCh   = make(chan struct{}, 1)
 	)
 	go func() {
 		var lastTx mclock.AbsTime
@@ -270,14 +269,8 @@ func (s *Service) loop() {
 			conn.Close()
 			continue
 		}
-		if err = s.reportSnailBlock(conn, nil); err != nil {
-			log.Warn("Initial snailBlock stats report failed", "err", err)
-			conn.Close()
-			continue
-		}
 		// Keep sending status updates until the connection breaks
 		fullReport := time.NewTicker(15 * time.Second)
-		snailBlockReport := time.NewTicker(10 * time.Minute)
 		for err == nil {
 			select {
 			case <-quitCh:
@@ -286,10 +279,6 @@ func (s *Service) loop() {
 			case <-fullReport.C:
 				if err = s.report(conn); err != nil {
 					log.Warn("Full stats report failed", "err", err)
-				}
-			case <-snailBlockReport.C:
-				if err = s.reportSnailBlock(conn, nil); err != nil {
-					log.Warn("snailBlockReport stats report failed", "err", err)
 				}
 			case list := <-s.histCh:
 				if err = s.reportHistory(conn, list); err != nil {
@@ -305,10 +294,6 @@ func (s *Service) loop() {
 				}
 				if err = s.reportPending(conn); err != nil {
 					log.Warn("Post-block transaction stats report failed", "err", err)
-				}
-			case snailBlock := <-snailHeadCh:
-				if err = s.reportSnailBlock(conn, snailBlock); err != nil {
-					log.Warn("Block stats report failed", "err", err)
 				}
 			case <-txCh:
 				if err = s.reportPending(conn); err != nil {
@@ -598,24 +583,6 @@ func (s *Service) reportBlock(conn *websocket.Conn, block *types.Block) error {
 	}
 	report := map[string][]interface{}{
 		"emit": {"block", stats},
-	}
-	return websocket.JSON.Send(conn, report)
-}
-
-// reportBlock retrieves the current chain head and reports it to the stats server.
-func (s *Service) reportSnailBlock(conn *websocket.Conn, block *types.SnailBlock) error {
-	// Gather the block details from the header or block chain
-	details := s.assembleSnaiBlockStats(block)
-
-	// Assemble the block report and send it to the server
-	log.Trace("Sending new snailBlock to etruestats", "number", details.Number, "hash", details.Hash)
-
-	stats := map[string]interface{}{
-		"id":    s.node,
-		"block": details,
-	}
-	report := map[string][]interface{}{
-		"emit": {"snailBlock", stats},
 	}
 	return websocket.JSON.Send(conn, report)
 }
