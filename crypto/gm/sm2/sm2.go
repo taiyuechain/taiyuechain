@@ -669,7 +669,9 @@ func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
 			return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64-(int)(sign[64])/7]))
 		}
 		rlen := ((int)(sign[64]) - (32-(int)(sign[63]))*7) / 3
-
+		if rlen > 64 || (rlen+(int)(sign[63])) > 64 {
+			return false
+		}
 		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:rlen]), new(big.Int).SetBytes(sign[rlen:(rlen+(int)(sign[63]))]))
 	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
