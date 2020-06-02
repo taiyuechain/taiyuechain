@@ -71,11 +71,11 @@ func TestMath(t *testing.T) {
 	transactOpts := bind.NewKeyedTransactor(priKey, p2p1Byte, gspec.Config.ChainID)
 
 	// Deploy the ENS registry
-	ensAddr, _, _, err := DeployToken(transactOpts, contractBackend)
+	ensAddr, _, _, err := DeployMath(transactOpts, contractBackend)
 	if err != nil {
 		t.Fatalf("can't DeployContract: %v", err)
 	}
-	ens, err := NewToken(ensAddr, contractBackend)
+	ens, err := NewMath(ensAddr, contractBackend)
 	if err != nil {
 		t.Fatalf("can't NewContract: %v", err)
 	}

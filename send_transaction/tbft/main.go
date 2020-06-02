@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
 	"os"
@@ -40,10 +41,12 @@ var bSleep = false
 //check Account
 var CheckAcc = false
 
+var cert []byte
+
 // get par
 func main() {
-	if len(os.Args) < 7 {
-		fmt.Printf("invalid args : %s [count] [frequency] [interval] [sleep] [from] [to]  [\"ip:port\"]\n", os.Args[0])
+	if len(os.Args) < 8 {
+		fmt.Printf("invalid args : %s [count] [frequency] [interval] [sleep] [from] [to] [cert] [\"ip:port\"]\n", os.Args[0])
 		return
 	}
 
@@ -85,9 +88,15 @@ func main() {
 		fmt.Println(getTime(), "from err default 1")
 	}
 
-	ip := "127.0.0.1:8888"
+	p2p1Byte, err := crypto.ReadPemFileByPath(os.Args[7])
+	if err != nil {
+		fmt.Println(getTime(), " cert err ", err)
+	}
+	cert = p2p1Byte
+
+	ip := "127.0.0.1:8545"
 	if len(os.Args) == 8 {
-		ip = os.Args[7]
+		ip = os.Args[8]
 	}
 
 	send(count, ip)
@@ -206,6 +215,7 @@ func sendTransaction(client *rpc.Client, account []string, wait *sync.WaitGroup)
 	map_data["from"] = account[from]
 	map_data["to"] = account[to]
 	map_data["value"] = "0x2100"
+	map_data["cert"] = cert
 	var result string
 	client.Call(&result, "etrue_sendTransaction", map_data)
 	if result != "" {

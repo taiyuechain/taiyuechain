@@ -26,124 +26,124 @@ var (
 	_ = event.NewSubscription
 )
 
-// TokenABI is the input ABI used to generate the binding from.
-const TokenABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"b\",\"type\":\"uint256\"}],\"name\":\"add\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+// MathABI is the input ABI used to generate the binding from.
+const MathABI = "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"b\",\"type\":\"uint256\"}],\"name\":\"add\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
 
-// TokenBin is the compiled bytecode used for deploying new contracts.
-var TokenBin = "0x60606040523415600b57fe5b5b60016000819055505b5b6092806100246000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063caf838c814603a575bfe5b3415604157fe5b605560048080359060200190919050506057565b005b80600054016000819055505b505600a165627a7a72305820d2459cc400ba3e9a500c20bd88d035902735f29d9d58ff5538f75e510bb703ed0029"
+// MathBin is the compiled bytecode used for deploying new contracts.
+var MathBin = "0x6080604052348015600f57600080fd5b50600160008190555060c4806100266000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063caf838c814602d575b600080fd5b605660048036036020811015604157600080fd5b81019080803590602001909291905050506058565b005b80600054016000819055505056fea26469706673582212202bb5ad72276c599e1881b765d22e443cfa4f4bd7d690da5d1265ad41cceb227464736f6c63782a302e362e382d646576656c6f702e323032302e362e322b636f6d6d69742e34653863623731382e6d6f64005b"
 
-// DeployToken deploys a new Ethereum contract, binding an instance of Token to it.
-func DeployToken(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Token, error) {
-	parsed, err := abi.JSON(strings.NewReader(TokenABI))
+// DeployMath deploys a new Ethereum contract, binding an instance of Math to it.
+func DeployMath(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Math, error) {
+	parsed, err := abi.JSON(strings.NewReader(MathABI))
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(TokenBin), backend)
+	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(MathBin), backend)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	return address, tx, &Token{TokenCaller: TokenCaller{contract: contract}, TokenTransactor: TokenTransactor{contract: contract}, TokenFilterer: TokenFilterer{contract: contract}}, nil
+	return address, tx, &Math{MathCaller: MathCaller{contract: contract}, MathTransactor: MathTransactor{contract: contract}, MathFilterer: MathFilterer{contract: contract}}, nil
 }
 
-// Token is an auto generated Go binding around an Ethereum contract.
-type Token struct {
-	TokenCaller     // Read-only binding to the contract
-	TokenTransactor // Write-only binding to the contract
-	TokenFilterer   // Log filterer for contract events
+// Math is an auto generated Go binding around an Ethereum contract.
+type Math struct {
+	MathCaller     // Read-only binding to the contract
+	MathTransactor // Write-only binding to the contract
+	MathFilterer   // Log filterer for contract events
 }
 
-// TokenCaller is an auto generated read-only Go binding around an Ethereum contract.
-type TokenCaller struct {
+// MathCaller is an auto generated read-only Go binding around an Ethereum contract.
+type MathCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// TokenTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type TokenTransactor struct {
+// MathTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type MathTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// TokenFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type TokenFilterer struct {
+// MathFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type MathFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// TokenSession is an auto generated Go binding around an Ethereum contract,
+// MathSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type TokenSession struct {
-	Contract     *Token            // Generic contract binding to set the session for
+type MathSession struct {
+	Contract     *Math             // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// TokenCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// MathCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type TokenCallerSession struct {
-	Contract *TokenCaller  // Generic contract caller binding to set the session for
+type MathCallerSession struct {
+	Contract *MathCaller   // Generic contract caller binding to set the session for
 	CallOpts bind.CallOpts // Call options to use throughout this session
 }
 
-// TokenTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// MathTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type TokenTransactorSession struct {
-	Contract     *TokenTransactor  // Generic contract transactor binding to set the session for
+type MathTransactorSession struct {
+	Contract     *MathTransactor   // Generic contract transactor binding to set the session for
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// TokenRaw is an auto generated low-level Go binding around an Ethereum contract.
-type TokenRaw struct {
-	Contract *Token // Generic contract binding to access the raw methods on
+// MathRaw is an auto generated low-level Go binding around an Ethereum contract.
+type MathRaw struct {
+	Contract *Math // Generic contract binding to access the raw methods on
 }
 
-// TokenCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type TokenCallerRaw struct {
-	Contract *TokenCaller // Generic read-only contract binding to access the raw methods on
+// MathCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type MathCallerRaw struct {
+	Contract *MathCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// TokenTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type TokenTransactorRaw struct {
-	Contract *TokenTransactor // Generic write-only contract binding to access the raw methods on
+// MathTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type MathTransactorRaw struct {
+	Contract *MathTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewToken creates a new instance of Token, bound to a specific deployed contract.
-func NewToken(address common.Address, backend bind.ContractBackend) (*Token, error) {
-	contract, err := bindToken(address, backend, backend, backend)
+// NewMath creates a new instance of Math, bound to a specific deployed contract.
+func NewMath(address common.Address, backend bind.ContractBackend) (*Math, error) {
+	contract, err := bindMath(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &Token{TokenCaller: TokenCaller{contract: contract}, TokenTransactor: TokenTransactor{contract: contract}, TokenFilterer: TokenFilterer{contract: contract}}, nil
+	return &Math{MathCaller: MathCaller{contract: contract}, MathTransactor: MathTransactor{contract: contract}, MathFilterer: MathFilterer{contract: contract}}, nil
 }
 
-// NewTokenCaller creates a new read-only instance of Token, bound to a specific deployed contract.
-func NewTokenCaller(address common.Address, caller bind.ContractCaller) (*TokenCaller, error) {
-	contract, err := bindToken(address, caller, nil, nil)
+// NewMathCaller creates a new read-only instance of Math, bound to a specific deployed contract.
+func NewMathCaller(address common.Address, caller bind.ContractCaller) (*MathCaller, error) {
+	contract, err := bindMath(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &TokenCaller{contract: contract}, nil
+	return &MathCaller{contract: contract}, nil
 }
 
-// NewTokenTransactor creates a new write-only instance of Token, bound to a specific deployed contract.
-func NewTokenTransactor(address common.Address, transactor bind.ContractTransactor) (*TokenTransactor, error) {
-	contract, err := bindToken(address, nil, transactor, nil)
+// NewMathTransactor creates a new write-only instance of Math, bound to a specific deployed contract.
+func NewMathTransactor(address common.Address, transactor bind.ContractTransactor) (*MathTransactor, error) {
+	contract, err := bindMath(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &TokenTransactor{contract: contract}, nil
+	return &MathTransactor{contract: contract}, nil
 }
 
-// NewTokenFilterer creates a new log filterer instance of Token, bound to a specific deployed contract.
-func NewTokenFilterer(address common.Address, filterer bind.ContractFilterer) (*TokenFilterer, error) {
-	contract, err := bindToken(address, nil, nil, filterer)
+// NewMathFilterer creates a new log filterer instance of Math, bound to a specific deployed contract.
+func NewMathFilterer(address common.Address, filterer bind.ContractFilterer) (*MathFilterer, error) {
+	contract, err := bindMath(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &TokenFilterer{contract: contract}, nil
+	return &MathFilterer{contract: contract}, nil
 }
 
-// bindToken binds a generic wrapper to an already deployed contract.
-func bindToken(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(TokenABI))
+// bindMath binds a generic wrapper to an already deployed contract.
+func bindMath(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(MathABI))
 	if err != nil {
 		return nil, err
 	}
@@ -154,57 +154,57 @@ func bindToken(address common.Address, caller bind.ContractCaller, transactor bi
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Token *TokenRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _Token.Contract.TokenCaller.contract.Call(opts, result, method, params...)
+func (_Math *MathRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _Math.Contract.MathCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Token *TokenRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Token.Contract.TokenTransactor.contract.Transfer(opts)
+func (_Math *MathRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Math.Contract.MathTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Token *TokenRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Token.Contract.TokenTransactor.contract.Transact(opts, method, params...)
+func (_Math *MathRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Math.Contract.MathTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Token *TokenCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _Token.Contract.contract.Call(opts, result, method, params...)
+func (_Math *MathCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _Math.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Token *TokenTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Token.Contract.contract.Transfer(opts)
+func (_Math *MathTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Math.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Token *TokenTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Token.Contract.contract.Transact(opts, method, params...)
+func (_Math *MathTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Math.Contract.contract.Transact(opts, method, params...)
 }
 
 // Add is a paid mutator transaction binding the contract method 0xcaf838c8.
 //
 // Solidity: function add(uint256 b) returns()
-func (_Token *TokenTransactor) Add(opts *bind.TransactOpts, b *big.Int) (*types.Transaction, error) {
-	return _Token.contract.Transact(opts, "add", b)
+func (_Math *MathTransactor) Add(opts *bind.TransactOpts, b *big.Int) (*types.Transaction, error) {
+	return _Math.contract.Transact(opts, "add", b)
 }
 
 // Add is a paid mutator transaction binding the contract method 0xcaf838c8.
 //
 // Solidity: function add(uint256 b) returns()
-func (_Token *TokenSession) Add(b *big.Int) (*types.Transaction, error) {
-	return _Token.Contract.Add(&_Token.TransactOpts, b)
+func (_Math *MathSession) Add(b *big.Int) (*types.Transaction, error) {
+	return _Math.Contract.Add(&_Math.TransactOpts, b)
 }
 
 // Add is a paid mutator transaction binding the contract method 0xcaf838c8.
 //
 // Solidity: function add(uint256 b) returns()
-func (_Token *TokenTransactorSession) Add(b *big.Int) (*types.Transaction, error) {
-	return _Token.Contract.Add(&_Token.TransactOpts, b)
+func (_Math *MathTransactorSession) Add(b *big.Int) (*types.Transaction, error) {
+	return _Math.Contract.Add(&_Math.TransactOpts, b)
 }
