@@ -9558,7 +9558,6 @@ module.exports = transfer;
 	return CryptoJS.lib.WordArray;
 
 }));
-    getBlockByNumber
 },{"./core":53}],61:[function(require,module,exports){
 ;(function (root, factory) {
 	if (typeof exports === "object") {
