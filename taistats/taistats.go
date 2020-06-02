@@ -667,7 +667,6 @@ func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockSta
 	// Gather the block infos from the local blockchain
 	var (
 		header      *types.SnailHeader
-		td          *big.Int
 		fruitNumber *big.Int
 	)
 	if s.etrue != nil {
@@ -695,11 +694,11 @@ func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockSta
 		ParentHash:  common.Hash{},
 		Timestamp:   new(big.Int).SetInt64(time.Now().Unix()),
 		Miner:       common.Address{},
-		Diff:        block.Difficulty().String(),
-		TotalDiff:   td.String(),
+		Diff:        "1000",
+		TotalDiff:   "1",
 		Uncles:      nil,
 		FruitNumber: fruitNumber,
-		LastFruit:   block.MaxFruitNumber(),
+		LastFruit:   new(big.Int).SetInt64(60),
 	}
 }
 
