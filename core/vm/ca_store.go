@@ -263,9 +263,7 @@ func (ca *CACertList) addCertToList(caCert []byte, epoch uint64) (bool, error) {
 	if len(caCert) == 0 {
 		return false, errors.New("ca cert len is zeor")
 	}
-	if ca.caCertMap[epoch] == nil {
-		return false, errors.New("ca cert list epoch is nil")
-	}
+	
 	ok, _ := ca.IsInList(caCert, epoch)
 	//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
 	if ok {
