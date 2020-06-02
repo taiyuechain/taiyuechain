@@ -1482,7 +1482,7 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 var fastNumberPerSession = new(big.Int).SetUint64(uint64(10000))
 
 //相隔多少个块前需要通知
-var EpochSize uint64 = 100
+var EpochSize uint64 = 1000
 
 func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
 	beginFastNumber := new(big.Int).Mul(committeeId, fastNumberPerSession)
