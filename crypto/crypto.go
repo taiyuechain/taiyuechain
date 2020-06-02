@@ -113,8 +113,14 @@ func CreateAddress(b common.Address, nonce uint64) common.Address {
 	return common.BytesToAddress(Keccak256(data)[12:])
 }
 
-// According to gm,s256 or p256 param to CreateAddress2 creates an ethereum address
-// given the address bytes, initial　contract code hash and a salt.
+//CreateGroupkey is for permission
+func CreateGroupkey(b common.Address, id uint64) common.Address {
+	data, _ := rlp.EncodeToBytes([]interface{}{b, id})
+	return common.BytesToAddress(Keccak256(data)[:20])
+}
+
+// CreateAddress2 creates an ethereum address given the address bytes, initial
+// contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
 	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
