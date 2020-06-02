@@ -159,8 +159,8 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	return tmp
 }
 
-func (ca *CACertList) GetCACertMap() map[uint64]*CACert {
-	return ca.caCertMap
+func (ca *CACertList) GetCACertMapByEpoch(epoch uint64) *CACert {
+	return ca.caCertMap[epoch]
 }
 
 func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) error {
