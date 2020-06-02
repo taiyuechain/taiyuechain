@@ -17,9 +17,8 @@
 package trueapi
 
 import (
-	"sync"
-
 	"github.com/taiyuechain/taiyuechain/common"
+	"sync"
 )
 
 type AddrLocker struct {

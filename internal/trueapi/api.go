@@ -53,7 +53,7 @@ const (
 )
 
 var (
-	LocalTxMetrics = metrics.NewRegisteredMeter("etrue/prop/local_tx/in", nil)
+	LocalTxMetrics = metrics.NewRegisteredMeter("tai/prop/local_tx/in", nil)
 )
 
 // PublicTrueAPI provides an API to access True related information.
@@ -558,7 +558,7 @@ func (s *PrivateAccountAPI) Sign(ctx context.Context, data hexutil.Bytes, addr c
 }
 
 // EcRecover returns the address for the account that was used to create the signature.
-// Note, this function is compatible with etrue__sign and personal_sign. As such it recovers
+// Note, this function is compatible with tai__sign and personal_sign. As such it recovers
 // the address of:
 // hash = keccak256("\x19True Signed Message:\n"${message length}${message})
 // addr = ecrecover(hash, signature)
@@ -1714,7 +1714,7 @@ func (s *PublicTransactionPoolAPI) SendTrueRawTransaction(ctx context.Context, e
 //
 // The account associated with addr must be unlocked.
 //
-// https://github.com/True/wiki/wiki/JSON-RPC#etrue_sign
+// https://github.com/True/wiki/wiki/JSON-RPC#tai_sign
 func (s *PublicTransactionPoolAPI) Sign(addr common.Address, data hexutil.Bytes) (hexutil.Bytes, error) {
 	// Look up the wallet containing the requested signer
 	account := accounts.Account{Address: addr}
