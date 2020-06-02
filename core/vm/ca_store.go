@@ -117,7 +117,7 @@ func (ca *CACertList) InitCACertList(caList [][]byte, blockHight *big.Int) {
 	len := len(caList)
 	epoch := blockHight.Uint64() / electionHgiht
 	for i := 0; i < len; i++ {
-		ca.addCertToList(caList[i], epoch)
+		ca.addCertToList(caList[i], epoch,true)
 	}
 }
 
@@ -259,15 +259,18 @@ func (ca *CACertList) IsInList(caCert []byte, epoch uint64) (bool, error) {
 	return false, errors.New("not in List")
 }
 
-func (ca *CACertList) addCertToList(caCert []byte, epoch uint64) (bool, error) {
+func (ca *CACertList) addCertToList(caCert []byte, epoch uint64,isInit bool) (bool, error) {
 	if len(caCert) == 0 {
 		return false, errors.New("ca cert len is zeor")
 	}
-	
-	ok, _ := ca.IsInList(caCert, epoch)
-	//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
-	if ok {
-		return false, errors.New("ca cert is alread exit")
+	if !isInit{
+
+
+		ok, _ := ca.IsInList(caCert, epoch)
+		//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
+		if ok {
+			return false, errors.New("ca cert is alread exit")
+		}
 	}
 
 	cac := &CACert{}
@@ -392,7 +395,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
 		ca.copyCertToList(epoch)
-		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1)
+		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1,false)
 		if res && err == nil {
 			ca.proposalMap[pHash].PState = pStateSuccless
 			return true, nil
