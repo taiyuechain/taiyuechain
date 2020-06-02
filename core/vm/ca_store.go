@@ -47,8 +47,8 @@ const (
 	pStatePending    = 1
 	pStateSuccless   = 2
 	pStateFail       = 3
-	electionHgiht    = 100
-	electionPerHgith = electionHgiht - 10
+	electionHgiht    = 1000
+	electionPerHgith = electionHgiht - 100
 )
 
 func init() {
