@@ -19,28 +19,28 @@ package tai
 import (
 	//"crypto/ecdsa"
 	//"crypto/ecdsa"
-	"crypto/rand"
+
 	"encoding/hex"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/cim"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/utils"
 	"math/big"
 	"sync"
 	"time"
 
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/utils"
+
 	"crypto/ecdsa"
 	"fmt"
+
 	"github.com/taiyuechain/taiyuechain/common"
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	elect "github.com/taiyuechain/taiyuechain/consensus/election"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
@@ -671,7 +671,7 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	var encryptNodes []types.EncryptCommitteeNode
 	for _, member := range committeeInfo.GetAllMembers() {
 		pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
-		encryptNode, err := ecies.Encrypt(rand.Reader, ecies.ImportECDSAPublic(pubkey), nodeByte, nil, nil)
+		encryptNode, err := crypto.Encrypt(pubkey, nodeByte, nil, nil)
 		if err != nil {
 			log.Error("publickey encrypt node error ", "member.Publickey", common.Bytes2Hex(member.Publickey), "err", err)
 		}
@@ -720,9 +720,8 @@ func (agent *PbftAgent) AddRemoteNodeInfo(cryNodeInfo *types.EncryptNodeMessage)
 //ecdsa.PrivateKey convert to ecies.PrivateKey
 func decryptNodeInfo(cryNodeInfo *types.EncryptNodeMessage, privateKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) *types.CommitteeNode {
 
-	priKey := ecies.ImportECDSA(privateKey)
 	for _, encryptNode := range cryNodeInfo.Nodes {
-		decryptNode, err := priKey.Decrypt(encryptNode, nil, nil)
+		decryptNode, err := crypto.Decrypt(privateKey, encryptNode, nil, nil)
 		if err == nil { // can Decrypt by priKey
 			transportCommitteeNode := new(types.TransportCommitteeNode) //receive nodeInfo
 			rlp.DecodeBytes(decryptNode, transportCommitteeNode)
