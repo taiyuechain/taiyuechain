@@ -154,9 +154,6 @@ type Election struct {
 	prepare    bool
 	switchNext chan struct{}
 
-	//snailChainEventCh  chan types.SnailChainEvent
-	//snailChainEventSub event.Subscription
-
 	chainHeadCh  chan types.FastChainHeadEvent
 	chainHeadSub event.Subscription
 
@@ -164,9 +161,7 @@ type Election struct {
 	committeeMemberSub event.Subscription
 
 	fastchain *core.BlockChain
-	//snailchain SnailBlockChain
-
-	engine consensus.Engine
+	engine    consensus.Engine
 }
 
 // SnailLightChain encapsulates functions required to synchronise a light chain.
@@ -1210,44 +1205,21 @@ func (e *Election) FinalizeCommittee(block *types.Block) error {
 // Start load current committ and starts election processing
 func (e *Election) Start() error {
 	// get current committee info
+	if EpochSize < 100 {
+		return errors.New(fmt.Sprint("EpochSize:", EpochSize, " less than 100"))
+	}
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
-	//snailHeadNumber := e.snailchain.CurrentBlock().Number()
-
-	//todo e.getCommittee(fastHeadNumber, snailHeadNumber)
+	curEpochID := GetEpochIDFromHeight(fastHeadNumber)
 	currentCommittee := e.getCommitteeByContract()
-	if currentCommittee == nil {
-		log.Crit("Election faiiled to get committee on start")
-		return nil
+	if curEpochID.Cmp(common.Big0) > 0 {
+		currentCommittee = e.getCommitteeInfoByCommitteeId(curEpochID)
 	}
-	// Rewind committee swtichinfo storage if blockchain rollbacks
-	for i := 0; i < len(currentCommittee.switches); i++ {
-		if currentCommittee.switches[i].Cmp(fastHeadNumber) > 0 {
-			log.Info("Rewind committee switchinfo", "committee", currentCommittee.id, "current", fastHeadNumber)
-			currentCommittee.switches = currentCommittee.switches[:i]
-			//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
-			break
-		}
-	}
-	switchNum := new(big.Int).Add(currentCommittee.beginFastNumber, common.Big1)
-	if len(currentCommittee.switches) > 0 {
-		switchNum = new(big.Int).Add(currentCommittee.switches[len(currentCommittee.switches)-1], common.Big1)
-	}
-	for switchNum.Cmp(fastHeadNumber) <= 0 {
-		block := e.fastchain.GetBlockByNumber(switchNum.Uint64())
-		if block != nil && len(block.SwitchInfos()) > 0 {
-			log.Info("Election append switch block height", "number", switchNum)
-			currentCommittee.switches = append(currentCommittee.switches, switchNum)
-			//rawdb.WriteCommitteeStates(e.snailchain.GetDatabase(), currentCommittee.id.Uint64(), currentCommittee.switches)
-		}
-		switchNum = new(big.Int).Add(switchNum, common.Big1)
-	}
-
 	e.committee = currentCommittee
 
 	if currentCommittee.endFastNumber.Cmp(common.Big0) > 0 {
 		if e.committee.endFastNumber.Cmp(fastHeadNumber) == 0 {
 			// committee has finish their work, start the new committee
-			e.committee = e.calcCommittee(new(big.Int).Add(e.committee.id, common.Big1))
+			e.committee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(curEpochID, common.Big1))
 			e.nextCommittee = nil
 			e.startSwitchover = false
 		} else {
@@ -1312,7 +1284,7 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == EpochSize {
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == (EpochSize - 100) {
 				//send CommitteeOver event to pbftAgent to notify currentCommittee endFastNumber
 				e.electionFeed.Send(types.ElectionEvent{
 					Option:           types.CommitteeOver,
@@ -1343,41 +1315,7 @@ func (e *Election) loop() {
 				})
 				log.Info("Election BFT committee CommitteeSwitchover", "beginFastNumber", e.committee.beginFastNumber, "endFastNumber", e.committee.endFastNumber)
 			}
-		/*case se := <-e.snailChainEventCh:
-		if se.Block != nil && e.committee.switchCheckNumber.Cmp(se.Block.Number()) == 0 {
-			//Record Numbers to open elections
-			e.committee.endFastNumber = e.getEndFast(e.committee.id)
-			e.electionFeed.Send(types.ElectionEvent{
-				Option:           types.CommitteeOver, //only update committee end fast black
-				CommitteeID:      e.committee.id,
-				CommitteeMembers: e.committee.Members(),
-				BeginFastNumber:  e.committee.beginFastNumber,
-				EndFastNumber:    e.committee.endFastNumber,
-			})
-			log.Info("Election BFT committee election start..", "snail", se.Block.Number(), "endfast", e.committee.endFastNumber)
-
-			nextCommittee := e.calcCommittee(new(big.Int).Add(e.committee.id, common.Big1))
-			if e.nextCommittee != nil && e.nextCommittee.id.Cmp(nextCommittee.id) == 0 {
-				// May make a duplicate committee switchover if snail forks
-				continue
-			}
-			e.mu.Lock()
-			e.nextCommittee = nextCommittee
-			e.startSwitchover = true
-			e.mu.Unlock()
-
-			log.Info("Election switchover new committee", "id", e.nextCommittee.id, "startNumber", e.nextCommittee.beginFastNumber)
-			printCommittee(e.nextCommittee)
-			e.electionFeed.Send(types.ElectionEvent{
-				Option:           types.CommitteeSwitchover, //update next committee
-				CommitteeID:      e.nextCommittee.id,
-				CommitteeMembers: e.nextCommittee.Members(),
-				BackupMembers:    e.nextCommittee.BackupMembers(),
-				BeginFastNumber:  e.nextCommittee.beginFastNumber,
-			})
-		}*/
-		case <-e.switchNext:
-			if e.startSwitchover {
+			if e.committee.endFastNumber.Cmp(fastHead.Block.Number()) == 0 {
 				log.Info("Election stop committee..", "id", e.committee.id)
 				e.electionFeed.Send(types.ElectionEvent{
 					Option:           types.CommitteeStop,
@@ -1403,17 +1341,6 @@ func (e *Election) loop() {
 					BeginFastNumber:  e.committee.beginFastNumber,
 				})
 			}
-			/*case ch := <-e.committeeMemberCh:
-			switch ch.Option {
-			case types.AddCommitteeMember:
-				log.Info("AddCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
-				e.nextCommittee.members = append(e.nextCommittee.members, ch.CommitteeMember)
-			case types.RemoveCommitteeMember:
-				log.Info("RemoveCommitteeMember..", "coinbase", ch.CommitteeMember.Coinbase)
-				e.removeCommitteeMember(ch.CommitteeMember)
-			default:
-				log.Error("unknown handle committeeMember option:", "option", ch.Option)
-			}*/
 		}
 	}
 }
@@ -1434,11 +1361,11 @@ func (e *Election) getCACertList() *vm.CACertList {
 	return caCertList
 }
 
-func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList,committeeId *big.Int) []*types.CommitteeMember {
+func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committeeId *big.Int) []*types.CommitteeMember {
 	caCertMap := caCertList.GetCACertMapByEpoch(committeeId.Uint64())
 	members := make([]*types.CommitteeMember, len(caCertMap.CACert))
 	for i, caCert := range caCertMap.CACert {
-		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap.CACert),  "caCert", hex.EncodeToString(caCert))
+		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap.CACert), "caCert", hex.EncodeToString(caCert))
 
 		pub, err := crypto.GetPubByteFromCert(caCert)
 		if err != nil {
@@ -1472,7 +1399,7 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 		endFastNumber:   calculateEndFastNumber(beginFastNumber),
 	}
 	caCertPubkeyList := e.getCACertList()
-	committee.members = e.assignmentCommitteeMember(caCertPubkeyList,committeeId)
+	committee.members = e.assignmentCommitteeMember(caCertPubkeyList, committeeId)
 	return committee
 }
 
