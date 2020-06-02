@@ -19,6 +19,7 @@ package election
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 
@@ -35,12 +36,14 @@ import (
 	"sync"
 
 	"crypto/ecdsa"
-	"github.com/hashicorp/golang-lru"
+
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
+
 	//"github.com/taiyuechain/taiyuechain/etruedb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -1309,7 +1312,7 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == numberinterval {
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == EpochSize {
 				//send CommitteeOver event to pbftAgent to notify currentCommittee endFastNumber
 				e.electionFeed.Send(types.ElectionEvent{
 					Option:           types.CommitteeOver,
@@ -1479,7 +1482,7 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 var fastNumberPerSession = new(big.Int).SetUint64(uint64(10000))
 
 //相隔多少个块前需要通知
-var numberinterval uint64 = 100
+var EpochSize uint64 = 100
 
 func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
 	beginFastNumber := new(big.Int).Mul(committeeId, fastNumberPerSession)
@@ -1488,6 +1491,13 @@ func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
 func calculateEndFastNumber(beginFastNumber *big.Int) *big.Int {
 	endFastNumber := new(big.Int).Add(beginFastNumber, fastNumberPerSession)
 	return endFastNumber
+}
+func GetEpochIDFromHeight(height *big.Int) *big.Int {
+	return new(big.Int).Div(height, big.NewInt(int64(EpochSize)))
+}
+func GetEpochHeigth(eid *big.Int) (*big.Int, *big.Int) {
+	begin := new(big.Int).Mul(eid, NewInt(int64(EpochSize)))
+	return begin, new(big.Int).Add(begin, big.NewInt(int64(EpochSize-1)))
 }
 
 func (e *Election) removeCommitteeMember(removeCommitteeMember *types.CommitteeMember) {
