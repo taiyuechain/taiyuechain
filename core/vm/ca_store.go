@@ -274,7 +274,7 @@ func (ca *CACertList) addCertToList(caCert []byte, epoch uint64,isInit bool) (bo
 	}
 
 	cac := &CACert{}
-	if len(ca.caCertMap[epoch].CACert) == 0 {
+	if ca.caCertMap[epoch] == nil {
 		cac.CACert = append(cac.CACert, caCert)
 		cac.IsStore = append(cac.IsStore, true)
 		ca.caCertMap[epoch] = cac
@@ -332,6 +332,9 @@ func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int) {
 }
 
 func (ca *CACertList) GetCaCertAmount(epoch uint64) uint64 {
+	if ca.caCertMap[epoch] == nil{
+		return uint64(0)
+	}
 	return uint64(len(ca.caCertMap[epoch].CACert))
 }
 
