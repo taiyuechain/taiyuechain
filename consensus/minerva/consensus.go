@@ -837,6 +837,9 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 	/*if err := m.finalizeFastGas(state, header.Number, header.Hash(), feeAmount); err != nil {
 		return nil, err
 	}*/
+
+	consensus.CheckCAElection(state,new(big.Int).Set(header.Number))
+
 	header.Root = state.IntermediateRoot(true)
 	return types.NewBlock(header, txs, receipts, nil, nil), nil
 }

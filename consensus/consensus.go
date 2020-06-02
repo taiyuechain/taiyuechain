@@ -177,15 +177,15 @@ type PoW interface {
 	Hashrate() float64
 }
 
-func makeCAContractInitState(state *state.StateDB, certList [][]byte) bool {
+func makeCAContractInitState(state *state.StateDB, certList [][]byte,fastNumber *big.Int) bool {
 
-	//neo
+
 	CaCertAddress := types.CACertListAddress
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := state.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
 		i := vm.NewCACertList()
-		i.InitCACertList(certList)
+		i.InitCACertList(certList,fastNumber)
 		i.SaveCACertList(state, CaCertAddress)
 		state.SetNonce(CaCertAddress, 1)
 		state.SetCode(CaCertAddress, CaCertAddress[:])
@@ -195,5 +195,12 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte) bool {
 	return false
 }
 func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumber *big.Int, certList [][]byte) bool {
-	return makeCAContractInitState(state, certList)
+	return makeCAContractInitState(state, certList,fastNumber)
+}
+
+func CheckCAElection(state *state.StateDB,fastNumber *big.Int)  {
+	CaCertAddress := types.CACertListAddress
+	i := vm.NewCACertList()
+	i.LoadCACertList(state,CaCertAddress)
+	i.ChangeElectionCaList(fastNumber)
 }
