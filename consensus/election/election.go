@@ -1434,15 +1434,13 @@ func (e *Election) getCACertList() *vm.CACertList {
 	return caCertList
 }
 
-func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList) []*types.CommitteeMember {
-	caCertMap := caCertList.GetCACertMap()
-	members := make([]*types.CommitteeMember, len(caCertMap))
-	for i, caCert := range caCertMap {
-		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap), "IsStore", caCert.GetIsStore(), "caCert", hex.EncodeToString(caCert.GetByte()))
-		if !caCert.GetIsStore() {
-			continue
-		}
-		pub, err := crypto.GetPubByteFromCert(caCert.GetByte())
+func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList,committeeId *big.Int) []*types.CommitteeMember {
+	caCertMap := caCertList.GetCACertMapByEpoch(committeeId.Uint64())
+	members := make([]*types.CommitteeMember, len(caCertMap.CACert))
+	for i, caCert := range caCertMap.CACert {
+		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap.CACert),  "caCert", hex.EncodeToString(caCert))
+
+		pub, err := crypto.GetPubByteFromCert(caCert)
 		if err != nil {
 			log.Warn("assignmentCommitteeMember", "GetPubByteFromCert err", err)
 			continue
@@ -1457,7 +1455,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList) []*types
 		members[i] = &types.CommitteeMember{
 			CommitteeBase: address,
 			Coinbase:      address,
-			LocalCert:     caCert.GetByte(),
+			LocalCert:     caCert,
 			Publickey:     pub,
 			Flag:          types.StateUsedFlag,
 			MType:         types.TypeWorked,
@@ -1474,7 +1472,7 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 		endFastNumber:   calculateEndFastNumber(beginFastNumber),
 	}
 	caCertPubkeyList := e.getCACertList()
-	committee.members = e.assignmentCommitteeMember(caCertPubkeyList)
+	committee.members = e.assignmentCommitteeMember(caCertPubkeyList,committeeId)
 	return committee
 }
 
