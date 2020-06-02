@@ -189,7 +189,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := etrue.blockchain.GetBlockNumber()
+	epoch := etrue.blockchain.GetBlockNumber()/elect.EpochSize
 	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
 		//log.Info("cart List ", "is", caCert)
 		cimCa, err := cim.NewCIM()
