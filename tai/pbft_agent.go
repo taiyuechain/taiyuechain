@@ -739,7 +739,7 @@ func (agent *PbftAgent) GetFastLastProposer() common.Address {
 
 //FetchFastBlock  generate fastBlock as leader
 func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.CommitteeMember) (*types.Block, error) {
-	log.Info("Fetch Fast Block")
+	log.Info("Fetch Fast Block", "committeeID", committeeID, "endFastNumber", agent.endFastNumber)
 	agent.mu.Lock()
 	defer agent.mu.Unlock()
 	if agent.fastChain.IsFallback() {

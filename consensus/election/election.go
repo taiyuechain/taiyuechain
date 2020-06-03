@@ -102,15 +102,12 @@ type candidateMember struct {
 }
 
 type committee struct {
-	id                  *big.Int
-	beginFastNumber     *big.Int // the first fast block proposed by this committee
-	endFastNumber       *big.Int // the last fast block proposed by this committee
-	firstElectionNumber *big.Int // the begin snailblock to elect members
-	lastElectionNumber  *big.Int // the end snailblock to elect members
-	switchCheckNumber   *big.Int // the snailblock that start switch next committee
-	members             types.CommitteeMembers
-	backupMembers       types.CommitteeMembers
-	switches            []*big.Int // blocknumbers whose block include switchinfos
+	id              *big.Int
+	beginFastNumber *big.Int // the first fast block proposed by this committee
+	endFastNumber   *big.Int // the last fast block proposed by this committee
+	members         types.CommitteeMembers
+	backupMembers   types.CommitteeMembers
+	switches        []*big.Int // blocknumbers whose block include switchinfos
 }
 
 // Members returns dump of the committee members
@@ -265,13 +262,10 @@ func NewFakeElection() *Election {
 
 	// Backup members are empty in FakeMode Election
 	elected := &committee{
-		id:                  new(big.Int).Set(common.Big0),
-		beginFastNumber:     new(big.Int).Set(common.Big1),
-		endFastNumber:       new(big.Int).Set(common.Big0),
-		firstElectionNumber: new(big.Int).Set(common.Big0),
-		lastElectionNumber:  new(big.Int).Set(common.Big0),
-		switchCheckNumber:   params.ElectionPeriodNumber,
-		members:             members,
+		id:              new(big.Int).Set(common.Big0),
+		beginFastNumber: new(big.Int).Set(common.Big1),
+		endFastNumber:   new(big.Int).Set(common.Big0),
+		members:         members,
 	}
 
 	election := &Election{
@@ -459,14 +453,12 @@ func (e *Election) getGenesisCommittee() []*types.CommitteeMember {
 
 func (e *Election) getCommitteeByContract() *committee {
 	//TODO get new one
+	begin, end := GetEpochHeigth(new(big.Int).Set(common.Big0))
 	return &committee{
-		id:                  new(big.Int).Set(common.Big0),
-		beginFastNumber:     new(big.Int).Set(common.Big1),
-		endFastNumber:       new(big.Int).Set(common.Big0),
-		firstElectionNumber: new(big.Int).Set(common.Big0),
-		lastElectionNumber:  new(big.Int).Set(common.Big0),
-		switchCheckNumber:   params.ElectionPeriodNumber,
-		members:             e.genesisCommittee,
+		id:              new(big.Int).Set(common.Big0),
+		beginFastNumber: begin,
+		endFastNumber:   end,
+		members:         e.genesisCommittee,
 	}
 }
 
