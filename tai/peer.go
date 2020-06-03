@@ -315,13 +315,11 @@ func (p *peer) broadcast() {
 	for {
 		select {
 		case nodeInfo := <-p.queuedNodeInfo:
-			log.Info("broadcast queuedNodeInfo")
 			if err := p.SendNodeInfo(nodeInfo); err != nil {
 				return
 			}
 			p.Log().Trace("Broadcast node info ")
 		case nodeInfo := <-p.queuedNodeInfoHash:
-			log.Info("broadcast queuedNodeInfoHash")
 			if err := p.SendNodeInfoHash(nodeInfo); err != nil {
 				log.Info("SendNodeInfoHash error", "err", err)
 			}

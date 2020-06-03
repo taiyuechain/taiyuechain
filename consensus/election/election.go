@@ -405,7 +405,7 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 			members[i] = member
 		}
 	}
-	log.Info("VerifySigns", "height", signs[0].FastHeight, "member", members)
+	log.Debug("VerifySigns", "height", signs[0].FastHeight, "member", members)
 	return members, errs
 }
 
