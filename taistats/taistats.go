@@ -80,7 +80,7 @@ type snailBlockChain interface {
 // chain statistics up to a monitoring server.
 type Service struct {
 	server *p2p.Server      // Peer-to-peer server to retrieve networking infos
-	etrue  *tai.Taiyuechain // Full Taiyuechain service if monitoring a full node
+	tai    *tai.Taiyuechain // Full Taiyuechain service if monitoring a full node
 	les    *les.LightEtrue  // Light Taiyuechain service if monitoring a light node
 	engine consensus.Engine // Consensus engine to retrieve variadic block fields
 
@@ -109,7 +109,7 @@ func New(url string, ethServ *tai.Taiyuechain, lesServ *les.LightEtrue) (*Servic
 		engine = lesServ.Engine()
 	}
 	return &Service{
-		etrue:       ethServ,
+		tai:         ethServ,
 		les:         lesServ,
 		engine:      engine,
 		node:        parts[1],
@@ -151,9 +151,9 @@ func (s *Service) loop() {
 	var blockchain blockChain
 	var txpool txPool
 	//var snailBlockChain snailBlockChain
-	if s.etrue != nil {
-		blockchain = s.etrue.BlockChain()
-		txpool = s.etrue.TxPool()
+	if s.tai != nil {
+		blockchain = s.tai.BlockChain()
+		txpool = s.tai.TxPool()
 		//snailBlockChain = s.etrue.SnailBlockChain()
 	} else {
 		blockchain = s.les.BlockChain()
@@ -628,10 +628,10 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 		header *types.Header
 		txs    []txStats
 	)
-	if s.etrue != nil {
+	if s.tai != nil {
 		// Full nodes have all needed information available
 		if block == nil {
-			block = s.etrue.BlockChain().CurrentBlock()
+			block = s.tai.BlockChain().CurrentBlock()
 		}
 		header = block.Header()
 
@@ -669,7 +669,7 @@ func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockSta
 		header      *types.SnailHeader
 		fruitNumber *big.Int
 	)
-	if s.etrue != nil {
+	if s.tai != nil {
 		// Full nodes have all needed information available
 		/*if block == nil {
 			block = s.etrue.SnailBlockChain().CurrentBlock()
@@ -713,8 +713,8 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 	} else {
 		// No indexes requested, send back the top ones
 		var head int64
-		if s.etrue != nil {
-			head = s.etrue.BlockChain().CurrentHeader().Number.Int64()
+		if s.tai != nil {
+			head = s.tai.BlockChain().CurrentHeader().Number.Int64()
 		} else {
 			head = s.les.BlockChain().CurrentHeader().Number.Int64()
 		}
@@ -731,8 +731,8 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 	for i, number := range indexes {
 		// Retrieve the next block if it's known to us
 		var block *types.Block
-		if s.etrue != nil {
-			block = s.etrue.BlockChain().GetBlockByNumber(number)
+		if s.tai != nil {
+			block = s.tai.BlockChain().GetBlockByNumber(number)
 		} else {
 			if header := s.les.BlockChain().GetHeaderByNumber(number); header != nil {
 				block = types.NewBlockWithHeader(header)
@@ -771,7 +771,7 @@ func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error 
 	} else {
 		// No indexes requested, send back the top ones
 		var head int64
-		if s.etrue != nil {
+		if s.tai != nil {
 			//head = s.etrue.SnailBlockChain().CurrentHeader().Number.Int64()
 		} else {
 			//head = s.les.SnailBlockChain().CurrentHeader().Number.Int64()
@@ -831,8 +831,8 @@ type pendStats struct {
 func (s *Service) reportPending(conn *websocket.Conn) error {
 	// Retrieve the pending count from the local blockchain
 	var pending int
-	if s.etrue != nil {
-		pending, _ = s.etrue.TxPool().Stats()
+	if s.tai != nil {
+		pending, _ = s.tai.TxPool().Stats()
 	} else {
 		pending = s.les.TxPool().Stats()
 	}
@@ -876,24 +876,24 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		syncing  bool
 		gasprice int
 	)
-	if s.etrue != nil {
+	if s.tai != nil {
 		//mining = s.etrue.Miner().Mining()
 		//hashrate = int(s.etrue.Miner().HashRate())
 
-		sync := s.etrue.Downloader().Progress()
-		syncing = s.etrue.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
+		sync := s.tai.Downloader().Progress()
+		syncing = s.tai.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
 
-		price, _ := s.etrue.APIBackend.SuggestPrice(context.Background())
+		price, _ := s.tai.APIBackend.SuggestPrice(context.Background())
 		gasprice = int(price.Uint64())
 
-		isCommitteeMember = s.etrue.PbftAgent().IsCommitteeMember()
-		isLeader = s.etrue.PbftAgent().IsLeader()
+		isCommitteeMember = s.tai.PbftAgent().IsCommitteeMember()
+		isLeader = s.tai.PbftAgent().IsLeader()
 	} else {
 		sync := s.les.Downloader().Progress()
 		syncing = s.les.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
 	}
 	// Assemble the node stats and send it to the server
-	log.Trace("Sending node details to etruestats")
+	log.Trace("Sending node details to taistats")
 	nodeStats := &nodeStats{
 		Active: true,
 		//Mining:            mining,

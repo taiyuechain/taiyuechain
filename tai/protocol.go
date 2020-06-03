@@ -37,7 +37,7 @@ const (
 )
 
 // protocolName is the official short name of the protocol used during capability negotiation.
-const ProtocolName = "etrue"
+const ProtocolName = "tai"
 
 // ProtocolVersions are the supported versions of the eth protocol (first is primary).
 var ProtocolVersions = []uint{eth65, eth64, eth63}
@@ -70,7 +70,7 @@ const (
 	GetPooledTransactionsMsg      = 0x09
 	PooledTransactionsMsg         = 0x0a
 
-	// Protocol messages belonging to etrue/63
+	// Protocol messages belonging to tai/63
 	TbftNodeInfoMsg     = 0x14
 	TbftNodeInfoHashMsg = 0x15
 	GetTbftNodeInfoMsg  = 0x16
