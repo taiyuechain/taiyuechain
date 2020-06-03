@@ -28,7 +28,7 @@ const (
 	SwitchPartSeed = 2
 )
 
-var EnableHealthMgr = true
+var EnableHealthMgr = false
 
 //Health struct
 type Health struct {
@@ -235,8 +235,8 @@ func (h *HealthMgr) ChanTo() chan *SwitchValidator {
 
 //OnStart mgr start
 func (h *HealthMgr) OnStart() error {
-	EnableHealthMgr = true
-	if h.healthTick == nil {
+	EnableHealthMgr = false
+	if h.healthTick == nil && EnableHealthMgr {
 		h.healthTick = time.NewTicker(1 * time.Second)
 		go h.healthGoroutine()
 	}
