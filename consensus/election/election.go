@@ -627,7 +627,7 @@ func (e *Election) Start() error {
 			e.committee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(curEpochID, common.Big1))
 			e.nextCommittee = nil
 			e.startSwitchover = false
-		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() == EpochElectionPoint {
+		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() <= EpochElectionPoint {
 			e.prepare = true
 		}
 	}

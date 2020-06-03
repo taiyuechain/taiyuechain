@@ -30,11 +30,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -1538,6 +1538,9 @@ func (d *Downloader) importBlockResults(results []*fetchResult) error {
 	)
 	blocks := make([]*types.Block, len(results))
 	for i, result := range results {
+		if d.blockchain.GetBlockByHash(result.Hash) != nil {
+			continue
+		}
 		blocks[i] = types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Signs, result.Infos)
 	}
 	if index, err := d.blockchain.InsertChain(blocks); err != nil {
