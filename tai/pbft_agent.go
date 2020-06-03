@@ -855,18 +855,13 @@ func (agent *PbftAgent) GenerateSignWithVote(fb *types.Block, vote uint32, resul
 	var err error
 	signHash := voteSign.HashWithNoSign().Bytes()
 
-	log.Info("the privat ", "is", hex.EncodeToString(crypto.FromECDSA(agent.privateKey)), "hash", signHash)
 	voteSign.Sign, err = crypto.Sign(signHash, agent.privateKey)
 	if err != nil {
-
-		log.Error("GenerateSignWithVote sign is nil", "err is", err)
+		log.Error("GenerateSignWithVote sign is nil", "err", err, "priv", hex.EncodeToString(crypto.FromECDSA(agent.privateKey)), "hash", hex.EncodeToString(signHash))
 		return nil, err
 	}
 	if len(voteSign.Sign) == 0 {
 		log.Error("sine len is zero==================================")
-	}
-	if err != nil {
-		log.Error("fb GenerateSign error ", "err", err)
 	}
 	return voteSign, err
 }
