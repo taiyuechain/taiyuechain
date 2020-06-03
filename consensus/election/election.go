@@ -19,8 +19,6 @@ package election
 import (
 	"bytes"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/common/hexutil"
-
 	"github.com/taiyuechain/taiyuechain/core/vm"
 
 	//"crypto/ecdsa"
@@ -401,16 +399,19 @@ func (e *Election) VerifySigns(signs []*types.PbftSign) ([]*types.CommitteeMembe
 	}*/
 
 	for i, sign := range signs {
-		pubkey, _ := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
+		pubkey, err := crypto.SigToPub(sign.HashWithNoSign().Bytes(), sign.Sign)
+		if err != nil {
+			log.Warn("VerifySigns", "err", err, "sign", hex.EncodeToString(sign.Sign))
+		}
 		pubBytes := crypto.FromECDSAPub(pubkey)
 		member := e.GetMemberByPubkey(committeeMembers, pubBytes)
-		fmt.Println("member index ", i, " len ", len(sign.Sign), " pub ", hexutil.Encode(pubBytes), " member ", member)
 		if member == nil {
 			errs[i] = ErrInvalidMember
 		} else {
 			members[i] = member
 		}
 	}
+	log.Info("VerifySigns", "height", signs[0].FastHeight, "member", members)
 	return members, errs
 }
 

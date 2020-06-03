@@ -10,6 +10,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	tcrypyo "github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
@@ -87,7 +88,7 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	// Sign the challenge bytes for authentication.
 	locSignature := signChallenge(challenge, locPrivKey)
-	fmt.Println("MakeSecretConnection signChallenge ", len(locSignature), " hex ", hex.EncodeToString(locSignature))
+	log.Info("MakeSecretConnection", "signChallenge", len(locSignature), "hex", hex.EncodeToString(locSignature))
 
 	// Share (in secret) each other's pubkey & challenge signature
 	authSigMsg, err := shareAuthSignature(sc, locPubKey, locSignature)
@@ -101,7 +102,7 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("MakeSecretConnection signChallenge ", len(remSignature), " remote sign ", hex.EncodeToString(remSignature))
+	log.Info("MakeSecretConnection", "signChallenge", len(remSignature), "remote sign", hex.EncodeToString(remSignature))
 
 	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
