@@ -446,15 +446,6 @@ func (s *PrivateAccountAPI) signTransaction(ctx context.Context, args SendTxArgs
 // tries to sign it with the key associated with args.To. If the given passwd isn't
 // able to decrypt the key it fails.
 func (s *PrivateAccountAPI) SendTransaction(ctx context.Context, args SendTxArgs, passwd string) (common.Hash, error) {
-	/*sendCert := args.Cert.String()
-	//sendIdentity, err := cim.GetIdentityFromByte([]byte(sendCert))
-	//if err != nil {
-	//	return common.Hash{}, err
-	//}
-	//if !cim.ValidateIdentity(sendIdentity) {
-	//	return common.Hash{}, err
-	//}*/
-
 	if args.Payment != (common.Address{}) { //personal.SendTransaction should not contain payment
 		return common.Hash{}, fmt.Errorf("payment should not assigned")
 	}
@@ -1643,6 +1634,21 @@ func (s *PublicTransactionPoolAPI) signPayment(payment common.Address, tx *types
 // SendTransaction creates a transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
+
+	sendCert := args.Cert
+	if sendCert != nil && len(*sendCert) != 0 {
+		pub, err := crypto.FromCertBytesToPubKey(*sendCert)
+		if err != nil {
+			return common.Hash{}, errors.New("cert convert to pub")
+		}
+		address := crypto.PubkeyToAddress(*pub)
+		if args.From != address {
+			return common.Hash{}, errors.New("pub address not equal from address")
+		}
+	} else {
+		return common.Hash{}, errors.New("cert can't nil")
+	}
+
 	log.Debug("SendTransaction", "args",
 		fmt.Sprintf("API recieved  from=%v\n ,Payment=%v", crypto.AddressToHex(args.From), crypto.AddressToHex(args.Payment)))
 	// Look up the wallet containing the requested signer
