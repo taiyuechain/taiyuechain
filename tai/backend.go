@@ -189,7 +189,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := etrue.blockchain.GetBlockNumber()/elect.EpochSize
+	epoch := etrue.blockchain.GetBlockNumber() / elect.EpochSize
 	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
 		//log.Info("cart List ", "is", caCert)
 		cimCa, err := cim.NewCIM()
@@ -348,7 +348,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
 
 	// Append etrue	APIs and  Eth APIs
-	namespaces := []string{"etrue", "eth"}
+	namespaces := []string{"etrue", "tai", "eth"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{

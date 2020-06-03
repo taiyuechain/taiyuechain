@@ -30,11 +30,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/tai"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/filters"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
 	"github.com/taiyuechain/taiyuechain/light"
@@ -44,6 +39,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/tai/filters"
+	"github.com/taiyuechain/taiyuechain/tai/gasprice"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 type LightEtrue struct {
@@ -182,7 +182,7 @@ func (s *LightDummyAPI) Mining() bool {
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightEtrue) APIs() []rpc.API {
 	apis := trueapi.GetAPIs(s.ApiBackend)
-	namespaces := []string{"etrue", "eth"}
+	namespaces := []string{"etrue", "tai", "eth"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{
