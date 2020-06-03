@@ -19,7 +19,7 @@ import (
 )
 
 func init() {
-	log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(false))))
+	log.Root().SetHandler(log.LvlFilterHandler(log.LvlInfo, log.StreamHandler(os.Stderr, log.TerminalFormat(false))))
 }
 
 // ContractABI is the input ABI used to generate the binding from.

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	crand "crypto/rand"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/crypto"
@@ -86,8 +87,7 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 
 	// Sign the challenge bytes for authentication.
 	locSignature := signChallenge(challenge, locPrivKey)
-	fmt.Println("===========11111111len sign ", "len", len(locSignature))
-	fmt.Println("sing is ?? 222 ", "is", locSignature)
+	fmt.Println("MakeSecretConnection signChallenge ", len(locSignature), " hex ", hex.EncodeToString(locSignature))
 
 	// Share (in secret) each other's pubkey & challenge signature
 	authSigMsg, err := shareAuthSignature(sc, locPubKey, locSignature)
@@ -101,8 +101,8 @@ func MakeSecretConnection(conn io.ReadWriteCloser, locPrivKey crypto.PrivKey) (*
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("===========len sign ", "len", len(remSignature))
-	fmt.Println("sing is ??", "is", remSignature)
+	fmt.Println("MakeSecretConnection signChallenge ", len(remSignature), " remote sign ", hex.EncodeToString(remSignature))
+
 	remPubKey := crypto.PubKeyTrue(*remPubKeyEcdsa)
 	if !remPubKey.VerifyBytes(challenge[:], remSignature) {
 		return nil, errors.New("Challenge verification failed")

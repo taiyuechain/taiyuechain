@@ -30,8 +30,10 @@ func TestAllCaCert(t *testing.T) {
 		sendMultiProposalTranscation(number, gen, saddr1, cert44, pbft1Byte, true, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendMultiProposalTranscation(number, gen, saddr1, cert44, pbft2Byte, true, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendGetCaCertAmountTranscation(number-25, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendGetCaCertAmountTranscation(number-25-1000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendGetCaCertAmountTranscation(number-25-2000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 	}
-	newTestPOSManager(2, executable)
+	newTestPOSManager(60, executable)
 	fmt.Println("staking addr", types.CACertListAddress)
 	//fmt.Println(" saddr1 ", manager.GetBalance(saddr1), " StakingAddress ", manager.GetBalance(types.StakingAddress), " ", types.ToTai(manager.GetBalance(types.StakingAddress)))
 }

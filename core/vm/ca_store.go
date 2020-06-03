@@ -20,16 +20,12 @@ import (
 	//"math/big"
 	"errors"
 	"strings"
-	//"time"
-	"fmt"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/rlp"
 	"math/big"
 )
 
@@ -117,7 +113,7 @@ func (ca *CACertList) InitCACertList(caList [][]byte, blockHight *big.Int) {
 	len := len(caList)
 	epoch := blockHight.Uint64() / electionHgiht
 	for i := 0; i < len; i++ {
-		ca.addCertToList(caList[i], epoch,true)
+		ca.addCertToList(caList[i], epoch, true)
 	}
 }
 
@@ -163,90 +159,6 @@ func (ca *CACertList) GetCACertMapByEpoch(epoch uint64) *CACert {
 	return ca.caCertMap[epoch]
 }
 
-func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) error {
-
-	key := common.BytesToHash(preAddress[:])
-	data := state.GetCAState(preAddress, key)
-	lenght := len(data)
-	if lenght == 0 {
-		return errors.New("Load data = 0")
-	}
-	hash := types.RlpHash(data)
-	var temp CACertList
-	watch1 := help.NewTWatch(0.005, "Load impawn")
-	if cc, ok := CASC.Cache.Get(hash); ok {
-		caList := cc.(*CACertList)
-		temp = *(CloneCaCache(caList))
-	} else {
-		if err := rlp.DecodeBytes(data, &temp); err != nil {
-			watch1.EndWatch()
-			watch1.Finish("DecodeBytes")
-			log.Error(" Invalid CACertList entry RLP", "err", err)
-			return errors.New(fmt.Sprintf("Invalid CACertList entry RLP %s", err.Error()))
-		}
-		tmp := CloneCaCache(&temp)
-
-		if tmp != nil {
-			CASC.Cache.Add(hash, tmp)
-		}
-	}
-
-	for k, val := range temp.caCertMap {
-		//log.Info("---clone","k",k,"value",val.CACert,"isstart",val.IsStore)
-		items := &CACert{
-			val.CACert,
-			val.IsStore,
-		}
-
-		ca.caCertMap[k] = items
-
-	}
-
-	for k, val := range temp.proposalMap {
-		//log.Info("--clone 2","k",k,"val",val.CACert)
-		item := &ProposalState{
-			val.PHash,
-			val.CACert,
-			val.StartHeight,
-			val.EndHeight,
-			val.PState,
-			val.NeedPconfirmNumber,
-			val.PNeedDo,
-			val.SignList,
-			val.SignMap,
-		}
-
-		ca.proposalMap[k] = item
-	}
-	watch1.EndWatch()
-	watch1.Finish("DecodeBytes")
-	return nil
-}
-
-func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) error {
-
-	key := common.BytesToHash(preAddress[:])
-	watch1 := help.NewTWatch(0.005, "Save impawn")
-	data, err := rlp.EncodeToBytes(ca)
-	watch1.EndWatch()
-	watch1.Finish("EncodeToBytes")
-
-	if err != nil {
-		log.Crit("Failed to RLP encode CACertList", "err", err)
-	}
-	hash := types.RlpHash(data)
-	for _, val := range ca.proposalMap {
-		log.Info("-=-==-=save CA info", "Ce name", val.CACert, "is store", val.PHash)
-
-	}
-	state.SetCAState(preAddress, key, data)
-	tmp := CloneCaCache(ca)
-	if tmp != nil {
-		CASC.Cache.Add(hash, tmp)
-	}
-	return err
-}
-
 func (ca *CACertList) IsInList(caCert []byte, epoch uint64) (bool, error) {
 	hash := types.RlpHash(caCert)
 	certList := ca.caCertMap[epoch]
@@ -259,12 +171,11 @@ func (ca *CACertList) IsInList(caCert []byte, epoch uint64) (bool, error) {
 	return false, errors.New("not in List")
 }
 
-func (ca *CACertList) addCertToList(caCert []byte, epoch uint64,isInit bool) (bool, error) {
+func (ca *CACertList) addCertToList(caCert []byte, epoch uint64, isInit bool) (bool, error) {
 	if len(caCert) == 0 {
 		return false, errors.New("ca cert len is zeor")
 	}
-	if !isInit{
-
+	if !isInit {
 
 		ok, _ := ca.IsInList(caCert, epoch)
 		//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
@@ -321,18 +232,19 @@ func (ca *CACertList) copyCertToList(epoch uint64) {
 	}
 }
 
-func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int) {
+func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int, state StateDB) {
 	epoch := blockHight.Uint64() / electionHgiht
 
 	if blockHight.Int64() > int64((epoch*electionHgiht)+electionPerHgith) {
 		if ca.caCertMap[epoch+1] == nil {
 			ca.copyCertToList(epoch)
+			ca.SaveCACertList(state, types.CACertListAddress)
 		}
 	}
 }
 
 func (ca *CACertList) GetCaCertAmount(epoch uint64) uint64 {
-	if ca.caCertMap[epoch] == nil{
+	if ca.caCertMap[epoch] == nil {
 		return uint64(0)
 	}
 	return uint64(len(ca.caCertMap[epoch].CACert))
@@ -398,7 +310,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
 		ca.copyCertToList(epoch)
-		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1,false)
+		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
 		if res && err == nil {
 			ca.proposalMap[pHash].PState = pStateSuccless
 			return true, nil
@@ -658,112 +570,3 @@ const CACertStoreABIJSON = `
    	}
 ]
 `
-
-/*
-// Staking Contract json abi
-const CACertStoreABIJSONTest = `
-[
-  {
-    "name": "AddCaCert",
-    "inputs": [
-      {
-        "type": "bytes",
-        "name": "caCert",
-        "indexed": true
-      }
-    ],
-    "anonymous": false,
-    "type": "event"
-  },
-  {
-    "name": "DelCaCert",
-    "inputs": [
-      {
-        "type": "bytes",
-        "name": "caCert",
-        "indexed": true
-      }
-    ],
-    "anonymous": false,
-    "type": "event"
-  },
-  {
-    "name": "getCaAmount",
-    "outputs": [],
-    "inputs": [
-      {
-        "type": "bytes",
-        "name": "caCert"
-      }
-    ],
-    "constant": false,
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "name": "addCaCert",
-    "outputs": [
-      {
-        "type": "uint256",
-        "name": "out"
-      }
-    ],
-    "inputs": [
-      {
-        "type": "address",
-        "name": "owner"
-      }
-    ],
-    "constant": true,
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "name": "delCaCert",
-    "outputs": [
-      {
-        "type": "uint256",
-        "unit": "wei",
-        "name": "staked"
-      },
-      {
-        "type": "uint256",
-        "unit": "wei",
-        "name": "locked"
-      },
-      {
-        "type": "uint256",
-        "unit": "wei",
-        "name": "unlocked"
-      }
-    ],
-    "inputs": [
-      {
-        "type": "address",
-        "name": "owner"
-      }
-    ],
-    "constant": true,
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "name": "isApproveCaCert",
-    "outputs": [],
-    "inputs": [
-      {
-        "type": "address",
-        "name": "holder"
-      },
-      {
-        "type": "uint256",
-        "unit": "wei",
-        "name": "value"
-      }
-    ],
-    "constant": false,
-    "payable": false,
-    "type": "function"
-  }
-]
-`*/

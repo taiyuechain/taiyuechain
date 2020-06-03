@@ -7,13 +7,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
-	"os"
 	"testing"
 )
-
-func init() {
-	log.Root().SetHandler(log.LvlFilterHandler(log.LvlTrace, log.StreamHandler(os.Stderr, log.TerminalFormat(false))))
-}
 
 func TestENS(t *testing.T) {
 	contractBackend := backends.NewSimulatedBackend(gspec, 10000000)

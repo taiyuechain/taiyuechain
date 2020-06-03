@@ -197,5 +197,5 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int) {
 	CaCertAddress := types.CACertListAddress
 	i := vm.NewCACertList()
 	i.LoadCACertList(state, CaCertAddress)
-	i.ChangeElectionCaList(fastNumber)
+	i.ChangeElectionCaList(fastNumber, state)
 }

@@ -1,11 +1,95 @@
 package vm
 
 import (
+	"errors"
+	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"io"
 	"math/big"
 )
+
+func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) error {
+	key := common.BytesToHash(preAddress[:])
+	data := state.GetCAState(preAddress, key)
+	lenght := len(data)
+	if lenght == 0 {
+		return errors.New("Load data = 0")
+	}
+	hash := types.RlpHash(data)
+	var temp CACertList
+	watch1 := help.NewTWatch(0.005, "Load impawn")
+	if cc, ok := CASC.Cache.Get(hash); ok {
+		caList := cc.(*CACertList)
+		temp = *(CloneCaCache(caList))
+	} else {
+		if err := rlp.DecodeBytes(data, &temp); err != nil {
+			watch1.EndWatch()
+			watch1.Finish("DecodeBytes")
+			log.Error(" Invalid CACertList entry RLP", "err", err)
+			return errors.New(fmt.Sprintf("Invalid CACertList entry RLP %s", err.Error()))
+		}
+		tmp := CloneCaCache(&temp)
+
+		if tmp != nil {
+			CASC.Cache.Add(hash, tmp)
+		}
+	}
+
+	for k, val := range temp.caCertMap {
+		items := &CACert{
+			val.CACert,
+			val.IsStore,
+		}
+		ca.caCertMap[k] = items
+	}
+
+	for k, val := range temp.proposalMap {
+		//log.Info("--clone 2","k",k,"val",val.CACert)
+		item := &ProposalState{
+			val.PHash,
+			val.CACert,
+			val.StartHeight,
+			val.EndHeight,
+			val.PState,
+			val.NeedPconfirmNumber,
+			val.PNeedDo,
+			val.SignList,
+			val.SignMap,
+		}
+
+		ca.proposalMap[k] = item
+	}
+	watch1.EndWatch()
+	watch1.Finish("DecodeBytes")
+	return nil
+}
+
+func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) error {
+	key := common.BytesToHash(preAddress[:])
+	watch1 := help.NewTWatch(0.005, "Save impawn")
+	data, err := rlp.EncodeToBytes(ca)
+	watch1.EndWatch()
+	watch1.Finish("EncodeToBytes")
+
+	if err != nil {
+		log.Crit("Failed to RLP encode CACertList", "err", err)
+	}
+	hash := types.RlpHash(data)
+	for _, val := range ca.proposalMap {
+		log.Info("-=-==-=save CA info", "Ce name", val.CACert, "is store", val.PHash)
+
+	}
+	state.SetCAState(preAddress, key, data)
+	tmp := CloneCaCache(ca)
+	if tmp != nil {
+		CASC.Cache.Add(hash, tmp)
+	}
+	return err
+}
 
 // "external" CACertList encoding. used for pos staking.
 type extCACertList struct {
