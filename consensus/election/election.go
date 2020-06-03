@@ -67,7 +67,9 @@ const (
 
 var (
 	// maxUint256 is a big integer representing 2^256-1
-	maxUint256 = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
+	maxUint256         = new(big.Int).Exp(big.NewInt(2), big.NewInt(256), big.NewInt(0))
+	EpochSize          = uint64(1000)
+	EpochElectionPoint = uint64(100) //相隔多少个块前需要通知
 )
 
 var (
@@ -75,6 +77,22 @@ var (
 	ErrInvalidMember = errors.New("invalid committee member")
 	ErrInvalidSwitch = errors.New("invalid switch block info")
 )
+
+func GetEpochIDFromHeight(height *big.Int) *big.Int {
+	return new(big.Int).Div(height, big.NewInt(int64(EpochSize)))
+}
+func GetEpochHeigth(eid *big.Int) (*big.Int, *big.Int) {
+	begin := new(big.Int).Mul(eid, big.NewInt(int64(EpochSize)))
+	return begin, new(big.Int).Add(begin, big.NewInt(int64(EpochSize-1)))
+}
+
+func (e *Election) removeCommitteeMember(removeCommitteeMember *types.CommitteeMember) {
+	for i, member := range e.nextCommittee.members {
+		if member.Coinbase == removeCommitteeMember.Coinbase {
+			e.nextCommittee.members = append(e.nextCommittee.members[:i], e.nextCommittee.members[i+1:]...)
+		}
+	}
+}
 
 type candidateMember struct {
 	coinbase   common.Address
@@ -1205,7 +1223,7 @@ func (e *Election) FinalizeCommittee(block *types.Block) error {
 // Start load current committ and starts election processing
 func (e *Election) Start() error {
 	// get current committee info
-	if EpochSize < 100 {
+	if EpochSize < EpochElectionPoint*3 {
 		return errors.New(fmt.Sprint("EpochSize:", EpochSize, " less than 100"))
 	}
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
@@ -1284,7 +1302,7 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == (EpochSize - 100) {
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == (EpochSize - EpochElectionPoint) {
 				//send CommitteeOver event to pbftAgent to notify currentCommittee endFastNumber
 				e.electionFeed.Send(types.ElectionEvent{
 					Option:           types.CommitteeOver,
@@ -1392,45 +1410,15 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 }
 
 func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committee {
-	beginFastNumber := calculateBeginFastNumber(committeeId)
+	begin, end := GetEpochHeigth(committeeId)
 	committee := &committee{
 		id:              new(big.Int).Add(committeeId, common.Big1),
-		beginFastNumber: beginFastNumber,
-		endFastNumber:   calculateEndFastNumber(beginFastNumber),
+		beginFastNumber: new(big.Int).Set(begin),
+		endFastNumber:   new(big.Int).Set(end),
 	}
 	caCertPubkeyList := e.getCACertList()
 	committee.members = e.assignmentCommitteeMember(caCertPubkeyList, committeeId)
 	return committee
-}
-
-//每届委员会产生的fastBlock数量
-var fastNumberPerSession = new(big.Int).SetUint64(uint64(10000))
-
-//相隔多少个块前需要通知
-var EpochSize uint64 = 1000
-
-func calculateBeginFastNumber(committeeId *big.Int) *big.Int {
-	beginFastNumber := new(big.Int).Mul(committeeId, fastNumberPerSession)
-	return beginFastNumber
-}
-func calculateEndFastNumber(beginFastNumber *big.Int) *big.Int {
-	endFastNumber := new(big.Int).Add(beginFastNumber, fastNumberPerSession)
-	return endFastNumber
-}
-func GetEpochIDFromHeight(height *big.Int) *big.Int {
-	return new(big.Int).Div(height, big.NewInt(int64(EpochSize)))
-}
-func GetEpochHeigth(eid *big.Int) (*big.Int, *big.Int) {
-	begin := new(big.Int).Mul(eid, big.NewInt(int64(EpochSize)))
-	return begin, new(big.Int).Add(begin, big.NewInt(int64(EpochSize-1)))
-}
-
-func (e *Election) removeCommitteeMember(removeCommitteeMember *types.CommitteeMember) {
-	for i, member := range e.nextCommittee.members {
-		if member.Coinbase == removeCommitteeMember.Coinbase {
-			e.nextCommittee.members = append(e.nextCommittee.members[:i], e.nextCommittee.members[i+1:]...)
-		}
-	}
 }
 
 // SetEngine set election backend consesus
