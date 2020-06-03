@@ -38,12 +38,13 @@ import (
 	"crypto/cipher"
 	"crypto/elliptic"
 	"fmt"
+	"hash"
+
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm4"
 	"github.com/taiyuechain/taiyuechain/crypto/secp256k1"
 	"golang.org/x/crypto/sha3"
-	"hash"
 )
 
 var (

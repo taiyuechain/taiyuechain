@@ -547,11 +547,6 @@ func (e *fakeElection) VerifySwitchInfo(fastnumber *big.Int, info []*types.Commi
 	return nil
 }
 
-// FinalizeCommittee upddate current committee state
-func (e *fakeElection) FinalizeCommittee(block *types.Block) error {
-	return nil
-}
-
 func (e *fakeElection) GenerateFakeSigns(fb *types.Block) ([]*types.PbftSign, error) {
 	var signs []*types.PbftSign
 	var err error

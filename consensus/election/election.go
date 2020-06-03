@@ -1200,26 +1200,6 @@ func (e *Election) switchMembers(fastNumber *big.Int, infos []*types.CommitteeMe
 	})
 }
 
-// FinalizeCommittee upddate current committee state
-func (e *Election) FinalizeCommittee(block *types.Block) error {
-	if block == nil {
-		log.Error("Finalize committee get nil block")
-		return nil
-	}
-
-	info := block.SwitchInfos()
-	if len(info) > 0 {
-		log.Info("Election receive committee switch block", "block", block.Number())
-		e.switchMembers(block.Number(), info)
-	}
-
-	if e.committee.endFastNumber.Cmp(block.Number()) == 0 {
-		// Current committee completed, switch next
-		e.switchNext <- struct{}{}
-	}
-	return nil
-}
-
 // Start load current committ and starts election processing
 func (e *Election) Start() error {
 	// get current committee info

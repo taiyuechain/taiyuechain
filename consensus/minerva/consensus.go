@@ -22,10 +22,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"runtime"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/common/math"
@@ -838,7 +839,7 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 		return nil, err
 	}*/
 
-	consensus.CheckCAElection(state,new(big.Int).Set(header.Number))
+	consensus.CheckCAElection(state, new(big.Int).Set(header.Number))
 
 	header.Root = state.IntermediateRoot(true)
 	return types.NewBlock(header, txs, receipts, nil, nil), nil
@@ -852,11 +853,6 @@ func (m *Minerva) FinalizeSnail(chain consensus.SnailChainReader, header *types.
 	//header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 	// Header seems complete, assemble into a block and return
 	return types.NewSnailBlock(header, fruits, signs, uncles, chain.Config()), nil
-}
-
-// FinalizeCommittee upddate current committee state
-func (m *Minerva) FinalizeCommittee(block *types.Block) error {
-	return m.election.FinalizeCommittee(block)
 }
 
 // gas allocation

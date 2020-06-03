@@ -20,6 +20,7 @@ package core
 import (
 	"errors"
 	"fmt"
+
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 
@@ -30,7 +31,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/common/prque"
@@ -44,6 +45,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/trie"
@@ -1011,8 +1013,6 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 			bytes += batch.ValueSize()
 			batch.Reset()
 		}
-
-		bc.engine.FinalizeCommittee(block)
 	}
 	if batch.ValueSize() > 0 {
 		bytes += batch.ValueSize()
@@ -1332,7 +1332,6 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 		if err != nil {
 			return it.index, events, coalescedLogs, err
 		}
-		bc.engine.FinalizeCommittee(block)
 		blockInsertTimer.UpdateSince(start)
 		blockExecutionTimer.Update(t1.Sub(t0))
 		blockValidationTimer.Update(t2.Sub(t1))

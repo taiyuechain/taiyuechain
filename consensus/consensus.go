@@ -131,8 +131,6 @@ type Engine interface {
 	FinalizeSnail(chain SnailChainReader, header *types.SnailHeader,
 		uncles []*types.SnailHeader, fruits []*types.SnailBlock, signs []*types.PbftSign) (*types.SnailBlock, error)
 
-	FinalizeCommittee(block *types.Block) error
-
 	// Seal generates a new block for the given input block with the local miner's
 	//Seal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error)
 
@@ -160,8 +158,6 @@ type CommitteeElection interface {
 	// VerifySwitchInfo verify committee members and it's state
 	VerifySwitchInfo(fastnumber *big.Int, info []*types.CommitteeMember) error
 
-	FinalizeCommittee(block *types.Block) error
-
 	//Get a list of committee members
 	//GetCommittee(FastNumber *big.Int, FastHash common.Hash) (*big.Int, []*types.CommitteeMember)
 	GetCommittee(fastNumber *big.Int) []*types.CommitteeMember
@@ -177,15 +173,14 @@ type PoW interface {
 	Hashrate() float64
 }
 
-func makeCAContractInitState(state *state.StateDB, certList [][]byte,fastNumber *big.Int) bool {
-
+func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber *big.Int) bool {
 
 	CaCertAddress := types.CACertListAddress
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := state.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
 		i := vm.NewCACertList()
-		i.InitCACertList(certList,fastNumber)
+		i.InitCACertList(certList, fastNumber)
 		i.SaveCACertList(state, CaCertAddress)
 		state.SetNonce(CaCertAddress, 1)
 		state.SetCode(CaCertAddress, CaCertAddress[:])
@@ -195,12 +190,12 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte,fastNumber 
 	return false
 }
 func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumber *big.Int, certList [][]byte) bool {
-	return makeCAContractInitState(state, certList,fastNumber)
+	return makeCAContractInitState(state, certList, fastNumber)
 }
 
-func CheckCAElection(state *state.StateDB,fastNumber *big.Int)  {
+func CheckCAElection(state *state.StateDB, fastNumber *big.Int) {
 	CaCertAddress := types.CACertListAddress
 	i := vm.NewCACertList()
-	i.LoadCACertList(state,CaCertAddress)
+	i.LoadCACertList(state, CaCertAddress)
 	i.ChangeElectionCaList(fastNumber)
 }
