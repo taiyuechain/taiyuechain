@@ -19,6 +19,7 @@ package election
 import (
 	"bytes"
 	"fmt"
+
 	"github.com/taiyuechain/taiyuechain/core/vm"
 
 	//"crypto/ecdsa"
@@ -626,7 +627,7 @@ func (e *Election) Start() error {
 			e.committee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(curEpochID, common.Big1))
 			e.nextCommittee = nil
 			e.startSwitchover = false
-		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() == (EpochSize - EpochElectionPoint) {
+		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() == EpochElectionPoint {
 			e.prepare = true
 		}
 	}
@@ -688,7 +689,7 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == (EpochSize - EpochElectionPoint) {
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == EpochElectionPoint {
 				//send CommitteeOver event to pbftAgent to notify currentCommittee endFastNumber
 				e.electionFeed.Send(types.ElectionEvent{
 					Option:           types.CommitteeOver,
