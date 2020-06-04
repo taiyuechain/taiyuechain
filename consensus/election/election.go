@@ -340,8 +340,7 @@ func (e *Election) getGenesisCommittee() []*types.CommitteeMember {
 	return nil
 }
 
-func (e *Election) getCommitteeByContract() *committee {
-	//TODO get new one
+func (e *Election) getCommitteeByGenesis() *committee {
 	begin, end := GetEpochHeigth(new(big.Int).Set(common.Big0))
 	return &committee{
 		id:              new(big.Int).Set(common.Big0),
@@ -504,7 +503,8 @@ func (e *Election) Start() error {
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
 	e.currentHeight = fastHeadNumber
 	curEpochID := GetEpochIDFromHeight(fastHeadNumber)
-	currentCommittee := e.getCommitteeByContract()
+	currentCommittee := e.getCommitteeByGenesis()
+	log.Info("Election start","curEpochID",curEpochID,"fastHeadNumber",fastHeadNumber,"currentCommittee",currentCommittee)
 	if curEpochID.Cmp(common.Big0) > 0 {
 		currentCommittee = e.getCommitteeInfoByCommitteeId(curEpochID)
 	}
@@ -522,7 +522,7 @@ func (e *Election) Start() error {
 
 	// send event to the subscripber
 	go func(e *Election) {
-		printCommittee(e.committee)
+		printCommittee(e.committee, "start")
 		members, backups := e.filterWithSwitchInfo(e.committee)
 		e.electionFeed.Send(types.ElectionEvent{
 			Option:           types.CommitteeSwitchover,
@@ -552,7 +552,7 @@ func (e *Election) loop() {
 	// Elect next committee on start
 	if e.prepare {
 		next := new(big.Int).Add(e.committee.id, common.Big1)
-		log.Info("Election calc next committee on start", "committee", next)
+		log.Info("Election prepare calc next committee on start", "committee", next)
 		e.nextCommittee = e.getCommitteeInfoByCommitteeId(next)
 		e.electionFeed.Send(types.ElectionEvent{
 			Option:           types.CommitteeOver,
@@ -611,7 +611,7 @@ func (e *Election) electValidatorNotifyAgent(height *big.Int) {
 	e.mu.Lock()
 	e.nextCommittee = nextCommittee
 	e.mu.Unlock()
-	printCommittee(e.nextCommittee)
+	printCommittee(e.nextCommittee,"chainHead")
 
 	//send CommitteeSwitchover event to pbftAgent
 	e.electionFeed.Send(types.ElectionEvent{
@@ -677,7 +677,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 	caCertMap := caCertList.GetCACertMapByEpoch(committeeId.Uint64())
 	members := make([]*types.CommitteeMember, len(caCertMap.CACert))
 	for i, caCert := range caCertMap.CACert {
-		log.Error("assignmentCommitteeMember", "caCertMap", len(caCertMap.CACert), "caCert", hex.EncodeToString(caCert))
+		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", hex.EncodeToString(caCert))
 
 		pub, err := crypto.GetPubByteFromCert(caCert)
 		if err != nil {
@@ -706,7 +706,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committee {
 	begin, end := GetEpochHeigth(committeeId)
 	committee := &committee{
-		id:              new(big.Int).Add(committeeId, common.Big1),
+		id:              committeeId,
 		beginFastNumber: new(big.Int).Set(begin),
 		endFastNumber:   new(big.Int).Set(end),
 	}
@@ -720,8 +720,8 @@ func (e *Election) SetEngine(engine consensus.Engine) {
 	e.engine = engine
 }
 
-func printCommittee(c *committee) {
-	log.Info("Committee Info", "ID", c.id, "count", len(c.members), "start", c.beginFastNumber)
+func printCommittee(c *committee, flag string) {
+	log.Info("Committee Info", "flag", flag, "ID", c.id, "count", len(c.members), "start", c.beginFastNumber)
 	for _, member := range c.members {
 		log.Info("Committee member: ", "PKey", hex.EncodeToString(member.Publickey), "coinbase", member.Coinbase)
 	}

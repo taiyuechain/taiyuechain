@@ -585,7 +585,6 @@ func (s *Taiyuechain) startPbftServer() error {
 	cfg.P2P.ListenAddress1 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.Port)
 	cfg.P2P.ListenAddress2 = "tcp://0.0.0.0:" + strconv.Itoa(s.config.StandbyPort)
 
-	fmt.Println("----------------=-=-=-hexutil.Encode(pkbyte1)", "privkey", s.config.CommitteeKey)
 	n1, err := tbft.NewNode(cfg, "1", priv, s.agent)
 	if err != nil {
 		return err

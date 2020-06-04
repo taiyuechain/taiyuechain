@@ -682,7 +682,6 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *tai.Config) {
 		cfg.PrivateKey = key
 
 	case hex != "":
-		fmt.Println("pbft key hex is ", "is ", hex)
 		if key, err = crypto.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
@@ -1092,7 +1091,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setEthash(ctx, cfg)
-	//setSnailPool(ctx, &cfg.SnailPool)
 	if ctx.GlobalIsSet(SyncModeFlag.Name) {
 		cfg.SyncMode = *GlobalTextMarshaler(ctx, SyncModeFlag.Name).(*downloader.SyncMode)
 	}
@@ -1130,15 +1128,9 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 		cfg.StandbyPort = int(ctx.GlobalUint64(BFTStandbyPortFlag.Name))
 	}
 
-	//set node cert
-	/*if !ctx.GlobalBool(SingleNodeFlag.Name) {
-
-	}*/
-
 	cfg.NodeCert = stack.Config().BftCommitteeCert()
 	if cfg.NodeCert == nil {
 		log.Error("not cert file ")
-		//return
 	}
 
 	cfg.P2PNodeCert = stack.Config().NodeKeyCert()
@@ -1149,7 +1141,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	//set PrivateKey by config,file or hex
 	setBftCommitteeKey(ctx, cfg)
 	if cfg.PrivateKey == nil {
-		//set PrivateKey by default file
 		cfg.PrivateKey = stack.Config().BftCommitteeKey()
 	}
 
@@ -1157,7 +1148,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
 	// need do verfiy the private key and cert
 
 	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
-	fmt.Println("----------------=-=-=-hexutil.Encode(pkbyte1)", "privkey", cfg.CommitteeKey)
 	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
 		Fatalf("init load CommitteeKey  nil.")
 	}

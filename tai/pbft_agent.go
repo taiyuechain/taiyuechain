@@ -679,9 +679,8 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	}
 	cryNodeInfo.Nodes = encryptNodes
 	hash := cryNodeInfo.HashWithoutSign().Bytes()
-	log.Info("hash is", "what", hash)
 	cryNodeInfo.Sign, err = crypto.Sign(hash, privateKey)
-	log.Info("---the pbft encryptNodeInfo is nill? ", "len", len(cryNodeInfo.Sign), "sin", cryNodeInfo.Sign)
+	log.Info("encryptNodeInfo", "len", len(cryNodeInfo.Sign),"hash",hex.EncodeToString(hash), "sin", hex.EncodeToString(cryNodeInfo.Sign))
 	if err != nil {
 		log.Error("sign node error", "err", err)
 	}
