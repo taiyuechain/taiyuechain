@@ -234,7 +234,7 @@ func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int, state StateDB) {
 	epoch := types.GetEpochIDFromHeight(blockHight).Uint64()
 	_, end := types.GetEpochHeigth(new(big.Int).SetUint64(epoch))
 
-	if blockHight.Uint64() > end.Uint64()-types.EpochElectionPoint {
+	if blockHight.Uint64() >= end.Uint64()-types.EpochElectionPoint {
 		if ca.caCertMap[epoch+1] == nil {
 			ca.copyCertToList(epoch)
 			ca.SaveCACertList(state, types.CACertListAddress)
