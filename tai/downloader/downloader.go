@@ -1536,12 +1536,13 @@ func (d *Downloader) importBlockResults(results []*fetchResult) error {
 		"firstnum", first.Number, "firsthash", first.Hash(),
 		"lastnum", last.Number, "lasthash", last.Hash(),
 	)
-	blocks := make([]*types.Block, len(results))
-	for i, result := range results {
+	var blocks []*types.Block
+	for _, result := range results {
 		if d.blockchain.GetBlockByHash(result.Hash) != nil {
 			continue
 		}
-		blocks[i] = types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Signs, result.Infos)
+		block := types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Signs, result.Infos)
+		blocks = append(blocks, block)
 	}
 	if index, err := d.blockchain.InsertChain(blocks); err != nil {
 		if index < len(results) {
