@@ -49,10 +49,6 @@ const (
 	// chain buffer size
 	chainHeadSize           = 256
 	committeeMemberChanSize = 20
-
-	// maxUint256 is a big integer representing 2^256-1
-	EpochSize          = uint64(1000)
-	EpochElectionPoint = uint64(100) //Notice election validator before switch epoch
 )
 
 var (
@@ -60,14 +56,6 @@ var (
 	ErrInvalidMember = errors.New("invalid committee member")
 	ErrInvalidSwitch = errors.New("invalid switch block info")
 )
-
-func GetEpochIDFromHeight(height *big.Int) *big.Int {
-	return new(big.Int).Div(height, big.NewInt(int64(EpochSize)))
-}
-func GetEpochHeigth(eid *big.Int) (*big.Int, *big.Int) {
-	begin := new(big.Int).Mul(eid, big.NewInt(int64(EpochSize)))
-	return begin, new(big.Int).Add(begin, big.NewInt(int64(EpochSize-1)))
-}
 
 type committee struct {
 	id              *big.Int
@@ -278,8 +266,8 @@ func (e *Election) VerifySwitchInfo(fastNumber *big.Int, info []*types.Committee
 	if e.singleNode == true {
 		return nil
 	}
-	eid := GetEpochIDFromHeight(fastNumber)
-	begin, _ := GetEpochHeigth(eid)
+	eid := types.GetEpochIDFromHeight(fastNumber)
+	begin, _ := types.GetEpochHeigth(eid)
 	m, b := e.getValidators(eid)
 	if m == nil {
 		log.Error("Failed to fetch elected committee", "fast", fastNumber)
@@ -316,7 +304,7 @@ func (e *Election) getGenesisCommittee() []*types.CommitteeMember {
 }
 
 func (e *Election) getCommitteeByGenesis() *committee {
-	begin, end := GetEpochHeigth(new(big.Int).Set(common.Big0))
+	begin, end := types.GetEpochHeigth(new(big.Int).Set(common.Big0))
 	return &committee{
 		id:              new(big.Int).Set(common.Big0),
 		beginFastNumber: begin,
@@ -327,7 +315,7 @@ func (e *Election) getCommitteeByGenesis() *committee {
 
 // GetCommittee gets committee members propose this fast block
 func (e *Election) GetCommittee(fastNumber *big.Int) []*types.CommitteeMember {
-	eid := GetEpochIDFromHeight(fastNumber)
+	eid := types.GetEpochIDFromHeight(fastNumber)
 	m, _ := e.getValidators(eid)
 	if m == nil {
 		log.Error("Failed to fetch elected committee", "fast", fastNumber)
@@ -346,7 +334,7 @@ func (e *Election) GetCommitteeById(id *big.Int) map[string]interface{} {
 	if m == nil {
 		return nil
 	}
-	begin, end := GetEpochHeigth(id)
+	begin, end := types.GetEpochHeigth(id)
 	info["id"] = id.Uint64()
 	info["members"] = membersDisplay(m)
 	if b != nil {
@@ -370,7 +358,7 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 		if eid.Sign() == 0 {
 			return e.genesisCommittee, nil
 		}
-		begin, _ := GetEpochHeigth(eid)
+		begin, _ := types.GetEpochHeigth(eid)
 		// Read committee from block body
 		block := e.fastchain.GetBlockByNumber(begin.Uint64())
 		if block == nil {
@@ -472,12 +460,12 @@ func (e *Election) filterWithSwitchInfo(c *committee) (members, backups []*types
 // Start load current committ and starts election processing
 func (e *Election) Start() error {
 	// get current committee info
-	if EpochSize < EpochElectionPoint*3 {
-		return errors.New(fmt.Sprint("EpochSize:", EpochSize, " less than 100"))
+	if types.EpochSize < types.EpochElectionPoint*3 {
+		return errors.New(fmt.Sprint("EpochSize:", types.EpochSize, " less than 100"))
 	}
 	fastHeadNumber := e.fastchain.CurrentBlock().Number()
 	e.currentHeight = fastHeadNumber
-	curEpochID := GetEpochIDFromHeight(fastHeadNumber)
+	curEpochID := types.GetEpochIDFromHeight(fastHeadNumber)
 	currentCommittee := e.getCommitteeByGenesis()
 	log.Info("Election start", "curEpochID", curEpochID, "fastHeadNumber", fastHeadNumber, "currentCommittee", currentCommittee)
 	if curEpochID.Cmp(common.Big0) > 0 {
@@ -490,7 +478,7 @@ func (e *Election) Start() error {
 			// committee has finish their work, start the new committee
 			e.committee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(curEpochID, common.Big1))
 			e.nextCommittee = nil
-		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() <= EpochElectionPoint {
+		} else if new(big.Int).Sub(e.committee.endFastNumber, fastHeadNumber).Uint64() <= types.EpochElectionPoint {
 			e.prepare = true
 		}
 	}
@@ -551,14 +539,14 @@ func (e *Election) loop() {
 	for {
 		select {
 		case fastHead := <-e.chainHeadCh:
-			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == EpochElectionPoint {
+			if new(big.Int).Sub(e.committee.endFastNumber, fastHead.Block.Number()).Uint64() == types.EpochElectionPoint {
 				e.electValidatorNotifyAgent(fastHead.Block.Number())
 			}
 			if e.committee.endFastNumber.Cmp(fastHead.Block.Number()) == 0 {
 				e.validatorSwitchNotifyAgent(fastHead.Block.Number())
 			}
 			space := new(big.Int).Sub(fastHead.Block.Number(), e.currentHeight).Uint64()
-			if space > EpochElectionPoint/20 {
+			if space > types.EpochElectionPoint/20 {
 				log.Info("chainHead", "space", space, "current", e.currentHeight)
 				// todo
 			}
@@ -576,9 +564,9 @@ func (e *Election) electValidatorNotifyAgent(height *big.Int) {
 		BeginFastNumber:  e.committee.beginFastNumber,
 		EndFastNumber:    e.committee.endFastNumber,
 	})
-	log.Info("Election BFT committee election start..", "endfast", e.committee.endFastNumber)
+	log.Info("Election BFT committee election start..", "endfast", e.committee.endFastNumber, "height", height)
 
-	epoch := GetEpochIDFromHeight(height)
+	epoch := types.GetEpochIDFromHeight(height)
 	//calculate nextCommittee
 	nextCommittee := e.getCommitteeInfoByCommitteeId(new(big.Int).Add(epoch, common.Big1))
 
@@ -611,7 +599,7 @@ func (e *Election) validatorSwitchNotifyAgent(height *big.Int) {
 	})
 
 	if e.nextCommittee == nil {
-		epoch := GetEpochIDFromHeight(height)
+		epoch := types.GetEpochIDFromHeight(height)
 		//calculate nextCommittee
 		e.nextCommittee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(epoch, common.Big1))
 		log.Info("validatorSwitchNotifyAgent", "current", e.currentHeight, "remote", height)
@@ -679,7 +667,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 }
 
 func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committee {
-	begin, end := GetEpochHeigth(committeeId)
+	begin, end := types.GetEpochHeigth(committeeId)
 	committee := &committee{
 		id:              committeeId,
 		beginFastNumber: new(big.Int).Set(begin),

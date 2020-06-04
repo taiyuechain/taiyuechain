@@ -43,8 +43,6 @@ const (
 	pStatePending    = 1
 	pStateSuccless   = 2
 	pStateFail       = 3
-	electionHgiht    = 1000
-	electionPerHgith = electionHgiht - 100
 )
 
 func init() {
@@ -111,7 +109,7 @@ func NewCACertList() *CACertList {
 func (ca *CACertList) InitCACertList(caList [][]byte, blockHight *big.Int) {
 
 	len := len(caList)
-	epoch := blockHight.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(blockHight).Uint64()
 	for i := 0; i < len; i++ {
 		ca.addCertToList(caList[i], epoch, true)
 	}
@@ -233,9 +231,10 @@ func (ca *CACertList) copyCertToList(epoch uint64) {
 }
 
 func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int, state StateDB) {
-	epoch := blockHight.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(blockHight).Uint64()
+	_, end := types.GetEpochHeigth(new(big.Int).SetUint64(epoch))
 
-	if blockHight.Int64() > int64((epoch*electionHgiht)+electionPerHgith) {
+	if blockHight.Uint64() > end.Uint64()-types.EpochElectionPoint {
 		if ca.caCertMap[epoch+1] == nil {
 			ca.copyCertToList(epoch)
 			ca.SaveCACertList(state, types.CACertListAddress)
@@ -271,7 +270,7 @@ func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert
 		ca.proposalMap[pHash].SignMap[senderCertHash] = true
 	}
 
-	epoch := evm.Context.BlockNumber.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(evm.BlockNumber).Uint64()
 	if ppState == pStateNil {
 		log.Info("the new one")
 		ca.proposalMap[pHash].PHash = pHash
@@ -305,7 +304,7 @@ func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert
 
 func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool, error) {
 	ca.proposalMap[pHash].PState = pStateFail
-	epoch := blockHight.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(blockHight).Uint64()
 	var res bool
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
@@ -399,7 +398,7 @@ func getCaAmount(evm *EVM, contract *Contract, input []byte) (ret []byte, err er
 		return nil, err
 	}
 
-	epoch := evm.Context.BlockNumber.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
 
 	amount := caCertList.GetCaCertAmount(epoch)
 	log.Info("----amount", "is", amount)
@@ -423,7 +422,7 @@ func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, err
 	}
 
-	epoch := evm.Context.BlockNumber.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(evm.BlockNumber).Uint64()
 
 	//is in list
 	var ok bool
@@ -457,7 +456,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 		return nil, err
 	}
 
-	epoch := evm.Context.BlockNumber.Uint64() / electionHgiht
+	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
 	pHash := types.RlpHash(args.CaCert)
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 	//check cacert
