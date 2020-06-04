@@ -1396,6 +1396,7 @@ func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, [
 	// ones. Any other errors means that the block is invalid, and should not be written
 	// to disk.
 	block, err := it.current(), consensus.ErrPrunedAncestor
+	log.Info("insertSidechain", "current", current, "block", block.NumberU64(), "index", it.index, "blocks", it.chain)
 	for ; block != nil && (err == consensus.ErrPrunedAncestor); block, err = it.next() {
 		// Check the canonical state root for that number
 		if number := block.NumberU64(); current >= number {
@@ -1421,7 +1422,7 @@ func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, [
 			if err := bc.WriteBlockWithoutState(block); err != nil {
 				return it.index, nil, nil, err
 			}
-			log.Debug("Inserted sidechain block", "number", block.Number(), "hash", block.Hash(),
+			log.Info("Inserted sidechain block", "number", block.Number(), "hash", block.Hash(),
 				"elapsed", common.PrettyDuration(time.Since(start)),
 				"txs", len(block.Transactions()), "gas", block.GasUsed(),
 				"root", block.Root())
@@ -1436,7 +1437,13 @@ func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, [
 		hashes  []common.Hash
 		numbers []uint64
 	)
-	parent := bc.GetHeader(it.previous().Hash(), it.previous().NumberU64())
+	prvBlock := it.previous()
+	if prvBlock == nil {
+		log.Info("insertSidechain pre", "current", current, "block", block, "index", it.index, "blocks", it.chain)
+		return it.index, nil, nil, errors.New("missing parent")
+	}
+
+	parent := bc.GetHeader(prvBlock.Hash(), prvBlock.NumberU64())
 	for parent != nil && !bc.HasState(parent.Root) {
 		hashes = append(hashes, parent.Hash())
 		numbers = append(numbers, parent.Number.Uint64())
