@@ -361,8 +361,8 @@ func (agent *PbftAgent) loop() {
 		case ch := <-agent.electionCh:
 			switch ch.Option {
 			case types.CommitteeStart:
-				log.Info("-- CommitteeStart")
 				committeeID := copyCommitteeID(ch.CommitteeID)
+				log.Info("Loop CommitteeStart", "committeeID", committeeID)
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
 				}
@@ -571,7 +571,6 @@ func (agent *PbftAgent) handleConsensusBlock(receiveBlock *types.Block) error {
 			"CurrentBlockNumber", agent.fastChain.CurrentBlock().Number(), "receiveBlockNumber", receiveBlockHeight)
 		return nil
 	}
-	//agent.fastChain.CurrentBlock()
 	parent := agent.fastChain.GetBlock(receiveBlock.ParentHash(), receiveBlock.NumberU64()-1)
 	if parent != nil {
 		var fastBlocks []*types.Block
@@ -614,7 +613,6 @@ func (agent *PbftAgent) sendSign(receiveBlock *types.Block) error {
 }
 
 func (agent *PbftAgent) cryNodeInfoIsCommittee(encryptNode *types.EncryptNodeMessage) (bool, *nodeInfoWork, common.Hash, *ecdsa.PublicKey) {
-
 	members1 := agent.nodeInfoWorks[0].committeeInfo.Members
 	members2 := agent.nodeInfoWorks[1].committeeInfo.Members
 	if len(members1) == 0 && len(members2) == 0 {
@@ -680,7 +678,7 @@ func encryptNodeInfo(committeeInfo *types.CommitteeInfo, committeeNode *types.Co
 	cryNodeInfo.Nodes = encryptNodes
 	hash := cryNodeInfo.HashWithoutSign().Bytes()
 	cryNodeInfo.Sign, err = crypto.Sign(hash, privateKey)
-	log.Info("encryptNodeInfo", "len", len(cryNodeInfo.Sign),"hash",hex.EncodeToString(hash), "sin", hex.EncodeToString(cryNodeInfo.Sign))
+	log.Info("encryptNodeInfo", "len", len(cryNodeInfo.Sign), "hash", hex.EncodeToString(hash), "sin", hex.EncodeToString(cryNodeInfo.Sign))
 	if err != nil {
 		log.Error("sign node error", "err", err)
 	}
@@ -702,7 +700,6 @@ func (agent *PbftAgent) GetNodeInfoByHash(nodeInfoHash common.Hash) (*types.Encr
 	if isExist {
 		return nodeInfo.(*types.EncryptNodeMessage), isExist
 	}
-	//log.Warn("GetNodeInfoByHash is not exist")
 	return nil, isExist
 }
 
@@ -718,7 +715,6 @@ func (agent *PbftAgent) AddRemoteNodeInfo(cryNodeInfo *types.EncryptNodeMessage)
 
 //ecdsa.PrivateKey convert to ecies.PrivateKey
 func decryptNodeInfo(cryNodeInfo *types.EncryptNodeMessage, privateKey *ecdsa.PrivateKey, pubKey *ecdsa.PublicKey) *types.CommitteeNode {
-
 	for _, encryptNode := range cryNodeInfo.Nodes {
 		decryptNode, err := crypto.Decrypt(privateKey, encryptNode, nil, nil)
 		if err == nil { // can Decrypt by priKey
@@ -738,7 +734,6 @@ func (agent *PbftAgent) GetFastLastProposer() common.Address {
 
 //FetchFastBlock  generate fastBlock as leader
 func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.CommitteeMember) (*types.Block, error) {
-	log.Info("Fetch Fast Block", "committeeID", committeeID, "endFastNumber", agent.endFastNumber)
 	agent.mu.Lock()
 	defer agent.mu.Unlock()
 	if agent.fastChain.IsFallback() {
@@ -754,12 +749,12 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 	if committeeID != nil {
 		//validate newBlock number exceed endNumber
 		if endNumber := agent.endFastNumber[committeeID.Uint64()]; endNumber != nil && endNumber.Cmp(parentNumber) != 1 {
-			log.Error("FetchFastBlock error", "number:", endNumber, "err", core.ErrExceedNumber)
+			log.Error("FetchFastBlock error", "number:", endNumber, "err", core.ErrExceedNumber, "endFastNumber", agent.endFastNumber)
 			return fastBlock, core.ErrExceedNumber
 		}
 	}
 
-	log.Info("FetchFastBlock ", "parent:", parent.Number(), "hash", parent.Hash())
+	log.Info("FetchFastBlock ", "parent:", parent.Number(), "hash", parent.Hash(), "committeeID", committeeID)
 	if parent.Time().Cmp(new(big.Int).SetInt64(tstamp)) > 0 {
 		tstamp = parent.Time().Int64() + 1
 	}
@@ -769,16 +764,7 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 		GasLimit:   core.FastCalcGasLimit(parent, agent.gasFloor, agent.gasCeil),
 		Time:       big.NewInt(tstamp),
 	}
-	// do not need snail Block
-	/*
-		if err := agent.validateBlockSpace(header); err == types.ErrSnailBlockTooSlow {
-			return nil, err
-		}*/
 
-	//assign Proposer
-	//caoliang test
-	s := hex.EncodeToString(agent.committeeNode.Publickey)
-	fmt.Println(s)
 	pubKey, _ := crypto.UnmarshalPubkey(agent.committeeNode.Publickey)
 	header.Proposer = crypto.PubkeyToAddress(*pubKey)
 
@@ -1135,12 +1121,6 @@ func (agent *PbftAgent) IsUsedOrUnusedMember(committeeInfo *types.CommitteeInfo,
 func (agent *PbftAgent) getMemberFlagFromCommittee(committeeInfo *types.CommitteeInfo) uint32 {
 	return agent.election.GetMemberFlag(committeeInfo.GetAllMembers(), agent.committeeNode.Publickey)
 }
-
-//IsCommitteeMember  whether agent in  committee member
-//func (agent *PbftAgent) isCommitteeMember(committeeInfo *types.CommitteeInfo) bool {
-//	flag := agent.getMemberFlagFromCommittee(committeeInfo)
-//	return flag == types.StateUsedFlag
-//}
 
 // VerifyCommitteeSign verify sign of node is in committee
 func (agent *PbftAgent) VerifyCommitteeSign(sign *types.PbftSign) bool {

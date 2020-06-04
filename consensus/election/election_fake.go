@@ -39,7 +39,6 @@ func NewFakeElection() *Election {
 		fastchain:       nil,
 		singleNode:      false,
 		committee:       elected,
-		electionMode:    ElectModeFake,
 		testPrivateKeys: priKeys,
 	}
 	return election

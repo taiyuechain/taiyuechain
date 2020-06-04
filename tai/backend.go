@@ -218,30 +218,16 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 
 	etrue.bloomIndexer.Start(etrue.blockchain)
 
-	//sv := chain.NewBlockValidator(etrue.chainConfig, etrue.blockchain, etrue.snailblockchain, etrue.engine)
-	//etrue.snailblockchain.SetValidator(sv)
-
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
 	}
 	config.TxPool.CimList = NewCIMList
 
-	/*if config.SnailPool.Journal != "" {
-		config.SnailPool.Journal = ctx.ResolvePath(config.SnailPool.Journal)
-	}*/
-
 	etrue.txPool = core.NewTxPool(config.TxPool, etrue.chainConfig, etrue.blockchain)
-
-	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine, sv)
-	//etrue.snailPool = chain.NewSnailPool(config.SnailPool, etrue.blockchain, etrue.snailblockchain, etrue.engine)
 
 	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
 
-	//etrue.snailblockchain.Validator().SetElection(etrue.election, etrue.blockchain)
-
 	etrue.engine.SetElection(etrue.election)
-	//etrue.engine.SetSnailChainReader(etrue.snailblockchain)
-	etrue.election.SetEngine(etrue.engine)
 
 	//coinbase, _ := etrue.Etherbase()
 
@@ -256,9 +242,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList, config.P2PNodeCert); err != nil {
 		return nil, err
 	}
-
-	//etrue.miner = miner.New(etrue, etrue.chainConfig, etrue.EventMux(), etrue.engine, etrue.election, etrue.Config().MineFruit, etrue.Config().NodeType, etrue.Config().RemoteMine, etrue.Config().Mine)
-	//etrue.miner.SetExtra(makeExtraData(config.ExtraData))
 
 	//committeeKey, err := crypto.ToECDSA(etrue.config.CommitteeKey)
 	//if err == nil {
@@ -540,14 +523,8 @@ func (s *Taiyuechain) Start(srvr *p2p.Server) error {
 
 	s.election.Start()
 
-	//start fruit journal
-	//s.snailPool.Start()
-
 	// Start the networking layer and the light server if requested
-	/*s.protocolManager.Start2(maxPeers)
-	if s.lesServer != nil {
-		s.lesServer.Start(srvr)
-	}*/
+	/*s.protocolManager.Start2(maxPeers)*/
 
 	return nil
 }
@@ -558,14 +535,11 @@ func (s *Taiyuechain) Stop() error {
 	s.stopPbftServer()
 	s.bloomIndexer.Close()
 	s.blockchain.Stop()
-	//s.snailblockchain.Stop()
 	s.protocolManager.Stop()
 	if s.lesServer != nil {
 		s.lesServer.Stop()
 	}
 	s.txPool.Stop()
-	//s.snailPool.Stop()
-	//s.miner.Stop()
 	s.eventMux.Stop()
 
 	s.chainDb.Close()

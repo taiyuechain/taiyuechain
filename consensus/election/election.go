@@ -36,9 +36,7 @@ import (
 
 	"crypto/ecdsa"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
@@ -48,24 +46,13 @@ import (
 )
 
 const (
+	// chain buffer size
 	chainHeadSize           = 256
-	committeeCacheLimit     = 256
 	committeeMemberChanSize = 20
-)
 
-type ElectMode uint
-
-const (
-	// ElectModeEtrue for etrue
-	ElectModeEtrue = iota
-	// ElectModeFake for Test purpose
-	ElectModeFake
-)
-
-var (
 	// maxUint256 is a big integer representing 2^256-1
 	EpochSize          = uint64(1000)
-	EpochElectionPoint = uint64(100) //相隔多少个块前需要通知
+	EpochElectionPoint = uint64(100) //Notice election validator before switch epoch
 )
 
 var (
@@ -109,29 +96,21 @@ type Election struct {
 	genesisCommittee []*types.CommitteeMember
 	defaultMembers   []*types.CommitteeMember
 
-	commiteeCache *lru.Cache
-
-	electionMode    ElectMode
 	committee       *committee
 	nextCommittee   *committee
 	mu              sync.RWMutex
 	testPrivateKeys []*ecdsa.PrivateKey
 	singleNode      bool
+	prepare         bool
 
-	electionFeed event.Feed
-	scope        event.SubscriptionScope
-
-	prepare    bool
-	switchNext chan struct{}
-
-	chainHeadCh  chan types.FastChainHeadEvent
-	chainHeadSub event.Subscription
-
+	electionFeed       event.Feed
+	scope              event.SubscriptionScope
+	chainHeadCh        chan types.FastChainHeadEvent
+	chainHeadSub       event.Subscription
 	committeeMemberCh  chan types.CommitteeMemberEvent
 	committeeMemberSub event.Subscription
 
 	fastchain     *core.BlockChain
-	engine        consensus.Engine
 	currentHeight *big.Int
 }
 
@@ -146,9 +125,7 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		fastchain:         fastBlockChain,
 		chainHeadCh:       make(chan types.FastChainHeadEvent, chainHeadSize),
 		prepare:           false,
-		switchNext:        make(chan struct{}),
 		singleNode:        config.GetNodeType(),
-		electionMode:      ElectModeEtrue,
 		committeeMemberCh: make(chan types.CommitteeMemberEvent, committeeMemberChanSize),
 		currentHeight:     big.NewInt(0),
 	}
@@ -161,14 +138,12 @@ func NewElection(fastBlockChain *core.BlockChain, config Config) *Election {
 		log.Error("Election creation get no genesis committee members")
 	}
 
-	election.commiteeCache, _ = lru.New(committeeCacheLimit)
-
 	if election.singleNode {
-		committeeMember := election.getGenesisCommittee()
+		committeeMember := election.genesisCommittee
 		if committeeMember == nil {
 			log.Error("genesis block committee member is nil.")
 		}
-		election.genesisCommittee = election.getGenesisCommittee()[:1]
+		election.genesisCommittee = committeeMember[:1]
 	}
 	if !election.singleNode && len(election.genesisCommittee) < 4 {
 		log.Error("Election creation get insufficient genesis committee members")
@@ -239,9 +214,9 @@ func (e *Election) VerifyPublicKey(fastHeight *big.Int, pubKeyByte []byte) (*typ
 		return nil, ErrCommittee
 	}
 	member := e.GetMemberByPubkey(members, pubKeyByte)
-	/*if member == nil {
+	if member == nil {
 		return nil, ErrInvalidMember
-	}*/
+	}
 	return member, nil
 }
 
@@ -504,7 +479,7 @@ func (e *Election) Start() error {
 	e.currentHeight = fastHeadNumber
 	curEpochID := GetEpochIDFromHeight(fastHeadNumber)
 	currentCommittee := e.getCommitteeByGenesis()
-	log.Info("Election start","curEpochID",curEpochID,"fastHeadNumber",fastHeadNumber,"currentCommittee",currentCommittee)
+	log.Info("Election start", "curEpochID", curEpochID, "fastHeadNumber", fastHeadNumber, "currentCommittee", currentCommittee)
 	if curEpochID.Cmp(common.Big0) > 0 {
 		currentCommittee = e.getCommitteeInfoByCommitteeId(curEpochID)
 	}
@@ -611,7 +586,7 @@ func (e *Election) electValidatorNotifyAgent(height *big.Int) {
 	e.mu.Lock()
 	e.nextCommittee = nextCommittee
 	e.mu.Unlock()
-	printCommittee(e.nextCommittee,"chainHead")
+	printCommittee(e.nextCommittee, "chainHead")
 
 	//send CommitteeSwitchover event to pbftAgent
 	e.electionFeed.Send(types.ElectionEvent{
@@ -713,11 +688,6 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 	caCertPubkeyList := e.getCACertList()
 	committee.members = e.assignmentCommitteeMember(caCertPubkeyList, committeeId)
 	return committee
-}
-
-// SetEngine set election backend consesus
-func (e *Election) SetEngine(engine consensus.Engine) {
-	e.engine = engine
 }
 
 func printCommittee(c *committee, flag string) {
