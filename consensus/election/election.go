@@ -580,7 +580,7 @@ func (e *Election) electValidatorNotifyAgent(height *big.Int) {
 
 	epoch := GetEpochIDFromHeight(height)
 	//calculate nextCommittee
-	nextCommittee := e.getCommitteeInfoByCommitteeId(epoch)
+	nextCommittee := e.getCommitteeInfoByCommitteeId(new(big.Int).Add(epoch, common.Big1))
 
 	//reset committee and nextCommittee
 	e.mu.Lock()
@@ -613,7 +613,7 @@ func (e *Election) validatorSwitchNotifyAgent(height *big.Int) {
 	if e.nextCommittee == nil {
 		epoch := GetEpochIDFromHeight(height)
 		//calculate nextCommittee
-		e.nextCommittee = e.getCommitteeInfoByCommitteeId(epoch)
+		e.nextCommittee = e.getCommitteeInfoByCommitteeId(new(big.Int).Add(epoch, common.Big1))
 		log.Info("validatorSwitchNotifyAgent", "current", e.currentHeight, "remote", height)
 	}
 
