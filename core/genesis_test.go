@@ -18,6 +18,8 @@ package core
 
 //
 import (
+	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"reflect"
 	"testing"
@@ -273,4 +275,16 @@ func TestSetupSnailGenesis(t *testing.T) {
 			t.Errorf("%s: returned hash %s, want %s", test.name, hash.Hex(), test.wantHash.Hex())
 		}
 	}
+}
+func TestGetAddress(t *testing.T) {
+	priv1, _ := crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+	priv2, _ := crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+	priv3, _ := crypto.HexToECDSA("86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc")
+	priv4, _ := crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
+
+	fmt.Println("address1 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv1.PublicKey)),
+		" address2 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv2.PublicKey)),
+		" address3 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv3.PublicKey)),
+		" address4 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv4.PublicKey)),
+	)
 }

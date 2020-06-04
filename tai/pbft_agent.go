@@ -801,13 +801,12 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 			return fastBlock, err
 		}
 	}
-	log.Info("generateFastBlock", "Height:", fastBlock.Number())
 
 	voteSign, err := agent.GenerateSign(fastBlock)
 	if err != nil {
 		log.Error("generateBlock with sign error.", "err", err)
 	}
-	log.Info("voteSign show", "FastHeight", voteSign.FastHeight, "Result", voteSign.Result)
+	log.Info("voteSign show", "FastHeight", voteSign.FastHeight, "Result", voteSign.Result, "Height:", fastBlock.Number())
 	fastBlock.AppendSign(voteSign)
 	return fastBlock, err
 }
