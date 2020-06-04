@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -21,7 +22,7 @@ var from, to, frequency = 0, 1, 1
 var interval = time.Millisecond * 0
 
 //Send transmission full sleep intervals
-var sleep = time.Millisecond * 10000
+var sleep = time.Second
 
 //get all account
 var account []string
@@ -176,12 +177,7 @@ start:
 			bl, _ := new(big.Int).SetString(result, 10)
 			fmt.Println(getTime(), "etrue_getBalance Ok:", bl, result)
 
-			if preAccount == result && CheckAcc {
-				bSleep = true
-				fmt.Println(getTime(), "Account not dec sleep")
-			} else {
-				preAccount = result
-			}
+			preAccount = result
 		}
 	}
 	waitMain.Wait()
@@ -215,9 +211,12 @@ func sendTransaction(client *rpc.Client, account []string, wait *sync.WaitGroup)
 	map_data["from"] = account[from]
 	map_data["to"] = account[to]
 	map_data["value"] = "0x2100"
-	map_data["cert"] = cert
+	map_data["cert"] = hexutil.Encode(cert)
 	var result string
-	client.Call(&result, "etrue_sendTransaction", map_data)
+	err := client.Call(&result, "etrue_sendTransaction", map_data)
+	if err != nil {
+		fmt.Println("sendTransaction ", result, " err ", err)
+	}
 	if result != "" {
 		Count += 1
 	}
