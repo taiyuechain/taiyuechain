@@ -95,7 +95,7 @@ func main() {
 	cert = p2p1Byte
 
 	ip := "127.0.0.1:8545"
-	if len(os.Args) == 8 {
+	if len(os.Args) == 9 {
 		ip = os.Args[8]
 	}
 
