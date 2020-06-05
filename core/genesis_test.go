@@ -18,8 +18,10 @@ package core
 
 //
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"reflect"
 	"testing"
 
@@ -277,4 +279,32 @@ func TestGetAddress(t *testing.T) {
 		" address3 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv3.PublicKey)),
 		" address4 ", crypto.AddressToHex(crypto.PubkeyToAddress(priv4.PublicKey)),
 	)
+}
+func TestGenesisFromJson(t *testing.T) {
+	// Make sure we have a valid genesis JSON
+	genesisPath := "d:\\genesis.json"
+	if len(genesisPath) == 0 {
+		fmt.Println("Must supply path to genesis JSON file")
+		return
+	}
+	file, err := os.Open(genesisPath)
+	if err != nil {
+		fmt.Println("Failed to read genesis file:", err)
+		return
+	}
+	defer file.Close()
+
+	genesis := new(Genesis)
+	if err := json.NewDecoder(file).Decode(genesis); err != nil {
+		fmt.Println("invalid genesis file：", err)
+		return
+	}
+	db := taidb.NewMemDatabase()
+	_, h, _, genesisErr := SetupGenesisBlock(db, genesis)
+	if genesisErr != nil {
+		fmt.Println("err:", genesisErr)
+	} else {
+		fmt.Println("hash:", h)
+	}
+	fmt.Println("finish")
 }

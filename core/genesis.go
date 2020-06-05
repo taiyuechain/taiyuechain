@@ -56,12 +56,11 @@ const (
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
 	Config     *params.ChainConfig      `json:"config"`
-	Nonce      uint64                   `json:"nonce"`
 	Timestamp  uint64                   `json:"timestamp"`
 	ExtraData  []byte                   `json:"extraData"`
 	GasLimit   uint64                   `json:"gasLimit"   gencodec:"required"`
-	Difficulty *big.Int                 `json:"difficulty" gencodec:"required"`
-	Mixhash    common.Hash              `json:"mixHash"`
+	UseGas     byte                     `json:"useGas" 		gencodec:"required"`
+	BaseReward byte                     `json:"baseReward" 		gencodec:"required"`
 	Coinbase   common.Address           `json:"coinbase"`
 	Alloc      types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
 	Committee  []*types.CommitteeMember `json:"committee"      gencodec:"required"`
@@ -85,13 +84,13 @@ type GenesisAccount struct {
 
 // field type overrides for gencodec
 type genesisSpecMarshaling struct {
-	Nonce      math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 	ExtraData  hexutil.Bytes
 	GasLimit   math.HexOrDecimal64
 	GasUsed    math.HexOrDecimal64
 	Number     math.HexOrDecimal64
-	Difficulty *math.HexOrDecimal256
+	UseGas     byte
+	BaseReward byte
 	Alloc      map[common.UnprefixedAddress]GenesisAccount
 }
 
@@ -332,13 +331,12 @@ func DefaultGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
-		Nonce:      330,
 		ExtraData:  hexutil.MustDecode("0x54727565436861696E204D61696E4E6574"),
 		GasLimit:   16777216,
-		Difficulty: big.NewInt(2147483648),
+		UseGas:     0,
+		BaseReward: 0,
 		//Timestamp:  1553918400,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
-		Mixhash:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -393,17 +391,10 @@ func decodePrealloc(data string) types.GenesisAlloc {
 	return ga
 }
 
-// GenesisFastBlockForTesting creates and writes a block in which addr has the given wei balance.
-func GenesisFastBlockForTesting(db taidb.Database, addr common.Address, balance *big.Int) *types.Block {
+// GenesisBlockForTesting creates and writes a block in which addr has the given wei balance.
+func GenesisBlockForTesting(db taidb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
 	return g.MustCommit(db)
-}
-
-// GenesisSnailBlockForTesting creates and writes a block in which addr has the given wei balance.
-func GenesisSnailBlockForTesting(db taidb.Database, addr common.Address, balance *big.Int) *types.SnailBlock {
-	//g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
-	//return g.MustSnailCommit(db)
-	return nil
 }
 
 // DefaultDevGenesisBlock returns the Rinkeby network genesis block.
@@ -412,10 +403,10 @@ func DefaultDevGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:     params.DevnetChainConfig,
-		Nonce:      928,
 		ExtraData:  nil,
 		GasLimit:   88080384,
-		Difficulty: big.NewInt(20000),
+		UseGas:     0,
+		BaseReward: 0,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x3f9061bf173d8f096c94db95c40f3658b4c7eaad"): {Balance: i},
@@ -434,10 +425,10 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:     params.SingleNodeChainConfig,
-		Nonce:      66,
 		ExtraData:  nil,
 		GasLimit:   22020096,
-		Difficulty: big.NewInt(256),
+		UseGas:     0,
+		BaseReward: 0,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0xbd54a6c8298a70e9636d0555a77ffa412abdd71a"): {Balance: i},
@@ -473,13 +464,12 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
 		Config:     params.TestnetChainConfig,
-		Nonce:      928,
 		ExtraData:  hexutil.MustDecode("0x54727565436861696E20546573744E6574203035"),
 		GasLimit:   20971520,
-		Difficulty: big.NewInt(100000),
+		UseGas:     0,
+		BaseReward: 0,
 		Timestamp:  1537891200,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
-		Mixhash:    common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: amount1},
