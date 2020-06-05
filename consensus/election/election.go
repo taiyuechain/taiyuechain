@@ -338,10 +338,10 @@ func (e *Election) GetCommitteeById(id *big.Int) map[string]interface{} {
 	info["id"] = id.Uint64()
 	info["members"] = membersDisplay(m)
 	if b != nil {
-		info["memberCount"] = len(b) + len(b)
+		info["memberCount"] = len(m) + len(b)
 		info["backups"] = membersDisplay(b)
 	} else {
-		info["memberCount"] = len(b)
+		info["memberCount"] = len(m)
 	}
 	info["beginNumber"] = begin.Uint64()
 	info["endNumber"] = end.Uint64()
