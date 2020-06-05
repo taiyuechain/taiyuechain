@@ -62,10 +62,13 @@ var (
 	pbft3path = "./testdata/testcert/" + pbft3Name + ".pem"
 	pbft4path = "./testdata/testcert/" + pbft4Name + ".pem"
 
-	p2p1path = "./testdata/testcert/" + p2p1Name + ".pem"
-	p2p2path = "./testdata/testcert/" + p2p2Name + ".pem"
-	p2p3path = "./testdata/testcert/" + p2p3Name + ".pem"
-	p2p4path = "./testdata/testcert/" + p2p4Name + ".pem"
+	p2p1path        = "./testdata/testcert/" + p2p1Name + ".pem"
+	p2p2path        = "./testdata/testcert/" + p2p2Name + ".pem"
+	p2p3path        = "./testdata/testcert/" + p2p3Name + ".pem"
+	p2p4path        = "./testdata/testcert/" + p2p4Name + ".pem"
+	pbft5PrivString = "77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489"
+	pbft5Name       = "pbft5priv"
+	pbft5path       = "./testdata/testcert/" + pbft5Name + ".pem"
 )
 
 func TestCertCIMAndVerfiyCert(t *testing.T) {
@@ -565,6 +568,9 @@ func TestCreateRootCert(t *testing.T) {
 	createRootCert(pbft2priv, pbft2Name)
 	createRootCert(pbft3priv, pbft3Name)
 	createRootCert(pbft4priv, pbft4Name)
+
+	pbft5priv, _ := crypto.HexToECDSA(pbft5PrivString)
+	createRootCert(pbft5priv, pbft5Name)
 
 }
 

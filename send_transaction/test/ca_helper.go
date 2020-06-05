@@ -111,13 +111,14 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	}
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	for _, caCert := range caCertList.GetCACertMap() {
+	epoch := blockchain.GetBlockNumber()
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			panic(err)
 		}
 
-		cimCa.SetUpFromCA(caCert.GetByte())
+		cimCa.SetUpFromCA(caCert)
 		cimList.AddCim(cimCa)
 	}
 

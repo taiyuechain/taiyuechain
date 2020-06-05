@@ -614,7 +614,6 @@ SIGN:
 		sign = append(sign, (byte)(signrmark))
 
 	}
-	log.Debug("sm2 sign length ", "sm2 r is", len(r.Bytes()), "sm2 s is", len(s.Bytes()), "sign", len(sign))
 	return sign, nil
 
 }

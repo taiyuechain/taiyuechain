@@ -58,6 +58,9 @@ var (
 	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
 	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
 	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
+	pbft5Name    = "pbft5priv"
+	pbft5path    = "../testcert/" + pbft5Name + ".pem"
+	pbft5Byte, _ = crypto.ReadPemFileByPath(pbft5path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {
