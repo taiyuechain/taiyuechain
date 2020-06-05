@@ -66,7 +66,7 @@ type SimulatedBackend struct {
 // and uses a simulated blockchain for testing purposes.
 func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
 	genesis := alloc
-	genesis.MustFastCommit(database)
+	genesis.MustCommit(database)
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
 	engine := ethash.NewFaker()
 

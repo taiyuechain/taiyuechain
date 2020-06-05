@@ -37,7 +37,7 @@ var (
 func makeTestBlock() *types.Block {
 	db := taidb.NewMemDatabase()
 	BaseGenesis := new(core.Genesis)
-	genesis := BaseGenesis.MustFastCommit(db)
+	genesis := BaseGenesis.MustCommit(db)
 	header := &types.Header{
 		ParentHash: genesis.Hash(),
 		Number:     common.Big1,
@@ -106,7 +106,7 @@ func makeChain(n int) (*snailchain.SnailBlockChain, *core.BlockChain) {
 		genesis = core.DefaultGenesisBlock()
 	// 	engine  = minerva.NewFaker()
 	)
-	// fastGenesis := genesis.MustFastCommit(testdb)
+	// fastGenesis := genesis.MustCommit(testdb)
 	// fastchain, _ := core.NewBlockChain(testdb, nil, params.AllMinervaProtocolChanges, engine, vm.Config{})
 	// fastblocks := makeFast(fastGenesis, n * params.MinimumFruits, engine, testdb, canonicalSeed)
 	// fastchain.InsertChain(fastblocks)

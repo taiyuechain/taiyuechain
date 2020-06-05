@@ -135,7 +135,7 @@ func validateSign(fb *types.Block, prikey *ecdsa.PrivateKey) bool {
 func generateFastBlock() *types.Block {
 	db := taidb.NewMemDatabase()
 	BaseGenesis := new(core.Genesis)
-	genesis := BaseGenesis.MustFastCommit(db)
+	genesis := BaseGenesis.MustCommit(db)
 	header := &types.Header{
 		ParentHash: genesis.Hash(),
 		Number:     common.Big1,

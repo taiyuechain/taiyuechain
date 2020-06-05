@@ -60,7 +60,7 @@ func TestDeployContract(t *testing.T) {
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
-	genesis := gspec.MustFastCommit(db)
+	genesis := gspec.MustCommit(db)
 
 	// Import the chain. This runs all block validation rules.
 	blockchain, _ := core.NewBlockChain(db, nil, gspec.Config, pow, vm.Config{}, nil)

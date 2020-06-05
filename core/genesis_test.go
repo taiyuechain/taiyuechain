@@ -19,10 +19,11 @@ package core
 //
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"reflect"
 	"testing"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -33,11 +34,11 @@ import (
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
-	block := DefaultGenesisBlock().ToFastBlock(nil)
+	block := DefaultGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.MainnetGenesisHash {
 		t.Errorf("wrong mainnet genesis hash, got %v, want %v", common.ToHex(block.Hash().Bytes()), params.MainnetGenesisHash)
 	}
-	block = DefaultTestnetGenesisBlock().ToFastBlock(nil)
+	block = DefaultTestnetGenesisBlock().ToBlock(nil)
 	if block.Hash() != params.TestnetGenesisHash {
 		t.Errorf("wrong testnet genesis hash, got %v, want %v", common.ToHex(block.Hash().Bytes()), params.TestnetGenesisHash)
 	}
@@ -81,7 +82,7 @@ func TestSetupGenesis(t *testing.T) {
 		{
 			name: "mainnet block in DB, genesis == nil",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
-				DefaultGenesisBlock().MustFastCommit(db)
+				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -90,7 +91,7 @@ func TestSetupGenesis(t *testing.T) {
 		{
 			name: "custom block in DB, genesis == testnet",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
-				customg.MustFastCommit(db)
+				customg.MustCommit(db)
 				return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 			},
 			wantErr:    &GenesisMismatchError{Stored: customghash, New: params.TestnetGenesisHash},
@@ -100,7 +101,7 @@ func TestSetupGenesis(t *testing.T) {
 		// {
 		// 	name: "compatible config in DB",
 		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
-		// 		oldcustomg.MustFastCommit(db)
+		// 		oldcustomg.MustCommit(db)
 		// 		oldcustomg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, &customg)
 		// 	},
@@ -112,7 +113,7 @@ func TestSetupGenesis(t *testing.T) {
 		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		// Commit the 'old' genesis block with Homestead transition at #2.
 		// 		// Advance to block #4, past the homestead transition block of customg.
-		// 		genesis := oldcustomg.MustFastCommit(db)
+		// 		genesis := oldcustomg.MustCommit(db)
 
 		// 		// bc, _ := NewFastBlockChain(db, nil, oldcustomg.Config, ethash.NewFullFaker(), vm.Config{})
 		// 		// defer bc.Stop()
@@ -158,17 +159,6 @@ func TestSetupGenesis(t *testing.T) {
 	}
 }
 
-func TestDefaultSnailGenesisBlock(t *testing.T) {
-	block := DefaultGenesisBlock().ToSnailBlock(nil)
-	if block.Hash() != params.MainnetSnailGenesisHash {
-		t.Errorf("wrong mainnet genesis hash, got %v, want %v", common.ToHex(block.Hash().Bytes()), params.MainnetSnailGenesisHash)
-	}
-	block = DefaultTestnetGenesisBlock().ToSnailBlock(nil)
-	if block.Hash() != params.TestnetSnailGenesisHash {
-		t.Errorf("wrong testnet genesis hash, got %v, want %v", common.ToHex(block.Hash().Bytes()), params.TestnetSnailGenesisHash)
-	}
-}
-
 func TestSetupSnailGenesis(t *testing.T) {
 	var (
 		//customghash = common.HexToHash("0x62e8674fcc8df82c74aad443e97c4cfdb748652ea117c8afe86cd4a04e5f44f8")
@@ -206,7 +196,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		{
 			name: "mainnet block in DB, genesis == nil",
 			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
-				DefaultGenesisBlock().MustFastCommit(db)
+				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetSnailGenesisHash,
@@ -215,7 +205,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		// {
 		// 	name: "custom block in DB, genesis == testnet",
 		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
-		// 		//customg.MustFastCommit(db)
+		// 		//customg.MustCommit(db)
 		// 		customg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 		// 	},
@@ -226,7 +216,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		// {
 		// 	name: "compatible config in DB",
 		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
-		// 		oldcustomg.MustFastCommit(db)
+		// 		oldcustomg.MustCommit(db)
 		// 		oldcustomg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, &customg)
 		// 	},
@@ -238,7 +228,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		// Commit the 'old' genesis block with Homestead transition at #2.
 		// 		// Advance to block #4, past the homestead transition block of customg.
-		// 		genesis := oldcustomg.MustFastCommit(db)
+		// 		genesis := oldcustomg.MustCommit(db)
 
 		// 		// bc, _ := NewFastBlockChain(db, nil, oldcustomg.Config, ethash.NewFullFaker(), vm.Config{})
 		// 		// defer bc.Stop()

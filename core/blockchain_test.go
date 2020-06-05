@@ -195,7 +195,7 @@ func TestFastVsFullChains(t *testing.T) {
 			Config: params.TestChainConfig,
 			Alloc:  types.GenesisAlloc{address: {Balance: funds}},
 		}
-		genesis = gspec.MustFastCommit(gendb)
+		genesis = gspec.MustCommit(gendb)
 		signer  = types.NewSigner(gspec.Config.ChainID)
 		engine  = ethash.NewFaker()
 	)
@@ -215,7 +215,7 @@ func TestFastVsFullChains(t *testing.T) {
 	})
 	// Import the chain as an archive node for the comparison baseline
 	archiveDb := taidb.NewMemDatabase()
-	gspec.MustFastCommit(archiveDb)
+	gspec.MustCommit(archiveDb)
 	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	defer archive.Stop()
 
@@ -224,7 +224,7 @@ func TestFastVsFullChains(t *testing.T) {
 	}
 	// Fast import the chain as a non-archive node to test
 	fastDb := taidb.NewMemDatabase()
-	gspec.MustFastCommit(fastDb)
+	gspec.MustCommit(fastDb)
 	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil)
 	defer fast.Stop()
 
@@ -275,7 +275,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 		address = crypto.PubkeyToAddress(key.PublicKey)
 		funds   = big.NewInt(1000000000)
 		gspec   = &Genesis{Config: params.TestChainConfig, Alloc: types.GenesisAlloc{address: {Balance: funds}}}
-		genesis = gspec.MustFastCommit(gendb)
+		genesis = gspec.MustCommit(gendb)
 	)
 	height := uint64(1024)
 	engine := ethash.NewFaker()
@@ -301,7 +301,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	}
 	// Import the chain as an archive node and ensure all pointers are updated
 	archiveDb := taidb.NewMemDatabase()
-	gspec.MustFastCommit(archiveDb)
+	gspec.MustCommit(archiveDb)
 
 	//engine1 := ethash.NewFaker()
 	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{}, nil)
@@ -317,7 +317,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	log.Info("archive", "state", archive.CurrentBlock().Root())
 	// Import the chain as a non-archive node and ensure all pointers are updated
 	fastDb := taidb.NewMemDatabase()
-	gspec.MustFastCommit(fastDb)
+	gspec.MustCommit(fastDb)
 
 	engine = ethash.NewFaker()
 
@@ -341,7 +341,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	log.Info("fast", "state", archive.CurrentBlock().Root())
 	// Import the chain as a light node and ensure all pointers are updated
 	//lightDb := etruedb.NewMemDatabase()
-	//gspec.MustFastCommit(lightDb)
+	//gspec.MustCommit(lightDb)
 	//
 	//light, _ := NewBlockChain(lightDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{})
 	//if n, err := light.InsertHeaderChain(headers, 1); err != nil {
@@ -408,7 +408,7 @@ func TestTrieForkGC(t *testing.T) {
 	engine := ethash.NewFaker()
 
 	db := taidb.NewMemDatabase()
-	genesis := new(Genesis).MustFastCommit(db)
+	genesis := new(Genesis).MustCommit(db)
 	blocks, _ := GenerateChain(params.TestChainConfig, genesis, engine, db, 2*triesInMemory, func(i int, b *BlockGen) { b.SetCoinbase(common.Address{1}) })
 
 	// Generate a bunch of fork blocks, each side forking from the canonical chain
@@ -423,7 +423,7 @@ func TestTrieForkGC(t *testing.T) {
 	}
 	// Import the canonical and fork chain side by side, forcing the trie cache to cache both
 	diskdb := taidb.NewMemDatabase()
-	new(Genesis).MustFastCommit(diskdb)
+	new(Genesis).MustCommit(diskdb)
 
 	chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{}, nil)
 	if err != nil {
@@ -469,7 +469,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 	// Generate the original common chain segment and the two competing forks
 	engine := ethash.NewFaker()
 	db := taidb.NewMemDatabase()
-	genesis := gspec.MustFastCommit(db)
+	genesis := gspec.MustCommit(db)
 
 	blockGenerator := func(i int, block *BlockGen) {
 		block.SetCoinbase(common.Address{1})
@@ -491,7 +491,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 	for i := 0; i < b.N; i++ {
 		// Import the shared chain and the original canonical one
 		diskdb := taidb.NewMemDatabase()
-		gspec.MustFastCommit(diskdb)
+		gspec.MustCommit(diskdb)
 
 		chain, err := NewBlockChain(diskdb, nil, params.TestChainConfig, engine, vm.Config{}, nil)
 		if err != nil {

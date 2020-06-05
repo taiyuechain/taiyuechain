@@ -476,7 +476,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 			Config:     params.TestChainConfig,
 			Difficulty: big.NewInt(20000),
 		}
-		genesis = gspec.MustFastCommit(db)
+		genesis = gspec.MustCommit(db)
 
 		priKey, _     = crypto.GenerateKey()
 		coinbase      = crypto.PubkeyToAddress(priKey.PublicKey) //coinbase

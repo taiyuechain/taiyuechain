@@ -63,7 +63,7 @@ func ExampleGenerateChain() {
 			Config: &params.ChainConfig{ChainID: chainId},
 			Alloc:  types.GenesisAlloc{addr1: {Balance: big.NewInt(3000000)}},
 		}
-		genesis = gspec.MustFastCommit(db)
+		genesis = gspec.MustCommit(db)
 		pow     = minerva.NewFaker()
 		signer  = types.NewSigner(gspec.Config.ChainID)
 	)
@@ -149,7 +149,7 @@ func TestTransactionCost(t *testing.T) {
 			},
 			Difficulty: big.NewInt(20000),
 		}
-		genesis    = gspec.MustFastCommit(db)
+		genesis    = gspec.MustCommit(db)
 		fastParent = genesis
 		signer     = types.NewSigner(params.TestChainConfig.ChainID)
 
@@ -295,7 +295,7 @@ func getAddressBalance(addresses []common.Address, statedb *state.StateDB) (bala
 //			addr4: {Balance: big.NewInt(5000000000000)},
 //		},
 //	}
-//	genesis := gspec.MustFastCommit(db)
+//	genesis := gspec.MustCommit(db)
 //
 //	// This call generates a chain of 5 blocks. The function runs for
 //	// each block and adds different features to gen based on the
@@ -376,8 +376,8 @@ func getAddressBalance(addresses []common.Address, statedb *state.StateDB) (bala
 //			addr4: {Balance: big.NewInt(5000000000)},
 //		},
 //	}
-//	genesis := gspec.MustFastCommit(db)
-//	genesis2 := gspec.MustFastCommit(tmpDB)
+//	genesis := gspec.MustCommit(db)
+//	genesis2 := gspec.MustCommit(tmpDB)
 //
 //	// This call generates a chain of 5 blocks. The function runs for
 //	// each block and adds different features to gen based on the
@@ -479,7 +479,7 @@ func getAddressBalance(addresses []common.Address, statedb *state.StateDB) (bala
 //		GasLimit: 105000000,
 //		Alloc:    types.GenesisAlloc{},
 //	}
-//	genesis := gspec.MustFastCommit(db)
+//	genesis := gspec.MustCommit(db)
 //	block1, _ := GenerateChain(gspec.Config, genesis, minerva.NewFaker(), db, 1, func(i int, gen *BlockGen) {
 //	})
 //	block := block1[0]

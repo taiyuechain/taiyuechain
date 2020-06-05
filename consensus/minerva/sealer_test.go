@@ -33,7 +33,7 @@ func TestUpdateLookup(t *testing.T) {
 		var (
 			testdb    = etruedb.NewMemDatabase()
 			//gspec     = &Genesis{Config: params.TestChainConfig}
-			//genesis   = gspec.MustFastCommit(testdb)
+			//genesis   = gspec.MustCommit(testdb)
 			//blocks, _ = GenerateChain(params.TestChainConfig, genesis, ethash.NewFaker(), testdb, 8, nil)
 		)
 		a, _ := chain.NewSnailBlockChain(testdb, nil, nil, nil, vm.Config{})

@@ -101,7 +101,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	params.SnailRewardInterval = big.NewInt(3)
 	params.ElectionMinLimitForStaking = new(big.Int).Mul(big.NewInt(1), big.NewInt(1e18))
 
-	genesis := gspec.MustFastCommit(db)
+	genesis := gspec.MustCommit(db)
 	blockchain, _ := core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, cimList)
 	//init cert list to
 	// need init cert list to statedb

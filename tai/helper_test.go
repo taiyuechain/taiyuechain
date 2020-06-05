@@ -61,7 +61,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, sBlocks int, g
 			Alloc:      types.GenesisAlloc{testBank: {Balance: big.NewInt(1000000000)}},
 			Difficulty: big.NewInt(20000),
 		}
-		genesis       = gspec.MustFastCommit(db)
+		genesis       = gspec.MustCommit(db)
 		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{})
 
 		priKey, _     = crypto.GenerateKey()

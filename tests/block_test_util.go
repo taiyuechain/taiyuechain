@@ -142,7 +142,7 @@ func (t *BlockTest) Run() error {
 	// import pre accounts & construct test genesis block & state root
 	db := taidb.NewMemDatabase()
 	genesis := core.DefaultGenesisBlock()
-	gblock := genesis.MustFastCommit(db)
+	gblock := genesis.MustCommit(db)
 
 	if gblock.Hash() != t.json.FastGenesis.Hash {
 		return fmt.Errorf("genesis block hash doesn't match test: computed=%x, test=%x", gblock.Hash().Bytes()[:6], t.json.FastGenesis.Hash[:6])

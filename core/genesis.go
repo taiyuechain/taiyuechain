@@ -152,13 +152,13 @@ func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig
 		return params.AllMinervaProtocolChanges, common.Hash{}, common.Hash{}, errGenesisNoConfig
 	}
 
-	fastConfig, fastHash, fastErr := setupFastGenesisBlock(db, genesis)
+	fastConfig, fastHash, fastErr := setupGenesisBlock(db, genesis)
 
 	return fastConfig, fastHash, common.Hash{}, fastErr
 
 }
 
-// setupFastGenesisBlock writes or updates the fast genesis block in db.
+// setupGenesisBlock writes or updates the fast genesis block in db.
 // The block that will be used is:
 //
 //                          genesis == nil       genesis != nil
@@ -171,7 +171,7 @@ func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func setupFastGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+func setupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -185,13 +185,13 @@ func setupFastGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainCo
 		} else {
 			log.Info("Writing custom genesis block")
 		}
-		block, err := genesis.CommitFast(db)
+		block, err := genesis.Commit(db)
 		return genesis.Config, block.Hash(), err
 	}
 
 	// Check whether the genesis block is already written.
 	if genesis != nil {
-		hash := genesis.ToFastBlock(nil).Hash()
+		hash := genesis.ToBlock(nil).Hash()
 		if hash != stored {
 			return genesis.Config, hash, &GenesisMismatchError{stored, hash}
 		}
@@ -226,10 +226,10 @@ func setupFastGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainCo
 	return newcfg, stored, nil
 }
 
-// CommitFast writes the block and state of a genesis specification to the database.
+// Commit writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
-func (g *Genesis) CommitFast(db taidb.Database) (*types.Block, error) {
-	block := g.ToFastBlock(db)
+func (g *Genesis) Commit(db taidb.Database) (*types.Block, error) {
+	block := g.ToBlock(db)
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
 	}
@@ -248,9 +248,9 @@ func (g *Genesis) CommitFast(db taidb.Database) (*types.Block, error) {
 	return block, nil
 }
 
-// ToFastBlock creates the genesis block and writes state of a genesis specification
+// ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
-func (g *Genesis) ToFastBlock(db taidb.Database) *types.Block {
+func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 
 	if db == nil {
 		db = taidb.NewMemDatabase()
@@ -301,130 +301,16 @@ func (g *Genesis) ToFastBlock(db taidb.Database) *types.Block {
 	return types.NewBlock(head, nil, nil, nil, committee.Members)
 }
 
-// MustFastCommit writes the genesis block and state to db, panicking on error.
+// MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
-func (g *Genesis) MustFastCommit(db taidb.Database) *types.Block {
-	block, err := g.CommitFast(db)
+func (g *Genesis) MustCommit(db taidb.Database) *types.Block {
+	block, err := g.Commit(db)
 	if err != nil {
 		panic(err)
 	}
 	return block
 }
 
-// setupSnailGenesisBlock writes or updates the genesis snail block in db.
-// The block that will be used is:
-//
-//                          genesis == nil       genesis != nil
-//                       +------------------------------------------
-//     db has no genesis |  main-net default  |  genesis
-//     db has genesis    |  from DB           |  genesis (if compatible)
-//
-// The stored chain configuration will be updated if it is compatible (i.e. does not
-// specify a fork block below the local head block). In case of a conflict, the
-// error is a *params.ConfigCompatError and the new, unwritten config is returned.
-//
-// The returned chain configuration is never nil.
-/*func setupSnailGenesisBlock(db etruedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
-	if genesis != nil && genesis.Config == nil {
-		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
-	}
-	// Just commit the new block if there is no stored genesis block.
-	stored := snaildb.ReadCanonicalHash(db, 0)
-	if (stored == common.Hash{}) {
-		if genesis == nil {
-			log.Info("Writing default main-net genesis block")
-			genesis = DefaultGenesisBlock()
-		} else {
-			log.Info("Writing custom genesis block")
-		}
-		block, err := genesis.CommitSnail(db)
-		return genesis.Config, block.Hash(), err
-	}
-
-	// Check whether the genesis block is already written.
-	if genesis != nil {
-		hash := genesis.ToSnailBlock(nil).Hash()
-		if hash != stored {
-			return genesis.Config, hash, &GenesisMismatchError{stored, hash}
-		}
-	}
-
-	// Get the existing chain configuration.
-	newcfg := genesis.configOrDefault(stored)
-	return newcfg, stored, nil
-}*/
-
-// ToSnailBlock creates the genesis block and writes state of a genesis specification
-// to the given database (or discards it if nil).
-func (g *Genesis) ToSnailBlock(db taidb.Database) *types.SnailBlock {
-	if db == nil {
-		db = taidb.NewMemDatabase()
-	}
-
-	head := &types.SnailHeader{
-		Number:     new(big.Int).SetUint64(g.Number),
-		Nonce:      types.EncodeNonce(g.Nonce),
-		Time:       new(big.Int).SetUint64(g.Timestamp),
-		ParentHash: g.ParentHash,
-		Extra:      g.ExtraData,
-		Difficulty: g.Difficulty,
-		MixDigest:  g.Mixhash,
-		Coinbase:   g.Coinbase,
-	}
-
-	if g.Difficulty == nil {
-		head.Difficulty = params.GenesisDifficulty
-		g.Difficulty = params.GenesisDifficulty
-	}
-
-	fastBlock := g.ToFastBlock(db)
-	fruitHead := &types.SnailHeader{
-		Number:          new(big.Int).SetUint64(g.Number),
-		Nonce:           types.EncodeNonce(g.Nonce),
-		Time:            new(big.Int).SetUint64(g.Timestamp),
-		ParentHash:      g.ParentHash,
-		FastNumber:      fastBlock.Number(),
-		FastHash:        fastBlock.Hash(),
-		FruitDifficulty: new(big.Int).Div(g.Difficulty, params.FruitBlockRatio),
-		Coinbase:        g.Coinbase,
-	}
-	fruit := types.NewSnailBlock(fruitHead, nil, nil, nil, g.Config)
-
-	return types.NewSnailBlock(head, []*types.SnailBlock{fruit}, nil, nil, g.Config)
-}
-
-// CommitSnail writes the block and state of a genesis specification to the database.
-// The block is committed as the canonical head block.
-/*func (g *Genesis) CommitSnail(db etruedb.Database) (*types.SnailBlock, error) {
-	block := g.ToSnailBlock(db)
-	if block.Number().Sign() != 0 {
-		return nil, fmt.Errorf("can't commit genesis block with number > 0")
-	}
-	snaildb.WriteTd(db, block.Hash(), block.NumberU64(), g.Difficulty)
-	snaildb.WriteBlock(db, block)
-	snaildb.WriteFtLookupEntries(db, block)
-	snaildb.WriteCanonicalHash(db, block.Hash(), block.NumberU64())
-	snaildb.WriteHeadBlockHash(db, block.Hash())
-	snaildb.WriteHeadHeaderHash(db, block.Hash())
-
-	// config := g.Config
-	// if config == nil {
-	// 	config = params.AllMinervaProtocolChanges
-	// }
-	// snaildb.WriteChainConfig(db, block.Hash(), config)
-	return block, nil
-}*/
-
-// MustSnailCommit writes the genesis block and state to db, panicking on error.
-// The block is committed as the canonical head block.
-/*func (g *Genesis) MustSnailCommit(db etruedb.Database) *types.SnailBlock {
-	block, err := g.CommitSnail(db)
-	if err != nil {
-		panic(err)
-	}
-	return block
-}
-*/
 // DefaultGenesisBlock returns the Taiyuechain main net snail block.
 func DefaultGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("65750000000000000000000000", 10)
@@ -510,7 +396,7 @@ func decodePrealloc(data string) types.GenesisAlloc {
 // GenesisFastBlockForTesting creates and writes a block in which addr has the given wei balance.
 func GenesisFastBlockForTesting(db taidb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
-	return g.MustFastCommit(db)
+	return g.MustCommit(db)
 }
 
 // GenesisSnailBlockForTesting creates and writes a block in which addr has the given wei balance.

@@ -407,7 +407,7 @@ func newCanonical(engine consensus.Engine, n int, full bool) (taidb.Database, *B
 	)
 
 	BaseGenesis := DefaultGenesisBlock()
-	genesis := BaseGenesis.MustFastCommit(db)
+	genesis := BaseGenesis.MustCommit(db)
 	// Initialize a fresh chain with only a genesis block
 	//Initialize a new chain
 	blockchain, _ := NewBlockChain(db, nil, params.AllMinervaProtocolChanges, engine, vm.Config{}, nil)

@@ -35,7 +35,7 @@ func TestHeaderVerification(t *testing.T) {
 		engine    = minerva.NewFaker()
 		testdb    = taidb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
-		genesis   = gspec.MustFastCommit(testdb)
+		genesis   = gspec.MustCommit(testdb)
 		blocks, _ = GenerateChain(gspec.Config, genesis, engine, testdb, 8, nil)
 	)
 	headers := make([]*types.Header, len(blocks))
@@ -88,7 +88,7 @@ func testHeaderConcurrentVerification(t *testing.T, threads int) {
 	var (
 		testdb    = taidb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
-		genesis   = gspec.MustFastCommit(testdb)
+		genesis   = gspec.MustCommit(testdb)
 		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(), testdb, 8, nil)
 	)
 	headers := make([]*types.Header, len(blocks))
@@ -156,7 +156,7 @@ func testHeaderConcurrentAbortion(t *testing.T, threads int) {
 	var (
 		testdb    = taidb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
-		genesis   = gspec.MustFastCommit(testdb)
+		genesis   = gspec.MustCommit(testdb)
 		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(), testdb, 1024, nil)
 	)
 	headers := make([]*types.Header, len(blocks))
