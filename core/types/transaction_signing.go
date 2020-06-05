@@ -62,74 +62,6 @@ func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, err
 	return tx.WithSignature(s, sig)
 }
 
-/*func SignTxBy266(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
-	h := s.Hash(tx)
-	//sig, err := crypto.Sign(h[:], prv)
-	sig, err := p256.SignP256(prv, h[:])
-	if err != nil {
-		return nil, err
-	}
-	tx.data.Sig = sig
-	//tx.data.ChainID  = s.GetChainID()
-	cpy := &Transaction{data: tx.data}
-	return cpy, nil
-}
-
-func VerfiySignTxBy266(tx *Transaction, s Signer) error {
-	h := s.Hash(tx)
-	//VerifyP256(public ecdsa.PublicKey, hash []byte, sign []byte) bool
-	cert, err := x509.ParseCertificate(tx.data.Cert)
-	if err != nil {
-		return err
-	}
-	var pubk *ecdsa.PublicKey
-	switch pub := cert.PublicKey.(type) {
-	case *ecdsa.PublicKey:
-		pubk.Curve = pub.Curve
-		pubk.X = pub.X
-		pubk.Y = pub.Y
-	}
-
-	if p256.VerifyP256(pubk, h[:], tx.data.Sig) {
-		return nil
-	}
-	return errors.New("verfiy p256 err")
-}
-
-func SignTxBySM(tx *Transaction, s Signer, prv *sm2.PrivateKey) (*Transaction, error) {
-	h := s.Hash(tx)
-	//sig, err := crypto.Sign(h[:], prv)
-	sig, err := sm2.Sign(prv, nil, h[:])
-	if err != nil {
-		return nil, err
-	}
-	tx.data.Sig = sig
-	//tx.data.ChainID  = s.GetChainID()
-	cpy := &Transaction{data: tx.data}
-	return cpy, nil
-}
-
-func VerfiySignTxBySM(tx *Transaction, s Signer) error {
-	h := s.Hash(tx)
-	//VerifyP256(public ecdsa.PublicKey, hash []byte, sign []byte) bool
-	cert, err := sm2_cert.ParseCertificateRequest(tx.data.Cert)
-	if err != nil {
-		return err
-	}
-	var topubk sm2.PublicKey
-	switch pub := cert.PublicKey.(type) {
-	case *sm2.PublicKey:
-		topubk.Curve = pub.Curve
-		topubk.X = pub.X
-		topubk.Y = pub.Y
-	}
-
-	if sm2.Verify(&topubk, nil, h[:], tx.data.Sig) {
-		return nil
-	}
-	return errors.New("verfiy tx sm2 err")
-}*/
-
 func SignTx_Payment(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
 	h := s.Hash_Payment(tx)
 	sig, err := crypto.Sign(h[:], prv)
@@ -190,31 +122,6 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 	return addr, nil
 }
 
-/*func SenderP256(signer Signer, tx *Transaction) (common.Address, error) {
-	if sc := tx.from.Load(); sc != nil {
-		sigCache := sc.(sigCache)
-		// If the signer used to derive from in a previous
-		// call is not the same as used current, invalidate
-		// the cache.
-		if sigCache.signer.Equal(signer) {
-			return sigCache.from, nil
-		}
-	}
-	//verify tx sign
-	err := VerfiySignTxBy266(tx, signer)
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	addr, err := signer.SenderP256(tx)
-	if err != nil {
-		return common.Address{}, err
-	}
-	tx.from.Store(sigCache{signer: signer, from: addr})
-	return addr, nil
-
-}
-*/
 // Signer encapsulates transaction signature handling. Note that this interface is not a
 // stable API and may change at any time to accommodate new protocol rules.
 type Signer interface {
