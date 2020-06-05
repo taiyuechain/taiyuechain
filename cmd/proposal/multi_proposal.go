@@ -55,10 +55,10 @@ func proposal(ctx *cli.Context) error {
 	printBaseInfo(conn, url)
 
 	PrintBalance(conn, from)
-	if ctx.GlobalIsSet(BftCertFlag.Name) {
+	if !ctx.GlobalIsSet(BftCertFlag.Name) {
 		printError("Must specify --bftcert for multi proposal")
 	}
-	if ctx.GlobalIsSet(ProposalCertFlag.Name) {
+	if !ctx.GlobalIsSet(ProposalCertFlag.Name) {
 		printError("Must specify --proposalcert for proposal validator")
 	}
 	bftfile := ctx.GlobalString(BftCertFlag.Name)
@@ -263,7 +263,7 @@ func loadPrivate(ctx *cli.Context) {
 	if priKey == nil {
 		printError("load privateKey failed")
 	}
-	if ctx.GlobalIsSet(CertKeyFlag.Name) {
+	if !ctx.GlobalIsSet(CertKeyFlag.Name) {
 		printError("Must specify --certpath for send transaction")
 	}
 	certfile := ctx.GlobalString(CertKeyFlag.Name)
