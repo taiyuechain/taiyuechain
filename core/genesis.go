@@ -55,16 +55,17 @@ const (
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
 type Genesis struct {
-	Config     *params.ChainConfig      `json:"config"`
-	Timestamp  uint64                   `json:"timestamp"`
-	ExtraData  []byte                   `json:"extraData"`
-	GasLimit   uint64                   `json:"gasLimit"   gencodec:"required"`
-	UseGas     byte                     `json:"useGas" 		gencodec:"required"`
-	BaseReward byte                     `json:"baseReward" 		gencodec:"required"`
-	Coinbase   common.Address           `json:"coinbase"`
-	Alloc      types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
-	Committee  []*types.CommitteeMember `json:"committee"      gencodec:"required"`
-	CertList   [][]byte                 `json:"CertList"      gencodec:"required"`
+	Config       *params.ChainConfig      `json:"config"`
+	Timestamp    uint64                   `json:"timestamp"`
+	ExtraData    []byte                   `json:"extraData"`
+	GasLimit     uint64                   `json:"gasLimit"   gencodec:"required"`
+	UseGas       byte                     `json:"useGas" 		gencodec:"required"`
+	BaseReward   byte                     `json:"baseReward" 		gencodec:"required"`
+	KindOfCrypto byte                     `json:"kindOfCrypto" 		gencodec:"required"`
+	Coinbase     common.Address           `json:"coinbase"`
+	Alloc        types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
+	Committee    []*types.CommitteeMember `json:"committee"      gencodec:"required"`
+	CertList     [][]byte                 `json:"CertList"      gencodec:"required"`
 
 	// These fields are used for consensus tests. Please don't use them
 	// in actual genesis blocks.
@@ -84,14 +85,12 @@ type GenesisAccount struct {
 
 // field type overrides for gencodec
 type genesisSpecMarshaling struct {
-	Timestamp  math.HexOrDecimal64
-	ExtraData  hexutil.Bytes
-	GasLimit   math.HexOrDecimal64
-	GasUsed    math.HexOrDecimal64
-	Number     math.HexOrDecimal64
-	UseGas     byte
-	BaseReward byte
-	Alloc      map[common.UnprefixedAddress]GenesisAccount
+	Timestamp math.HexOrDecimal64
+	ExtraData hexutil.Bytes
+	GasLimit  math.HexOrDecimal64
+	GasUsed   math.HexOrDecimal64
+	Number    math.HexOrDecimal64
+	Alloc     map[common.UnprefixedAddress]GenesisAccount
 }
 
 type genesisAccountMarshaling struct {
@@ -101,6 +100,11 @@ type genesisAccountMarshaling struct {
 	Storage    map[storageJSON]storageJSON
 	PrivateKey hexutil.Bytes
 }
+
+type specialString string
+type Foo2 struct{ M map[string]string }
+
+type foo2Marshaling struct{ S map[string]specialString }
 
 // storageJSON represents a 256 bit byte array, but allows less than 256 bits when
 // unmarshaling from hex.
