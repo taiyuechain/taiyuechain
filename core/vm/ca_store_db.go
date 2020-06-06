@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -32,11 +33,11 @@ func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) e
 			log.Error(" Invalid CACertList entry RLP", "err", err)
 			return errors.New(fmt.Sprintf("Invalid CACertList entry RLP %s", err.Error()))
 		}
-		tmp := CloneCaCache(&temp)
-
-		if tmp != nil {
-			CASC.Cache.Add(hash, tmp)
-		}
+		//tmp := CloneCaCache(&temp)
+		//
+		//if tmp != nil {
+		//	CASC.Cache.Add(hash, tmp)
+		//}
 	}
 
 	for k, val := range temp.caCertMap {
@@ -78,16 +79,16 @@ func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) e
 	if err != nil {
 		log.Crit("Failed to RLP encode CACertList", "err", err)
 	}
-	hash := types.RlpHash(data)
 	for _, val := range ca.proposalMap {
-		log.Info("-=-==-=save CA info", "Ce name", val.CACert, "is store", val.PHash)
-
+		log.Info("save CA info", "Ce name", hex.EncodeToString(val.CACert), "is store", val.PHash, "caCertMap", len(ca.caCertMap), "ca", ca.caCertMap)
 	}
 	state.SetCAState(preAddress, key, data)
-	tmp := CloneCaCache(ca)
-	if tmp != nil {
-		CASC.Cache.Add(hash, tmp)
-	}
+
+	//hash := types.RlpHash(data)
+	//tmp := CloneCaCache(ca)
+	//if tmp != nil {
+	//	CASC.Cache.Add(hash, tmp)
+	//}
 	return err
 }
 
