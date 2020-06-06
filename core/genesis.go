@@ -250,6 +250,12 @@ func (g *Genesis) Commit(db taidb.Database) (*types.Block, error) {
 	rawdb.WriteChainConfig(db, block.Hash(), config)
 	return block, nil
 }
+func (g *Genesis) makeParentHash() common.Hash {
+	h := g.ParentHash
+	h[31], h[30], h[29] = g.UseGas, g.BaseReward, g.KindOfCrypto
+	g.ParentHash = h
+	return h
+}
 
 // ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
@@ -267,7 +273,7 @@ func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
-
+	g.ParentHash = g.makeParentHash()
 	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number), g.CertList)
 	root := statedb.IntermediateRoot(false)
 
@@ -334,11 +340,12 @@ func DefaultGenesisBlock() *Genesis {
 	key14 := hexutil.MustDecode("0x04c4e01103818ca955c9219000c297c928b02b89d0eb3043886f524d645e20251343bf117d5a1b553708638c7dca8d1a12fb6379ae2d20756b57fdc5052a0dd787")
 
 	return &Genesis{
-		Config:     params.MainnetChainConfig,
-		ExtraData:  hexutil.MustDecode("0x54727565436861696E204D61696E4E6574"),
-		GasLimit:   16777216,
-		UseGas:     0,
-		BaseReward: 0,
+		Config:       params.MainnetChainConfig,
+		ExtraData:    hexutil.MustDecode("0x54727565436861696E204D61696E4E6574"),
+		GasLimit:     16777216,
+		UseGas:       0,
+		BaseReward:   0,
+		KindOfCrypto: 2,
 		//Timestamp:  1553918400,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
@@ -406,11 +413,12 @@ func DefaultDevGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
 
 	return &Genesis{
-		Config:     params.DevnetChainConfig,
-		ExtraData:  nil,
-		GasLimit:   88080384,
-		UseGas:     0,
-		BaseReward: 0,
+		Config:       params.DevnetChainConfig,
+		ExtraData:    nil,
+		GasLimit:     88080384,
+		UseGas:       0,
+		BaseReward:   0,
+		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x3f9061bf173d8f096c94db95c40f3658b4c7eaad"): {Balance: i},
@@ -428,11 +436,12 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 		"0x04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
 
 	return &Genesis{
-		Config:     params.SingleNodeChainConfig,
-		ExtraData:  nil,
-		GasLimit:   22020096,
-		UseGas:     0,
-		BaseReward: 0,
+		Config:       params.SingleNodeChainConfig,
+		ExtraData:    nil,
+		GasLimit:     22020096,
+		UseGas:       0,
+		BaseReward:   0,
+		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0xbd54a6c8298a70e9636d0555a77ffa412abdd71a"): {Balance: i},
@@ -467,14 +476,15 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
-		Config:     params.TestnetChainConfig,
-		ExtraData:  hexutil.MustDecode("0x54727565436861696E20546573744E6574203035"),
-		GasLimit:   20971520,
-		UseGas:     0,
-		BaseReward: 0,
-		Timestamp:  1537891200,
-		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
-		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		Config:       params.TestnetChainConfig,
+		ExtraData:    hexutil.MustDecode("0x54727565436861696E20546573744E6574203035"),
+		GasLimit:     20971520,
+		UseGas:       0,
+		BaseReward:   0,
+		KindOfCrypto: 2,
+		Timestamp:    1537891200,
+		Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
+		ParentHash:   common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: amount1},
 			common.HexToAddress("0x5A778953403352839Faf865C82309B63965f15F2"): {Balance: amount1},
