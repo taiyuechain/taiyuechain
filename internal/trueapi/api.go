@@ -1205,6 +1205,8 @@ type RPCTransaction struct {
 	PV               *hexutil.Big    `json:"pv"`
 	PR               *hexutil.Big    `json:"pr"`
 	PS               *hexutil.Big    `json:"ps"`
+	Cert             hexutil.Bytes   `json:"cert"   gencodec:"required"`
+	Sig              hexutil.Bytes   `json:"sig"   gencodec:"required"`
 }
 
 // newRPCTransaction returns a transaction that will serialize to the RPC
@@ -1220,6 +1222,8 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		GasPrice: (*hexutil.Big)(tx.GasPrice()),
 		Hash:     tx.Hash(),
 		Input:    hexutil.Bytes(tx.Data()),
+		Sig:      hexutil.Bytes(tx.Sig()),
+		Cert:     hexutil.Bytes(tx.Cert()),
 		Nonce:    hexutil.Uint64(tx.Nonce()),
 		To:       tx.To(),
 		Value:    (*hexutil.Big)(tx.Value()),
