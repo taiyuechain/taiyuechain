@@ -69,6 +69,9 @@ var (
 	pbft5PrivString = "77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489"
 	pbft5Name       = "pbft5priv"
 	pbft5path       = "./testdata/testcert/" + pbft5Name + ".pem"
+	p2p5PrivString  = "5a25f1ad94e51092c041a38bd1f7a6dab203d90c0b673294cb7eb2c3e6a8576a"
+	p2p5Name        = "p2p5cert"
+	p2p5path        = "./testdata/testcert/" + p2p5Name + ".pem"
 )
 
 func TestCertCIMAndVerfiyCert(t *testing.T) {
@@ -585,6 +588,8 @@ func TestIsuseP2PCert(t *testing.T) {
 	p2p2priv, _ := crypto.HexToECDSA(p2p2PrivString)
 	p2p3priv, _ := crypto.HexToECDSA(p2p3PrivString)
 	p2p4priv, _ := crypto.HexToECDSA(p2p4PrivString)
+	pbft5priv, _ := crypto.HexToECDSA(pbft5PrivString)
+	p2p5priv, _ := crypto.HexToECDSA(p2p5PrivString)
 
 	//pbft1RootCert
 	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
@@ -606,6 +611,9 @@ func TestIsuseP2PCert(t *testing.T) {
 	pbft4Cert, _ := crypto.ParseCertificate(pbft4Byte)
 	IssueCert(pbft4Cert, pbft4priv, &p2p4priv.PublicKey, p2p4Name)
 
+	pbft5Byte, _ := crypto.ReadPemFileByPath(pbft5path)
+	pbft5Cert, _ := crypto.ParseCertificate(pbft5Byte)
+	IssueCert(pbft5Cert, pbft5priv, &p2p5priv.PublicKey, p2p5Name)
 }
 
 func TestGetPBFTCertBytes(t *testing.T) {

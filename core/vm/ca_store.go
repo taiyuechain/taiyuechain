@@ -357,7 +357,7 @@ func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err
 		log.Error("No method found RunCaCertStore")
 		return nil, ErrCACertStoreInvalidInput
 	}
-	log.Info("---------------------func RunCaCertStore neo2020310 ", "name", method.Name)
+	log.Info("---------------------func RunCaCertStore neo2020310 ", "name", method.Name, "height", evm.BlockNumber.Uint64())
 	data := input[4:]
 
 	switch method.Name {

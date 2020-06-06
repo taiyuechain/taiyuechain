@@ -61,6 +61,10 @@ var (
 	pbft5Name    = "pbft5priv"
 	pbft5path    = "../testcert/" + pbft5Name + ".pem"
 	pbft5Byte, _ = crypto.ReadPemFileByPath(pbft5path)
+
+	p2p5Name    = "p2p5cert"
+	p2p5path    = "../testcert/" + p2p5Name + ".pem"
+	p2p5Byte, _ = crypto.ReadPemFileByPath(p2p5path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {
@@ -133,6 +137,39 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	})
 	if _, err := blockchain.InsertChain(chain); err != nil {
 		panic(err)
+	}
+
+	db1 := taidb.NewMemDatabase()
+	gspec.MustCommit(db1)
+	cimList1 := cim.NewCIMList(uint8(crypto.CryptoType))
+	blockchain1, err := core.NewBlockChain(db1, nil, gspec.Config, engine, vm.Config{}, cimList)
+	if err != nil {
+		fmt.Println("NewBlockChain ", err)
+	}
+	loadCIMList(cimList1, blockchain1)
+
+	if _, err := blockchain1.InsertChain(chain); err != nil {
+		panic(err)
+	}
+}
+
+func loadCIMList(cimList *cim.CimList, blockchain *core.BlockChain) {
+	// need init cert list to statedb
+	stateDB, err := blockchain.State()
+	if err != nil {
+		panic(err)
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	epoch := blockchain.GetBlockNumber()
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
+		cimCa, err := cim.NewCIM()
+		if err != nil {
+			panic(err)
+		}
+
+		cimCa.SetUpFromCA(caCert)
+		cimList.AddCim(cimCa)
 	}
 }
 

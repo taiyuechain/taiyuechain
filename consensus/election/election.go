@@ -382,7 +382,14 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 	} else if eid.Cmp(currentCommittee.id) == 0 {
 		return currentCommittee.Members(), currentCommittee.BackupMembers()
 	} else {
-		return nil, nil
+		//reset committee and nextCommittee
+		currentCommittee = e.getCommitteeInfoByCommitteeId(eid)
+
+		e.mu.Lock()
+		e.committee = currentCommittee
+		e.nextCommittee = nil
+		e.mu.Unlock()
+		return currentCommittee.Members(), currentCommittee.BackupMembers()
 	}
 }
 func membersDisplay(members []*types.CommitteeMember) []map[string]interface{} {
