@@ -331,6 +331,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	var res bool
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
+		log.Info("----add cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
 		ca.copyCertToList(epoch)
 		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
 		if res && err == nil {
@@ -339,6 +340,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 		}
 	} else {
 		if ca.proposalMap[pHash].PNeedDo == proposalDelCert {
+			log.Info("----del cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
 			ca.copyCertToList(epoch)
 			res, err = ca.delCertToList(ca.proposalMap[pHash].CACert, epoch+1)
 			if res && err == nil {
