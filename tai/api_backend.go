@@ -52,11 +52,6 @@ func (b *TrueAPIBackend) CurrentBlock() *types.Block {
 	return b.tai.blockchain.CurrentBlock()
 }
 
-func (b *TrueAPIBackend) CurrentSnailBlock() *types.SnailBlock {
-	return nil
-	//return b.tai.snailblockchain.CurrentBlock()
-}
-
 func (b *TrueAPIBackend) SetHead(number uint64) {
 	b.tai.protocolManager.downloader.Cancel()
 	b.tai.blockchain.SetHead(number)
@@ -64,7 +59,6 @@ func (b *TrueAPIBackend) SetHead(number uint64) {
 
 func (b *TrueAPIBackend) SetSnailHead(number uint64) {
 	b.tai.protocolManager.downloader.Cancel()
-	//b.tai.snailblockchain.SetHead(number)
 }
 
 func (b *TrueAPIBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error) {
@@ -82,20 +76,6 @@ func (b *TrueAPIBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNu
 func (b *TrueAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	return b.tai.blockchain.GetHeaderByHash(hash), nil
 }
-
-/*
-func (b *TrueAPIBackend) SnailHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailHeader, error) {
-	// Pending block is only known by the miner
-	if blockNr == rpc.PendingBlockNumber {
-		block := b.tai.miner.PendingSnailBlock()
-		return block.Header(), nil
-	}
-	// Otherwise resolve and return the block
-	if blockNr == rpc.LatestBlockNumber {
-		return b.tai.snailblockchain.CurrentBlock().Header(), nil
-	}
-	return b.tai.snailblockchain.GetHeaderByNumber(uint64(blockNr)), nil
-}*/
 
 func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error) {
 	// Only snailchain has miner, also return current block here for fastchain
@@ -120,20 +100,6 @@ func (b *TrueAPIBackend) GetCa(ctx context.Context, dir string) (interface{}, er
 	return nil, nil
 }
 
-/*
-func (b *TrueAPIBackend) SnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailBlock, error) {
-	// Pending block is only known by the miner
-	if blockNr == rpc.PendingBlockNumber {
-		block := b.tai.miner.PendingSnailBlock()
-		return block, nil
-	}
-	// Otherwise resolve and return the block
-	if blockNr == rpc.LatestBlockNumber {
-		return b.tai.snailblockchain.CurrentBlock(), nil
-	}
-	return b.tai.snailblockchain.GetBlockByNumber(uint64(blockNr)), nil
-}*/
-
 func (b *TrueAPIBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
 	// Pending state is only known by the miner
 	if blockNr == rpc.PendingBlockNumber {
@@ -152,16 +118,6 @@ func (b *TrueAPIBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc
 
 func (b *TrueAPIBackend) GetBlock(ctx context.Context, hash common.Hash) (*types.Block, error) {
 	return b.tai.blockchain.GetBlockByHash(hash), nil
-}
-
-func (b *TrueAPIBackend) GetSnailBlock(ctx context.Context, hash common.Hash) (*types.SnailBlock, error) {
-	//return b.tai.snailblockchain.GetBlockByHash(hash), nil
-	return nil, nil
-}
-
-func (b *TrueAPIBackend) GetFruit(ctx context.Context, fastblockHash common.Hash) (*types.SnailBlock, error) {
-	//return b.tai.snailblockchain.GetFruit(fastblockHash), nil
-	return nil, nil
 }
 
 func (b *TrueAPIBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
@@ -297,21 +253,6 @@ func (b *TrueAPIBackend) EventMux() *event.TypeMux {
 
 func (b *TrueAPIBackend) AccountManager() *accounts.Manager {
 	return b.tai.AccountManager()
-}
-
-func (b *TrueAPIBackend) SnailPoolContent() []*types.SnailBlock {
-	//return b.tai.SnailPool().Content()
-	return nil
-}
-
-func (b *TrueAPIBackend) SnailPoolInspect() []*types.SnailBlock {
-	//return b.tai.SnailPool().Inspect()
-	return nil
-}
-
-func (b *TrueAPIBackend) SnailPoolStats() (pending int, unVerified int) {
-	//return b.tai.SnailPool().Stats()
-	return 0, 0
 }
 
 func (b *TrueAPIBackend) BloomStatus() (uint64, uint64) {

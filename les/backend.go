@@ -24,7 +24,6 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/bloombits"
@@ -166,16 +165,6 @@ func (s *LightDummyAPI) Etherbase() (common.Address, error) {
 // Coinbase is the address that mining rewards will be send to (alias for Etherbase)
 func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("not supported")
-}
-
-// Hashrate returns the POW hashrate
-func (s *LightDummyAPI) Hashrate() hexutil.Uint {
-	return 0
-}
-
-// Mining returns an indication if this node is currently mining.
-func (s *LightDummyAPI) Mining() bool {
-	return false
 }
 
 // APIs returns the collection of RPC services the ethereum package offers.

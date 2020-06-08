@@ -602,8 +602,6 @@ func (self snailBlockSorter) Less(i, j int) bool {
 
 func SnailNumber(b1, b2 *SnailBlock) bool { return b1.header.Number.Cmp(b2.header.Number) < 0 }
 
-func FruitNumber(b1, b2 *SnailBlock) bool { return b1.header.FastNumber.Cmp(b2.header.FastNumber) < 0 }
-
 ////////////////////////////////////////////////////////////////////////////////
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its

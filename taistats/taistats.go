@@ -553,18 +553,16 @@ type blockStats struct {
 
 // blockStats is the information to report about individual blocks.
 type snailBlockStats struct {
-	Number      *big.Int        `json:"number"`
-	Hash        common.Hash     `json:"hash"`
-	ParentHash  common.Hash     `json:"parentHash"`
-	Timestamp   *big.Int        `json:"timestamp"`
-	Miner       common.Address  `json:"miner"`
-	Diff        string          `json:"difficulty"`
-	TotalDiff   string          `json:"totalDifficulty"`
-	Uncles      snailUncleStats `json:"uncles"`
-	FruitNumber *big.Int        `json:"fruits"`
-	LastFruit   *big.Int        `json:"lastFruit"`
+	Number     *big.Int        `json:"number"`
+	Hash       common.Hash     `json:"hash"`
+	ParentHash common.Hash     `json:"parentHash"`
+	Timestamp  *big.Int        `json:"timestamp"`
+	Miner      common.Address  `json:"miner"`
+	Diff       string          `json:"difficulty"`
+	TotalDiff  string          `json:"totalDifficulty"`
+	Uncles     snailUncleStats `json:"uncles"`
+	LastFruit  *big.Int        `json:"lastFruit"`
 	//Specific properties of fruit
-	//signs types.PbftSigns
 }
 
 // txStats is the information to report about individual transactions.
@@ -666,17 +664,9 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockStats {
 	// Gather the block infos from the local blockchain
 	var (
-		header      *types.SnailHeader
-		fruitNumber *big.Int
+		header *types.SnailHeader
 	)
 	if s.tai != nil {
-		// Full nodes have all needed information available
-		/*if block == nil {
-			block = s.etrue.SnailBlockChain().CurrentBlock()
-		}
-		header = block.Header()
-		td = s.etrue.SnailBlockChain().GetTd(header.Hash(), header.Number.Uint64())
-		fruitNumber = big.NewInt(int64(len((block.Fruits()))))*/
 	} else {
 		// Light nodes would need on-demand lookups for transactions/uncles, skip
 		if block != nil {
@@ -689,16 +679,15 @@ func (s *Service) assembleSnaiBlockStats(block *types.SnailBlock) *snailBlockSta
 	}
 	// Assemble and return the block stats
 	return &snailBlockStats{
-		Number:      new(big.Int).SetInt64(1),
-		Hash:        header.Hash(),
-		ParentHash:  common.Hash{},
-		Timestamp:   new(big.Int).SetInt64(time.Now().Unix()),
-		Miner:       common.Address{},
-		Diff:        "1000",
-		TotalDiff:   "1",
-		Uncles:      nil,
-		FruitNumber: fruitNumber,
-		LastFruit:   new(big.Int).SetInt64(60),
+		Number:     new(big.Int).SetInt64(1),
+		Hash:       header.Hash(),
+		ParentHash: common.Hash{},
+		Timestamp:  new(big.Int).SetInt64(time.Now().Unix()),
+		Miner:      common.Address{},
+		Diff:       "1000",
+		TotalDiff:  "1",
+		Uncles:     nil,
+		LastFruit:  new(big.Int).SetInt64(60),
 	}
 }
 
@@ -853,15 +842,13 @@ func (s *Service) reportPending(conn *websocket.Conn) error {
 
 // nodeStats is the information to report about the local node.
 type nodeStats struct {
-	Active  bool `json:"active"`
-	Syncing bool `json:"syncing"`
-	//Mining            bool `json:"mining"`
+	Active            bool `json:"active"`
+	Syncing           bool `json:"syncing"`
 	IsCommitteeMember bool `json:"isCommitteeMember"`
 	IsLeader          bool `json:"isLeader"`
-	//Hashrate          int  `json:"hashrate"`
-	Peers    int `json:"peers"`
-	GasPrice int `json:"gasPrice"`
-	Uptime   int `json:"uptime"`
+	Peers             int  `json:"peers"`
+	GasPrice          int  `json:"gasPrice"`
+	Uptime            int  `json:"uptime"`
 }
 
 // reportPending retrieves various stats about the node at the networking and
@@ -869,17 +856,12 @@ type nodeStats struct {
 func (s *Service) reportStats(conn *websocket.Conn) error {
 	// Gather the syncing and mining infos from the local miner instance
 	var (
-		//mining            bool
 		isCommitteeMember bool
 		isLeader          bool
-		//hashrate          int
-		syncing  bool
-		gasprice int
+		syncing           bool
+		gasprice          int
 	)
 	if s.tai != nil {
-		//mining = s.etrue.Miner().Mining()
-		//hashrate = int(s.etrue.Miner().HashRate())
-
 		sync := s.tai.Downloader().Progress()
 		syncing = s.tai.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
 
@@ -895,9 +877,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 	// Assemble the node stats and send it to the server
 	log.Trace("Sending node details to taistats")
 	nodeStats := &nodeStats{
-		Active: true,
-		//Mining:            mining,
-		//Hashrate:          hashrate,
+		Active:            true,
 		Peers:             s.server.PeerCount(),
 		GasPrice:          gasprice,
 		Syncing:           syncing,

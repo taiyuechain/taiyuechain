@@ -29,13 +29,13 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/tai/downloader"
+	"github.com/taiyuechain/taiyuechain/tai/gasprice"
+	"github.com/taiyuechain/taiyuechain/taidb"
 )
 
 type LesApiBackend struct {
@@ -49,10 +49,6 @@ func (b *LesApiBackend) ChainConfig() *params.ChainConfig {
 
 func (b *LesApiBackend) CurrentBlock() *types.Block {
 	return types.NewBlockWithHeader(b.etrue.BlockChain().CurrentHeader())
-}
-
-func (b *LesApiBackend) CurrentSnailBlock() *types.SnailBlock {
-	return nil
 }
 
 func (b *LesApiBackend) SetHead(number uint64) {
@@ -72,11 +68,6 @@ func (b *LesApiBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNum
 }
 func (b *LesApiBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	return b.etrue.blockchain.GetHeaderByHash(hash), nil
-}
-
-// TODO: fixed lightchain func.
-func (b *LesApiBackend) SnailHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailHeader, error) {
-	return nil, nil
 }
 
 func (b *LesApiBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error) {
@@ -102,16 +93,6 @@ func (b *LesApiBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc.
 
 func (b *LesApiBackend) GetBlock(ctx context.Context, blockHash common.Hash) (*types.Block, error) {
 	return b.etrue.blockchain.GetBlockByHash(ctx, blockHash)
-}
-
-// TODO: fixed lightchain func.
-func (b *LesApiBackend) GetFruit(ctx context.Context, fastblockHash common.Hash) (*types.SnailBlock, error) {
-	return nil, nil
-}
-
-// TODO: fixed lightchain func.
-func (b *LesApiBackend) GetSnailBlock(ctx context.Context, blockHash common.Hash) (*types.SnailBlock, error) {
-	return nil, nil
 }
 
 func (b *LesApiBackend) GetReceipts(ctx context.Context, hash common.Hash) (types.Receipts, error) {
@@ -209,18 +190,6 @@ func (b *LesApiBackend) GetCommittee(number rpc.BlockNumber) (map[string]interfa
 
 func (b *LesApiBackend) GetSnailRewardContent(number rpc.BlockNumber) *types.SnailRewardContenet {
 	return nil
-}
-
-func (b *LesApiBackend) SnailPoolContent() []*types.SnailBlock {
-	return nil
-}
-
-func (b *LesApiBackend) SnailPoolInspect() []*types.SnailBlock {
-	return nil
-}
-
-func (b *LesApiBackend) SnailPoolStats() (pending int, unVerified int) {
-	return 0, 0
 }
 
 func (b *LesApiBackend) Downloader() *downloader.Downloader {

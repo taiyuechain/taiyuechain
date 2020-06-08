@@ -337,12 +337,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 				Version:   "1.0",
 				Service:   NewPublicTaiyueChainAPI(s),
 				Public:    true,
-			}, /*{
-				Namespace: name,
-				Version:   "1.0",
-				Service:   NewPublicMinerAPI(s),
-				Public:    true,
-			},*/{
+			}, {
 				Namespace: name,
 				Version:   "1.0",
 				Service:   downloader.NewPublicDownloaderAPI(s.protocolManager.downloader, s.eventMux),
@@ -357,12 +352,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 	}
 	// Append all the local APIs and return
 	return append(apis, []rpc.API{
-		/*{
-			Namespace: "miner",
-			Version:   "1.0",
-			Service:   NewPrivateMinerAPI(s),
-			Public:    false,
-		},*/{
+		{
 			Namespace: "admin",
 			Version:   "1.0",
 			Service:   NewPrivateAdminAPI(s),
@@ -421,34 +411,8 @@ func (s *Taiyuechain) SetEtherbase(etherbase common.Address) {
 	s.etherbase = etherbase
 	s.agent.committeeNode.Coinbase = etherbase
 	s.lock.Unlock()
-
-	//s.miner.SetEtherbase(etherbase)
 }
 
-/*func (s *Taiyuechain) StartMining(local bool) error {
-	eb, err := s.Etherbase()
-	if err != nil {
-		log.Error("Cannot start mining without coinbase", "err", err)
-		return fmt.Errorf("coinbase missing: %v", err)
-	}
-
-	// snail chain not need clique
-
-	if local {
-		// If local (CPU) mining is started, we can disable the transaction rejection
-		// mechanism introduced to speed sync times. CPU mining on mainnet is ludicrous
-		// so none will ever hit this path, whereas marking sync done on CPU mining
-		// will ensure that private networks work in single miner mode too.
-		atomic.StoreUint32(&s.protocolManager.acceptFruits, 1)
-
-	}
-	go s.miner.Start(eb)
-	return nil
-}*/
-
-//func (s *Taiyuechain) StopMining()                       { s.miner.Stop() }
-//func (s *Taiyuechain) IsMining() bool                    { return s.miner.Mining() }
-//func (s *Taiyuechain) Miner() *miner.Miner               { return s.miner }
 func (s *Taiyuechain) PbftAgent() *PbftAgent             { return s.agent }
 func (s *Taiyuechain) AccountManager() *accounts.Manager { return s.accountManager }
 func (s *Taiyuechain) BlockChain() *core.BlockChain      { return s.blockchain }

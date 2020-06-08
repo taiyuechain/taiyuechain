@@ -49,22 +49,16 @@ type Backend interface {
 	SetHead(number uint64)
 	SetSnailHead(number uint64)
 	HeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Header, error)
-	//SnailHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailHeader, error)
 	BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error)
-	//SnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailBlock, error)
-	GetFruit(ctx context.Context, fastblockHash common.Hash) (*types.SnailBlock, error)
 	StateAndHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*state.StateDB, *types.Header, error)
 	GetBlock(ctx context.Context, blockHash common.Hash) (*types.Block, error)
-	GetSnailBlock(ctx context.Context, blockHash common.Hash) (*types.SnailBlock, error)
 	GetReceipts(ctx context.Context, blockHash common.Hash) (types.Receipts, error)
-	//GetTd(blockHash common.Hash) *big.Int
 	GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmCfg vm.Config) (*vm.EVM, func() error, error)
 	SubscribeChainEvent(ch chan<- types.FastChainEvent) event.Subscription
 	SubscribeChainHeadEvent(ch chan<- types.FastChainHeadEvent) event.Subscription
 	SubscribeChainSideEvent(ch chan<- types.FastChainSideEvent) event.Subscription
 	GetReward(number int64) *types.BlockReward
 	GetCommittee(id rpc.BlockNumber) (map[string]interface{}, error)
-	//GetSnailRewardContent(blockNr rpc.BlockNumber) *types.SnailRewardContenet
 
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
@@ -78,12 +72,6 @@ type Backend interface {
 
 	ChainConfig() *params.ChainConfig
 	CurrentBlock() *types.Block
-	CurrentSnailBlock() *types.SnailBlock
-
-	// SnailPool API
-	SnailPoolContent() []*types.SnailBlock
-	SnailPoolInspect() []*types.SnailBlock
-	SnailPoolStats() (pending int, unVerified int)
 }
 
 func GetAPIs(apiBackend Backend) []rpc.API {
@@ -120,11 +108,6 @@ func GetAPIs(apiBackend Backend) []rpc.API {
 			Namespace: "txpool",
 			Version:   "1.0",
 			Service:   NewPublicTxPoolAPI(apiBackend),
-			Public:    true,
-		}, {
-			Namespace: "fruitpool",
-			Version:   "1.0",
-			Service:   NewPublicFruitPoolAPI(apiBackend),
 			Public:    true,
 		}, {
 			Namespace: "debug",

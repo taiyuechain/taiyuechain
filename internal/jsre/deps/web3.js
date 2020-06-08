@@ -5266,14 +5266,6 @@ var caCall = function (args) {
       return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "tai_getdir" : "tai_getCa";
     };
 
-var snailBlockCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "tai_getSnailBlockByHash" : "tai_getSnailBlockByNumber";
-};
-
-var fruitCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? "tai_getFruitByHash" : "tai_getFruitByNumber";
-};
-
 var transactionFromBlockCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'tai_getTransactionByBlockHashAndIndex' : 'tai_getTransactionByBlockNumberAndIndex';
 };
@@ -5289,11 +5281,6 @@ var uncleCall = function (args) {
 var getBlockTransactionCountCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'tai_getBlockTransactionCountByHash' : 'tai_getBlockTransactionCountByNumber';
 };
-
-var getBlockFruitCountCall = function (args) {
-  return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'tai_getBlockFruitCountByHash' : 'tai_getBlockFrtuitCountByNumber';
-  };
-
 
 var uncleCountCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'tai_getUncleCountByBlockHash' : 'tai_getUncleCountByBlockNumber';
@@ -5384,29 +5371,6 @@ var methods = function () {
         inputFormatter: [formatters.inputDefaultBlockNumberFormatter]
     });
 
-    var getSnailRewardContent = new Method({
-      name: 'getSnailRewardContent',
-      call: 'tai_getSnailRewardContent',
-      params: 1,
-      inputFormatter: [formatters.inputDefaultBlockNumberFormatter]
-    });
-
-    var getSnail = new Method({
-        name: 'getSnail',
-        call: snailBlockCall,
-        params: 2,
-        inputFormatter: [formatters.inputBlockNumberFormatter, function (val) { return !!val; }],
-        outputFormatter: formatters.outputSnailFormatter
-    });
-
-    var getFruit = new Method({
-        name: 'getFruit',
-        call: fruitCall,
-        params: 2,
-        inputFormatter: [formatters.inputBlockNumberFormatter, function (val) { return !!val; }]
-        // outputFormatter: formatters.outputSnailFormatter
-    });
-
     var getUncle = new Method({
         name: 'getUncle',
         call: uncleCall,
@@ -5425,14 +5389,6 @@ var methods = function () {
     var getBlockTransactionCount = new Method({
         name: 'getBlockTransactionCount',
         call: getBlockTransactionCountCall,
-        params: 1,
-        inputFormatter: [formatters.inputBlockNumberFormatter],
-        outputFormatter: utils.toDecimal
-    });
-
-    var getBlockFruitCount = new Method({
-        name: 'getBlockFruitCount',
-        call: getBlockFruitCountCall,
         params: 1,
         inputFormatter: [formatters.inputBlockNumberFormatter],
         outputFormatter: utils.toDecimal
@@ -5552,24 +5508,6 @@ var methods = function () {
         params: 1
     });
 
-    var submitWork = new Method({
-        name: 'submitWork',
-        call: 'tai_submitWork',
-        params: 3
-    });
-
-    var getDataset = new Method({
-        name: 'getDataset',
-        call: 'tai_getDataset',
-        params: 0
-    });
-
-    var getDatasetBySeedhash = new Method({
-        name: 'getDatasetBySeedhash',
-        call: 'tai_getDatasetBySeedhash',
-        params: 1
-    });
-
     var getCommittee = new Method({
         name: 'getCommittee',
         call: 'tai_getCommittee',
@@ -5585,18 +5523,6 @@ var methods = function () {
         // outputFormatter: formatters.outputSnailFormatter
     });
 
-    var getWork = new Method({
-        name: 'getWork',
-        call: 'tai_getWork',
-        params: 0
-    });
-
-    var submitHashrate = new Method({
-        name: 'submitHashrate',
-        call: 'tai_submitHashrate',
-        params: 0
-    });
-
     return [
         getBalance,
         getStorageAt,
@@ -5604,13 +5530,9 @@ var methods = function () {
         getCa,
         getBlock,
         getRewardBlock,
-      getSnailRewardContent,
-        getSnail,
-        getFruit,
         getUncle,
         getCompilers,
         getBlockTransactionCount,
-        getBlockFruitCount,
         getBlockUncleCount,
         getTransaction,
         getTransactionFromBlock,
@@ -5627,13 +5549,8 @@ var methods = function () {
         compileSolidity,
         compileLLL,
         compileSerpent,
-        submitWork,
-        getWork,
         getCommittee,
         getCurrentState,
-        getDataset,
-        getDatasetBySeedhash,
-        submitHashrate
     ];
 };
 
@@ -5657,15 +5574,6 @@ var properties = function () {
             getter: 'tai_isCommitteeMember'
         }),
         new Property({
-            name: 'mining',
-            getter: 'tai_mining'
-        }),
-        new Property({
-            name: 'hashrate',
-            getter: 'tai_hashrate',
-            outputFormatter: utils.toDecimal
-        }),
-        new Property({
             name: 'syncing',
             getter: 'tai_syncing',
             outputFormatter: formatters.outputSyncingFormatter
@@ -5682,20 +5590,6 @@ var properties = function () {
         new Property({
             name: 'blockNumber',
             getter: 'tai_blockNumber',
-            outputFormatter: utils.toDecimal
-        }),
-        new Property({
-            name: 'snailBlockNumber',
-            getter: 'tai_snailBlockNumber',
-            outputFormatter: utils.toDecimal
-        }),
-        new Property({
-            name: 'rewardSnailBlock',
-            getter: 'tai_rewardSnailBlock'
-        }),
-        new Property({
-            name: 'fruitNumber',
-            getter: 'tai_fruitNumber',
             outputFormatter: utils.toDecimal
         }),
         new Property({

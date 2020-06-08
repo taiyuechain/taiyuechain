@@ -174,14 +174,6 @@ func NewDataset(epoch uint64) interface{} {
 	return ds
 }
 
-func (d *Dataset) GetDataSetEpoch() uint64 {
-	return d.epoch
-}
-
-func (d *Dataset) GetDataSet() []uint64 {
-	return d.dataset
-}
-
 // Mode defines the type and amount of PoW verification an minerva engine makes.
 type Mode uint
 
@@ -254,109 +246,13 @@ func New(config Config) *Minerva {
 	}
 
 	//MinervaLocal.CheckDataSetState(1)
-	//minerva.getDataset(1)
 
 	return minerva
 }
 
-// NewTestData Method test usage
-/*func (m *Minerva) NewTestData(block uint64) {
-	m.getDataset(block)
-}
-
-// dataset tries to retrieve a mining dataset for the specified block number
-func (m *Minerva) getDataset(block uint64) *Dataset {
-	if m.config.Tip9 < block {
-		block = m.config.Tip9
-	}
-
-	var headerHash [STARTUPDATENUM][]byte
-	// Retrieve the requested ethash dataset
-	//each 12000 change the mine algorithm block -1 is make sure the 12000 is use epoch 0
-	epoch := uint64((block - 1) / UPDATABLOCKLENGTH)
-	currentI, futureI := m.datasets.get(epoch)
-	current := currentI.(*Dataset)
-
-	getHashList := func(headershash *[STARTUPDATENUM][]byte, epoch uint64) bool {
-		st_block_num := uint64((epoch-1)*UPDATABLOCKLENGTH + 1)
-
-		//get header hash
-		if m.sbc == nil {
-			log.Error("snail block chain is nil  ", "epoch", epoch)
-			return false
-		}
-
-		for i := 0; i < STARTUPDATENUM; i++ {
-			header := m.sbc.GetHeaderByNumber(uint64(i) + st_block_num)
-			if header == nil {
-				log.Error(" getDataset function getHead hash fail ", "blockNum is:  ", (uint64(i) + st_block_num))
-				return false
-			}
-			headerHash[i] = header.Hash().Bytes()
-		}
-		return true
-	}
-
-	if current.dateInit == 0 && epoch > 0 {
-		if !getHashList(&headerHash, epoch) {
-			return nil
-		}
-	}
-
-	current.Generate(epoch, &headerHash)
-
-	// when change the algorithm before 12000*n
-	if block >= (epoch+1)*UPDATABLOCKLENGTH-OFF_STATR {
-
-		go func() {
-			//log.Info("start to create a future dataset")
-			if futureI != nil {
-				future := futureI.(*Dataset)
-
-				if !getHashList(&headerHash, epoch+1) {
-					return
-				}
-				future.Generate(m.datasets.future, &headerHash)
-			}
-		}()
-	}
-
-	log.Debug("getDataset:", "epoch is ", current.epoch, "futrue epoch is", m.datasets.future, "blockNumber is ", block, "consistent is ", current.consistent, "dataset hash", current.datasetHash)
-
-	return current
-}*/
-
 func (d *Dataset) Hash() common.Hash {
 	return rlpHash(d.dataset)
 }
-
-/*// generate ensures that the dataset content is generated before use.
-func (d *Dataset) Generate(epoch uint64, headershash *[STARTUPDATENUM][]byte) {
-	d.once.Do(func() {
-		if d.dateInit == 0 {
-			if epoch <= 0 {
-				log.Info("TableInit is start", "epoch", epoch)
-				d.truehashTableInit(d.dataset)
-				d.datasetHash = d.GetDatasetSeedhash(d.dataset)
-			} else {
-				// the new algorithm is use befor 10241 start block hear to calc
-				log.Info("updateLookupTBL is start", "epoch", epoch)
-				flag, _, cont := d.updateLookupTBL(d.dataset, headershash)
-				if flag {
-					// consistent is make sure the algorithm is current and not change
-					d.consistent = common.BytesToHash([]byte(cont))
-					d.datasetHash = d.GetDatasetSeedhash(d.dataset)
-
-					log.Info("updateLookupTBL change success", "epoch", epoch, "consistent", d.consistent.String())
-				} else {
-					log.Error("updateLookupTBL err", "epoch", epoch)
-				}
-			}
-			d.dateInit = 1
-		}
-	})
-
-}*/
 
 //SetSnailChainReader Append interface SnailChainReader after instantiations
 func (m *Minerva) SetSnailChainReader(scr consensus.SnailChainReader) {
