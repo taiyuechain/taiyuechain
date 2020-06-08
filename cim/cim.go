@@ -33,7 +33,7 @@ type CIM interface {
 	// construct consortium identity manager
 	//SetUp(conf *CIMConfig) error
 	SetUpFromCA(rootCAByte []byte) error
-	//GetRootCert() Identity
+	GetRootCert() Identity
 	//GetTLSRootCert() []byte
 	// revoke cert list
 	//GetCrlList() []*pkix.CertificateList

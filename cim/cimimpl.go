@@ -96,6 +96,20 @@ func (cl *CimList) VerifyPermission(operatorFrom common.Address,tx *types.Transa
 	return true
 }
 
+func (cl *CimList)UpdataCert(clist [][]byte)  {
+
+	if len(clist) == 0{
+		return
+	}
+	cl.CimMap = make([]CIM,len(clist))
+
+	for _,v :=range clist{
+		cimCa, _ := NewCIM()
+		cimCa.SetUpFromCA(v)
+		cl.AddCim(cimCa)
+	}
+
+}
 
 
 

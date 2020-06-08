@@ -43,6 +43,7 @@ import (
 	//"math/rand"
 	"sync"
 	"time"
+	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 // ErrInvalidDumpMagic errorinfo
@@ -220,6 +221,8 @@ type Minerva struct {
 
 	sbc      consensus.SnailChainReader
 	election consensus.CommitteeElection
+	certList  *cim.CimList
+
 }
 
 //var MinervaLocal *Minerva
@@ -267,6 +270,12 @@ func (m *Minerva) SetElection(e consensus.CommitteeElection) {
 // GetElection return election
 func (m *Minerva) GetElection() consensus.CommitteeElection {
 	return m.election
+
+}
+
+// GetElection return election
+func (m *Minerva) SetCimList(clist *cim.CimList) {
+	m.certList = clist
 
 }
 

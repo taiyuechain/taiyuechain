@@ -252,6 +252,19 @@ func (ca *CACertList) ChangeElectionCaList(blockHight *big.Int, state StateDB) {
 	}
 }
 
+func (ca *CACertList) GetCertList(epoch uint64) [][]byte {
+	if ca.caCertMap[epoch] == nil {
+		return [][]byte{}
+	}
+
+	certList := make([][]byte,len(ca.caCertMap[epoch].CACert))
+
+	for i,v:=range ca.caCertMap[epoch].CACert{
+		certList[i] = append(certList[i],v[:]...)
+	}
+	return certList
+}
+
 func (ca *CACertList) GetCaCertAmount(epoch uint64) uint64 {
 	if ca.caCertMap[epoch] == nil {
 		return uint64(0)

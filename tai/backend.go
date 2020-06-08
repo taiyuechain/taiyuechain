@@ -147,6 +147,8 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		config.MinerGasCeil = config.Genesis.GasLimit * 11 / 10
 	}*/
 
+	NewCIMList := cim.NewCIMList(config.CryptoType)
+
 	etrue := &Taiyuechain{
 		config:         config,
 		chainDb:        chainDb,
@@ -162,6 +164,8 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
 
+	etrue.engine.SetCimList(NewCIMList)
+
 	log.Info("Initialising Taiyuechain protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
 	/*if !config.SkipBcVersionCheck {
@@ -175,7 +179,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 		cacheConfig = &core.CacheConfig{Deleted: config.DeletedState, Disabled: config.NoPruning, TrieNodeLimit: config.TrieCache, TrieTimeLimit: config.TrieTimeout}
 	)
-	NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
+	//NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
 
 	etrue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, etrue.chainConfig, etrue.engine, vmConfig, NewCIMList)
 	if err != nil {

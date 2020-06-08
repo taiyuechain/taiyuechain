@@ -839,7 +839,8 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 		return nil, err
 	}*/
 
-	consensus.CheckCAElection(state, new(big.Int).Set(header.Number))
+
+	consensus.CheckCAElection(state, new(big.Int).Set(header.Number),m.certList)
 
 	header.Root = state.IntermediateRoot(true)
 	return types.NewBlock(header, txs, receipts, nil, nil), nil
