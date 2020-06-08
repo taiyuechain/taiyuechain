@@ -89,7 +89,7 @@ func init() {
 	}
 	// Add subcommands.
 	app.Commands = []cli.Command{
-		queryStakingCommand,
+		queryAmountCommand,
 		sendCommand,
 		deleteCommand,
 		queryTxCommand,

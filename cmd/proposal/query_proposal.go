@@ -8,8 +8,8 @@ import (
 	"math/big"
 )
 
-var queryStakingCommand = cli.Command{
-	Name:   "querystaking",
+var queryAmountCommand = cli.Command{
+	Name:   "queryamount",
 	Usage:  "Query staking info, can cancel info and can withdraw info",
 	Action: utils.MigrateFlags(queryStakingImpawn),
 	Flags:  append(ProposalFlags, AddressFlag),

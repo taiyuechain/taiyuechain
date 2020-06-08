@@ -342,42 +342,19 @@ func queryStakingInfo(conn *taiclient.Client, query bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	input := packInput("getDeposit", from)
+	input := packInput("getCaAmount")
 	msg := taiyuechain.CallMsg{From: from, To: &types.CACertListAddress, Data: input}
 	output, err := conn.CallContract(context.Background(), msg, header.Number)
 	if err != nil {
 		printError("method CallContract error", err)
 	}
 	if len(output) != 0 {
-		args := struct {
-			Staked   *big.Int
-			Locked   *big.Int
-			Unlocked *big.Int
-		}{}
-		err = abiStaking.Unpack(&args, "getDeposit", output)
+		var args uint64
+		err = abiStaking.Unpack(&args, "getCaAmount", output)
 		if err != nil {
 			printError("abi error", err)
 		}
-		fmt.Println("Staked ", args.Staked.String(), "wei =", weiToTrue(args.Staked), "true Locked ",
-			args.Locked.String(), " wei =", weiToTrue(args.Locked), "true",
-			"Unlocked ", args.Unlocked.String(), " wei =", weiToTrue(args.Unlocked), "true")
-		if query && args.Locked.Sign() > 0 {
-			//lockAssets, err := conn.GetLockedAsset(context.Background(), from, header.Number)
-			//if err != nil {
-			//	printError("GetLockedAsset error", err)
-			//}
-			//for k, v := range lockAssets {
-			//	for m, n := range v.LockValue {
-			//		if !n.Locked {
-			//			fmt.Println("Your can instant withdraw", " count value ", n.Amount, " true")
-			//		} else {
-			//			if n.EpochID > 0 || n.Amount != "0" {
-			//				fmt.Println("Your can withdraw after height", n.Height.Uint64(), " count value ", n.Amount, " true  index", k+m, " lock ", n.Locked)
-			//			}
-			//		}
-			//	}
-			//}
-		}
+		fmt.Println("Amount ", args)
 	} else {
 		fmt.Println("Contract query failed result len == 0")
 	}
