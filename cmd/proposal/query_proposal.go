@@ -49,7 +49,7 @@ func sendTX(ctx *cli.Context) error {
 }
 
 var deleteCommand = cli.Command{
-	Name:   "delegate",
+	Name:   "delete",
 	Usage:  "Delete a validator",
 	Action: utils.MigrateFlags(deleteCert),
 	Flags:  append(ProposalFlags, AddressFlag),

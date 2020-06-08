@@ -81,11 +81,9 @@ func DefaulGenesisBlock() *core.Genesis {
 	coinbase := daddr1
 
 	return &core.Genesis{
-		Config:     params.DevnetChainConfig,
-		Nonce:      928,
-		ExtraData:  nil,
-		GasLimit:   88080384,
-		Difficulty: big.NewInt(20000),
+		Config:    params.DevnetChainConfig,
+		ExtraData: nil,
+		GasLimit:  88080384,
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},
 		},

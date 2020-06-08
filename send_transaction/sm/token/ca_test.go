@@ -31,6 +31,9 @@ func TestAllCaCert(t *testing.T) {
 		sendMultiProposalTranscation(number, gen, saddr1, cert44, pbft2Byte, true, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendGetCaCertAmountTranscation(number-25, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendGetCaCertAmountTranscation(number-25-1000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-26-1000, gen, saddr1, cert44, pbft1Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-27-1000, gen, saddr1, cert44, pbft2Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-28-1000, gen, saddr1, cert44, pbft3Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendGetCaCertAmountTranscation(number-25-2000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 	}
 	newTestPOSManager(60, executable)
