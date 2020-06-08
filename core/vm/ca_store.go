@@ -467,7 +467,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	}
 
 	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
-	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd})
+	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd,evm.BlockNumber})
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 	//check cacert
 	if !args.IsAdd {
