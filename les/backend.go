@@ -84,7 +84,7 @@ func New(ctx *node.ServiceContext, config *tai.Config) (*LightEtrue, error) {
 	if err != nil {
 		return nil, err
 	}
-	chainConfig, genesisHash, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+	chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, isCompat := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !isCompat {
 		return nil, genesisErr
 	}

@@ -150,14 +150,17 @@ func (e *GenesisMismatchError) Error() string {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, common.Hash, error) {
+func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
-		return params.AllMinervaProtocolChanges, common.Hash{}, common.Hash{}, errGenesisNoConfig
+		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
 
 	fastConfig, fastHash, fastErr := setupGenesisBlock(db, genesis)
-
-	return fastConfig, fastHash, common.Hash{}, fastErr
+	genesisBlock := rawdb.ReadBlock(db, fastHash, 0)
+	if genesisBlock != nil {
+		params.ParseExtraDataFromGenesis(genesisBlock.Header().Extra)
+	}
+	return fastConfig, fastHash, fastErr
 
 }
 
@@ -263,6 +266,8 @@ func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 	if db == nil {
 		db = taidb.NewMemDatabase()
 	}
+	g.ExtraData = g.makeExtraData()
+	params.ParseExtraDataFromGenesis(g.ExtraData)
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db))
 	for addr, account := range g.Alloc {
 		statedb.AddBalance(addr, account.Balance)
@@ -272,7 +277,7 @@ func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
-	g.ExtraData = g.makeExtraData()
+
 	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number), g.CertList)
 	root := statedb.IntermediateRoot(false)
 

@@ -23,7 +23,6 @@ import (
 	//"encoding/hex"
 	"fmt"
 	//"crypto/ecdsa"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -31,6 +30,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
@@ -47,9 +48,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"crypto/ecdsa"
+
 	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
@@ -64,7 +67,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
 	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/taistats"
-	"gopkg.in/urfave/cli.v1"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -1355,7 +1358,7 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
-	config, _, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
+	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
 	if err != nil {
 		Fatalf("%v", err)
 	}

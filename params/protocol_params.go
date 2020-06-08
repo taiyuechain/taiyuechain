@@ -17,6 +17,7 @@
 package params
 
 import "math/big"
+import "github.com/taiyuechain/taiyuechain/crypto"
 
 var (
 	// TargetGasLimit is the artificial target
@@ -132,11 +133,20 @@ var (
 	MinimumCommitteeNumber  = 4
 )
 var (
-	CountInEpoch                      = 20
-	MaxRedeemHeight            uint64 = 250000 // about 15 days
-	NewEpochLength             uint64 = 25000  // about 1.5 days
-	ElectionPoint              uint64 = 200
-	FirstNewEpochID            uint64 = 1
-	DposForkPoint              uint64 = 0
-	ElectionMinLimitForStaking        = new(big.Int).Mul(big.NewInt(20000), big.NewInt(1e18))
+	GasUsed      byte = 0
+	BaseReward   byte = 0
+	KindOfCrypto byte = 2
 )
+
+func ParseExtraDataFromGenesis(data []byte) {
+	if len(data) >= 3 {
+		GasUsed, BaseReward, KindOfCrypto = data[0], data[1], data[2]
+		crypto.SetCrtptoType(uint8(KindOfCrypto))
+	}
+}
+func GetGasUsed() byte {
+	return GasUsed
+}
+func GetBaseReward() byte {
+	return BaseReward
+}
