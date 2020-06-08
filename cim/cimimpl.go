@@ -101,7 +101,7 @@ func (cl *CimList)UpdataCert(clist [][]byte)  {
 	if len(clist) == 0{
 		return
 	}
-	cl.CimMap = make([]CIM,len(clist))
+	cl.CimMap = cl.CimMap[0:0]
 
 	for _,v :=range clist{
 		cimCa, _ := NewCIM()
