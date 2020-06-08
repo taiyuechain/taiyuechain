@@ -250,11 +250,10 @@ func (g *Genesis) Commit(db taidb.Database) (*types.Block, error) {
 	rawdb.WriteChainConfig(db, block.Hash(), config)
 	return block, nil
 }
-func (g *Genesis) makeParentHash() common.Hash {
-	h := g.ParentHash
-	h[31], h[30], h[29] = g.UseGas, g.BaseReward, g.KindOfCrypto
-	g.ParentHash = h
-	return h
+func (g *Genesis) makeExtraData() []byte {
+	h := []byte{g.UseGas, g.BaseReward, g.KindOfCrypto}
+	g.ExtraData = append(g.ExtraData, h...)
+	return g.ExtraData
 }
 
 // ToBlock creates the genesis block and writes state of a genesis specification
@@ -273,7 +272,7 @@ func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
-	g.ParentHash = g.makeParentHash()
+	g.ExtraData = g.makeExtraData()
 	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number), g.CertList)
 	root := statedb.IntermediateRoot(false)
 

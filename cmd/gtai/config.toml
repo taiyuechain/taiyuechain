@@ -21,7 +21,6 @@ Nonce=0
 Timestamp=100
 ExtraData = [65,64,74]
 GasLimit = 100
-Difficulty = 200
 Mixhash = "0x6acb5ea86c6f34307b9136009d476d4a08415882897b9b94e0354eb6347441fb"
 Coinbase = "0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"
 CertList = [

@@ -19,6 +19,10 @@ package core
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"os"
+	"testing"
+
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
@@ -29,9 +33,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/taidb"
-	"math/big"
-	"os"
-	"testing"
 )
 
 func init() {
@@ -147,7 +148,6 @@ func TestTransactionCost(t *testing.T) {
 				addresses[1]: {Balance: big.NewInt(params.Ether)},
 				addresses[2]: {Balance: big.NewInt(params.Ether)},
 			},
-			Difficulty: big.NewInt(20000),
 		}
 		genesis    = gspec.MustCommit(db)
 		fastParent = genesis

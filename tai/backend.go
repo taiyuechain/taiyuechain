@@ -20,17 +20,20 @@ package tai
 import (
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	config "github.com/taiyuechain/taiyuechain/params"
 	"math/big"
 	"runtime"
 	"strconv"
 	"sync"
+
+	"github.com/taiyuechain/taiyuechain/consensus/tbft"
+	"github.com/taiyuechain/taiyuechain/crypto"
+	config "github.com/taiyuechain/taiyuechain/params"
+
 	//"sync/atomic"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -42,6 +45,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/trueapi"
@@ -49,6 +53,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/tai/filters"
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
 	"github.com/taiyuechain/taiyuechain/taidb"
+
 	//"github.com/taiyuechain/taiyuechain/miner"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -120,9 +125,6 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	if config.SyncMode == downloader.LightSync {
 		return nil, errors.New("can't run etrue.Taiyuechain in light sync mode, use les.LightTaiYueChain")
 	}
-	//if config.SyncMode == downloader.SnapShotSync {
-	//	return nil, errors.New("can't run etrue.Taiyuechain in SnapShotSync sync mode, use les.LightTaichain")
-	//}
 
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)

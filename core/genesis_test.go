@@ -308,3 +308,14 @@ func TestGenesisFromJson(t *testing.T) {
 	}
 	fmt.Println("finish")
 }
+
+func Test07(t *testing.T) {
+	m3 := map[string]*big.Int{
+		"a": big.NewInt(10),
+		"b": big.NewInt(20),
+	}
+	if m3["c"] == nil {
+		m3["c"] = big.NewInt(30)
+	}
+	fmt.Println("m3[c]", m3["c"])
+}
