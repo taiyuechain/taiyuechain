@@ -135,7 +135,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		return nil, err
 	}
 
-	chainConfig, _, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+	chainConfig, _, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
