@@ -26,6 +26,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -76,6 +77,8 @@ type SnailChainReader interface {
 // Engine is an algorithm agnostic consensus engine.
 type Engine interface {
 	SetElection(e CommitteeElection)
+
+    SetCimList(clist *cim.CimList)
 
 	GetElection() CommitteeElection
 
@@ -193,9 +196,14 @@ func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumbe
 	return makeCAContractInitState(state, certList, fastNumber)
 }
 
-func CheckCAElection(state *state.StateDB, fastNumber *big.Int) {
+func CheckCAElection(state *state.StateDB, fastNumber *big.Int,rootCimList *cim.CimList) {
 	CaCertAddress := types.CACertListAddress
 	i := vm.NewCACertList()
 	i.LoadCACertList(state, CaCertAddress)
 	i.ChangeElectionCaList(fastNumber, state)
+
+	epoch := types.GetEpochIDFromHeight(fastNumber)
+	//updata cim
+	rootCimList.UpdataCert(i.GetCertList(epoch.Uint64()))
+
 }
