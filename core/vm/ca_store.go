@@ -21,7 +21,7 @@ import (
 	"errors"
 	"strings"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
@@ -467,7 +467,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	}
 
 	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
-	pHash := types.RlpHash(args.CaCert)
+	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd})
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 	//check cacert
 	if !args.IsAdd {
