@@ -91,7 +91,7 @@ func init() {
 	app.Commands = []cli.Command{
 		queryStakingCommand,
 		sendCommand,
-		delegateCommand,
+		deleteCommand,
 		queryTxCommand,
 	}
 	cli.CommandHelpTemplate = utils.CommandHelpTemplate

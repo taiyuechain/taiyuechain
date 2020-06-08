@@ -48,10 +48,10 @@ func sendTX(ctx *cli.Context) error {
 	return nil
 }
 
-var depositDCommand = cli.Command{
-	Name:   "deposit",
-	Usage:  "Deposit staking on a validator address",
-	Action: utils.MigrateFlags(delegateImpawn),
+var deleteCommand = cli.Command{
+	Name:   "delegate",
+	Usage:  "Delete a validator",
+	Action: utils.MigrateFlags(deleteCert),
 	Flags:  append(ProposalFlags, AddressFlag),
 }
 
@@ -66,27 +66,29 @@ var delegateCommand = cli.Command{
 	Name:  "delegate",
 	Usage: "Delegate staking on a validator address",
 	Subcommands: []cli.Command{
-		depositDCommand,
 		withdrawDCommand,
 	},
 }
 
-func delegateImpawn(ctx *cli.Context) error {
+func deleteCert(ctx *cli.Context) error {
 	loadPrivate(ctx)
 	conn, url := dialConn(ctx)
 	printBaseInfo(conn, url)
 
 	PrintBalance(conn, from)
 
-	value := trueToWei(ctx, false)
-
-	address := ctx.GlobalString(AddressFlag.Name)
-	if !common.IsHexAddress(address) {
-		printError("Must input correct address")
+	if !ctx.GlobalIsSet(BftCertFlag.Name) {
+		printError("Must specify --bftcert for multi proposal")
 	}
-	holder = common.HexToAddress(address)
+	if !ctx.GlobalIsSet(ProposalCertFlag.Name) {
+		printError("Must specify --proposalcert for proposal validator")
+	}
+	bftfile := ctx.GlobalString(BftCertFlag.Name)
+	bftByte, _ := getPubFromFile(bftfile)
+	proposalfile := ctx.GlobalString(ProposalCertFlag.Name)
+	proposalByte, _ := getPubFromFile(proposalfile)
 
-	input := packInput("delegate", holder, value)
+	input := packInput("multiProposal", bftByte, proposalByte, false)
 	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input, cert)
 
 	getResult(conn, txHash, true, true)
