@@ -59,11 +59,11 @@ type Genesis struct {
 	Timestamp    uint64                   `json:"timestamp"`
 	ExtraData    []byte                   `json:"extraData"`
 	GasLimit     uint64                   `json:"gasLimit"   gencodec:"required"`
-	UseGas       byte                     `json:"useGas" 		gencodec:"required"`
-	BaseReward   byte                     `json:"baseReward" 		gencodec:"required"`
-	KindOfCrypto byte                     `json:"kindOfCrypto" 		gencodec:"required"`
+	UseGas       uint8                    `json:"useGas" 		gencodec:"required"`
+	BaseReward   uint8                    `json:"baseReward" 		gencodec:"required"`
+	KindOfCrypto uint8                    `json:"kindOfCrypto" 		gencodec:"required"`
 	Coinbase     common.Address           `json:"coinbase"`
-	Alloc        types.GenesisAlloc       `json:"alloc"      gencodec:"required"`
+	Alloc        types.GenesisAlloc       `json:"alloc"`
 	Committee    []*types.CommitteeMember `json:"committee"      gencodec:"required"`
 	CertList     [][]byte                 `json:"CertList"      gencodec:"required"`
 
@@ -90,7 +90,7 @@ type genesisSpecMarshaling struct {
 	GasLimit  math.HexOrDecimal64
 	GasUsed   math.HexOrDecimal64
 	Number    math.HexOrDecimal64
-	Alloc     map[common.UnprefixedAddress]GenesisAccount
+	Alloc     map[common.UnprefixedAddress]types.GenesisAccount
 }
 
 type genesisAccountMarshaling struct {
