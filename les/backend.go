@@ -38,15 +38,15 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/tai"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/filters"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yue"
+	"github.com/taiyuechain/taiyuechain/yue/downloader"
+	"github.com/taiyuechain/taiyuechain/yue/filters"
+	"github.com/taiyuechain/taiyuechain/yue/gasprice"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 type LightEtrue struct {
-	config *tai.Config
+	config *yue.Config
 
 	odr         *LesOdr
 	relay       *LesTxRelay
@@ -62,7 +62,7 @@ type LightEtrue struct {
 	reqDist         *requestDistributor
 	retriever       *retrieveManager
 	// DB interfaces
-	chainDb taidb.Database // Block chain database
+	chainDb yuedb.Database // Block chain database
 
 	bloomRequests                              chan chan *bloombits.Retrieval // Channel receiving bloom data retrieval requests
 	bloomIndexer, chtIndexer, bloomTrieIndexer *core.ChainIndexer
@@ -79,8 +79,8 @@ type LightEtrue struct {
 	wg sync.WaitGroup
 }
 
-func New(ctx *node.ServiceContext, config *tai.Config) (*LightEtrue, error) {
-	chainDb, err := tai.CreateDB(ctx, config, "lightchaindata")
+func New(ctx *node.ServiceContext, config *yue.Config) (*LightEtrue, error) {
+	chainDb, err := yue.CreateDB(ctx, config, "lightchaindata")
 	if err != nil {
 		return nil, err
 	}
@@ -101,11 +101,11 @@ func New(ctx *node.ServiceContext, config *tai.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           tai.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
+		engine:           yue.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
-		bloomIndexer:     tai.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
+		bloomIndexer:     yue.NewBloomIndexer(chainDb, light.BloomTrieFrequency),
 		chtIndexer:       light.NewChtIndexer(chainDb, true),
 		bloomTrieIndexer: light.NewBloomTrieIndexer(chainDb, true),
 	}
@@ -171,7 +171,7 @@ func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightEtrue) APIs() []rpc.API {
 	apis := taiapi.GetAPIs(s.ApiBackend)
-	namespaces := []string{"etrue", "tai", "eth"}
+	namespaces := []string{"etrue", "yue", "eth"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{

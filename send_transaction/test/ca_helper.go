@@ -21,7 +21,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 var (
@@ -39,7 +39,7 @@ var (
 	p2p2path  = "../../cim/testdata/testcert/" + p2p2Name + ".pem"
 
 	engine   = minerva.NewFaker()
-	db       = taidb.NewMemDatabase()
+	db       = yuedb.NewMemDatabase()
 	gspec    = DefaulGenesisBlock()
 	abiCA, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
 	signer   = types.NewSigner(gspec.Config.ChainID)

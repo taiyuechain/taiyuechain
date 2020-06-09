@@ -21,13 +21,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/trie"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
-
 
 func NewState(ctx context.Context, head *types.Header, odr OdrBackend) *state.StateDB {
 	state, _ := state.New(head.Root, NewStateDatabase(ctx, head, odr))
@@ -142,7 +141,7 @@ func (t *odrTrie) GetKey(sha []byte) []byte {
 	return nil
 }
 
-func (t *odrTrie) Prove(key []byte, fromLevel uint, proofDb taidb.Putter) error {
+func (t *odrTrie) Prove(key []byte, fromLevel uint, proofDb yuedb.Putter) error {
 	return errors.New("not implemented, needs client/server interface split")
 }
 

@@ -17,7 +17,7 @@ import (
 	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/tai"
+	"github.com/taiyuechain/taiyuechain/yue"
 )
 
 var (
@@ -59,7 +59,7 @@ type etruestatsConfig struct {
 }
 
 type gethConfig struct {
-	Etrue      tai.Config
+	Etrue      yue.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
 	//Dashboard  dashboard.Config
@@ -85,8 +85,8 @@ func defaultNodeConfig() node.Config {
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithCommit(gitCommit)
 	//cfg.HTTPModules = append(cfg.HTTPModules, "etrue", "eth", "shh")
-	cfg.HTTPModules = append(cfg.HTTPModules, "tai", "eth", "shh", "etrue")
-	cfg.WSModules = append(cfg.WSModules, "tai")
+	cfg.HTTPModules = append(cfg.HTTPModules, "yue", "eth", "shh", "etrue")
+	cfg.WSModules = append(cfg.WSModules, "yue")
 	cfg.IPCPath = "gtai.ipc"
 	return cfg
 }
@@ -94,7 +94,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		Etrue: tai.DefaultConfig,
+		Etrue: yue.DefaultConfig,
 		Node:  defaultNodeConfig(),
 		//Dashboard: dashboard.DefaultConfig,
 	}

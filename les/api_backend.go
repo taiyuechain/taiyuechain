@@ -33,9 +33,9 @@ import (
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yue/downloader"
+	"github.com/taiyuechain/taiyuechain/yue/gasprice"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 type LesApiBackend struct {
@@ -204,7 +204,7 @@ func (b *LesApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
 }
 
-func (b *LesApiBackend) ChainDb() taidb.Database {
+func (b *LesApiBackend) ChainDb() yuedb.Database {
 	return b.etrue.chainDb
 }
 

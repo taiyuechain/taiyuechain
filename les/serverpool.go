@@ -31,14 +31,14 @@ import (
 	"sync"
 	"time"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 const (
@@ -116,7 +116,7 @@ type registerReq struct {
 // known light server nodes. It received discovered nodes, stores statistics about
 // known nodes and takes care of always having enough good quality servers connected.
 type serverPool struct {
-	db     taidb.Database
+	db     yuedb.Database
 	dbKey  []byte
 	server *p2p.Server
 	quit   chan struct{}
@@ -144,7 +144,7 @@ type serverPool struct {
 }
 
 // newServerPool creates a new serverPool instance
-func newServerPool(db taidb.Database, quit chan struct{}, wg *sync.WaitGroup, trustedNodes []string) *serverPool {
+func newServerPool(db yuedb.Database, quit chan struct{}, wg *sync.WaitGroup, trustedNodes []string) *serverPool {
 	pool := &serverPool{
 		db:           db,
 		quit:         quit,
@@ -732,7 +732,6 @@ func encodePubkey64(pub *ecdsa.PublicKey) []byte {
 }
 
 func decodePubkey64(b []byte) (*ecdsa.PublicKey, error) {
-
 
 	return crypto.UnmarshalPubkey(append([]byte{0x04}, b...))
 

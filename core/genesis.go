@@ -35,7 +35,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 //go:generate gencodec -type Genesis -field-override genesisSpecMarshaling -out gen_genesis.go
@@ -150,7 +150,7 @@ func (e *GenesisMismatchError) Error() string {
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+func SetupGenesisBlock(db yuedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -177,7 +177,7 @@ func SetupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig
 // error is a *params.ConfigCompatError and the new, unwritten config is returned.
 //
 // The returned chain configuration is never nil.
-func setupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
+func setupGenesisBlock(db yuedb.Database, genesis *Genesis) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
 		return params.AllMinervaProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
@@ -234,7 +234,7 @@ func setupGenesisBlock(db taidb.Database, genesis *Genesis) (*params.ChainConfig
 
 // Commit writes the block and state of a genesis specification to the database.
 // The block is committed as the canonical head block.
-func (g *Genesis) Commit(db taidb.Database) (*types.Block, error) {
+func (g *Genesis) Commit(db yuedb.Database) (*types.Block, error) {
 	block := g.ToBlock(db)
 	if block.Number().Sign() != 0 {
 		return nil, fmt.Errorf("can't commit genesis block with number > 0")
@@ -261,10 +261,10 @@ func (g *Genesis) makeExtraData() []byte {
 
 // ToBlock creates the genesis block and writes state of a genesis specification
 // to the given database (or discards it if nil).
-func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
+func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 
 	if db == nil {
-		db = taidb.NewMemDatabase()
+		db = yuedb.NewMemDatabase()
 	}
 	g.ExtraData = g.makeExtraData()
 	params.ParseExtraDataFromGenesis(g.ExtraData)
@@ -316,7 +316,7 @@ func (g *Genesis) ToBlock(db taidb.Database) *types.Block {
 
 // MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
-func (g *Genesis) MustCommit(db taidb.Database) *types.Block {
+func (g *Genesis) MustCommit(db yuedb.Database) *types.Block {
 	block, err := g.Commit(db)
 	if err != nil {
 		panic(err)
@@ -406,7 +406,7 @@ func decodePrealloc(data string) types.GenesisAlloc {
 }
 
 // GenesisBlockForTesting creates and writes a block in which addr has the given wei balance.
-func GenesisBlockForTesting(db taidb.Database, addr common.Address, balance *big.Int) *types.Block {
+func GenesisBlockForTesting(db yuedb.Database, addr common.Address, balance *big.Int) *types.Block {
 	g := Genesis{Alloc: types.GenesisAlloc{addr: {Balance: balance}}, Config: params.AllMinervaProtocolChanges}
 	return g.MustCommit(db)
 }

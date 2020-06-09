@@ -209,17 +209,16 @@ func NewP256Transaction(nonce uint64, to *common.Address, payer *common.Address,
 		Payer:        payer,
 		Payload:      data,
 		Amount:       new(big.Int),
-		//Fee:          new(big.Int),
-		Cert:     cert,
-		Sig:      sig,
-		GasLimit: gasLimit,
-		Price:    new(big.Int),
-		V:        new(big.Int),
-		R:        new(big.Int),
-		S:        new(big.Int),
-		PV:       new(big.Int),
-		PR:       new(big.Int),
-		PS:       new(big.Int),
+		Cert:         cert,
+		Sig:          sig,
+		GasLimit:     gasLimit,
+		Price:        new(big.Int),
+		V:            new(big.Int),
+		R:            new(big.Int),
+		S:            new(big.Int),
+		PV:           new(big.Int),
+		PR:           new(big.Int),
+		PS:           new(big.Int),
 	}
 	if amount != nil {
 		d.Amount.Set(amount)
@@ -385,7 +384,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	}
 	var V byte
 	if isProtectedV(dec.V) {
-		chainID := deriveChainId(dec.V, tx.data.Sig[64]).Uint64()
+		chainID := deriveChainId(dec.V, dec.Sig[64]).Uint64()
 		V = byte(dec.V.Uint64() - 35 - 2*chainID)
 	} else {
 		V = byte(dec.V.Uint64() - 27)

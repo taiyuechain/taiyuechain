@@ -32,7 +32,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 func init() {
@@ -52,7 +52,7 @@ func ExampleGenerateChain() {
 		CryptoSM2 = uint8(2)
 
 		chainId = big.NewInt(3)
-		db      = taidb.NewMemDatabase()
+		db      = yuedb.NewMemDatabase()
 
 		key1, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
 		key2, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
@@ -139,7 +139,7 @@ func TestTransactionCost(t *testing.T) {
 
 	params.MinimumFruits = 1
 	var (
-		db    = taidb.NewMemDatabase()
+		db    = yuedb.NewMemDatabase()
 		pow   = minerva.NewFaker()
 		gspec = &Genesis{
 			Config: params.TestChainConfig,

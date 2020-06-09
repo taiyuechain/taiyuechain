@@ -32,7 +32,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 func TestDefaultGenesisBlock(t *testing.T) {
@@ -60,14 +60,14 @@ func TestSetupGenesis(t *testing.T) {
 	oldcustomg.Config = &params.ChainConfig{}
 	tests := []struct {
 		name       string
-		fn         func(taidb.Database) (*params.ChainConfig, common.Hash, error)
+		fn         func(yuedb.Database) (*params.ChainConfig, common.Hash, error)
 		wantConfig *params.ChainConfig
 		wantHash   common.Hash
 		wantErr    error
 	}{
 		{
 			name: "genesis without ChainConfig",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
@@ -75,7 +75,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "no block in DB, genesis == nil",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetGenesisHash,
@@ -83,7 +83,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "mainnet block in DB, genesis == nil",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -92,7 +92,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		{
 			name: "custom block in DB, genesis == testnet",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				customg.MustCommit(db)
 				return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
 			},
@@ -138,7 +138,7 @@ func TestSetupGenesis(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		db := taidb.NewMemDatabase()
+		db := yuedb.NewMemDatabase()
 		config, hash, err := test.fn(db)
 		config.TIP5 = nil
 		// Check the return values.
@@ -174,14 +174,14 @@ func TestSetupSnailGenesis(t *testing.T) {
 	oldcustomg.Config = &params.ChainConfig{}
 	tests := []struct {
 		name       string
-		fn         func(taidb.Database) (*params.ChainConfig, common.Hash, error)
+		fn         func(yuedb.Database) (*params.ChainConfig, common.Hash, error)
 		wantConfig *params.ChainConfig
 		wantHash   common.Hash
 		wantErr    error
 	}{
 		{
 			name: "genesis without ChainConfig",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, new(Genesis))
 			},
 			wantErr:    errGenesisNoConfig,
@@ -189,7 +189,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		},
 		{
 			name: "no block in DB, genesis == nil",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				return SetupGenesisBlock(db, nil)
 			},
 			wantHash:   params.MainnetSnailGenesisHash,
@@ -197,7 +197,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		},
 		{
 			name: "mainnet block in DB, genesis == nil",
-			fn: func(db taidb.Database) (*params.ChainConfig, common.Hash, error) {
+			fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error) {
 				DefaultGenesisBlock().MustCommit(db)
 				return SetupGenesisBlock(db, nil)
 			},
@@ -253,7 +253,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		db := taidb.NewMemDatabase()
+		db := yuedb.NewMemDatabase()
 		config, hash, err := test.fn(db)
 		// Check the return values.
 		if !reflect.DeepEqual(err, test.wantErr) {
@@ -299,7 +299,7 @@ func TestGenesisFromJson(t *testing.T) {
 		fmt.Println("invalid genesis file：", err)
 		return
 	}
-	db := taidb.NewMemDatabase()
+	db := yuedb.NewMemDatabase()
 	_, h, genesisErr := SetupGenesisBlock(db, genesis)
 	if genesisErr != nil {
 		fmt.Println("err:", genesisErr)

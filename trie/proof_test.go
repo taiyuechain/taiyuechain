@@ -25,7 +25,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 func init() {
@@ -34,18 +34,18 @@ func init() {
 
 // makeProvers creates Merkle trie provers based on different implementations to
 // test all variations.
-func makeProvers(trie *Trie) []func(key []byte) *taidb.MemDatabase {
-	var provers []func(key []byte) *taidb.MemDatabase
+func makeProvers(trie *Trie) []func(key []byte) *yuedb.MemDatabase {
+	var provers []func(key []byte) *yuedb.MemDatabase
 
 	// Create a direct trie based Merkle prover
-	provers = append(provers, func(key []byte) *taidb.MemDatabase {
-		proof := taidb.NewMemDatabase()
+	provers = append(provers, func(key []byte) *yuedb.MemDatabase {
+		proof := yuedb.NewMemDatabase()
 		trie.Prove(key, 0, proof)
 		return proof
 	})
 	// Create a leaf iterator based Merkle prover
-	provers = append(provers, func(key []byte) *taidb.MemDatabase {
-		proof := taidb.NewMemDatabase()
+	provers = append(provers, func(key []byte) *yuedb.MemDatabase {
+		proof := yuedb.NewMemDatabase()
 		if it := NewIterator(trie.NodeIterator(key)); it.Next() && bytes.Equal(key, it.Key) {
 			for _, p := range it.Prove() {
 				proof.Put(crypto.Keccak256(p), p)
@@ -127,7 +127,7 @@ func TestMissingKeyProof(t *testing.T) {
 	updateString(trie, "k", "v")
 
 	for i, key := range []string{"a", "j", "l", "z"} {
-		proof := taidb.NewMemDatabase()
+		proof := yuedb.NewMemDatabase()
 		trie.Prove([]byte(key), 0, proof)
 
 		if proof.Len() != 1 {
@@ -164,7 +164,7 @@ func BenchmarkProve(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		kv := vals[keys[i%len(keys)]]
-		proofs := taidb.NewMemDatabase()
+		proofs := yuedb.NewMemDatabase()
 		if trie.Prove(kv.k, 0, proofs); len(proofs.Keys()) == 0 {
 			b.Fatalf("zero length proof for %x", kv.k)
 		}
@@ -175,10 +175,10 @@ func BenchmarkVerifyProof(b *testing.B) {
 	trie, vals := randomTrie(100)
 	root := trie.Hash()
 	var keys []string
-	var proofs []*taidb.MemDatabase
+	var proofs []*yuedb.MemDatabase
 	for k := range vals {
 		keys = append(keys, k)
-		proof := taidb.NewMemDatabase()
+		proof := yuedb.NewMemDatabase()
 		trie.Prove([]byte(k), 0, proof)
 		proofs = append(proofs, proof)
 	}

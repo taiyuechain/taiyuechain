@@ -17,13 +17,13 @@
 package rawdb
 
 import (
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 // table is a wrapper around a database that prefixes each key access with a pre-
 // configured string.
 type table struct {
-	db     taidb.Database
+	db     yuedb.Database
 	prefix string
 }
 
@@ -32,7 +32,7 @@ func (t *table) Close() {
 }
 
 // NewTable returns a database object that prefixes all keys with a given string.
-func NewTable(db taidb.Database, prefix string) taidb.Database {
+func NewTable(db yuedb.Database, prefix string) yuedb.Database {
 	return &table{
 		db:     db,
 		prefix: prefix,
@@ -109,14 +109,14 @@ func (t *table) Delete(key []byte) error {
 
 // NewIterator creates a binary-alphabetical iterator over the entire keyspace
 // contained within the database.
-func (t *table) NewIterator() taidb.Iterator {
+func (t *table) NewIterator() yuedb.Iterator {
 	return t.NewIteratorWithPrefix(nil)
 }
 
 // NewIteratorWithStart creates a binary-alphabetical iterator over a subset of
 // database content starting at a particular initial key (or after, if it does
 // not exist).
-func (t *table) NewIteratorWithStart(start []byte) taidb.Iterator {
+func (t *table) NewIteratorWithStart(start []byte) yuedb.Iterator {
 	iter := t.db.NewIteratorWithStart(append([]byte(t.prefix), start...))
 	return &tableIterator{
 		iter:   iter,
@@ -126,7 +126,7 @@ func (t *table) NewIteratorWithStart(start []byte) taidb.Iterator {
 
 // NewIteratorWithPrefix creates a binary-alphabetical iterator over a subset
 // of database content with a particular key prefix.
-func (t *table) NewIteratorWithPrefix(prefix []byte) taidb.Iterator {
+func (t *table) NewIteratorWithPrefix(prefix []byte) yuedb.Iterator {
 	iter := t.db.NewIteratorWithPrefix(append([]byte(t.prefix), prefix...))
 	return &tableIterator{
 		iter:   iter,
@@ -174,14 +174,14 @@ func (t *table) Compact(start []byte, limit []byte) error {
 // NewBatch creates a write-only database that buffers changes to its host db
 // until a final write is called, each operation prefixing all keys with the
 // pre-configured string.
-func (t *table) NewBatch() taidb.Batch {
+func (t *table) NewBatch() yuedb.Batch {
 	return &tableBatch{t.db.NewBatch(), t.prefix}
 }
 
 // tableBatch is a wrapper around a database batch that prefixes each key access
 // with a pre-configured string.
 type tableBatch struct {
-	batch  taidb.Batch
+	batch  yuedb.Batch
 	prefix string
 }
 
@@ -193,15 +193,15 @@ func (b *tableBatch) Get(key []byte) ([]byte, error) {
 	return b.Get(key)
 }
 
-func (b *tableBatch) NewIterator() taidb.Iterator {
+func (b *tableBatch) NewIterator() yuedb.Iterator {
 	return b.NewIterator()
 }
 
-func (b *tableBatch) NewIteratorWithStart(start []byte) taidb.Iterator {
+func (b *tableBatch) NewIteratorWithStart(start []byte) yuedb.Iterator {
 	return b.NewIteratorWithStart(start)
 }
 
-func (b *tableBatch) NewIteratorWithPrefix(prefix []byte) taidb.Iterator {
+func (b *tableBatch) NewIteratorWithPrefix(prefix []byte) yuedb.Iterator {
 	return b.NewIteratorWithPrefix(prefix)
 }
 
@@ -233,7 +233,7 @@ func (b *tableBatch) Reset() {
 // tableReplayer is a wrapper around a batch replayer which truncates
 // the added prefix.
 type tableReplayer struct {
-	w      taidb.KeyValueWriter
+	w      yuedb.KeyValueWriter
 	prefix string
 }
 
@@ -250,14 +250,14 @@ func (r *tableReplayer) Delete(key []byte) error {
 }
 
 // Replay replays the batch contents.
-func (b *tableBatch) Replay(w taidb.KeyValueWriter) error {
+func (b *tableBatch) Replay(w yuedb.KeyValueWriter) error {
 	return b.batch.Replay(&tableReplayer{w: w, prefix: b.prefix})
 }
 
 // tableIterator is a wrapper around a database iterator that prefixes each key access
 // with a pre-configured string.
 type tableIterator struct {
-	iter   taidb.Iterator
+	iter   yuedb.Iterator
 	prefix string
 }
 

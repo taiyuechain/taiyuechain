@@ -24,35 +24,35 @@ import (
 	"math"
 	"sync"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/tai"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/les/flowcontrol"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/yue"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 type LesServer struct {
-	config          *tai.Config
+	config          *yue.Config
 	protocolManager *ProtocolManager
 	fcManager       *flowcontrol.ClientManager // nil if our node is client only
 	fcCostStats     *requestCostStats
 	defParams       *flowcontrol.ServerParams
 	lesTopics       []discv5.Topic
 	privateKey      *ecdsa.PrivateKey
-	quitSync   chan struct{}
+	quitSync        chan struct{}
 
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 }
 
-func NewLesServer(etrue *tai.Taiyuechain, config *tai.Config) (*LesServer, error) {
+func NewLesServer(etrue *yue.Taiyuechain, config *yue.Config) (*LesServer, error) {
 	quitSync := make(chan struct{})
 	pm, err := NewProtocolManager(etrue.BlockChain().Config(), false, ServerProtocolVersions, config.NetworkId, etrue.EventMux(), etrue.Engine(), newPeerSet(), nil, etrue.TxPool(), etrue.ChainDb(), nil, nil, nil, quitSync, new(sync.WaitGroup))
 	if err != nil {
@@ -227,7 +227,7 @@ func linRegFromBytes(data []byte) *linReg {
 
 type requestCostStats struct {
 	lock  sync.RWMutex
-	db    taidb.Database
+	db    yuedb.Database
 	stats map[uint64]*linReg
 }
 
@@ -238,7 +238,7 @@ type requestCostStatsRlp []struct {
 
 var rcStatsKey = []byte("_requestCostStats")
 
-func newCostStats(db taidb.Database) *requestCostStats {
+func newCostStats(db yuedb.Database) *requestCostStats {
 	stats := make(map[uint64]*linReg)
 	for _, code := range reqList {
 		stats[code] = &linReg{cnt: 100}

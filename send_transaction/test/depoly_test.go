@@ -11,7 +11,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 	"math/big"
 	"os"
 	"strings"
@@ -54,7 +54,7 @@ var (
 
 func TestDeployContract(t *testing.T) {
 	var (
-		db  = taidb.NewMemDatabase()
+		db  = yuedb.NewMemDatabase()
 		pow = minerva.NewFaker()
 	)
 

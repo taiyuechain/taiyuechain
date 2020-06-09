@@ -11,7 +11,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -29,7 +29,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/tai/filters"
+	"github.com/taiyuechain/taiyuechain/yue/filters"
 )
 
 // This nil assignment ensures compile time that SimulatedBackend implements bind.ContractBackend.
@@ -49,7 +49,7 @@ var (
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
 // DeployBackend, GasEstimator, GasPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   taidb.Database   // In memory database to store our testing data
+	database   yuedb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Ethereum blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -64,7 +64,7 @@ type SimulatedBackend struct {
 
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
-func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
+func NewSimulatedBackendWithDatabase(database yuedb.Database, alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
 	genesis := alloc
 	genesis.MustCommit(database)
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
@@ -105,7 +105,7 @@ func NewSimulatedBackendWithDatabase(database taidb.Database, alloc *core.Genesi
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes.
 func NewSimulatedBackend(alloc *core.Genesis, gasLimit uint64) *SimulatedBackend {
-	return NewSimulatedBackendWithDatabase(taidb.NewMemDatabase(), alloc, gasLimit)
+	return NewSimulatedBackendWithDatabase(yuedb.NewMemDatabase(), alloc, gasLimit)
 }
 
 // Close terminates the underlying blockchain's update loop.
@@ -672,11 +672,11 @@ func (m callmsg) Fee() *big.Int           { return m.CallMsg.Fee }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db taidb.Database
+	db yuedb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() taidb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() yuedb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

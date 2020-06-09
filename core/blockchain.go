@@ -47,8 +47,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/rlp"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/trie"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 var (
@@ -107,7 +107,7 @@ type BlockChain struct {
 	chainConfig *params.ChainConfig // Chain & network configuration
 	cacheConfig *CacheConfig        // Cache configuration for pruning
 
-	db     taidb.Database // Low level persistent database to store final content in
+	db     yuedb.Database // Low level persistent database to store final content in
 	triegc *prque.Prque   // Priority queue mapping block numbers to tries to gc
 	gcproc time.Duration  // Accumulates canonical block processing for trie dumping
 
@@ -158,7 +158,7 @@ type BlockChain struct {
 // NewBlockChain returns a fully initialised block chain using information
 // available in the database. It initialises the default Ethereum Validator and
 // Processor.
-func NewBlockChain(db taidb.Database, cacheConfig *CacheConfig,
+func NewBlockChain(db yuedb.Database, cacheConfig *CacheConfig,
 	chainConfig *params.ChainConfig, engine consensus.Engine,
 	vmConfig vm.Config, mList *cim.CimList) (*BlockChain, error) {
 
@@ -1011,7 +1011,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 
 		stats.processed++
 
-		if batch.ValueSize() >= taidb.IdealBatchSize || len(block.SwitchInfos()) > 0 {
+		if batch.ValueSize() >= yuedb.IdealBatchSize || len(block.SwitchInfos()) > 0 {
 			if err := batch.Write(); err != nil {
 				return 0, err
 			}
@@ -1108,7 +1108,7 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 				limit       = common.StorageSize(bc.cacheConfig.TrieNodeLimit) * 1024 * 1024
 			)
 			if nodes > limit || imgs > 4*1024*1024 {
-				triedb.Cap(limit - taidb.IdealBatchSize)
+				triedb.Cap(limit - yuedb.IdealBatchSize)
 			}
 			// Find the next state trie we need to commit
 			header := bc.GetHeaderByNumber(current - triesInMemory)

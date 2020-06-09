@@ -35,8 +35,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 // A BlockTest checks handling of entire blocks.
@@ -140,7 +140,7 @@ func (t *BlockTest) Run() error {
 	}
 
 	// import pre accounts & construct test genesis block & state root
-	db := taidb.NewMemDatabase()
+	db := yuedb.NewMemDatabase()
 	genesis := core.DefaultGenesisBlock()
 	gblock := genesis.MustCommit(db)
 

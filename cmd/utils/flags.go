@@ -62,11 +62,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/tai"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/tai/gasprice"
-	"github.com/taiyuechain/taiyuechain/taidb"
-	"github.com/taiyuechain/taiyuechain/taistats"
+	"github.com/taiyuechain/taiyuechain/yue"
+	"github.com/taiyuechain/taiyuechain/yue/downloader"
+	"github.com/taiyuechain/taiyuechain/yue/gasprice"
+	"github.com/taiyuechain/taiyuechain/yuedb"
+	"github.com/taiyuechain/taiyuechain/yuestats"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -140,7 +140,7 @@ var (
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
 		Usage: "Network identifier",
-		Value: tai.DefaultConfig.NetworkId,
+		Value: yue.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{
 		Name:  "testnet",
@@ -194,12 +194,12 @@ var (
 	BFTPortFlag = cli.Uint64Flag{
 		Name:  "bftport",
 		Usage: "committee node port ",
-		Value: uint64(tai.DefaultConfig.Port),
+		Value: uint64(yue.DefaultConfig.Port),
 	}
 	BFTStandbyPortFlag = cli.Uint64Flag{
 		Name:  "bftport2",
 		Usage: "committee node standby port ",
-		Value: uint64(tai.DefaultConfig.StandbyPort),
+		Value: uint64(yue.DefaultConfig.StandbyPort),
 	}
 	BftKeyFileFlag = cli.StringFlag{
 		Name:  "bftkey",
@@ -210,7 +210,7 @@ var (
 		Usage: "committee generate bft_privatekey as hex (for testing)",
 	}
 
-	defaultSyncMode = tai.DefaultConfig.SyncMode
+	defaultSyncMode = yue.DefaultConfig.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("full", or "snapshot")`,
@@ -233,7 +233,7 @@ var (
 	LightPeersFlag = cli.IntFlag{
 		Name:  "lightpeers",
 		Usage: "Maximum number of LES client peers",
-		Value: tai.DefaultConfig.LightPeers,
+		Value: yue.DefaultConfig.LightPeers,
 	}
 	LightKDFFlag = cli.BoolFlag{
 		Name:  "lightkdf",
@@ -283,37 +283,37 @@ var (
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
 		Usage: "Minimum gas price limit to enforce for acceptance into the pool",
-		Value: tai.DefaultConfig.TxPool.PriceLimit,
+		Value: yue.DefaultConfig.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: tai.DefaultConfig.TxPool.PriceBump,
+		Value: yue.DefaultConfig.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: tai.DefaultConfig.TxPool.AccountSlots,
+		Value: yue.DefaultConfig.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: tai.DefaultConfig.TxPool.GlobalSlots,
+		Value: yue.DefaultConfig.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: tai.DefaultConfig.TxPool.AccountQueue,
+		Value: yue.DefaultConfig.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: tai.DefaultConfig.TxPool.GlobalQueue,
+		Value: yue.DefaultConfig.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: tai.DefaultConfig.TxPool.Lifetime,
+		Value: yue.DefaultConfig.TxPool.Lifetime,
 	}
 	//fruit pool settings
 	SnailPoolJournalFlag = cli.StringFlag{
@@ -376,13 +376,13 @@ var (
 	GasTargetFlag = cli.Uint64Flag{
 		Name:  "gastarget",
 		Usage: "Target gas floor for fast block",
-		Value: tai.DefaultConfig.MinerGasFloor,
+		Value: yue.DefaultConfig.MinerGasFloor,
 	}
 
 	GasLimitFlag = cli.Uint64Flag{
 		Name:  "gaslimit",
 		Usage: "Target gas ceiling for fast block",
-		Value: tai.DefaultConfig.MinerGasCeil,
+		Value: yue.DefaultConfig.MinerGasCeil,
 	}
 
 	EtherbaseFlag = cli.StringFlag{
@@ -398,7 +398,7 @@ var (
 	GasPriceFlag = BigFlag{
 		Name:  "gasprice",
 		Usage: "Minimal gas price to accept for mining a transactions",
-		Value: tai.DefaultConfig.GasPrice,
+		Value: yue.DefaultConfig.GasPrice,
 	}
 	ExtraDataFlag = cli.StringFlag{
 		Name:  "extradata",
@@ -562,12 +562,12 @@ var (
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpoblocks",
 		Usage: "Number of recent blocks to check for gas prices",
-		Value: tai.DefaultConfig.GPO.Blocks,
+		Value: yue.DefaultConfig.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpopercentile",
 		Usage: "Suggested gas price is the given percentile of a set of recent transaction gas prices",
-		Value: tai.DefaultConfig.GPO.Percentile,
+		Value: yue.DefaultConfig.GPO.Percentile,
 	}
 
 	// Metrics flags
@@ -665,7 +665,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	}
 }
 
-func setBftCommitteeKey(ctx *cli.Context, cfg *tai.Config) {
+func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
 
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
@@ -854,7 +854,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setEtherbase retrieves the etherbase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *tai.Config) {
+func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *yue.Config) {
 	if ctx.GlobalIsSet(EtherbaseFlag.Name) {
 		account, err := MakeAddress(ks, ctx.GlobalString(EtherbaseFlag.Name))
 		if err != nil {
@@ -1027,7 +1027,7 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *tai.Config) {
+func setEthash(ctx *cli.Context, cfg *yue.Config) {
 
 }
 
@@ -1083,7 +1083,7 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 }
 
 // SetTaichainConfig applies etrue-related command line flags to the config.
-func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *tai.Config) {
+func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, TestnetFlag, DevnetFlag)
 	//CheckExclusive(ctx, LightServFlag, LightModeFlag)
@@ -1251,7 +1251,7 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 }*/
 
 // RegisterEtrueService adds an Taiyuechain client to the stack.
-func RegisterEtrueService(stack *node.Node, cfg *tai.Config) {
+func RegisterEtrueService(stack *node.Node, cfg *yue.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1259,7 +1259,7 @@ func RegisterEtrueService(stack *node.Node, cfg *tai.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := tai.New(ctx, cfg)
+			fullNode, err := yue.New(ctx, cfg)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)
@@ -1290,13 +1290,13 @@ func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit st
 func RegisterEtrueStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both etrue and les services
-		var etrueServ *tai.Taiyuechain
+		var etrueServ *yue.Taiyuechain
 		ctx.Service(&etrueServ)
 
 		var lesServ *les.LightEtrue
 		ctx.Service(&lesServ)
 
-		return taistats.New(url, etrueServ, lesServ)
+		return yuestats.New(url, etrueServ, lesServ)
 	}); err != nil {
 		Fatalf("Failed to register the Taiyuechain Stats service: %v", err)
 	}
@@ -1324,7 +1324,7 @@ func SetupMetrics(ctx *cli.Context) {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) taidb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) yuedb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = makeDatabaseHandles()
@@ -1354,7 +1354,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, chainDb taidb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, chainDb yuedb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
@@ -1370,12 +1370,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	engine = minerva.NewFaker()
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		engine = minerva.New(minerva.Config{
-			CacheDir:       stack.ResolvePath(tai.DefaultConfig.MinervaHash.CacheDir),
-			CachesInMem:    tai.DefaultConfig.MinervaHash.CachesInMem,
-			CachesOnDisk:   tai.DefaultConfig.MinervaHash.CachesOnDisk,
-			DatasetDir:     stack.ResolvePath(tai.DefaultConfig.MinervaHash.DatasetDir),
-			DatasetsInMem:  tai.DefaultConfig.MinervaHash.DatasetsInMem,
-			DatasetsOnDisk: tai.DefaultConfig.MinervaHash.DatasetsOnDisk,
+			CacheDir:       stack.ResolvePath(yue.DefaultConfig.MinervaHash.CacheDir),
+			CachesInMem:    yue.DefaultConfig.MinervaHash.CachesInMem,
+			CachesOnDisk:   yue.DefaultConfig.MinervaHash.CachesOnDisk,
+			DatasetDir:     stack.ResolvePath(yue.DefaultConfig.MinervaHash.DatasetDir),
+			DatasetsInMem:  yue.DefaultConfig.MinervaHash.DatasetsInMem,
+			DatasetsOnDisk: yue.DefaultConfig.MinervaHash.DatasetsOnDisk,
 			Tip9:           config.TIP9.SnailNumber.Uint64(),
 		})
 	}
@@ -1384,8 +1384,8 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	}
 	cache := &core.CacheConfig{
 		Disabled:      ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieNodeLimit: tai.DefaultConfig.TrieCache,
-		TrieTimeLimit: tai.DefaultConfig.TrieTimeout,
+		TrieNodeLimit: yue.DefaultConfig.TrieCache,
+		TrieTimeLimit: yue.DefaultConfig.TrieTimeout,
 	}
 
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {

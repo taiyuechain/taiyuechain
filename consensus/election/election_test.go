@@ -26,8 +26,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 var (
@@ -35,7 +35,7 @@ var (
 )
 
 func makeTestBlock() *types.Block {
-	db := taidb.NewMemDatabase()
+	db := yuedb.NewMemDatabase()
 	BaseGenesis := new(core.Genesis)
 	genesis := BaseGenesis.MustCommit(db)
 	header := &types.Header{
@@ -120,14 +120,14 @@ func makeChain(n int) (*snailchain.SnailBlockChain, *core.BlockChain) {
 	return snail, fastchain
 }
 
-func makeSnail(snail *snailchain.SnailBlockChain, fastchain *core.BlockChain, parent *types.SnailBlock, n int, engine consensus.Engine, db taidb.Database, seed int) []*types.SnailBlock {
+func makeSnail(snail *snailchain.SnailBlockChain, fastchain *core.BlockChain, parent *types.SnailBlock, n int, engine consensus.Engine, db yuedb.Database, seed int) []*types.SnailBlock {
 	blocks, _ := snailchain.MakeSnailBlockFruits(snail, fastchain, 1, n, 1, n*params.MinimumFruits,
 		parent.PublicKey(), parent.Coinbase(), true, big.NewInt(20000))
 	return blocks
 }
 
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
-func makeFast(parent *types.Block, n int, engine consensus.Engine, db taidb.Database, seed int) []*types.Block {
+func makeFast(parent *types.Block, n int, engine consensus.Engine, db yuedb.Database, seed int) []*types.Block {
 	blocks, _ := core.GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *core.BlockGen) {
 		b.SetCoinbase(common.Address{0: byte(seed), 19: byte(i)})
 	})

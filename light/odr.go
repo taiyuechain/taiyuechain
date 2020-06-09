@@ -26,7 +26,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR
@@ -35,7 +35,7 @@ var NoOdr = context.Background()
 
 // OdrBackend is an interface to a backend service that handles ODR retrievals type
 type OdrBackend interface {
-	Database() taidb.Database
+	Database() yuedb.Database
 	ChtIndexer() *core.ChainIndexer
 	BloomTrieIndexer() *core.ChainIndexer
 	BloomIndexer() *core.ChainIndexer
@@ -44,7 +44,7 @@ type OdrBackend interface {
 
 // OdrRequest is an interface for retrieval requests
 type OdrRequest interface {
-	StoreResult(db taidb.Database)
+	StoreResult(db yuedb.Database)
 }
 
 // TrieID identifies a state or account storage trie
@@ -86,7 +86,7 @@ type TrieRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TrieRequest) StoreResult(db taidb.Database) {
+func (req *TrieRequest) StoreResult(db yuedb.Database) {
 	req.Proof.Store(db)
 }
 
@@ -99,7 +99,7 @@ type CodeRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *CodeRequest) StoreResult(db taidb.Database) {
+func (req *CodeRequest) StoreResult(db yuedb.Database) {
 	db.Put(req.Hash[:], req.Data)
 }
 
@@ -112,7 +112,7 @@ type BlockRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BlockRequest) StoreResult(db taidb.Database) {
+func (req *BlockRequest) StoreResult(db yuedb.Database) {
 	rawdb.WriteBodyRLP(db, req.Hash, req.Number, req.Rlp)
 }
 
@@ -125,7 +125,7 @@ type ReceiptsRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ReceiptsRequest) StoreResult(db taidb.Database) {
+func (req *ReceiptsRequest) StoreResult(db yuedb.Database) {
 	rawdb.WriteReceipts(db, req.Hash, req.Number, req.Receipts)
 }
 
@@ -140,7 +140,7 @@ type ChtRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ChtRequest) StoreResult(db taidb.Database) {
+func (req *ChtRequest) StoreResult(db yuedb.Database) {
 	hash, num := req.Header.Hash(), req.Header.Number.Uint64()
 
 	rawdb.WriteHeader(db, nil)
@@ -159,7 +159,7 @@ type BloomRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BloomRequest) StoreResult(db taidb.Database) {
+func (req *BloomRequest) StoreResult(db yuedb.Database) {
 	for i, sectionIdx := range req.SectionIdxList {
 		sectionHead := rawdb.ReadCanonicalHash(db, (sectionIdx+1)*BloomTrieFrequency-1)
 		// if we don't have the canonical hash stored for this section head number, we'll still store it under

@@ -11,7 +11,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taiclient"
+	"github.com/taiyuechain/taiyuechain/yueclient"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
@@ -121,15 +121,15 @@ func SendP256Transtion(ip string) {
 	fmt.Println("send Transaction num is:", num)
 	//client, err := rpc.Dial("http://" + ip)
 	url := "http://" + ip
-	client, err := taiclient.Dial(url)
+	client, err := yueclient.Dial(url)
 	defer client.Close()
 	if err != nil {
 		fmt.Println("Dail:", ip, err.Error())
 		msg <- false
 		return
 	}
-//ok fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f
-//bad 4a41d5c5fa542bb313f7457b3404f134f5d33ecee68d6cef07f0bbc9e12320ed
+	//ok fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f
+	//bad 4a41d5c5fa542bb313f7457b3404f134f5d33ecee68d6cef07f0bbc9e12320ed
 	fromPrivateStr := "fc888b21ac3f492376c2e1cece9ed3b1c54ddb0ceafbed12ec2ad7f50312471f"
 	toPrivateStr := "696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98"
 
@@ -160,9 +160,8 @@ func SendP256Transtion(ip string) {
 	//}
 
 	// from
-	path :="../../cim/testdata/testcert/testOkp2p.pem"
-	fromcert,err := crypto.ReadPemFileByPath(path)
-
+	path := "../../cim/testdata/testcert/testOkp2p.pem"
+	fromcert, err := crypto.ReadPemFileByPath(path)
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {

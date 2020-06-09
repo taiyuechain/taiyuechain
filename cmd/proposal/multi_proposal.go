@@ -14,7 +14,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/taiclient"
+	"github.com/taiyuechain/taiyuechain/yueclient"
 	"gopkg.in/urfave/cli.v1"
 	"io/ioutil"
 	"log"
@@ -74,7 +74,7 @@ func proposal(ctx *cli.Context) error {
 	return nil
 }
 
-func sendContractTransaction(client *taiclient.Client, from, toAddress common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, input []byte, cert []byte) common.Hash {
+func sendContractTransaction(client *yueclient.Client, from, toAddress common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, input []byte, cert []byte) common.Hash {
 	// Ensure a valid value field and resolve the account nonce
 	nonce, err := client.PendingNonceAt(context.Background(), from)
 	if err != nil {
@@ -175,7 +175,7 @@ func weiToTrue(value *big.Int) uint64 {
 	return valueT
 }
 
-func getResult(conn *taiclient.Client, txHash common.Hash, contract bool, delegate bool) {
+func getResult(conn *yueclient.Client, txHash common.Hash, contract bool, delegate bool) {
 	fmt.Println("Please waiting ", " txHash ", txHash.String())
 
 	count := 0
@@ -198,7 +198,7 @@ func getResult(conn *taiclient.Client, txHash common.Hash, contract bool, delega
 	queryTx(conn, txHash, false)
 }
 
-func queryTx(conn *taiclient.Client, txHash common.Hash, pending bool) {
+func queryTx(conn *yueclient.Client, txHash common.Hash, pending bool) {
 
 	if pending {
 		_, isPending, err := conn.TransactionByHash(context.Background(), txHash)
@@ -236,7 +236,7 @@ func packInput(abiMethod string, params ...interface{}) []byte {
 	return input
 }
 
-func PrintBalance(conn *taiclient.Client, from common.Address) {
+func PrintBalance(conn *yueclient.Client, from common.Address) {
 	balance, err := conn.BalanceAt(context.Background(), from, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -290,21 +290,21 @@ func getPubFromFile(certfile string) ([]byte, *ecdsa.PublicKey) {
 	return certByte, pub
 }
 
-func dialConn(ctx *cli.Context) (*taiclient.Client, string) {
+func dialConn(ctx *cli.Context) (*yueclient.Client, string) {
 	ip = ctx.GlobalString(utils.RPCListenAddrFlag.Name)
 	port = ctx.GlobalInt(utils.RPCPortFlag.Name)
 
 	url := fmt.Sprintf("http://%s", fmt.Sprintf("%s:%d", ip, port))
 	// Create an IPC based RPC connection to a remote node
 	// "http://39.100.97.129:8545"
-	conn, err := taiclient.Dial(url)
+	conn, err := yueclient.Dial(url)
 	if err != nil {
 		log.Fatalf("Failed to connect to the Truechain client: %v", err)
 	}
 	return conn, url
 }
 
-func printBaseInfo(conn *taiclient.Client, url string) *types.Header {
+func printBaseInfo(conn *yueclient.Client, url string) *types.Header {
 	header, err := conn.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -337,7 +337,7 @@ func loadSigningKey(keyfile string) common.Address {
 	return from
 }
 
-func queryStakingInfo(conn *taiclient.Client, query bool) {
+func queryStakingInfo(conn *yueclient.Client, query bool) {
 	header, err := conn.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)

@@ -26,14 +26,14 @@ import (
 	"sync"
 	"time"
 
+	"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/tai"
 	"github.com/taiyuechain/taiyuechain/les/flowcontrol"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"crypto/ecdsa"
+	"github.com/taiyuechain/taiyuechain/yue"
 )
 
 var (
@@ -54,7 +54,7 @@ type peer struct {
 	*p2p.Peer
 	pubKey *ecdsa.PublicKey
 
-	rw     p2p.MsgReadWriter
+	rw p2p.MsgReadWriter
 
 	version int    // Protocol version negoiated
 	network uint64 // Network ID being on
@@ -101,8 +101,8 @@ func (p *peer) queueSend(f func()) {
 }
 
 // Info gathers and returns a collection of metadata known about a peer.
-func (p *peer) Info() *tai.PeerInfo {
-	return &tai.PeerInfo{
+func (p *peer) Info() *yue.PeerInfo {
+	return &yue.PeerInfo{
 		Version:    p.version,
 		Difficulty: p.Td(),
 		Head:       fmt.Sprintf("%x", p.Head()),

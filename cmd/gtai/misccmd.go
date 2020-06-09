@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
-	"github.com/taiyuechain/taiyuechain/tai"
 	"github.com/taiyuechain/taiyuechain/params"
+	"github.com/taiyuechain/taiyuechain/yue"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -39,8 +39,8 @@ func version(ctx *cli.Context) error {
 		fmt.Println("Git Commit:", gitCommit)
 	}
 	fmt.Println("Architecture:", runtime.GOARCH)
-	fmt.Println("Protocol Versions:", tai.ProtocolVersions)
-	fmt.Println("Network Id:", tai.DefaultConfig.NetworkId)
+	fmt.Println("Protocol Versions:", yue.ProtocolVersions)
+	fmt.Println("Network Id:", yue.DefaultConfig.NetworkId)
 	fmt.Println("Go Version:", runtime.Version())
 	fmt.Println("Operating System:", runtime.GOOS)
 	fmt.Printf("GOPATH=%s\n", os.Getenv("GOPATH"))

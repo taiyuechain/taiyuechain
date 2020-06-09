@@ -22,7 +22,7 @@ var Modules = map[string]string{
 	"chequebook": Chequebook_JS,
 	"clique":     Clique_JS,
 	"debug":      Debug_JS,
-	"tai":        TAI_JS,
+	"yue":        YUE_JS,
 	"net":        Net_JS,
 	"personal":   Personal_JS,
 	"rpc":        RPC_JS,
@@ -390,55 +390,55 @@ web3._extend({
 });
 `
 
-const TAI_JS = `
+const YUE_JS = `
 web3._extend({
-	property: 'tai',
+	property: 'yue',
 	methods: [
 		new web3._extend.Method({
 			name: 'chainId',
-			call: 'tai_chainId',
+			call: 'yue_chainId',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'sign',
-			call: 'tai_sign',
+			call: 'yue_sign',
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter, null]
 		}),
 		new web3._extend.Method({
 			name: 'resend',
-			call: 'tai_resend',
+			call: 'yue_resend',
 			params: 3,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter, web3._extend.utils.fromDecimal, web3._extend.utils.fromDecimal]
 		}),
 		new web3._extend.Method({
 			name: 'signTransaction',
-			call: 'tai_signTransaction',
+			call: 'yue_signTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'submitTransaction',
-			call: 'tai_submitTransaction',
+			call: 'yue_submitTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransaction',
-			call: 'tai_getRawTransactionByHash',
+			call: 'yue_getRawTransactionByHash',
 			params: 1
 		}),
 		new web3._extend.Method({
 			name: 'getRawTransactionFromBlock',
 			call: function(args) {
-				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'tai_getRawTransactionByBlockHashAndIndex' : 'tai_getRawTransactionByBlockNumberAndIndex';
+				return (web3._extend.utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'yue_getRawTransactionByBlockHashAndIndex' : 'yue_getRawTransactionByBlockNumberAndIndex';
 			},
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter, web3._extend.utils.toHex]
 		}),
 		new web3._extend.Method({
 			name: 'getCACertList',
-			call: 'tai_getCACertList',
+			call: 'yue_getCACertList',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
@@ -446,7 +446,7 @@ web3._extend({
 	properties: [
 		new web3._extend.Property({
 			name: 'pendingTransactions',
-			getter: 'tai_pendingTransactions',
+			getter: 'yue_pendingTransactions',
 			outputFormatter: function(txs) {
 				var formatted = [];
 				for (var i = 0; i < txs.length; i++) {

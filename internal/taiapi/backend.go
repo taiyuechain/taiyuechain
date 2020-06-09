@@ -30,8 +30,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/tai/downloader"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yue/downloader"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 // Backend interface provides the common API services (that are provided by
@@ -41,7 +41,7 @@ type Backend interface {
 	Downloader() *downloader.Downloader
 	ProtocolVersion() int
 	SuggestPrice(ctx context.Context) (*big.Int, error)
-	ChainDb() taidb.Database
+	ChainDb() yuedb.Database
 	EventMux() *event.TypeMux
 	AccountManager() *accounts.Manager
 
@@ -77,7 +77,7 @@ type Backend interface {
 func GetAPIs(apiBackend Backend) []rpc.API {
 	nonceLock := new(AddrLocker)
 	var apis []rpc.API
-	namespaces := []string{"etrue", "tai", "eth"}
+	namespaces := []string{"etrue", "yue", "eth"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{

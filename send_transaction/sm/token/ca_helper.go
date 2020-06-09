@@ -21,7 +21,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
-	"github.com/taiyuechain/taiyuechain/taidb"
+	"github.com/taiyuechain/taiyuechain/yuedb"
 )
 
 var (
@@ -39,7 +39,7 @@ var (
 	p2p2path  = "../testcert/" + p2p2Name + ".pem"
 
 	engine   = minerva.NewFaker()
-	db       = taidb.NewMemDatabase()
+	db       = yuedb.NewMemDatabase()
 	gspec    = DefaulGenesisBlock()
 	abiCA, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
 	signer   = types.NewSigner(gspec.Config.ChainID)
@@ -83,9 +83,13 @@ func DefaulGenesisBlock() *core.Genesis {
 	coinbase := daddr1
 
 	return &core.Genesis{
-		Config:    params.DevnetChainConfig,
-		ExtraData: nil,
-		GasLimit:  88080384,
+		Config:       params.DevnetChainConfig,
+		ExtraData:    nil,
+		GasLimit:     88080384,
+		UseGas:       0,
+		BaseReward:   0,
+		KindOfCrypto: 2,
+		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},
 		},
