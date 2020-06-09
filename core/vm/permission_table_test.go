@@ -19,6 +19,7 @@ import (
 	"testing"
 	"github.com/taiyuechain/taiyuechain/common"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
 var(
@@ -49,12 +50,179 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 
 	root1 := rootList[1]
 	member1 :=common.HexToAddress("0xf22142DbF24C324Eb021332c2D673d3B819B955a")
+	member2 :=common.HexToAddress("0x21C16f03bbF085D6908569d159Ad40BcafdB80C5")
 
 	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	if !res{
 		fmt.Println(err)
 		t.Fatalf("Grent err")
 	}
+
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_SendTx){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+	res, err =ptable.GrantPermission(member1,root1,member1,common.Address{},ModifyPerminType_CrtGrop,"a",true)
+	if !res {
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+
+	gropAddr := crypto.CreateGroupkey(member1,3)
+	//ModifyPerminType_AddGropManagerPerm
+	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
+	if !res {
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if !ptable.CheckActionPerm(member2,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+
+	//ModifyPerminType_DelGropManagerPerm
+	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_DelGropManagerPerm,"a",true)
+	if !res {
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if ptable.CheckActionPerm(member2,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+	//ModifyPerminType_AddGropMemberPerm
+	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
+	if !res {
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if ptable.CheckActionPerm(member2,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+	//ModifyPerminType_DelGropMemberPerm
+	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_DelGropMemberPerm,"a",true)
+	if !res {
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if ptable.CheckActionPerm(member2,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+
+
+	if !ptable.CheckActionPerm(member1,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+	res, err =ptable.GrantPermission(member1,root1,member1,gropAddr,ModifyPerminType_DelGrop,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+
+
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err ")
+	}
+
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_SendTx){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	}
+
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_SendTx){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},ModifyPerminType_AddSendTxManagerPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm")
+	}
+
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},ModifyPerminType_DelSendTxManagerPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm")
+	}
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddCrtContractPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},ModifyPerminType_AddCrtContractPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddCrtContractPerm")
+	}
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_CreateContract){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_CreateContract){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddCrtContractManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},ModifyPerminType_AddCrtContractManagerPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddCrtContractPerm")
+	}
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_CreateContract){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},ModifyPerminType_DelCrtContractManagerPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddCrtContractPerm")
+	}
+	if ptable.CheckActionPerm(member1,root1,common.Address{},common.Address{},PerminType_CreateContract){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
+
+
+
+
 
 
 
