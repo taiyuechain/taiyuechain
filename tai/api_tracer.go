@@ -33,11 +33,11 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/tai/tracers"
-	"github.com/taiyuechain/taiyuechain/internal/trueapi"
+	"github.com/taiyuechain/taiyuechain/internal/taiapi"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	"github.com/taiyuechain/taiyuechain/tai/tracers"
 	"github.com/taiyuechain/taiyuechain/trie"
 )
 
@@ -600,11 +600,11 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 	// Depending on the tracer type, format and return the output
 	switch tracer := tracer.(type) {
 	case *vm.StructLogger:
-		return &trueapi.ExecutionResult{
+		return &taiapi.ExecutionResult{
 			Gas:         gas,
 			Failed:      failed,
 			ReturnValue: fmt.Sprintf("%x", ret),
-			StructLogs:  trueapi.FormatLogs(tracer.StructLogs()),
+			StructLogs:  taiapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
 	case *tracers.Tracer:

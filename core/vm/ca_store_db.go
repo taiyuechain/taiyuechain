@@ -2,15 +2,18 @@ package vm
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"io"
 	"math/big"
+	"reflect"
 )
 
 func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) error {
@@ -33,11 +36,11 @@ func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) e
 			log.Error(" Invalid CACertList entry RLP", "err", err)
 			return errors.New(fmt.Sprintf("Invalid CACertList entry RLP %s", err.Error()))
 		}
-		//tmp := CloneCaCache(&temp)
-		//
-		//if tmp != nil {
-		//	CASC.Cache.Add(hash, tmp)
-		//}
+		tmp := CloneCaCache(&temp)
+
+		if tmp != nil {
+			CASC.Cache.Add(hash, tmp)
+		}
 	}
 
 	for k, val := range temp.caCertMap {
@@ -84,11 +87,11 @@ func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) e
 	}
 	state.SetCAState(preAddress, key, data)
 
-	//hash := types.RlpHash(data)
-	//tmp := CloneCaCache(ca)
-	//if tmp != nil {
-	//	CASC.Cache.Add(hash, tmp)
-	//}
+	hash := types.RlpHash(data)
+	tmp := CloneCaCache(ca)
+	if tmp != nil {
+		CASC.Cache.Add(hash, tmp)
+	}
 	return err
 }
 
@@ -218,3 +221,133 @@ func (i *ProposalState) EncodeRLP(w io.Writer) error {
 		SignArray:          proposalOrders,
 	})
 }
+
+func (c *CACertList) GetCACertList() *CACertList {
+	return c
+}
+
+// MarshalJSON marshals as JSON.
+func (l CACertList) MarshalJSON() ([]byte, error) {
+	type CACertList struct {
+		CaCertMap   map[uint64]*CACert             `json:"cacertmap"`
+		ProposalMap map[common.Hash]*ProposalState `json:"proposalmap"`
+	}
+	var enc CACertList
+	enc.CaCertMap = l.caCertMap
+	enc.ProposalMap = l.proposalMap
+	return json.Marshal(&enc)
+}
+
+// UnmarshalJSON unmarshals from JSON.
+func (l *CACertList) UnmarshalJSON(input []byte) error {
+	type CACertList struct {
+		CaCertMap   map[uint64]*CACert             `json:"cacertmap"`
+		ProposalMap map[common.Hash]*ProposalState `json:"proposalmap"`
+	}
+	var dec CACertList
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.CaCertMap == nil {
+		return errors.New("missing required field 'cacertmap' for CACertList")
+	}
+	l.caCertMap = dec.CaCertMap
+	if dec.ProposalMap != nil {
+		l.proposalMap = dec.ProposalMap
+	}
+	return nil
+}
+
+// MarshalJSON marshals as JSON.
+func (l ProposalState) MarshalJSON() ([]byte, error) {
+	type ProposalState struct {
+		PHash              common.Hash          `json:"phash"`
+		CACert             hexutil.Bytes        `json:"cacert"`
+		StartHeight        *hexutil.Big         `json:"startheight"`
+		EndHeight          *hexutil.Big         `json:"endheight"`
+		PState             hexutil.Uint         `json:"pstate"`
+		NeedPconfirmNumber hexutil.Uint64       `json:"needconfirmnumber"`
+		PNeedDo            hexutil.Uint         `json:"pneeddo"`
+		SignList           []common.Hash        `json:"signlist"`
+		SignMap            map[common.Hash]bool `json:"signmap"`
+	}
+	var enc ProposalState
+	enc.PHash = l.PHash
+	enc.CACert = l.CACert
+	enc.StartHeight = (*hexutil.Big)(l.StartHeight)
+	enc.EndHeight = (*hexutil.Big)(l.EndHeight)
+	enc.PState = hexutil.Uint(l.PState)
+	enc.NeedPconfirmNumber = hexutil.Uint64(l.NeedPconfirmNumber)
+	enc.PNeedDo = hexutil.Uint(l.PNeedDo)
+	enc.SignList = l.SignList
+	enc.SignMap = l.SignMap
+	return json.Marshal(&enc)
+}
+
+// UnmarshalJSON unmarshals from JSON.
+func (l *ProposalState) UnmarshalJSON(input []byte) error {
+	type ProposalState struct {
+		PHash              *common.Hash         `json:"phash"`
+		CACert             *hexutil.Bytes       `json:"cacert"`
+		StartHeight        *hexutil.Big         `json:"startheight"`
+		EndHeight          *hexutil.Big         `json:"endheight"`
+		PState             *hexutil.Uint        `json:"pstate"`
+		NeedPconfirmNumber *hexutil.Uint64      `json:"needconfirmnumber"`
+		PNeedDo            *hexutil.Uint        `json:"pneeddo"`
+		SignList           []common.Hash        `json:"signlist"`
+		SignMap            map[common.Hash]bool `json:"signmap"`
+	}
+	var dec ProposalState
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.PHash != nil {
+		l.PHash = *dec.PHash
+	}
+	if dec.CACert != nil {
+		l.CACert = *dec.CACert
+	}
+	if dec.StartHeight != nil {
+		l.StartHeight = (*big.Int)(dec.StartHeight)
+	}
+	if dec.EndHeight != nil {
+		l.EndHeight = (*big.Int)(dec.EndHeight)
+	}
+	if dec.PState != nil {
+		l.PState = uint8(*dec.PState)
+	}
+	if dec.NeedPconfirmNumber != nil {
+		l.NeedPconfirmNumber = uint64(*dec.NeedPconfirmNumber)
+	}
+	if dec.PNeedDo != nil {
+		l.PNeedDo = uint8(*dec.PNeedDo)
+	}
+	if dec.SignList != nil {
+		l.SignList = dec.SignList
+	}
+	if dec.SignMap != nil {
+		l.SignMap = dec.SignMap
+	}
+	return nil
+}
+
+type Cert []byte
+
+// UnmarshalText parses a hash in hex syntax.
+func (h *Cert) UnmarshalText(input []byte) error {
+	return hexutil.UnmarshalFixedText("Cert", input, *h)
+}
+
+// UnmarshalJSON parses a hash in hex syntax.
+func (h *Cert) UnmarshalJSON(input []byte) error {
+	return hexutil.UnmarshalFixedJSON(certT, input, *h)
+}
+
+// MarshalText returns the hex representation of h.
+func (h Cert) MarshalText() ([]byte, error) {
+	return hexutil.Bytes(h[:]).MarshalText()
+}
+
+var (
+	certT = reflect.TypeOf(Cert{})
+)

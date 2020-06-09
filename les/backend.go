@@ -30,7 +30,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/internal/trueapi"
+	"github.com/taiyuechain/taiyuechain/internal/taiapi"
 	"github.com/taiyuechain/taiyuechain/light"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -74,7 +74,7 @@ type LightEtrue struct {
 	accountManager *accounts.Manager
 
 	networkId     uint64
-	netRPCService *trueapi.PublicNetAPI
+	netRPCService *taiapi.PublicNetAPI
 
 	wg sync.WaitGroup
 }
@@ -170,7 +170,7 @@ func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 // APIs returns the collection of RPC services the ethereum package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightEtrue) APIs() []rpc.API {
-	apis := trueapi.GetAPIs(s.ApiBackend)
+	apis := taiapi.GetAPIs(s.ApiBackend)
 	namespaces := []string{"etrue", "tai", "eth"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
@@ -225,7 +225,7 @@ func (s *LightEtrue) Protocols() []p2p.Protocol {
 func (s *LightEtrue) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers()
 	log.Warn("Light client mode is an experimental feature")
-	s.netRPCService = trueapi.NewPublicNetAPI(srvr, s.networkId)
+	s.netRPCService = taiapi.NewPublicNetAPI(srvr, s.networkId)
 	// clients are searching for the first advertised protocol in the list
 	protocolVersion := AdvertiseProtocolVersions[0]
 	s.serverPool.start(srvr, lesTopic(s.blockchain.Genesis().Hash(), protocolVersion))

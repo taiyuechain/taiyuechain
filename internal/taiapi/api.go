@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package trueapi
+package taiapi
 
 import (
 	"bytes"
@@ -1712,4 +1712,31 @@ func (s *PublicNetAPI) PeerCount() hexutil.Uint {
 // Version returns the current True protocol version.
 func (s *PublicNetAPI) Version() string {
 	return fmt.Sprintf("%d", s.networkVersion)
+}
+
+// PublicCertAPI offers and API for the snail pool. It only operates on data that is non confidential.
+type PublicCertAPI struct {
+	b Backend
+}
+
+// NewPublicFruitPoolAPI creates a new snail pool service that gives information about the snail pool.
+func NewPublicCertAPI(b Backend) *PublicCertAPI {
+	return &PublicCertAPI{b}
+}
+
+// GetAllStakingAccount returns the pendingFruits contained within the snail pool.
+func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
 }

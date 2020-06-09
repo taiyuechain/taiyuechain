@@ -48,7 +48,7 @@ import (
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/internal/trueapi"
+	"github.com/taiyuechain/taiyuechain/internal/taiapi"
 	"github.com/taiyuechain/taiyuechain/tai/downloader"
 	"github.com/taiyuechain/taiyuechain/tai/filters"
 	"github.com/taiyuechain/taiyuechain/tai/gasprice"
@@ -107,7 +107,7 @@ type Taiyuechain struct {
 	etherbase common.Address
 
 	networkID     uint64
-	netRPCService *trueapi.PublicNetAPI
+	netRPCService *taiapi.PublicNetAPI
 
 	pbftServer *tbft.Node
 
@@ -329,7 +329,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chai
 // APIs return the collection of RPC services the etrue package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Taiyuechain) APIs() []rpc.API {
-	apis := trueapi.GetAPIs(s.APIBackend)
+	apis := taiapi.GetAPIs(s.APIBackend)
 
 	// Append any APIs exposed explicitly by the consensus engine
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
@@ -352,6 +352,11 @@ func (s *Taiyuechain) APIs() []rpc.API {
 				Namespace: name,
 				Version:   "1.0",
 				Service:   filters.NewPublicFilterAPI(s.APIBackend, false),
+				Public:    true,
+			}, {
+				Namespace: name,
+				Version:   "1.0",
+				Service:   taiapi.NewPublicCertAPI(s.APIBackend),
 				Public:    true,
 			},
 		}...)
@@ -465,7 +470,7 @@ func (s *Taiyuechain) Start(srvr *p2p.Server) error {
 	s.startBloomHandlers()
 
 	// Start the RPC service
-	s.netRPCService = trueapi.NewPublicNetAPI(srvr, s.NetVersion())
+	s.netRPCService = taiapi.NewPublicNetAPI(srvr, s.NetVersion())
 
 	// Figure out a max peers count based on the server limits
 	maxPeers := srvr.MaxPeers

@@ -127,6 +127,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 		cimCa.SetUpFromCA(caCert)
 		cimList.AddCim(cimCa)
 	}
+	engine.SetCimList(cimList)
 
 	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, db, sBlocks*60, func(i int, gen *core.BlockGen) {
 
@@ -135,19 +136,6 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 		executableTx(header.Number.Uint64(), gen, blockchain, header, stateDB)
 	})
 	if _, err := blockchain.InsertChain(chain); err != nil {
-		panic(err)
-	}
-
-	db1 := taidb.NewMemDatabase()
-	gspec.MustCommit(db1)
-	cimList1 := cim.NewCIMList(uint8(crypto.CryptoType))
-	blockchain1, err := core.NewBlockChain(db1, nil, gspec.Config, engine, vm.Config{}, cimList)
-	if err != nil {
-		fmt.Println("NewBlockChain ", err)
-	}
-	loadCIMList(cimList1, blockchain1)
-
-	if _, err := blockchain1.InsertChain(chain); err != nil {
 		panic(err)
 	}
 }
