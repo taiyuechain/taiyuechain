@@ -331,7 +331,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	var res bool
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
-		log.Info("----add cert proposal exe", "the len", len(ca.caCertMap[epoch].CACert), "epoch", epoch)
+		log.Info("----add cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
 		ca.copyCertToList(epoch)
 		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
 		if res && err == nil {
@@ -340,7 +340,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 		}
 	} else {
 		if ca.proposalMap[pHash].PNeedDo == proposalDelCert {
-			log.Info("----del cert proposal exe", "the len", len(ca.caCertMap[epoch].CACert), "epoch", epoch)
+			log.Info("----del cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
 			ca.copyCertToList(epoch)
 			res, err = ca.delCertToList(ca.proposalMap[pHash].CACert, epoch+1)
 			if res && err == nil {
@@ -482,7 +482,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	}
 
 	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
-	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd, evm.BlockNumber})
+	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd})
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 	//check cacert
 	if !args.IsAdd {
