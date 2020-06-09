@@ -23,6 +23,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash"
+	"io"
+	"io/ioutil"
+	"math/big"
+	"os"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
@@ -31,11 +37,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"golang.org/x/crypto/sha3"
-	"hash"
-	"io"
-	"io/ioutil"
-	"math/big"
-	"os"
 )
 
 //SignatureLength indicates the byte length required to carry a signature with recovery id.

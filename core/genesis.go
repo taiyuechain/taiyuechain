@@ -255,7 +255,7 @@ func (g *Genesis) Commit(db taidb.Database) (*types.Block, error) {
 }
 func (g *Genesis) makeExtraData() []byte {
 	h := []byte{g.UseGas, g.BaseReward, g.KindOfCrypto}
-	g.ExtraData = append(g.ExtraData, h...)
+	g.ExtraData = h
 	return g.ExtraData
 }
 
@@ -345,7 +345,6 @@ func DefaultGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:       params.MainnetChainConfig,
-		ExtraData:    hexutil.MustDecode("0x54727565436861696E204D61696E4E6574"),
 		GasLimit:     16777216,
 		UseGas:       0,
 		BaseReward:   0,
@@ -418,7 +417,6 @@ func DefaultDevGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:       params.DevnetChainConfig,
-		ExtraData:    nil,
 		GasLimit:     88080384,
 		UseGas:       0,
 		BaseReward:   0,
@@ -441,7 +439,6 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 
 	return &Genesis{
 		Config:       params.SingleNodeChainConfig,
-		ExtraData:    nil,
 		GasLimit:     22020096,
 		UseGas:       0,
 		BaseReward:   0,
@@ -481,7 +478,6 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
 		Config:       params.TestnetChainConfig,
-		ExtraData:    hexutil.MustDecode("0x54727565436861696E20546573744E6574203035"),
 		GasLimit:     20971520,
 		UseGas:       0,
 		BaseReward:   0,
