@@ -181,6 +181,62 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 
+
+	//ModifyPerminType_CrtContractPerm
+	//contractAddr := common.HexToAddress("0x0e09094f7BF1f268c45730aCB3ed48504A1FbbbB")
+	contractAddr := crypto.CreateAddress(member1,2)
+	ptable.CreateContractPem(contractAddr ,member1, uint64(2),false)
+	res, err =ptable.GrantPermission(member1,root1,member1,contractAddr,ModifyPerminType_CrtContractPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_CrtContractPerm")
+	}
+	//ModifyPerminType_AddContractMemberPerm
+	if !ptable.CheckActionPerm(member1,root1,common.Address{},contractAddr,ModifyPerminType_AddContractMemberPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddContractMemberPerm")
+	}
+	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractMemberPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_CrtContractPerm")
+	}
+	//ModifyPerminType_DelContractMemberPerm
+	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_DelContractMemberPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_DelContractMemberPerm")
+	}
+	//ModifyPerminType_AddContractManagerPerm
+	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_CrtContractPerm")
+	}
+	if !ptable.CheckActionPerm(member2,root1,common.Address{},contractAddr,ModifyPerminType_AddContractMemberPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddContractMemberPerm")
+	}
+	if !ptable.CheckActionPerm(member2,root1,common.Address{},contractAddr,ModifyPerminType_DelContractMemberPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddContractMemberPerm")
+	}
+	//ModifyPerminType_DelContractManagerPerm
+	res, err =ptable.GrantPermission(member2,member1,member2,contractAddr,ModifyPerminType_DelContractManagerPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err,ModifyPerminType_CrtContractPerm")
+	}
+	if ptable.CheckActionPerm(member2,root1,common.Address{},contractAddr,ModifyPerminType_DelContractMemberPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddContractMemberPerm")
+	}
+	if ptable.CheckActionPerm(member2,root1,common.Address{},contractAddr,ModifyPerminType_AddContractMemberPerm){
+
+		t.Fatalf("CheckActionPerm err ModifyPerminType_AddContractMemberPerm")
+	}
+
+
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractPerm,"a",true)
 	if !res{
 		fmt.Println(err)
@@ -219,6 +275,7 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
+
 
 
 

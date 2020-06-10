@@ -38,6 +38,7 @@ var(
 	GropNotExitError = errors.New("Grop not exit")
 	MemberGropNotExitError = errors.New("Grop not exit")
 	ContractAlreadyCreatePremError = errors.New("Contract already create prem")
+	ContractNotCreatePremError = errors.New("Contract not create prem")
 	ContractPremFlagError = errors.New("Contract premission flage error")
 	MemberInBlackListError = errors.New("member is in black list")
 )
@@ -796,13 +797,12 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 	return true,nil
 }
 
-func (pt *PerminTable) CreateContractPem(gropAddr ,creator common.Address,nonce uint64 ,isAdd bool) (bool,error) {
-	if gropAddr != crypto.CreateAddress(creator,nonce){
+func (pt *PerminTable) CreateContractPem(contractAddr ,creator common.Address,nonce uint64 ,isAdd bool) (bool,error) {
+	if contractAddr != crypto.CreateAddress(creator,nonce){
 		return false, errors.New("CreateContractPem fail gropAddr not equl contract Addr")
 	}
 
-	pt.ContractPermi[gropAddr].CreateFlag = 1
-	pt.ContractPermi[gropAddr].Creator = creator
+	pt.ContractPermi[contractAddr] = &ContractListTable{contractAddr,creator,1,false,&MemberTable{},&MemberTable{}}
 
 	return true,nil
 }
@@ -810,7 +810,11 @@ func (pt *PerminTable) CreateContractPem(gropAddr ,creator common.Address,nonce 
 func (pt *PerminTable) setContractPem(contractAddr ,creator common.Address, whitelistisWork bool) (bool,error)  {
 
 
-	if pt.ContractPermi[contractAddr].GroupKey == contractAddr || pt.ContractPermi[contractAddr].CreateFlag != 1 || pt.ContractPermi[contractAddr].Creator != creator{
+	if pt.ContractPermi[contractAddr] == nil{
+		return false,ContractNotCreatePremError
+	}
+
+	if  pt.ContractPermi[contractAddr].CreateFlag != 1 || pt.ContractPermi[contractAddr].Creator != creator{
 		return false , ContractAlreadyCreatePremError
 	}
 
@@ -883,11 +887,14 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 	}
 	if isAdd{
 		if pt.ContractPermi[contractAddr].IsWhitListWork{
+			if pt.ContractPermi[contractAddr].WhiteMembers.Manager != nil{
+
 
 			for _,m := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
 				if m.MemberID == manager{
 					return false,MemberAreadInGropError
 				}
+			}
 			}
 
 			mem :=&MemberInfo{manager,time.Now().Unix()}
@@ -897,12 +904,16 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 		if pt.ContractPermi[contractAddr].IsWhitListWork{
 
 			totalM :=0;
+			if pt.ContractPermi[contractAddr].WhiteMembers.Manager != nil{
+
+
 			for i,m := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
 				if m.MemberID == manager{
 					pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager[:i],pt.ContractPermi[contractAddr].WhiteMembers.Manager[i+1:]...)
 					return true,nil
 				}
 				totalM ++;
+			}
 			}
 
 			if totalM == len(pt.ContractPermi[contractAddr].WhiteMembers.Manager){
