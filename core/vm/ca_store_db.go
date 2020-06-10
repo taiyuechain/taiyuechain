@@ -43,30 +43,7 @@ func (ca *CACertList) LoadCACertList(state StateDB, preAddress common.Address) e
 		}
 	}
 
-	for k, val := range temp.caCertMap {
-		items := &CACert{
-			val.CACert,
-			val.IsStore,
-		}
-		ca.caCertMap[k] = items
-	}
-
-	for k, val := range temp.proposalMap {
-		//log.Info("--clone 2","k",k,"val",val.CACert)
-		item := &ProposalState{
-			val.PHash,
-			val.CACert,
-			val.StartHeight,
-			val.EndHeight,
-			val.PState,
-			val.NeedPconfirmNumber,
-			val.PNeedDo,
-			val.SignList,
-			val.SignMap,
-		}
-
-		ca.proposalMap[k] = item
-	}
+	ca.caCertMap, ca.proposalMap = temp.caCertMap, temp.proposalMap
 	watch1.EndWatch()
 	watch1.Finish("DecodeBytes")
 	return nil
@@ -87,9 +64,9 @@ func (ca *CACertList) SaveCACertList(state StateDB, preAddress common.Address) e
 	}
 	state.SetCAState(preAddress, key, data)
 
-	hash := types.RlpHash(data)
 	tmp := CloneCaCache(ca)
 	if tmp != nil {
+		hash := types.RlpHash(data)
 		CASC.Cache.Add(hash, tmp)
 	}
 	return err
