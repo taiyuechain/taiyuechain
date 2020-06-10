@@ -90,6 +90,7 @@ type genesisSpecMarshaling struct {
 	GasLimit  math.HexOrDecimal64
 	GasUsed   math.HexOrDecimal64
 	Number    math.HexOrDecimal64
+	CertList  []hexutil.Bytes
 	Alloc     map[common.UnprefixedAddress]types.GenesisAccount
 }
 
