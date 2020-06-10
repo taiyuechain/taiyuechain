@@ -490,7 +490,7 @@ func (s *Taiyuechain) Start(srvr *p2p.Server) error {
 		return errors.New("start pbft server failed.")
 	}
 	s.agent.server = s.pbftServer
-	log.Info("", "server", s.agent.server)
+	log.Info("Start", "server", s.agent.server, "SyncMode", s.config.SyncMode)
 	s.agent.Start()
 
 	s.election.Start()

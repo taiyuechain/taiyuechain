@@ -651,7 +651,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 	caCertMap := caCertList.GetCACertMapByEpoch(committeeId.Uint64())
 	members := make([]*types.CommitteeMember, len(caCertMap.CACert))
 	for i, caCert := range caCertMap.CACert {
-		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", hex.EncodeToString(caCert))
+		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", caCert)
 
 		pub, err := crypto.GetPubByteFromCert(caCert)
 		if err != nil {

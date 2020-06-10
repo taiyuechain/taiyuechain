@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	amino "github.com/tendermint/go-amino"
 	types2 "github.com/taiyuechain/taiyuechain/consensus/tbft/types"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	amino "github.com/tendermint/go-amino"
 )
 
 var cdc = amino.NewCodec()
@@ -89,7 +89,7 @@ func TestReader(t *testing.T) {
 	var tr []*types.Transaction
 
 	for i := 0; i < 1000; i++ {
-		t := types.NewTransaction(1, RandHexBytes20(), big.NewInt(1), 8888, big.NewInt(1), nil)
+		t := types.NewTransaction(1, RandHexBytes20(), big.NewInt(1), 8888, big.NewInt(1), nil, nil)
 		tr = append(tr, t)
 	}
 

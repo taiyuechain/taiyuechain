@@ -351,3 +351,10 @@ func (h Cert) MarshalText() ([]byte, error) {
 var (
 	certT = reflect.TypeOf(Cert{})
 )
+
+// TerminalString implements log.TerminalStringer, formatting a string for console
+// output during logging.
+func (h Cert) TerminalString() string {
+	len := len(h)
+	return fmt.Sprintf("%x…%x", h[:6], h[len-7:])
+}

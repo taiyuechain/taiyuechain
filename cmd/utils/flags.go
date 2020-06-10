@@ -1239,7 +1239,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
-	log.Info("", "cfg.SyncMode", cfg.SyncMode)
 }
 
 /*

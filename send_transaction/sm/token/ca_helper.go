@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
-	"math"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/cim"
@@ -253,15 +252,6 @@ func packInput(abiStaking abi.ABI, abiMethod, method string, params ...interface
 	return input
 }
 
-func printBalance(stateDb *state.StateDB, from common.Address, method string) {
-	balance := stateDb.GetBalance(types.CACertListAddress)
-	fbalance := new(big.Float)
-	fbalance.SetString(balance.String())
-	StakinValue := new(big.Float).Quo(fbalance, big.NewFloat(math.Pow10(18)))
-
-	printTest(method, " from ", types.ToTai(stateDb.GetBalance(from)), " Staking fbalance ", fbalance, " StakinValue ", StakinValue, "from ", crypto.AddressToHex(from))
-}
-
 type txPool interface {
 	// AddRemotes should add the given transactions to the pool.
 	AddRemotes([]*types.Transaction) []error
@@ -282,7 +272,6 @@ func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, me
 		stateDb = state1
 		nonce = txPool.State().GetNonce(from)
 	}
-	printBalance(stateDb, from, method)
 	return nonce, stateDb
 }
 
@@ -291,7 +280,7 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
 		remaining := new(big.Int).Sub(value, balance)
-		printTest("1----sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64())
+		printTest("sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
 		if remaining.Sign() > 0 {
 			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
 			if gen != nil {
