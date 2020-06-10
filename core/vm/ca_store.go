@@ -331,7 +331,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	var res bool
 	var err error
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
-		log.Info("----add cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
+		log.Info("----add cert proposal exe", "the len", len(ca.caCertMap[epoch].CACert), "epoch", epoch)
 		ca.copyCertToList(epoch)
 		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
 		if res && err == nil {
@@ -340,7 +340,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 		}
 	} else {
 		if ca.proposalMap[pHash].PNeedDo == proposalDelCert {
-			log.Info("----del cert proposal exe","the len",len(ca.caCertMap[epoch].CACert),"epoch",epoch)
+			log.Info("----del cert proposal exe", "the len", len(ca.caCertMap[epoch].CACert), "epoch", epoch)
 			ca.copyCertToList(epoch)
 			res, err = ca.delCertToList(ca.proposalMap[pHash].CACert, epoch+1)
 			if res && err == nil {
@@ -380,7 +380,7 @@ func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err
 	method, err := abiCaCertStore.MethodById(input)
 	if err != nil {
 		log.Error("No method found RunCaCertStore")
-		return nil, ErrCACertStoreInvalidInput
+		return nil, errExecutionReverted
 	}
 	log.Info("---------------------func RunCaCertStore neo2020310 ", "name", method.Name, "height", evm.BlockNumber.Uint64())
 	data := input[4:]
@@ -394,7 +394,7 @@ func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err
 		ret, err = multiProposal(evm, contract, data)
 	default:
 		log.Warn("CA cert store call fallback function")
-		err = ErrCACertStoreInvalidInput
+		err = errExecutionReverted
 	}
 
 	return ret, err
