@@ -73,6 +73,7 @@ var PrecompiledContractsCA = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
 	common.BytesToAddress([]byte{8}): &bn256Pairing{},
 	types.CACertListAddress:          &caCertContract{},
+	types.PermiTableAddress: 		  &permContract{},
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
@@ -399,4 +400,15 @@ func (ca *caCertContract) RequiredGas(input []byte) uint64 {
 
 func (ca *caCertContract) Run(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	return RunCaCertStore(evm, contract, input)
+}
+
+type permContract struct{}
+
+func (ca *permContract) RequiredGas(input []byte) uint64 {
+
+	return 0
+}
+
+func (ca *permContract) Run(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
+	return RunPermissionCtr(evm, contract, input)
 }
