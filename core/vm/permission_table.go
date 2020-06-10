@@ -238,13 +238,13 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 	case ModifyPerminType_DelSendTxManagerPerm:
 		return pt.setSendTxManagerPerm(creator,from,member,false)
 	case ModifyPerminType_AddCrtContractPerm:
-		return pt.setCrtContractPerm(creator,from,member,true)
+		return pt.setCrtContractPerm(gropAddr,from,member,true)
 	case ModifyPerminType_DelCrtContractPerm:
-		return pt.setCrtContractPerm(creator,from,member,false)
+		return pt.setCrtContractPerm(gropAddr,from,member,false)
 	case ModifyPerminType_AddCrtContractManagerPerm:
-		return pt.setCrtContractManegerPerm(creator,from,member,true)
+		return pt.setCrtContractManegerPerm(gropAddr,from,member,true)
 	case ModifyPerminType_DelCrtContractManagerPerm:
-		return pt.setCrtContractManegerPerm(creator,from,member,false)
+		return pt.setCrtContractManegerPerm(gropAddr,from,member,false)
 	case ModifyPerminType_CrtGrop:
 		return pt.createGropPerm(creator,gropName)
 	case ModifyPerminType_DelGrop:
@@ -481,11 +481,16 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 	return true, nil
 }
 
-func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
+func (pt *PerminTable)setCrtContractPerm(contractAddr,from ,member common.Address,isAdd bool) (bool,error){
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
+
+	if pt.ContractPermi[contractAddr] == nil{
+		return false,ContractNotCreatePremError
+	}
+	creator := pt.ContractPermi[contractAddr].Creator
 
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
@@ -576,11 +581,17 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 
 }
 
-func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
+func (pt *PerminTable)setCrtContractManegerPerm(contractAddr,from ,member common.Address,isAdd bool) (bool,error){
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
+
+	if pt.ContractPermi[contractAddr] == nil{
+		return false,ContractNotCreatePremError
+	}
+	creator := pt.ContractPermi[contractAddr].Creator
+
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
 	if pt.CrtContracetPermi[key] == nil{

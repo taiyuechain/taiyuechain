@@ -30,4 +30,5 @@ var (
 	ErrNoCompatibleInterpreter  = errors.New("no compatible .CreateAddress2interpreter")
 
 	ErrCACertStoreInvalidInput      = errors.New("invalid input for CA Cert Store")
+	ErrPermissionInvalidInput      = errors.New("invalid input for Permission")
 )

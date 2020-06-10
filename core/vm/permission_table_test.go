@@ -277,11 +277,14 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 	}
 
 
+}
 
-
-
-
-
-
+func Test1(t *testing.T) {
+	i := int(1)
+	if ModifyPerminType(i) == ModifyPerminType_AddSendTxPerm{
+		fmt.Println("1111")
+	}else{
+		t.Fatalf("transfer error")
+	}
 }
 
