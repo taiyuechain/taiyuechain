@@ -74,18 +74,16 @@ type Config struct {
 	NoPruning    bool
 	DeletedState bool
 
-	Whitelist map[uint64]common.Hash `toml:"-"`
 	// Whitelist of required block number -> hash values to accept
-	// Whitelist map[uint64]common.Hash `toml:"-"`
-
+	Whitelist map[uint64]common.Hash `toml:"-"`
 	// Light client options
 	LightServ  int      `toml:"-"` // Maximum percentage of time allowed for serving LES requests
 	LightPeers int      `toml:"-"` // Maximum number of LES client peers
 	GasPrice   *big.Int `toml:"-"`
 	// CommitteeKey is the ECDSA private key for committee member.
 	// If this filed is empty, can't be a committee member.
-	CommitteeKey []byte `toml:",omitempty"`
-
+	CommitteeKey  []byte `toml:",omitempty"`
+	CommitteeBase common.Address
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`

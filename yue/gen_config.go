@@ -32,6 +32,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		MinervaMode             int
 		Host                    string
 		CommitteeKey            hexutil.Bytes
+		CommitteeBase           common.Address
 		NodeCert                hexutil.Bytes
 		P2PNodeCert             hexutil.Bytes
 		Port                    int
@@ -66,6 +67,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.MinerGasFloor = c.MinerGasFloor
 	enc.StandbyPort = c.StandbyPort
 	enc.CommitteeKey = c.CommitteeKey
+	enc.CommitteeBase = c.CommitteeBase
 	enc.NodeCert = c.NodeCert
 	enc.P2PNodeCert = c.P2PNodeCert
 	enc.NodeType = c.NodeType
@@ -99,6 +101,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		MinerGasCeil            *uint64
 		MinerGasFloor           *uint64
 		CommitteeKey            *hexutil.Bytes
+		CommitteeBase           *common.Address
 		NodeCert                *hexutil.Bytes
 		P2PNodeCert             *hexutil.Bytes
 		TrieTimeout             *time.Duration
@@ -164,6 +167,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.CommitteeKey != nil {
 		c.CommitteeKey = *dec.CommitteeKey
+	}
+	if dec.CommitteeBase != nil {
+		c.CommitteeBase = *dec.CommitteeBase
 	}
 	if dec.NodeCert != nil {
 		c.NodeCert = *dec.NodeCert

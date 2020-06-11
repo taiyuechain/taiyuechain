@@ -188,11 +188,14 @@ func NewPbftAgent(yue Backend, config *params.ChainConfig, engine consensus.Engi
 //initialize node info
 func (agent *PbftAgent) initNodeInfo(yue Backend) {
 	config := yue.Config()
-	coinbase, _ := yue.Etherbase()
+
 	agent.initNodeWork()
 	agent.singleNode = config.NodeType
 	agent.privateKey, _ = crypto.ToECDSA(config.CommitteeKey)
-
+	coinbase := yue.Config().CommitteeBase
+	if (coinbase == common.Address{}) {
+		coinbase = crypto.PubkeyToAddress(agent.privateKey.PublicKey)
+	}
 	agent.committeeNode = &types.CommitteeNode{
 		IP:        config.Host,
 		Port:      uint32(config.Port),
