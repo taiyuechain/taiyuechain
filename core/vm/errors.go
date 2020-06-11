@@ -31,4 +31,5 @@ var (
 
 	ErrCACertStoreInvalidInput      = errors.New("invalid input for CA Cert Store")
 	ErrPermissionInvalidInput      = errors.New("invalid input for Permission")
+	ErrPermissionInvalidFrom      = errors.New("invalid from ")
 )

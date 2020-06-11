@@ -151,6 +151,7 @@ type  MemberInfo struct {
 
 type BasisPermin struct {
 	MemberID common.Address
+	CreatorRoot common.Address
 	SendTran    bool
 	CrtContract bool
 	GropId		 uint64
@@ -220,10 +221,18 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 		pt.CrtContracetPermi[key] = stp2
 
 		groplist :=[]common.Address{}
-		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
+		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
 
 	}
 
+}
+
+func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
+	if pt.UserBasisPermi[from]!=nil{
+		return pt.UserBasisPermi[from].CreatorRoot
+	}else{
+		return common.Address{}
+	}
 }
 
 //Grant Perminission
@@ -238,13 +247,13 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 	case ModifyPerminType_DelSendTxManagerPerm:
 		return pt.setSendTxManagerPerm(creator,from,member,false)
 	case ModifyPerminType_AddCrtContractPerm:
-		return pt.setCrtContractPerm(gropAddr,from,member,true)
+		return pt.setCrtContractPerm(creator,from,member,true)
 	case ModifyPerminType_DelCrtContractPerm:
-		return pt.setCrtContractPerm(gropAddr,from,member,false)
+		return pt.setCrtContractPerm(creator,from,member,false)
 	case ModifyPerminType_AddCrtContractManagerPerm:
-		return pt.setCrtContractManegerPerm(gropAddr,from,member,true)
+		return pt.setCrtContractManegerPerm(creator,from,member,true)
 	case ModifyPerminType_DelCrtContractManagerPerm:
-		return pt.setCrtContractManegerPerm(gropAddr,from,member,false)
+		return pt.setCrtContractManegerPerm(creator,from,member,false)
 	case ModifyPerminType_CrtGrop:
 		return pt.createGropPerm(creator,gropName)
 	case ModifyPerminType_DelGrop:
@@ -338,6 +347,7 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 		}
 		pt.UserBasisPermi[member].MemberID = member
 		pt.UserBasisPermi[member].SendTran = true
+		pt.UserBasisPermi[member].CreatorRoot = creator
 
 		if iswhitelistWork{
 
@@ -431,6 +441,11 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 		pt.SendTranPermi[key].IsWhitListWork = whitelistIsWork_SendTx
 	}
 
+	if pt.UserBasisPermi[member] == nil{
+		pt.UserBasisPermi[member] = &BasisPermin{}
+		pt.UserBasisPermi[member].CreatorRoot = creator
+	}
+
 	if isAdd {
 		if !pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID != member {
 			//data base is nill
@@ -481,16 +496,16 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 	return true, nil
 }
 
-func (pt *PerminTable)setCrtContractPerm(contractAddr,from ,member common.Address,isAdd bool) (bool,error){
+func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
 
-	if pt.ContractPermi[contractAddr] == nil{
+	/*if pt.ContractPermi[contractAddr] == nil{
 		return false,ContractNotCreatePremError
 	}
-	creator := pt.ContractPermi[contractAddr].Creator
+	creator := pt.ContractPermi[contractAddr].Creator*/
 
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
@@ -516,6 +531,8 @@ func (pt *PerminTable)setCrtContractPerm(contractAddr,from ,member common.Addres
 		if pt.UserBasisPermi[member] == nil {
 			pt.UserBasisPermi[member] = &BasisPermin{}
 			pt.UserBasisPermi[member].MemberID = member
+			pt.UserBasisPermi[member].CreatorRoot = creator
+
 		}
 		if !pt.UserBasisPermi[member].CrtContract || pt.UserBasisPermi[member].MemberID != member {
 			//data base is nill
@@ -581,16 +598,16 @@ func (pt *PerminTable)setCrtContractPerm(contractAddr,from ,member common.Addres
 
 }
 
-func (pt *PerminTable)setCrtContractManegerPerm(contractAddr,from ,member common.Address,isAdd bool) (bool,error){
+func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
 
-	if pt.ContractPermi[contractAddr] == nil{
+	/*if pt.ContractPermi[contractAddr] == nil{
 		return false,ContractNotCreatePremError
-	}
-	creator := pt.ContractPermi[contractAddr].Creator
+	}*/
+	//creator := pt.ContractPermi[contractAddr].Creator
 
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
@@ -620,7 +637,12 @@ func (pt *PerminTable)setCrtContractManegerPerm(contractAddr,from ,member common
 	}
 
 	if isAdd{
+		if pt.UserBasisPermi[member] == nil {
+			pt.UserBasisPermi[member] = &BasisPermin{}
+			pt.UserBasisPermi[member].MemberID = member
+			pt.UserBasisPermi[member].CreatorRoot = creator
 
+		}
 			if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil{
 
 			for _,m := range pt.CrtContracetPermi[key].WhiteMembers.Manager{

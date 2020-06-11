@@ -100,8 +100,12 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, err
 	}
 	from := contract.caller.Address()
+	creator := pTable.GetCreator(from)
 
-	res,err:=pTable.GrantPermission(args.Creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
+	if len(creator) == 0 {
+		return nil,ErrPermissionInvalidFrom
+	}
+	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
 	if !res{
 		return nil,err
 	}
@@ -138,8 +142,12 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		return nil, err
 	}
 	from := contract.caller.Address()
+	creator := pTable.GetCreator(from)
 
-	res,err:=pTable.GrantPermission(args.Creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
+	if len(creator) == 0 {
+		return nil,ErrPermissionInvalidFrom
+	}
+	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
 	if !res{
 		return nil,err
 	}
@@ -249,10 +257,6 @@ const PermissionABIJSON = `
     	"name": "revokePermission",
     	"outputs": [],
     	"inputs": [
-	  	{
-        	"type": "bytes",
-        	"name": "Creator"
-      	},
 		{
         	"type": "bytes",
         	"name": "Member"
