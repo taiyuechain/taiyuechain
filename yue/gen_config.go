@@ -4,95 +4,106 @@ package yue
 
 import (
 	"math/big"
+	"time"
 
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/yue/downloader"
 	"github.com/taiyuechain/taiyuechain/yue/gasprice"
 )
 
-var _ = (*configMarshaling)(nil)
-
+// MarshalTOML marshals as TOML.
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
-		CryptoType              uint8         `toml:",omitempty"`
 		NetworkId               uint64
 		SyncMode                downloader.SyncMode
-		LightServ               int           `toml:",omitempty"`
-		LightPeers              int           `toml:",omitempty"`
-		EnableElection          bool          `toml:",omitempty"`
-		CommitteeKey            hexutil.Bytes `toml:",omitempty"`
-		Host                    string        `toml:",omitempty"`
-		Port                    int           `toml:",omitempty"`
-		StandbyPort             int           `toml:",omitempty"`
-		SkipBcVersionCheck      bool          `toml:"-"`
-		DatabaseHandles         int           `toml:"-"`
+		NoPruning               bool
+		Whitelist               map[uint64]common.Hash `toml:"-"`
+		LightServ               int                    `toml:"-"`
+		LightPeers              int                    `toml:"-"`
+		SkipBcVersionCheck      bool                   `toml:"-"`
+		DatabaseHandles         int                    `toml:"-"`
 		DatabaseCache           int
-		Etherbase               common.Address `toml:",omitempty"`
-		MinerThreads            int            `toml:",omitempty"`
-		ExtraData               hexutil.Bytes  `toml:",omitempty"`
+		TrieCleanCache          int
+		TrieTimeout             time.Duration
+		MinervaMode             int
+		Host                    string
+		CommitteeKey            hexutil.Bytes
+		NodeCert                hexutil.Bytes
+		P2PNodeCert             hexutil.Bytes
+		Port                    int
+		StandbyPort             int
+		NodeType                bool
 		GasPrice                *big.Int
-		MinervaHash             minerva.Config
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
-		DocRoot                 string `toml:"-"`
+		DocRoot                 string                         `toml:"-"`
+		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
+		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
 	enc.NetworkId = c.NetworkId
 	enc.SyncMode = c.SyncMode
+	enc.NoPruning = c.NoPruning
+	enc.Whitelist = c.Whitelist
 	enc.LightServ = c.LightServ
 	enc.LightPeers = c.LightPeers
-	enc.EnableElection = c.EnableElection
-	enc.CommitteeKey = c.CommitteeKey
-	enc.Host = c.Host
-	enc.Port = c.Port
-	enc.StandbyPort = c.StandbyPort
 	enc.SkipBcVersionCheck = c.SkipBcVersionCheck
 	enc.DatabaseHandles = c.DatabaseHandles
 	enc.DatabaseCache = c.DatabaseCache
-	enc.Etherbase = c.Etherbase
-	enc.MinerThreads = c.MinerThreads
-	enc.ExtraData = c.ExtraData
+	enc.TrieCleanCache = c.TrieCleanCache
+	enc.MinervaMode = c.MinervaMode
+	enc.TrieTimeout = c.TrieTimeout
+	enc.Host = c.Host
+	enc.Port = c.Port
+	enc.StandbyPort = c.StandbyPort
+	enc.CommitteeKey = c.CommitteeKey
+	enc.NodeCert = c.NodeCert
+	enc.P2PNodeCert = c.P2PNodeCert
+	enc.NodeType = c.NodeType
 	enc.GasPrice = c.GasPrice
-	enc.MinervaHash = c.MinervaHash
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
 	enc.DocRoot = c.DocRoot
+	enc.Checkpoint = c.Checkpoint
 	return &enc, nil
 }
 
+// UnmarshalTOML unmarshals from TOML.
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
 		Genesis                 *core.Genesis `toml:",omitempty"`
 		NetworkId               *uint64
-		CryptoType              *uint8
 		SyncMode                *downloader.SyncMode
-		EnableElection          *bool          `toml:",omitempty"`
-		NodeType                *bool          `toml:",omitempty"`
-		CommitteeKey            *hexutil.Bytes `toml:",omitempty"`
-		Host                    *string        `toml:",omitempty"`
-		Port                    *int           `toml:",omitempty"`
-		StandbyPort             *int           `toml:",omitempty"`
-		LightServ               *int           `toml:",omitempty"`
-		LightPeers              *int           `toml:",omitempty"`
-		SkipBcVersionCheck      *bool          `toml:"-"`
-		DatabaseHandles         *int           `toml:"-"`
+		NoPruning               *bool
+		Whitelist               map[uint64]common.Hash `toml:"-"`
+		LightServ               *int                   `toml:"-"`
+		LightPeers              *int                   `toml:"-"`
+		SkipBcVersionCheck      *bool                  `toml:"-"`
+		DatabaseHandles         *int                   `toml:"-"`
 		DatabaseCache           *int
-		Etherbase               *common.Address `toml:",omitempty"`
-		MinerThreads            *int            `toml:",omitempty"`
-		ExtraData               *hexutil.Bytes  `toml:",omitempty"`
-		GasPrice                *big.Int
-		MinervaHash             *minerva.Config
+		TrieCleanCache          *int
+		MinervaMode             *int
+		Host                    *string
+		Port                    *int
+		StandbyPort             *int
+		CommitteeKey            *hexutil.Bytes
+		NodeCert                *hexutil.Bytes
+		P2PNodeCert             *hexutil.Bytes
+		TrieTimeout             *time.Duration
+		NodeType                *bool
 		TxPool                  *core.TxPoolConfig
+		GasPrice                *big.Int
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
-		DocRoot                 *string `toml:"-"`
+		DocRoot                 *string                   `toml:"-"`
+		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -107,20 +118,11 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.SyncMode != nil {
 		c.SyncMode = *dec.SyncMode
 	}
-	if dec.EnableElection != nil {
-		c.EnableElection = *dec.EnableElection
+	if dec.NoPruning != nil {
+		c.NoPruning = *dec.NoPruning
 	}
-	if dec.CommitteeKey != nil {
-		c.CommitteeKey = *dec.CommitteeKey
-	}
-	if dec.Host != nil {
-		c.Host = *dec.Host
-	}
-	if dec.Port != nil {
-		c.Port = *dec.Port
-	}
-	if dec.StandbyPort != nil {
-		c.StandbyPort = *dec.StandbyPort
+	if dec.Whitelist != nil {
+		c.Whitelist = dec.Whitelist
 	}
 	if dec.LightServ != nil {
 		c.LightServ = *dec.LightServ
@@ -137,23 +139,41 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.DatabaseCache != nil {
 		c.DatabaseCache = *dec.DatabaseCache
 	}
-	if dec.Etherbase != nil {
-		c.Etherbase = *dec.Etherbase
+	if dec.TrieCleanCache != nil {
+		c.TrieCleanCache = *dec.TrieCleanCache
 	}
-	if dec.MinerThreads != nil {
-		c.MinerThreads = *dec.MinerThreads
+	if dec.MinervaMode != nil {
+		c.MinervaMode = *dec.MinervaMode
 	}
-	if dec.ExtraData != nil {
-		c.ExtraData = *dec.ExtraData
+	if dec.TrieTimeout != nil {
+		c.TrieTimeout = *dec.TrieTimeout
 	}
-	if dec.GasPrice != nil {
-		c.GasPrice = dec.GasPrice
+	if dec.Host != nil {
+		c.Host = *dec.Host
 	}
-	if dec.MinervaHash != nil {
-		c.MinervaHash = *dec.MinervaHash
+	if dec.Port != nil {
+		c.Port = *dec.Port
+	}
+	if dec.StandbyPort != nil {
+		c.StandbyPort = *dec.StandbyPort
+	}
+	if dec.CommitteeKey != nil {
+		c.CommitteeKey = *dec.CommitteeKey
+	}
+	if dec.NodeCert != nil {
+		c.NodeCert = *dec.NodeCert
+	}
+	if dec.P2PNodeCert != nil {
+		c.P2PNodeCert = *dec.P2PNodeCert
+	}
+	if dec.NodeType != nil {
+		c.NodeType = *dec.NodeType
 	}
 	if dec.TxPool != nil {
 		c.TxPool = *dec.TxPool
+	}
+	if dec.GasPrice != nil {
+		c.GasPrice = dec.TxPool
 	}
 	if dec.GPO != nil {
 		c.GPO = *dec.GPO
@@ -163,6 +183,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.DocRoot != nil {
 		c.DocRoot = *dec.DocRoot
+	}
+	if dec.Checkpoint != nil {
+		c.Checkpoint = dec.Checkpoint
 	}
 	return nil
 }

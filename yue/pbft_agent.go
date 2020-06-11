@@ -191,7 +191,7 @@ func (agent *PbftAgent) initNodeInfo(yue Backend) {
 	coinbase, _ := yue.Etherbase()
 	agent.initNodeWork()
 	agent.singleNode = config.NodeType
-	agent.privateKey = config.PrivateKey
+	agent.privateKey, _ = crypto.ToECDSA(config.CommitteeKey)
 
 	agent.committeeNode = &types.CommitteeNode{
 		IP:        config.Host,

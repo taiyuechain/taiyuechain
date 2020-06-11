@@ -10,7 +10,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/internal/debug"
-	"gopkg.in/urfave/cli.v1"
+	cli "gopkg.in/urfave/cli.v1"
 )
 
 // AppHelpTemplate is the test template for the default, global app help topic.
@@ -174,20 +174,6 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.NetrestrictFlag,
 			utils.NodeKeyFileFlag,
 			utils.NodeKeyHexFlag,
-		},
-	},
-	{
-		Name: "MINER",
-		Flags: []cli.Flag{
-			utils.MiningEnabledFlag,
-			utils.MineFruitFlag,
-			utils.MiningRemoteEnableFlag,
-			utils.MinerThreadsFlag,
-			utils.CoinbaseFlag,
-			utils.GasTargetFlag,
-			utils.GasLimitFlag,
-			utils.GasPriceFlag,
-			utils.ExtraDataFlag,
 		},
 	},
 	{

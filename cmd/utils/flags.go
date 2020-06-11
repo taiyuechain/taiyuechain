@@ -26,7 +26,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +39,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus"
 
 	//"github.com/taiyuechain/taiyuechain/consensus/clique"
-	"bytes"
 
 	"github.com/taiyuechain/taiyuechain/log"
 	//"github.com/taiyuechain/taiyuechain/cim"
@@ -352,57 +350,20 @@ var (
 		Usage: "Number of trie node generations to keep in memory",
 		Value: int(state.MaxTrieCacheGen),
 	}
-	// Miner settings
-	MiningEnabledFlag = cli.BoolFlag{
-		Name:  "mine",
-		Usage: "Enable mining",
-	}
-
-	MiningRemoteEnableFlag = cli.BoolFlag{
-		Name:  "remote",
-		Usage: "Enable remote mining",
-	}
-
-	MineFruitFlag = cli.BoolFlag{
-		Name:  "minefruit",
-		Usage: "only mine fruit",
-	}
-	MinerThreadsFlag = cli.IntFlag{
-		Name:  "minerthreads",
-		Usage: "Number of CPU threads to use for mining",
-		Value: runtime.NumCPU() - 1,
-	}
-
 	GasTargetFlag = cli.Uint64Flag{
 		Name:  "gastarget",
 		Usage: "Target gas floor for fast block",
 		Value: yue.DefaultConfig.MinerGasFloor,
 	}
-
 	GasLimitFlag = cli.Uint64Flag{
 		Name:  "gaslimit",
 		Usage: "Target gas ceiling for fast block",
 		Value: yue.DefaultConfig.MinerGasCeil,
 	}
-
-	EtherbaseFlag = cli.StringFlag{
-		Name:  "etherbase",
-		Usage: "Public address for block mining rewards (default = first account created)",
-		Value: "0",
-	}
-	CoinbaseFlag = cli.StringFlag{
-		Name:  "coinbase",
-		Usage: "Public address for block mining rewards (default = first account created)",
-		Value: "0",
-	}
 	GasPriceFlag = BigFlag{
 		Name:  "gasprice",
 		Usage: "Minimal gas price to accept for mining a transactions",
 		Value: yue.DefaultConfig.GasPrice,
-	}
-	ExtraDataFlag = cli.StringFlag{
-		Name:  "extradata",
-		Usage: "Block extra data set by the miner (default = client version)",
 	}
 	// Account settings
 	UnlockedAccountFlag = cli.StringFlag{
@@ -665,7 +626,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	}
 }
 
-func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
+func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) *ecdsa.PrivateKey {
 
 	var (
 		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
@@ -682,14 +643,15 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
 		if key, err = crypto.LoadECDSA(file); err != nil {
 			Fatalf("Option %q: %v", BftKeyFileFlag.Name, err)
 		}
-		cfg.PrivateKey = key
+		return key
 
 	case hex != "":
 		if key, err = crypto.HexToECDSA(hex); err != nil {
 			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
 		}
-		cfg.PrivateKey = key
+		return key
 	}
+	return nil
 }
 
 // setNodeUserIdent creates the user identifier from CLI flags.
@@ -850,24 +812,6 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 		return accounts.Account{}, fmt.Errorf("index %d higher than number of accounts %d", index, len(accs))
 	}
 	return accs[index], nil
-}
-
-// setEtherbase retrieves the etherbase either from the directly specified
-// command line flags or from the keystore if CLI indexed.
-func setEtherbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *yue.Config) {
-	if ctx.GlobalIsSet(EtherbaseFlag.Name) {
-		account, err := MakeAddress(ks, ctx.GlobalString(EtherbaseFlag.Name))
-		if err != nil {
-			Fatalf("Option %q: %v", EtherbaseFlag.Name, err)
-		}
-		cfg.Etherbase = account.Address
-	} else if ctx.GlobalIsSet(CoinbaseFlag.Name) {
-		account, err := MakeAddress(ks, ctx.GlobalString(CoinbaseFlag.Name))
-		if err != nil {
-			Fatalf("Option %q: %v", CoinbaseFlag.Name, err)
-		}
-		cfg.Etherbase = account.Address
-	}
 }
 
 // MakePasswordList reads password lines from the file specified by the global --password flag.
@@ -1090,7 +1034,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	CheckExclusive(ctx, LightServFlag, SyncModeFlag, "light")
 
 	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
-	setEtherbase(ctx, ks, cfg)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setEthash(ctx, cfg)
@@ -1107,16 +1050,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if ctx.GlobalIsSet(NetworkIdFlag.Name) {
 		cfg.NetworkId = ctx.GlobalUint64(NetworkIdFlag.Name)
 	}
-
-	if ctx.GlobalBool(MineFruitFlag.Name) {
-		cfg.MineFruit = true
-	}
-	if ctx.GlobalBool(MiningEnabledFlag.Name) {
-		cfg.Mine = true
-	}
-	if ctx.GlobalBool(MiningRemoteEnableFlag.Name) {
-		cfg.RemoteMine = true
-	}
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
 		cfg.NodeType = true
 	}
@@ -1131,29 +1064,19 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 		cfg.StandbyPort = int(ctx.GlobalUint64(BFTStandbyPortFlag.Name))
 	}
 
-	cfg.NodeCert = stack.Config().BftCommitteeCert()
-	if cfg.NodeCert == nil {
-		log.Error("not cert file ")
-	}
-
-	cfg.P2PNodeCert = stack.Config().NodeKeyCert()
-	if cfg.P2PNodeCert == nil {
-		log.Error("not p2p cert file ")
-	}
-
 	//set PrivateKey by config,file or hex
-	setBftCommitteeKey(ctx, cfg)
-	if cfg.PrivateKey == nil {
-		cfg.PrivateKey = stack.Config().BftCommitteeKey()
+	priv := setBftCommitteeKey(ctx, cfg)
+	if priv == nil {
+		if cfg.CommitteeKey == nil {
+			Fatalf("init CommitteeKey  nil.")
+		}
+		if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
+			Fatalf("init CommitteeKey failed,err:", err)
+		}
+	} else {
+		cfg.CommitteeKey = crypto.FromECDSA(priv)
 	}
 
-	//TODO
-	// need do verfiy the private key and cert
-
-	cfg.CommitteeKey = crypto.FromECDSA(cfg.PrivateKey)
-	if bytes.Equal(cfg.CommitteeKey, []byte{}) {
-		Fatalf("init load CommitteeKey  nil.")
-	}
 	if ctx.GlobalBool(EnableElectionFlag.Name) {
 		cfg.EnableElection = true
 	}
@@ -1171,11 +1094,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 			Fatalf("election set true,Option %q and %q must be different.", BFTPortFlag.Name, BFTStandbyPortFlag.Name)
 		}
 	}
-	/*	log.Info("Committee Node info:", "publickey", hex.EncodeToString(crypto.FromECDSAPub(&cfg.PrivateKey.PublicKey)),
-		"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)*/
-	//log.Info("Committee Node info:", "publickey", hex.EncodeToString(taipublic.FromECDSAPub(cfg.PrivateKey.TaiPubKey)),
-	//	"ip", cfg.Host, "port", cfg.Port, "election", cfg.EnableElection, "singlenode", cfg.NodeType)
-
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 	}
@@ -1193,14 +1111,8 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {
 		cfg.TrieCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheGCFlag.Name) / 100
 	}
-	if ctx.GlobalIsSet(MinerThreadsFlag.Name) {
-		cfg.MinerThreads = ctx.GlobalInt(MinerThreadsFlag.Name)
-	}
 	if ctx.GlobalIsSet(DocRootFlag.Name) {
 		cfg.DocRoot = ctx.GlobalString(DocRootFlag.Name)
-	}
-	if ctx.GlobalIsSet(ExtraDataFlag.Name) {
-		cfg.ExtraData = []byte(ctx.GlobalString(ExtraDataFlag.Name))
 	}
 	if ctx.GlobalIsSet(GasPriceFlag.Name) {
 		cfg.GasPrice = GlobalBig(ctx, GasPriceFlag.Name)
