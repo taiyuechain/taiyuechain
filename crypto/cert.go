@@ -34,13 +34,13 @@ func IsCorrectSY(syCrypto interface{}) bool {
 
 func GetCertFromByte(idBytes []byte) (*x509.Certificate, error) {
 	if idBytes == nil {
-		return nil, errors.New("getCertFromPem error: nil idBytes")
+		return nil, errors.New("GetCertFromByte error: nil idBytes")
 	}
 
 	cert, err := ParseCertificate(idBytes)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "getCertFromPem error: failed to parse x509 cert")
+		return nil, errors.Wrap(err, "GetCertFromByte error: failed to parse x509 cert")
 	}
 
 	return cert, nil
@@ -48,7 +48,7 @@ func GetCertFromByte(idBytes []byte) (*x509.Certificate, error) {
 
 func ParseCertificate(asn1Data []byte) (*x509.Certificate, error) {
 	if asn1Data == nil {
-		return nil, errors.New("getCertFromPem error: nil idBytes")
+		return nil, errors.New("ParseCertificate error: nil idBytes")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		return x509.ParseCertificate(asn1Data)
