@@ -8,6 +8,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"io"
+	"math/big"
 )
 
 func (pt *PerminTable) Load(state StateDB) error {
@@ -116,13 +117,12 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	var clts []*ContractListTable
 	var order []common.Address
 	for i, _ := range i.ContractPermi {
-		order = append(order, i)
-	}
-	for m := 0; m < len(order)-1; m++ {
-		for n := 0; n < len(order)-1-m; n++ {
-			if order[n].Big().Cmp(order[n+1].Big()) > 0 {
-				order[n], order[n+1] = order[n+1], order[n]
-			}
+		if order == nil {
+			order = append(order, i)
+		} else {
+			pos := find(i.Big(), order)
+			rear := append([]common.Address{}, order[pos:]...)
+			order = append(append(order[:pos], i), rear...)
 		}
 	}
 	for _, index := range order {
@@ -132,13 +132,12 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	var glts []*GropListTable
 	var gltOrders []common.Address
 	for i, _ := range i.GropPermi {
-		gltOrders = append(gltOrders, i)
-	}
-	for m := 0; m < len(gltOrders)-1; m++ {
-		for n := 0; n < len(gltOrders)-1-m; n++ {
-			if gltOrders[n].Big().Cmp(gltOrders[n+1].Big()) > 0 {
-				gltOrders[n], gltOrders[n+1] = gltOrders[n+1], gltOrders[n]
-			}
+		if gltOrders == nil {
+			gltOrders = append(gltOrders, i)
+		} else {
+			pos := find(i.Big(), gltOrders)
+			rear := append([]common.Address{}, gltOrders[pos:]...)
+			gltOrders = append(append(gltOrders[:pos], i), rear...)
 		}
 	}
 	for _, index := range gltOrders {
@@ -148,13 +147,12 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	var mlts []*MemberListTable
 	var mltOrders []common.Address
 	for i, _ := range i.SendTranPermi {
-		mltOrders = append(mltOrders, i)
-	}
-	for m := 0; m < len(mltOrders)-1; m++ {
-		for n := 0; n < len(mltOrders)-1-m; n++ {
-			if mltOrders[n].Big().Cmp(mltOrders[n+1].Big()) > 0 {
-				mltOrders[n], mltOrders[n+1] = mltOrders[n+1], mltOrders[n]
-			}
+		if mltOrders == nil {
+			mltOrders = append(mltOrders, i)
+		} else {
+			pos := find(i.Big(), mltOrders)
+			rear := append([]common.Address{}, mltOrders[pos:]...)
+			mltOrders = append(append(mltOrders[:pos], i), rear...)
 		}
 	}
 	for _, index := range mltOrders {
@@ -164,13 +162,12 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	var ctps []*MemberListTable
 	var ctpOrders []common.Address
 	for i, _ := range i.CrtContracetPermi {
-		ctpOrders = append(ctpOrders, i)
-	}
-	for m := 0; m < len(ctpOrders)-1; m++ {
-		for n := 0; n < len(ctpOrders)-1-m; n++ {
-			if ctpOrders[n].Big().Cmp(ctpOrders[n+1].Big()) > 0 {
-				ctpOrders[n], ctpOrders[n+1] = ctpOrders[n+1], ctpOrders[n]
-			}
+		if ctpOrders == nil {
+			ctpOrders = append(ctpOrders, i)
+		} else {
+			pos := find(i.Big(), ctpOrders)
+			rear := append([]common.Address{}, ctpOrders[pos:]...)
+			ctpOrders = append(append(ctpOrders[:pos], i), rear...)
 		}
 	}
 	for _, index := range ctpOrders {
@@ -180,15 +177,15 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	var bps []*BasisPermin
 	var bpOrders []common.Address
 	for i, _ := range i.UserBasisPermi {
-		bpOrders = append(bpOrders, i)
-	}
-	for m := 0; m < len(bpOrders)-1; m++ {
-		for n := 0; n < len(bpOrders)-1-m; n++ {
-			if bpOrders[n].Big().Cmp(bpOrders[n+1].Big()) > 0 {
-				bpOrders[n], bpOrders[n+1] = bpOrders[n+1], bpOrders[n]
-			}
+		if bpOrders == nil {
+			bpOrders = append(bpOrders, i)
+		} else {
+			pos := find(i.Big(), bpOrders)
+			rear := append([]common.Address{}, bpOrders[pos:]...)
+			bpOrders = append(append(bpOrders[:pos], i), rear...)
 		}
 	}
+
 	for _, index := range bpOrders {
 		bps = append(bps, i.UserBasisPermi[index])
 	}
@@ -207,4 +204,21 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 		UserBasisPermi:    bps,
 		UBPArray:          bpOrders,
 	})
+}
+
+func find(h *big.Int, vs []common.Address) int {
+	low, height := 0, len(vs)-1
+	mid := 0
+	for low <= height {
+		mid = (height + low) / 2
+		if h.Cmp(vs[mid].Big()) > 0 {
+			low = mid + 1
+			if low > height {
+				return low
+			}
+		} else {
+			height = mid - 1
+		}
+	}
+	return mid
 }
