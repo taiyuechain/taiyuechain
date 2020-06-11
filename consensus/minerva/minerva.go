@@ -55,7 +55,7 @@ var (
 	maxUint128 = new(big.Int).Exp(big.NewInt(2), big.NewInt(128), big.NewInt(0))
 
 	// sharedMinerva is a full instance that can be shared between multiple users.
-	sharedMinerva = New(Config{"", 3, 0, "", 1, 0, ModeNormal, 0})
+	sharedMinerva = New(Config{ModeNormal})
 
 	//SnailBlockRewardsBase Snail block rewards base value is 115.555555555555 * 10^12
 	SnailBlockRewardsBase = 115555555555555
@@ -257,7 +257,7 @@ func (m *Minerva) SetCimList(clist *cim.CimList) {
 // NewTester creates a small sized minerva scheme useful only for testing
 // purposes.
 func NewTester() *Minerva {
-	return New(Config{CachesInMem: 1, PowMode: ModeTest})
+	return New(Config{PowMode: ModeTest})
 }
 
 // NewFaker creates a minerva consensus engine with a fake PoW scheme that accepts
