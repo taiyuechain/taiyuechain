@@ -1022,7 +1022,7 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	//CheckExclusive(ctx, LightServFlag, LightModeFlag)
 	CheckExclusive(ctx, LightServFlag, SyncModeFlag, "light")
 
-	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
+	// ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setEthash(ctx, cfg)
@@ -1270,7 +1270,7 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	engine = minerva.NewFaker()
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		engine = minerva.New(minerva.Config{
-			PowMode: yue.DefaultConfig.MinervaMode,
+			PowMode: minerva.ToMinervaMode(yue.DefaultConfig.MinervaMode),
 		})
 	}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {

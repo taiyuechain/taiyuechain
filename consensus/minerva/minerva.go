@@ -188,6 +188,22 @@ const (
 	ModeFullFake
 )
 
+func ToMinervaMode(val int) Mode {
+	m := Mode(val)
+	switch m {
+	case ModeFake:
+		return ModeFake
+	case ModeShared:
+		return ModeShared
+	case ModeTest:
+		return ModeTest
+	case ModeFullFake:
+		return ModeFullFake
+	default:
+		return ModeNormal
+	}
+}
+
 // Config are the configuration parameters of the minerva.
 type Config struct {
 	PowMode Mode

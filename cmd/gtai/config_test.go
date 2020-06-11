@@ -1,14 +1,14 @@
 package main
 
 import (
-	"testing"
-	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"encoding/hex"
+	"fmt"
+	"testing"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
 )
 
-
-func TestConfigTomlFile(t *testing.T)   {
+func TestConfigTomlFile(t *testing.T) {
 
 	cfg := gethConfig{}
 	file := "./config.toml"
@@ -16,8 +16,8 @@ func TestConfigTomlFile(t *testing.T)   {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	pubk,err := crypto.GetPubByteFromCert(cfg.Etrue.Genesis.CertList[0])
-	if err!=nil{
+	pubk, err := crypto.GetPubByteFromCert(cfg.Etrue.Genesis.CertList[0])
+	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")
 	}

@@ -102,7 +102,7 @@ func New(ctx *node.ServiceContext, config *yue.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           yue.CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.Mode(config.MinervaMode)}, chainConfig, chainDb),
+		engine:           yue.CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.ToMinervaMode(config.MinervaMode)}, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),

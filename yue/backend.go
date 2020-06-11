@@ -147,7 +147,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		chainConfig:    chainConfig,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.Mode(config.MinervaMode)}, chainConfig, chainDb),
+		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.ToMinervaMode(config.MinervaMode)}, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.GasPrice,
