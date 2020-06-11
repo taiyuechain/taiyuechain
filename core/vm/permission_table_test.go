@@ -16,6 +16,7 @@
 package vm
 
 import (
+	"math/big"
 	"testing"
 	"github.com/taiyuechain/taiyuechain/common"
 	"fmt"
@@ -288,3 +289,79 @@ func Test1(t *testing.T) {
 	}
 }
 
+func TestSortRlp(t *testing.T) {
+	lenSum := 100
+	userAddress := make(map[common.Address]int, lenSum)
+	for i := 0; i < lenSum; i++ {
+		prv, _ := crypto.GenerateKey()
+		address := crypto.PubkeyToAddress(prv.PublicKey)
+		userAddress[address] = i + 10
+	}
+	ctpOrders := sortArr(userAddress)
+	ctpOrders2 := sortBinary(userAddress)
+	for i, v := range ctpOrders {
+		if ctpOrders2[i] != v {
+			fmt.Println("i ", i, " v ", v)
+		}
+	}
+
+	var ctps []int
+	for _, index := range ctpOrders {
+		ctps = append(ctps, userAddress[index])
+	}
+}
+
+func sortArr(userAddress map[common.Address]int) []common.Address {
+	var ctpOrders []common.Address
+	count := 0
+	for i, _ := range userAddress {
+		ctpOrders = append(ctpOrders, i)
+		count++
+	}
+	for m := 0; m < len(ctpOrders)-1; m++ {
+		for n := 0; n < len(ctpOrders)-1-m; n++ {
+			if ctpOrders[n].Big().Cmp(ctpOrders[n+1].Big()) > 0 {
+				ctpOrders[n], ctpOrders[n+1] = ctpOrders[n+1], ctpOrders[n]
+			}
+			count++
+		}
+	}
+	fmt.Println("sortArr ", count)
+	return ctpOrders
+}
+
+var countBinary = 0
+
+func sortBinary(userAddress map[common.Address]int) []common.Address {
+	var bpOrders []common.Address
+	for i, _ := range userAddress {
+		countBinary++
+		if bpOrders == nil {
+			bpOrders = append(bpOrders, i)
+		} else {
+			pos := find1(i.Big(), bpOrders)
+			rear := append([]common.Address{}, bpOrders[pos:]...)
+			bpOrders = append(append(bpOrders[:pos], i), rear...)
+		}
+	}
+	fmt.Println("sortBinary ", countBinary)
+	return bpOrders
+}
+
+func find1(h *big.Int, vs []common.Address) int {
+	low, height := 0, len(vs)-1
+	mid := 0
+	for low <= height {
+		countBinary++
+		mid = (height + low) / 2
+		if h.Cmp(vs[mid].Big()) > 0 {
+			low = mid + 1
+			if low > height {
+				return low
+			}
+		} else {
+			height = mid - 1
+		}
+	}
+	return mid
+}
