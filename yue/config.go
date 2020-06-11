@@ -100,7 +100,9 @@ type Config struct {
 	TrieCache          int
 	TrieTimeout        time.Duration
 	// ModeNormal(0) for Minerva
-	MinervaMode int
+	MinervaMode   int
+	MinerGasCeil  uint64
+	MinerGasFloor uint64
 	// Transaction pool options
 	TxPool core.TxPoolConfig
 	// Gas Price Oracle options

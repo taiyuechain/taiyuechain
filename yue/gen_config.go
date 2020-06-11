@@ -38,6 +38,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		StandbyPort             int
 		NodeType                bool
 		GasPrice                *big.Int
+		MinerGasCeil            *uint64
+		MinerGasFloor           *uint64
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
@@ -61,6 +63,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Host = c.Host
 	enc.Port = c.Port
+	enc.MinerGasCeil = c.MinerGasCeil
+	enc.MinerGasFloor = c.MinerGasFloor
 	enc.StandbyPort = c.StandbyPort
 	enc.CommitteeKey = c.CommitteeKey
 	enc.NodeCert = c.NodeCert
@@ -93,6 +97,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		Host                    *string
 		Port                    *int
 		StandbyPort             *int
+		MinerGasCeil            *uint64
+		MinerGasFloor           *uint64
 		CommitteeKey            *hexutil.Bytes
 		NodeCert                *hexutil.Bytes
 		P2PNodeCert             *hexutil.Bytes
@@ -174,6 +180,12 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.GasPrice != nil {
 		c.GasPrice = dec.TxPool
+	}
+	if dec.MinerGasCeil != nil {
+		c.MinerGasCeil = *dec.MinerGasCeil
+	}
+	if dec.MinerGasFloor != nil {
+		c.MinerGasFloor = *dec.MinerGasFloor
 	}
 	if dec.GPO != nil {
 		c.GPO = *dec.GPO
