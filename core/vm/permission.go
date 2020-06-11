@@ -16,10 +16,10 @@
 package vm
 
 import (
-	"strings"
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
-	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/log"
+	"strings"
 )
 
 //*************************
@@ -204,7 +204,7 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 const PermissionABIJSON = `
 [
 	{
-    	"name": "grantPermission",
+    	"name": "GrantPermission",
     	"outputs": [],
     	"inputs": [
 	 	 {
@@ -221,19 +221,19 @@ const PermissionABIJSON = `
     	"outputs": [],
     	"inputs": [
 	  	{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "Creator"
       	},
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "Member"
       	},
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "GropAddr"
       	},
 		{
-        	"type": "int",
+        	"type": "uint256",
         	"name": "MPermType"
       	},
 		{
@@ -262,7 +262,7 @@ const PermissionABIJSON = `
         	"name": "GropAddr"
       	},
 		{
-        	"type": "int",
+        	"type": "uint256",
         	"name": "MPermType"
       	},
 		{

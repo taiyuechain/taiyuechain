@@ -30,9 +30,7 @@ import (
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
 // deployed contract addresses (relevant after the account abstraction).
 
-
 var emptyCodeHash = crypto.Keccak256Hash(nil)
-
 
 type (
 	// CanTransferFunc is the signature of a transfer guard function
@@ -192,7 +190,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		snapshot = evm.StateDB.Snapshot()
 	)
 	if !evm.StateDB.Exist(addr) {
-		precompiles := PrecompiledContractsByzantium
+		precompiles := PrecompiledContractsCA
 		if precompiles[addr] == nil && /*evm.ChainConfig().IsEIP158(evm.BlockNumber) && */ value.Sign() == 0 {
 			// Calling a non existing account, don't do anything, but ping the tracer
 			if evm.vmConfig.Debug && evm.depth == 0 {

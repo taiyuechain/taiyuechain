@@ -18,15 +18,17 @@
 package consensus
 
 import (
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/rpc"
-	"github.com/taiyuechain/taiyuechain/cim"
 )
 
 // ChainReader defines a small collection of methods needed to access the local
@@ -78,7 +80,7 @@ type SnailChainReader interface {
 type Engine interface {
 	SetElection(e CommitteeElection)
 
-    SetCimList(clist *cim.CimList)
+	SetCimList(clist *cim.CimList)
 
 	GetElection() CommitteeElection
 
@@ -190,13 +192,35 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 
 		return true
 	}
+
+	pTAddress := types.PermiTableAddress
+	ptKey := common.BytesToHash(pTAddress[:])
+	objpt := state.GetCAState(pTAddress, ptKey)
+	if len(objpt) == 0 {
+		i := vm.NewPerminTable()
+		var addrs []common.Address
+		for _, cert := range certList {
+			pub, err := crypto.FromCertBytesToPubKey(cert)
+			if err != nil {
+				log.Error("makeCAContractInitState permission error")
+				return false
+			}
+			addrs = append(addrs, crypto.PubkeyToAddress(*pub))
+		}
+		i.InitPBFTRootGrop(addrs)
+		i.Save(state)
+		state.SetNonce(pTAddress, 1)
+		state.SetCode(pTAddress, pTAddress[:])
+
+		return true
+	}
 	return false
 }
 func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumber *big.Int, certList [][]byte) bool {
 	return makeCAContractInitState(state, certList, fastNumber)
 }
 
-func CheckCAElection(state *state.StateDB, fastNumber *big.Int,rootCimList *cim.CimList) {
+func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim.CimList) {
 	CaCertAddress := types.CACertListAddress
 	i := vm.NewCACertList()
 	i.LoadCACertList(state, CaCertAddress)
