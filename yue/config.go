@@ -22,6 +22,7 @@ import (
 	"os/user"
 	"time"
 
+	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -73,6 +74,7 @@ type Config struct {
 	NoPruning    bool
 	DeletedState bool
 
+	Whitelist map[uint64]common.Hash `toml:"-"`
 	// Whitelist of required block number -> hash values to accept
 	// Whitelist map[uint64]common.Hash `toml:"-"`
 

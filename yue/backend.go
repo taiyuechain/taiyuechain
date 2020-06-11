@@ -34,7 +34,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	elect "github.com/taiyuechain/taiyuechain/consensus/election"
@@ -46,7 +45,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 
-	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/internal/taiapi"
 	"github.com/taiyuechain/taiyuechain/yue/downloader"
@@ -103,8 +101,7 @@ type Taiyuechain struct {
 	APIBackend *TrueAPIBackend
 
 	//miner     *miner.Miner
-	gasPrice  *big.Int
-	etherbase common.Address
+	gasPrice *big.Int
 
 	networkID     uint64
 	netRPCService *taiapi.PublicNetAPI
@@ -142,12 +139,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
-	/*if config.Genesis != nil {
-		config.MinerGasFloor = config.Genesis.GasLimit * 9 / 10
-		config.MinerGasCeil = config.Genesis.GasLimit * 11 / 10
-	}*/
-
-	NewCIMList := cim.NewCIMList(config.CryptoType)
+	NewCIMList := cim.NewCIMList(uint8(crypto.CryptoType))
 
 	etrue := &Taiyuechain{
 		config:         config,
@@ -155,11 +147,10 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		chainConfig:    chainConfig,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: config.MinervaMode}, chainConfig, chainDb),
+		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.Mode(config.MinervaMode)}, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.GasPrice,
-		etherbase:      config.Etherbase,
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
@@ -389,23 +380,11 @@ func (s *Taiyuechain) ResetWithFastGenesisBlock(gb *types.Block) {
 
 func (s *Taiyuechain) Etherbase() (eb common.Address, err error) {
 	s.lock.RLock()
-	etherbase := s.etherbase
+	etherbase := s.agent.committeeNode.Coinbase
 	s.lock.RUnlock()
 
 	if etherbase != (common.Address{}) {
 		return etherbase, nil
-	}
-	if wallets := s.AccountManager().Wallets(); len(wallets) > 0 {
-		if accounts := wallets[0].Accounts(); len(accounts) > 0 {
-			etherbase := accounts[0].Address
-
-			s.lock.Lock()
-			s.etherbase = etherbase
-			s.lock.Unlock()
-
-			log.Info("Coinbase automatically configured", "address", etherbase)
-			return etherbase, nil
-		}
 	}
 	return common.Address{}, fmt.Errorf("coinbase must be explicitly specified")
 }
@@ -413,7 +392,6 @@ func (s *Taiyuechain) Etherbase() (eb common.Address, err error) {
 // SetEtherbase sets the mining reward address.
 func (s *Taiyuechain) SetEtherbase(etherbase common.Address) {
 	s.lock.Lock()
-	s.etherbase = etherbase
 	s.agent.committeeNode.Coinbase = etherbase
 	s.lock.Unlock()
 }

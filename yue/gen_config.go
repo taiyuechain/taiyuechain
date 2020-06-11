@@ -6,10 +6,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yue/downloader"
 	"github.com/taiyuechain/taiyuechain/yue/gasprice"
 )
@@ -27,7 +27,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		SkipBcVersionCheck      bool                   `toml:"-"`
 		DatabaseHandles         int                    `toml:"-"`
 		DatabaseCache           int
-		TrieCleanCache          int
+		TrieCache               int
 		TrieTimeout             time.Duration
 		MinervaMode             int
 		Host                    string
@@ -38,14 +38,13 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		StandbyPort             int
 		NodeType                bool
 		GasPrice                *big.Int
-		MinerGasCeil            *uint64
-		MinerGasFloor           *uint64
+		MinerGasCeil            uint64
+		MinerGasFloor           uint64
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
-		DocRoot                 string                         `toml:"-"`
-		Checkpoint              *params.TrustedCheckpoint      `toml:",omitempty"`
-		CheckpointOracle        *params.CheckpointOracleConfig `toml:",omitempty"`
+		DocRoot                 string                    `toml:"-"`
+		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -58,7 +57,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.SkipBcVersionCheck = c.SkipBcVersionCheck
 	enc.DatabaseHandles = c.DatabaseHandles
 	enc.DatabaseCache = c.DatabaseCache
-	enc.TrieCleanCache = c.TrieCleanCache
+	enc.TrieCache = c.TrieCache
 	enc.MinervaMode = c.MinervaMode
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Host = c.Host
@@ -92,7 +91,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		SkipBcVersionCheck      *bool                  `toml:"-"`
 		DatabaseHandles         *int                   `toml:"-"`
 		DatabaseCache           *int
-		TrieCleanCache          *int
+		TrieCache               *int
 		MinervaMode             *int
 		Host                    *string
 		Port                    *int
@@ -145,8 +144,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.DatabaseCache != nil {
 		c.DatabaseCache = *dec.DatabaseCache
 	}
-	if dec.TrieCleanCache != nil {
-		c.TrieCleanCache = *dec.TrieCleanCache
+	if dec.TrieCache != nil {
+		c.TrieCache = *dec.TrieCache
 	}
 	if dec.MinervaMode != nil {
 		c.MinervaMode = *dec.MinervaMode
@@ -179,7 +178,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		c.TxPool = *dec.TxPool
 	}
 	if dec.GasPrice != nil {
-		c.GasPrice = dec.TxPool
+		c.GasPrice = dec.GasPrice
 	}
 	if dec.MinerGasCeil != nil {
 		c.MinerGasCeil = *dec.MinerGasCeil
