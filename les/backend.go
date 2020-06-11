@@ -102,7 +102,7 @@ func New(ctx *node.ServiceContext, config *yue.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           yue.CreateConsensusEngine(ctx, &ethash.Config{PowMode: config.MinervaMode}, chainConfig, chainDb),
+		engine:           yue.CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.Mode(config.MinervaMode)}, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
@@ -112,9 +112,6 @@ func New(ctx *node.ServiceContext, config *yue.Config) (*LightEtrue, error) {
 	}
 
 	var trustedNodes []string
-	if leth.config.ULC != nil {
-		trustedNodes = leth.config.ULC.TrustedServers
-	}
 	leth.relay = NewLesTxRelay(peers, leth.reqDist)
 	leth.serverPool = newServerPool(chainDb, quitSync, &leth.wg, trustedNodes)
 	leth.retriever = newRetrieveManager(peers, leth.reqDist, leth.serverPool)
