@@ -593,6 +593,7 @@ func MakeDataDir(ctx *cli.Context) string {
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 
+
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
 		file = ctx.GlobalString(NodeKeyFileFlag.Name)
@@ -612,6 +613,13 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 			Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
 		}
 		cfg.PrivateKey = key
+	}
+
+	if ctx.GlobalBool(SingleNodeFlag.Name) {
+		//TODO need add to config to 
+		prikey, _ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+		cfg.PrivateKey = prikey
+
 	}
 }
 
