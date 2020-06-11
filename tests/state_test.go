@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"reflect"
 	"testing"
 
@@ -34,11 +33,11 @@ func TestState(t *testing.T) {
 
 	st.addDefault()
 	st.addFrontierFails()
-	st.addHomesteadFails();
-	st.addEIP150Fails();
-	st.addEIP158Fails();
-	st.addByzantiumFails();
-	st.addConstantinopleFails();
+	st.addHomesteadFails()
+	st.addEIP150Fails()
+	st.addEIP158Fails()
+	st.addByzantiumFails()
+	st.addConstantinopleFails()
 	st.walk(t, stateTestDir, func(t *testing.T, name string, test *StateTest) {
 		for _, subtest := range test.Subtests() {
 			subtest := subtest
@@ -61,8 +60,6 @@ const traceErrorLimit = 400000
 // The VM config for state tests that accepts --vm.* command line arguments.
 var testVMConfig = func() vm.Config {
 	vmconfig := vm.Config{}
-	flag.StringVar(&vmconfig.EVMInterpreter, utils.EVMInterpreterFlag.Name, utils.EVMInterpreterFlag.Value, utils.EVMInterpreterFlag.Usage)
-	flag.StringVar(&vmconfig.EWASMInterpreter, utils.EWASMInterpreterFlag.Name, utils.EWASMInterpreterFlag.Value, utils.EWASMInterpreterFlag.Usage)
 	flag.Parse()
 	return vmconfig
 }()

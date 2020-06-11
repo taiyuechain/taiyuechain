@@ -60,16 +60,6 @@ DurationLimit = 10
 [Etrue.Genesis.Config.TIP3]
 FastNumber=0
 
-[Etrue.MinervaHash]
-CacheDir = "minerva"
-CachesInMem = 2
-CachesOnDisk = 3
-DatasetDir = "/home/true/.minerva"
-DatasetsInMem = 1
-DatasetsOnDisk = 1
-PowMode = 0
-Tip9 = 0
-
 [Etrue.TxPool]
 NoGasUsage = true
 NoLocals = false

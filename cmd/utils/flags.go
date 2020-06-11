@@ -569,17 +569,6 @@ var (
 		Usage: "InfluxDB `host` tag attached to all measurements",
 		Value: "localhost",
 	}
-
-	EWASMInterpreterFlag = cli.StringFlag{
-		Name:  "vm.ewasm",
-		Usage: "External ewasm configuration (default = built-in interpreter)",
-		Value: "",
-	}
-	EVMInterpreterFlag = cli.StringFlag{
-		Name:  "vm.evm",
-		Usage: "External EVM configuration (default = built-in interpreter)",
-		Value: "",
-	}
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating
@@ -1281,13 +1270,7 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	engine = minerva.NewFaker()
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		engine = minerva.New(minerva.Config{
-			CacheDir:       stack.ResolvePath(yue.DefaultConfig.MinervaHash.CacheDir),
-			CachesInMem:    yue.DefaultConfig.MinervaHash.CachesInMem,
-			CachesOnDisk:   yue.DefaultConfig.MinervaHash.CachesOnDisk,
-			DatasetDir:     stack.ResolvePath(yue.DefaultConfig.MinervaHash.DatasetDir),
-			DatasetsInMem:  yue.DefaultConfig.MinervaHash.DatasetsInMem,
-			DatasetsOnDisk: yue.DefaultConfig.MinervaHash.DatasetsOnDisk,
-			Tip9:           config.TIP9.SnailNumber.Uint64(),
+			PowMode: yue.DefaultConfig.MinervaMode,
 		})
 	}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {

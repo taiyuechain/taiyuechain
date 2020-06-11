@@ -17,9 +17,10 @@
 package minerva
 
 import (
-	"github.com/taiyuechain/taiyuechain/core/types"
 	"io/ioutil"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/core/types"
 
 	//"math/big"
 	"math/rand"
@@ -27,8 +28,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/taiyuechain/taiyuechain/params"
 	"math/big"
+
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
 // Tests that minerva works correctly in test mode
@@ -68,7 +70,7 @@ func TestCacheFileEvict(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tmpdir)
-	e := New(Config{CachesInMem: 3, CachesOnDisk: 10, CacheDir: tmpdir, PowMode: ModeTest})
+	e := New(Config{PowMode: ModeTest})
 
 	workers := 8
 	epochs := 0

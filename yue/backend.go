@@ -155,7 +155,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 		chainConfig:    chainConfig,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
+		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: config.MinervaMode}, chainConfig, chainDb),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.GasPrice,
@@ -313,12 +313,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chai
 		return ethash.NewShared()
 	default:
 		engine := ethash.New(ethash.Config{
-			CacheDir:       ctx.ResolvePath(config.CacheDir),
-			CachesInMem:    config.CachesInMem,
-			CachesOnDisk:   config.CachesOnDisk,
-			DatasetDir:     config.DatasetDir,
-			DatasetsInMem:  config.DatasetsInMem,
-			DatasetsOnDisk: config.DatasetsOnDisk,
+			PowMode: config.PowMode,
 		})
 		//engine.SetThreads(-1) // Disable CPU mining
 		return engine

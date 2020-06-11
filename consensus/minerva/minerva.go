@@ -43,6 +43,7 @@ import (
 	//"math/rand"
 	"sync"
 	"time"
+
 	"github.com/taiyuechain/taiyuechain/cim"
 )
 
@@ -189,14 +190,7 @@ const (
 
 // Config are the configuration parameters of the minerva.
 type Config struct {
-	CacheDir       string
-	CachesInMem    int
-	CachesOnDisk   int
-	DatasetDir     string
-	DatasetsInMem  int
-	DatasetsOnDisk int
-	PowMode        Mode
-	Tip9           uint64
+	PowMode Mode
 }
 
 // Minerva consensus
@@ -221,35 +215,16 @@ type Minerva struct {
 
 	sbc      consensus.SnailChainReader
 	election consensus.CommitteeElection
-	certList  *cim.CimList
-
+	certList *cim.CimList
 }
 
 //var MinervaLocal *Minerva
 
 // New creates a full sized minerva hybrid consensus scheme.
 func New(config Config) *Minerva {
-	if config.CachesInMem <= 0 {
-		//log.Warn("One minerva cache must always be in memory", "requested", config.CachesInMem)
-		config.CachesInMem = 1
-	}
-	if config.CacheDir != "" && config.CachesOnDisk > 0 {
-		//log.Info("Disk storage enabled for minerva caches", "dir", config.CacheDir, "count", config.CachesOnDisk)
-	}
-	if config.DatasetDir != "" && config.DatasetsOnDisk > 0 {
-		//log.Info("Disk storage enabled for minerva DAGs", "dir", config.DatasetDir, "count", config.DatasetsOnDisk)
-	}
-
 	minerva := &Minerva{
 		config: config,
-		//caches:   newlru("cache", config.CachesInMem, newCache),
-		/*datasets: newlru("dataset", config.DatasetsInMem, NewDataset),
-		update:   make(chan struct{}),
-		hashrate: metrics.NewMeter(),*/
 	}
-
-	//MinervaLocal.CheckDataSetState(1)
-
 	return minerva
 }
 

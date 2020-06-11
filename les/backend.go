@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -101,7 +102,7 @@ func New(ctx *node.ServiceContext, config *yue.Config) (*LightEtrue, error) {
 		peers:            peers,
 		reqDist:          newRequestDistributor(peers, quitSync),
 		accountManager:   ctx.AccountManager,
-		engine:           yue.CreateConsensusEngine(ctx, &config.MinervaHash, chainConfig, chainDb),
+		engine:           yue.CreateConsensusEngine(ctx, &ethash.Config{PowMode: config.MinervaMode}, chainConfig, chainDb),
 		shutdownChan:     make(chan bool),
 		networkId:        config.NetworkId,
 		bloomRequests:    make(chan chan *bloombits.Retrieval),
