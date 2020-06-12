@@ -5524,16 +5524,12 @@ var methods = function () {
 var properties = function () {
     return [
         new Property({
-            name: 'coinbase',
-            getter: 'yue_coinbase'
-        }),
-        new Property({
             name: 'pubkey',
             getter: 'yue_pubkey'
         }),
         new Property({
-            name: 'committeeBase',
-            getter: 'yue_committeeBase'
+            name: 'committeeCoinBase',
+            getter: 'yue_committeeCoinBase'
         }),
         new Property({
             name: 'isCommitteeMember',

@@ -380,20 +380,13 @@ func (s *Taiyuechain) ResetWithFastGenesisBlock(gb *types.Block) {
 
 func (s *Taiyuechain) Etherbase() (eb common.Address, err error) {
 	s.lock.RLock()
-	etherbase := s.agent.committeeNode.Coinbase
+	etherbase := s.config.CommitteeBase
 	s.lock.RUnlock()
 
 	if etherbase != (common.Address{}) {
 		return etherbase, nil
 	}
 	return common.Address{}, fmt.Errorf("coinbase must be explicitly specified")
-}
-
-// SetEtherbase sets the mining reward address.
-func (s *Taiyuechain) SetEtherbase(etherbase common.Address) {
-	s.lock.Lock()
-	s.agent.committeeNode.Coinbase = etherbase
-	s.lock.Unlock()
 }
 
 func (s *Taiyuechain) PbftAgent() *PbftAgent             { return s.agent }

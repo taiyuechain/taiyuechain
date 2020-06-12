@@ -21,7 +21,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"io"
 	"math/big"
 	"os"
@@ -54,26 +53,14 @@ func NewPublicTaiyueChainAPI(e *Taiyuechain) *PublicTaichainAPI {
 	return &PublicTaichainAPI{e}
 }
 
-// Etherbase is the address that mining rewards will be send to
-func (api *PublicTaichainAPI) Etherbase() (common.Address, error) {
-	return api.e.Etherbase()
-}
-
-// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
-func (api *PublicTaichainAPI) Coinbase() (common.Address, error) {
-	return api.Etherbase()
-}
-
 // Pubkey is the address that mining rewards will be send to (alias for Etherbase)
 func (api *PublicTaichainAPI) Pubkey() string {
 	return common.Bytes2Hex(api.e.agent.committeeNode.Publickey)
 }
 
-// CommitteeBase is the address that generate by pubkey
-func (api *PublicTaichainAPI) CommitteeBase() common.Address {
-	pubKey, _ := crypto.UnmarshalPubkey(api.e.agent.committeeNode.Publickey)
-	return crypto.PubkeyToAddress(*pubKey)
-
+// CommitteeCoinBase is the address that mining rewards will be send to
+func (api *PublicTaichainAPI) CommitteeCoinBase() (common.Address, error) {
+	return api.e.Etherbase()
 }
 
 //IsCommitteeMember return node whether current committee member
