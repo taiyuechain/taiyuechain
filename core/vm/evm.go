@@ -25,6 +25,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
+	"errors"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -44,6 +45,16 @@ type (
 
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
+
+	pTable := NewPerminTable()
+	err := pTable.Load(evm.StateDB)
+	if err != nil {
+		return nil, err
+	}
+	if !pTable.CheckActionPerm(contract.Caller(),common.Address{},contract.self.Address(),PerminType_AccessContract){
+		return nil,errors.New("VerifyPermission the cert error")
+	}
+
 	if contract.CodeAddr != nil {
 		//precompiles := PrecompiledContractsByzantium
 		precompiles := PrecompiledContractsCA
@@ -221,6 +232,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			evm.vmConfig.Tracer.CaptureEnd(ret, gas-contract.Gas, time.Since(start), err)
 		}()
 	}
+
 	ret, err = run(evm, contract, input, false)
 
 	// When an error was returned by the EVM or when setting the creation code

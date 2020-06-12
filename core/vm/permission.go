@@ -76,7 +76,7 @@ func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	//GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
 	args := struct {
-		Creator 		common.Address
+		ContractAddr	common.Address
 		Member  		common.Address
 		GropAddr		common.Address
 		MPermType 		int
@@ -89,22 +89,24 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, err
 	}
 
-	/*if ModifyPerminType(args.MPermType) != ModifyPerminType_AddSendTxPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddSendTxManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddCrtContractPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddCrtContractManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddGropManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddGropMemberPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddContractMemberPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddContractManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddWhitListPerm {
-		return nil, err
-	}*/
-
 	pTable := NewPerminTable()
 	err = pTable.Load(evm.StateDB)
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+
 	from := contract.caller.Address()
 	creator := pTable.GetCreator(from)
 
 	if len(creator) == 0 {
 		return nil,ErrPermissionInvalidFrom
 	}
+
+	if !pTable.CheckActionPerm(from,args.GropAddr,args.ContractAddr,ModifyPerminType(args.MPermType)){
+		return nil,err
+	}
+
 	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
 	if !res{
 		return nil,err
@@ -118,7 +120,7 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	//GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
 	args := struct {
-		Creator 		common.Address
+		ContractAddr	common.Address
 		Member  		common.Address
 		GropAddr		common.Address
 		MPermType 		int
@@ -130,6 +132,8 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 	if err != nil {
 		return nil, err
 	}
+
+
 
 	/*if ModifyPerminType(args.MPermType) != ModifyPerminType_AddSendTxPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddSendTxManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddCrtContractPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddCrtContractManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddGropManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddGropMemberPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddContractMemberPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddContractManagerPerm || ModifyPerminType(args.MPermType) != ModifyPerminType_AddWhitListPerm {
 		return nil, err
@@ -143,10 +147,15 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 	}
 	from := contract.caller.Address()
 	creator := pTable.GetCreator(from)
-
 	if len(creator) == 0 {
 		return nil,ErrPermissionInvalidFrom
 	}
+
+	if !pTable.CheckActionPerm(from,args.GropAddr,args.ContractAddr,ModifyPerminType(args.MPermType)){
+		return nil,err
+	}
+
+
 	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
 	if !res{
 		return nil,err
@@ -173,8 +182,11 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 		return nil, err
 	}
 	from := contract.caller.Address()
+	if !pTable.CheckActionPerm(from,common.Address{},common.Address{},ModifyPerminType_CrtGrop){
+		return nil,err
+	}
 
-	res,err:=pTable.GrantPermission(from,from,common.Address{},common.Address{},ModifyPerminType_CrtContractPerm,args.gropName,false)
+	res,err:=pTable.GrantPermission(from,from,common.Address{},common.Address{},ModifyPerminType_CrtGrop,args.gropName,false)
 	if !res{
 		return nil,err
 	}
@@ -198,9 +210,12 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
-	//from := contract.caller.Address()
+	from := contract.caller.Address()
+	if !pTable.CheckActionPerm(from,args.GroupAddr,common.Address{},ModifyPerminType_DelGrop){
+		return nil,err
+	}
 
-	res,err:=pTable.GrantPermission(common.Address{},common.Address{},common.Address{},args.GroupAddr,ModifyPerminType_CrtContractPerm,"",false)
+	res,err:=pTable.GrantPermission(common.Address{},common.Address{},common.Address{},args.GroupAddr,ModifyPerminType_DelGrop,"",false)
 	if !res{
 		return nil,err
 	}
@@ -228,11 +243,12 @@ const PermissionABIJSON = `
     	"name": "grantPermission",
     	"outputs": [],
     	"inputs": [
-	  	{
-        	"type": "address",
-        	"name": "Creator"
+		{
+        	"type": "bytes",
+        	"name": "ContractAddr"
       	},
 		{
+        	"type": "bytes",
         	"type": "address",
         	"name": "Member"
       	},
@@ -257,6 +273,10 @@ const PermissionABIJSON = `
     	"name": "revokePermission",
     	"outputs": [],
     	"inputs": [
+		{
+        	"type": "bytes",
+        	"name": "ContractAddr"
+      	},
 		{
         	"type": "bytes",
         	"name": "Member"
