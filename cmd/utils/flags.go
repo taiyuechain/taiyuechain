@@ -615,10 +615,12 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCert) <= 0 {
 		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCert is nil")
 	}
-	if key, err = crypto.HexToECDSA(cfg.P2PKey); err != nil {
+	if key, err := crypto.ToECDSA(cfg.P2PKey); err != nil {
 		Fatalf("Option %v: %v", cfg.P2PKey, err)
+	} else {
+		cfg.PrivateKey = key
 	}
-	cfg.PrivateKey = key
+
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
 		//TODO need add to config to
 		prikey, _ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
