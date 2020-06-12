@@ -59,7 +59,7 @@ func (api *PublicTaichainAPI) Pubkey() string {
 }
 
 // CommitteeCoinBase is the address that mining rewards will be send to
-func (api *PublicTaichainAPI) CommitteeCoinBase() (common.Address, error) {
+func (api *PublicTaichainAPI) CommitteeCoinBase() common.Address {
 	return api.e.Etherbase()
 }
 

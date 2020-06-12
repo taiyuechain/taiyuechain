@@ -378,15 +378,9 @@ func (s *Taiyuechain) ResetWithFastGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Taiyuechain) Etherbase() (eb common.Address, err error) {
-	s.lock.RLock()
-	etherbase := s.config.CommitteeBase
-	s.lock.RUnlock()
-
-	if etherbase != (common.Address{}) {
-		return etherbase, nil
-	}
-	return common.Address{}, fmt.Errorf("coinbase must be explicitly specified")
+func (s *Taiyuechain) Etherbase() common.Address {
+	etherbase := s.agent.committeeNode.Coinbase
+	return etherbase
 }
 
 func (s *Taiyuechain) PbftAgent() *PbftAgent             { return s.agent }
