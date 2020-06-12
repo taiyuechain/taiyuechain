@@ -968,7 +968,7 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 }
 
 
-func (pt *PerminTable)CheckActionPerm(from,creator,gropAddr,contractAddr common.Address, mPermType ModifyPerminType) bool{
+func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address, mPermType ModifyPerminType) bool{
 
 	//check black list
 	for _,b := range pt.BlackList {
@@ -980,6 +980,7 @@ func (pt *PerminTable)CheckActionPerm(from,creator,gropAddr,contractAddr common.
 		if b == from{ return true}
 	}
 
+	creator := pt.GetCreator(from)
 	switch mPermType {
 	case ModifyPerminType_AddSendTxPerm ,
 	ModifyPerminType_DelSendTxPerm ,
