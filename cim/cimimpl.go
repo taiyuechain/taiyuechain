@@ -8,21 +8,31 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/core/state"
+	"sync"
+	"github.com/taiyuechain/taiyuechain/core/vm"
+	//"github.com/taiyuechain/taiyuechain/core/evm"
+	"bytes"
 )
 
 
 
 
 
+
 type CimList struct {
+	lock sync.Mutex
 	CryptoType uint8
 	CimMap []CIM
+	PTable *vm.PerminTable
 }
 
 func NewCIMList(CryptoType uint8) *CimList {
 	return &CimList{CryptoType:CryptoType}
 
 }
+
+
 
 func (cl *CimList) AddCim(cimTemp CIM) error  {
 	for _,ci:= range cl.CimMap{
@@ -92,8 +102,51 @@ func (cl *CimList) VerifyRootCert(cert []byte) error  {
 	return nil
 }
 
-func (cl *CimList) VerifyPermission(operatorFrom common.Address,tx *types.Transaction) bool  {
-	return true
+func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db state.StateDB) (bool  ,error){
+	cl.lock.Lock()
+	defer cl.lock.Unlock()
+
+	if cl.PTable == nil{
+		return false,errors.New("permission table is nil at cimlist")
+	}
+
+	from, err:= types.Sender(sender,tx)
+	if err != nil{
+		return false,err
+	}
+
+	// need check cert
+	if err :=cl.VerifyCert(tx.Cert());err !=nil{
+		return false,errors.New("VerifyPermission the cert error")
+	}
+
+	to := tx.To()
+	toAddr := common.BytesToAddress(to.Bytes())
+	if to == nil{
+		//create contract
+		//PerminType_CreateContract
+
+		cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_CreateContract)
+	}else{
+
+		// to set permisTable
+		if bytes.Equal(to.Bytes(),types.PermiTableAddress.Bytes()) && len(tx.Data()) >0{
+			//anaylis tx
+			return true,nil
+		}
+		//contract
+		if len(db.GetCode(toAddr))>0 && len(tx.Data()) >0{
+		//contract
+			cl.PTable.CheckActionPerm(from,common.Address{},toAddr,vm.PerminType_AccessContract)
+
+		}else{
+			//other transtion
+			cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_SendTx)
+		}
+
+	}
+
+	return true,nil
 }
 
 func (cl *CimList)UpdataCert(clist [][]byte)  {
@@ -110,6 +163,22 @@ func (cl *CimList)UpdataCert(clist [][]byte)  {
 	}
 
 }
+
+func (cl *CimList)UpdataPermission(db *state.StateDB)  error {
+	cl.lock.Lock()
+	defer cl.lock.Unlock()
+
+	permTable := vm.NewPerminTable()
+	err := permTable.Load(db)
+	if err != nil {
+		return errors.New("load permiTable fail")
+	}
+	cl.PTable = vm.ClonePerminCaCache(permTable)
+
+	return nil
+}
+
+
 
 
 
@@ -195,64 +264,15 @@ func (cim *cimimpl) Validate(id Identity) error {
 
 
 func (cim *cimimpl) ValidateByByte(certByte []byte) error {
-	return cim.rootCert.VerifyByte(certByte)
+	if err :=cim.rootCert.isEqulIdentity(certByte); err!=nil {
+		return cim.rootCert.VerifyByte(certByte)
+	}else{
+		return nil
+	}
 }
+
 func (cim *cimimpl) ValidateRootCert(certByte []byte) error {
 	return cim.rootCert.isEqulIdentity(certByte)
 }
 
 
-
-
-/*func (cim *cimimpl) CreateIdentity(priv string) bool {
-	//var private taiCrypto.TaiPrivateKey
-	//var public taiCrypto.TaiPublicKey
-	ca := &x509.Certificate{
-		SerialNumber: big.NewInt(1653),
-		Subject: pkix.Name{
-			Country:            []string{"China"},
-			Organization:       []string{"Yjwt"},
-			OrganizationalUnit: []string{"YjwtU"},
-		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
-		SubjectKeyId:          []byte{1, 2, 3, 4, 5},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-	}
-	ecdsa, err := crypto.HexToECDSA(priv)
-	//var thash taiCrypto.THash
-	caecda, err := crypto.ToECDSA(crypto.FromECDSA(ecdsa))
-	if err != nil {
-		log.Println("create ca failed", err)
-		return false
-	}
-	ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &caecda.PublicKey, &caecda)
-	if err != nil {
-		log.Println("create ca failed", err)
-		return false
-	}
-	encodeString := base64.StdEncoding.EncodeToString(ca_b)
-	fileName := priv[:4] + "ca.pem"
-	dstFile, err := os.Create(fileName)
-	if err != nil {
-		return false
-	}
-	defer dstFile.Close()
-	priv_b, _ := x509.MarshalECPrivateKey(caecda)
-	encodeString1 := base64.StdEncoding.EncodeToString(priv_b)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileName1 := priv[:4] + "ca.key"
-	dstFile1, err := os.Create(fileName1)
-	if err != nil {
-		return false
-	}
-	defer dstFile1.Close()
-	dstFile1.WriteString(encodeString1 + "\n")
-	fmt.Println(encodeString)
-	return true
-}*/
