@@ -22,8 +22,8 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		SyncMode                downloader.SyncMode
 		NoPruning               bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
-		LightServ               int                    `toml:"-"`
-		LightPeers              int                    `toml:"-"`
+		LightServ               int                    `toml:",omitempty"`
+		LightPeers              int                    `toml:",omitempty"`
 		SkipBcVersionCheck      bool                   `toml:"-"`
 		DatabaseHandles         int                    `toml:"-"`
 		DatabaseCache           int
@@ -37,12 +37,13 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		Port                    int
 		StandbyPort             int
 		NodeType                bool
-		GasPrice                *big.Int
+		GasPrice                *big.Int `toml:",omitempty"`
 		MinerGasCeil            uint64
 		MinerGasFloor           uint64
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
+		EnableElection          bool
 		DocRoot                 string                    `toml:"-"`
 		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
@@ -73,6 +74,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
+	enc.EnableElection = c.EnableElection
 	enc.DocRoot = c.DocRoot
 	enc.Checkpoint = c.Checkpoint
 	return &enc, nil
@@ -86,8 +88,8 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		SyncMode                *downloader.SyncMode
 		NoPruning               *bool
 		Whitelist               map[uint64]common.Hash `toml:"-"`
-		LightServ               *int                   `toml:"-"`
-		LightPeers              *int                   `toml:"-"`
+		LightServ               *int                   `toml:",omitempty"`
+		LightPeers              *int                   `toml:",omitempty"`
 		SkipBcVersionCheck      *bool                  `toml:"-"`
 		DatabaseHandles         *int                   `toml:"-"`
 		DatabaseCache           *int
@@ -104,9 +106,10 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		TrieTimeout             *time.Duration
 		NodeType                *bool
 		TxPool                  *core.TxPoolConfig
-		GasPrice                *big.Int
+		GasPrice                *big.Int `toml:",omitempty"`
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
+		EnableElection          *bool
 		DocRoot                 *string                   `toml:"-"`
 		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
@@ -191,6 +194,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.EnablePreimageRecording != nil {
 		c.EnablePreimageRecording = *dec.EnablePreimageRecording
+	}
+	if dec.EnableElection != nil {
+		c.EnableElection = *dec.EnableElection
 	}
 	if dec.DocRoot != nil {
 		c.DocRoot = *dec.DocRoot
