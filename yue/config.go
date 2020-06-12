@@ -77,8 +77,8 @@ type Config struct {
 	// Whitelist of required block number -> hash values to accept
 	Whitelist map[uint64]common.Hash `toml:"-"`
 	// Light client options
-	LightServ  int      `toml:",omitempty"` // Maximum percentage of time allowed for serving LES requests
-	LightPeers int      `toml:",omitempty"` // Maximum number of LES client peers
+	LightServ  int      `toml:"-"` // Maximum percentage of time allowed for serving LES requests
+	LightPeers int      `toml:"-"` // Maximum number of LES client peers
 	GasPrice   *big.Int `toml:",omitempty"`
 	// CommitteeKey is the ECDSA private key for committee member.
 	// If this filed is empty, can't be a committee member.
