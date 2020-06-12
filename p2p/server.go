@@ -22,16 +22,17 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
-	"github.com/taiyuechain/taiyuechain/p2p/enr"
-	"github.com/taiyuechain/taiyuechain/rlp"
 	"net"
 	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
+	"github.com/taiyuechain/taiyuechain/p2p/enr"
+	"github.com/taiyuechain/taiyuechain/rlp"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
@@ -65,7 +66,9 @@ var errServerStopped = errors.New("server stopped")
 type Config struct {
 	// This field must be set to a valid secp256k1 private key.
 	//caoliang modify
-	PrivateKey *ecdsa.PrivateKey `toml:"-"`
+	PrivateKey  *ecdsa.PrivateKey `toml:"-"`
+	P2PNodeCert []byte
+	P2PKey      []byte
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.
 	MaxPeers int

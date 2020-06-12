@@ -34,7 +34,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		CommitteeKey            hexutil.Bytes
 		CommitteeBase           common.Address
 		NodeCert                hexutil.Bytes
-		P2PNodeCert             hexutil.Bytes
 		Port                    int
 		StandbyPort             int
 		NodeType                bool
@@ -69,7 +68,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.CommitteeKey = c.CommitteeKey
 	enc.CommitteeBase = c.CommitteeBase
 	enc.NodeCert = c.NodeCert
-	enc.P2PNodeCert = c.P2PNodeCert
 	enc.NodeType = c.NodeType
 	enc.GasPrice = c.GasPrice
 	enc.TxPool = c.TxPool
@@ -103,7 +101,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		CommitteeKey            *hexutil.Bytes
 		CommitteeBase           *common.Address
 		NodeCert                *hexutil.Bytes
-		P2PNodeCert             *hexutil.Bytes
 		TrieTimeout             *time.Duration
 		NodeType                *bool
 		TxPool                  *core.TxPoolConfig
@@ -173,9 +170,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.NodeCert != nil {
 		c.NodeCert = *dec.NodeCert
-	}
-	if dec.P2PNodeCert != nil {
-		c.P2PNodeCert = *dec.P2PNodeCert
 	}
 	if dec.NodeType != nil {
 		c.NodeType = *dec.NodeType

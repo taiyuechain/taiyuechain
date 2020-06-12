@@ -82,8 +82,10 @@ type Config struct {
 	GasPrice   *big.Int `toml:"-"`
 	// CommitteeKey is the ECDSA private key for committee member.
 	// If this filed is empty, can't be a committee member.
-	CommitteeKey  []byte `toml:",omitempty"`
+	CommitteeKey  []byte
 	CommitteeBase common.Address
+	// Node Cert used for consensus
+	NodeCert []byte
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
@@ -116,9 +118,7 @@ type Config struct {
 
 	// // true indicate singlenode start
 	NodeType bool `toml:",omitempty"`
-	// Node Cert used for consensus
-	NodeCert       []byte
-	P2PNodeCert    []byte
+
 	EnableElection bool
 	// Checkpoint is a hardcoded checkpoint which can be nil.
 	Checkpoint *params.TrustedCheckpoint `toml:",omitempty"`

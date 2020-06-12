@@ -592,31 +592,35 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
-
-
-	var (
-		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
-		file = ctx.GlobalString(NodeKeyFileFlag.Name)
-		key  *ecdsa.PrivateKey
-		err  error
-	)
-	switch {
-	case file != "" && hex != "":
-		Fatalf("Options %q and %q are mutually exclusive", NodeKeyFileFlag.Name, NodeKeyHexFlag.Name)
-	case file != "":
-		if key, err = crypto.LoadECDSA(file); err != nil {
-			Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
-		}
-		cfg.PrivateKey = key
-	case hex != "":
-		if key, err = crypto.HexToECDSA(hex); err != nil {
-			Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
-		}
-		cfg.PrivateKey = key
+	// var (
+	// 	hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
+	// 	file = ctx.GlobalString(NodeKeyFileFlag.Name)
+	// 	key  *ecdsa.PrivateKey
+	// 	err  error
+	// )
+	// switch {
+	// case file != "" && hex != "":
+	// 	Fatalf("Options %q and %q are mutually exclusive", NodeKeyFileFlag.Name, NodeKeyHexFlag.Name)
+	// case file != "":
+	// 	if key, err = crypto.LoadECDSA(file); err != nil {
+	// 		Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
+	// 	}
+	// 	cfg.PrivateKey = key
+	// case hex != "":
+	// 	if key, err = crypto.HexToECDSA(hex); err != nil {
+	// 		Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
+	// 	}
+	// 	cfg.PrivateKey = key
+	// }
+	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCert) <= 0 {
+		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCert is nil")
 	}
-
+	if key, err = crypto.HexToECDSA(cfg.P2PKey); err != nil {
+		Fatalf("Option %v: %v", cfg.P2PKey, err)
+	}
+	cfg.PrivateKey = key
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
-		//TODO need add to config to 
+		//TODO need add to config to
 		prikey, _ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
 		cfg.PrivateKey = prikey
 
@@ -971,19 +975,6 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 func setEthash(ctx *cli.Context, cfg *yue.Config) {
 
 }
-
-/*func setSnailPool(ctx *cli.Context, cfg *snailchain.SnailPoolConfig) {
-	if ctx.GlobalIsSet(SnailPoolJournalFlag.Name) {
-		cfg.Journal = ctx.GlobalString(SnailPoolJournalFlag.Name)
-	}
-	if ctx.GlobalIsSet(SnailPoolRejournalFlag.Name) {
-		cfg.Rejournal = ctx.GlobalDuration(SnailPoolRejournalFlag.Name)
-	}
-	if ctx.GlobalIsSet(SnailPoolFruitCountFlag.Name) {
-		cfg.FruitCount = ctx.GlobalUint64(SnailPoolFruitCountFlag.Name)
-	}
-
-}*/
 
 // CheckExclusive verifies that only a single isntance of the provided flags was
 // set by the user. Each flag might optionally be followed by a string type to
