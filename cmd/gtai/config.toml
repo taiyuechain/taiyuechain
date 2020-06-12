@@ -10,7 +10,7 @@ StandbyPort = 30311
 CommitteeBase = "0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"
 GasPrice = 10000
 EnablePreimageRecording = false
-NodeType = true
+NodeType = false
 EnableElection = true
 
 [Etrue.TxPool]
@@ -31,7 +31,7 @@ Blocks = 20
 Percentile = 60
 
 [Node]
-DataDir = "C:\\Users\\TM\\AppData\\Roaming\\Ethereum"
+DataDir = "data"
 IPCPath = "geth.ipc"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
