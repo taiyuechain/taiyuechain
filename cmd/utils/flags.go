@@ -1149,8 +1149,8 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 	cfg.Refresh = ctx.GlobalDuration(DashboardRefreshFlag.Name)
 }*/
 
-// RegisterEtrueService adds an Taiyuechain client to the stack.
-func RegisterEtrueService(stack *node.Node, cfg *yue.Config) {
+// RegisterYueService adds an Taiyuechain client to the stack.
+func RegisterYueService(stack *node.Node, cfg *yue.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
@@ -1158,7 +1158,7 @@ func RegisterEtrueService(stack *node.Node, cfg *yue.Config) {
 		})
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			fullNode, err := yue.New(ctx, cfg)
+			fullNode, err := yue.New(ctx, cfg, stack.Config().P2P.P2PNodeCert)
 			if fullNode != nil && cfg.LightServ > 0 {
 				ls, _ := les.NewLesServer(fullNode, cfg)
 				fullNode.AddLesServer(ls)

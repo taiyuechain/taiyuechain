@@ -118,7 +118,7 @@ func (s *Taiyuechain) AddLesServer(ls LesServer) {
 
 // New creates a new Taiyuechain object (including the
 // initialisation of the common Taiyuechain object)
-func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
+func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain, error) {
 	if config.SyncMode == downloader.LightSync {
 		return nil, errors.New("can't run etrue.Taiyuechain in light sync mode, use les.LightTaiYueChain")
 	}
@@ -234,7 +234,7 @@ func New(ctx *node.ServiceContext, config *Config) (*Taiyuechain, error) {
 	}*/
 	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election,
 		NewCIMList, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList, config.P2PNodeCert); err != nil {
+	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList, p2pCert); err != nil {
 		return nil, err
 	}
 

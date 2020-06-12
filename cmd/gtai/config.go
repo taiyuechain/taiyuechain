@@ -17,10 +17,10 @@ import (
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 
 	//"github.com/taiyuechain/taiyuechain/dashboard"
+	"encoding/hex"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yue"
-	"encoding/hex"
 )
 
 var (
@@ -99,7 +99,6 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	cfg := gethConfig{
 		Etrue: yue.DefaultConfig,
 		Node:  defaultNodeConfig(),
-		//Dashboard: dashboard.DefaultConfig,
 	}
 
 	if ctx.GlobalBool(utils.SingleNodeFlag.Name) {
@@ -120,7 +119,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		cert1, _ := hex.DecodeString(strcert1)
 		cfg.Etrue.NodeCert = cert1
 
-		cfg.Etrue.P2PNodeCert = cert1
+		cfg.Node.P2P.P2PNodeCert = cert1
 		ctx.GlobalSet("datadir", "./data")
 	}
 
@@ -150,7 +149,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
-	utils.RegisterEtrueService(stack, &cfg.Etrue)
+	utils.RegisterYueService(stack, &cfg.Etrue)
 
 	/*if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
