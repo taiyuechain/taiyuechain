@@ -244,11 +244,10 @@ const PermissionABIJSON = `
     	"outputs": [],
     	"inputs": [
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "ContractAddr"
       	},
 		{
-        	"type": "bytes",
         	"type": "address",
         	"name": "Member"
       	},
@@ -274,15 +273,15 @@ const PermissionABIJSON = `
     	"outputs": [],
     	"inputs": [
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "ContractAddr"
       	},
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "Member"
       	},
 		{
-        	"type": "bytes",
+        	"type": "address",
         	"name": "GropAddr"
       	},
 		{
