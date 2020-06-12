@@ -35,6 +35,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/rlp"
 
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
@@ -156,6 +157,10 @@ type Config struct {
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
+}
+type configMarshaling struct {
+	P2PNodeCert hexutil.Bytes
+	P2PKey      hexutil.Bytes
 }
 
 // Server manages all peer connections.
