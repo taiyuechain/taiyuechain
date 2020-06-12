@@ -199,10 +199,6 @@ var (
 		Usage: "committee node standby port ",
 		Value: uint64(yue.DefaultConfig.StandbyPort),
 	}
-	BftKeyFileFlag = cli.StringFlag{
-		Name:  "bftkey",
-		Usage: "committee generate bft_privatekey",
-	}
 	BftKeyHexFlag = cli.StringFlag{
 		Name:  "bftkeyhex",
 		Usage: "committee generate bft_privatekey as hex (for testing)",
@@ -486,10 +482,6 @@ var (
 		Usage: "Comma separated enode URLs for P2P discovery bootstrap (set v4+v5 instead for light servers)",
 		Value: "",
 	}
-	NodeKeyFileFlag = cli.StringFlag{
-		Name:  "nodekey",
-		Usage: "P2P node key file",
-	}
 	NodeKeyHexFlag = cli.StringFlag{
 		Name:  "nodekeyhex",
 		Usage: "P2P node key as hex (for testing)",
@@ -623,28 +615,9 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) *ecdsa.PrivateKey {
-
-	var (
-		hex  = ctx.GlobalString(BftKeyHexFlag.Name)
-		file = ctx.GlobalString(BftKeyFileFlag.Name)
-		key  *ecdsa.PrivateKey
-
-		err error
-	)
-	log.Debug("", "file:", file, "hex:", hex)
-	switch {
-	case file != "" && hex != "":
-		Fatalf("Options %q and %q are mutually exclusive", BftKeyFileFlag.Name, BftKeyHexFlag.Name)
-	case file != "":
-		if key, err = crypto.LoadECDSA(file); err != nil {
-			Fatalf("Option %q: %v", BftKeyFileFlag.Name, err)
-		}
-		return key
-
-	case hex != "":
-		if key, err = crypto.HexToECDSA(hex); err != nil {
-			Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
-		}
+	if key, err := crypto.HexToECDSA(ctx.GlobalString(BftKeyHexFlag.Name)); err != nil {
+		Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
+	} else {
 		return key
 	}
 	return nil

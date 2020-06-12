@@ -73,7 +73,6 @@ var (
 		utils.BFTPortFlag,
 		utils.BFTStandbyPortFlag,
 		utils.BFTIPFlag,
-		utils.BftKeyFileFlag,
 		utils.BftKeyHexFlag,
 
 		utils.GCModeFlag,
@@ -96,7 +95,6 @@ var (
 		utils.NoDiscoverFlag,
 		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
-		utils.NodeKeyFileFlag,
 		utils.NodeKeyHexFlag,
 		utils.TestnetFlag,
 		utils.DevnetFlag,
