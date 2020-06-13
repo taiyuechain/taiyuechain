@@ -90,6 +90,8 @@ type StateDB struct {
 	validRevisions []revision
 	nextRevisionId int
 
+	permissionChange bool
+
 	lock sync.Mutex
 }
 
@@ -402,7 +404,15 @@ func (self *StateDB) SetCAState(addr common.Address, key common.Hash, value []by
 	stateObject := self.GetOrNewStateObject(addr)
 	if stateObject != nil {
 		stateObject.SetCAState(self.db, key, value)
+		if addr == types.PermiTableAddress {
+			self.permissionChange = true
+		}
 	}
+}
+
+// PermissionChange returns check permission change.
+func (self *StateDB) PermissionChange() bool {
+	return self.permissionChange
 }
 
 // Suicide marks the given account as suicided.
@@ -612,6 +622,7 @@ func (self *StateDB) RevertToSnapshot(revid int) {
 	// Replay the journal to undo changes and remove invalidated snapshots
 	self.journal.revert(self, snapshot)
 	self.validRevisions = self.validRevisions[:idx]
+	self.permissionChange = false
 }
 
 // GetRefund returns the current value of the refund counter.
