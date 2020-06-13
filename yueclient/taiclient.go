@@ -22,8 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
+	"strings"
 
 	"github.com/taiyuechain/taiyuechain"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -35,7 +39,9 @@ import (
 
 // Client defines typed wrappers for the Ethereum RPC API.
 type Client struct {
-	c *rpc.Client
+	c          *rpc.Client
+	ca         *abi.ABI
+	permission *abi.ABI
 }
 
 // Dial connects a client to the given URL.
@@ -53,7 +59,15 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 
 // NewClient creates a client that uses the given RPC client.
 func NewClient(c *rpc.Client) *Client {
-	return &Client{c}
+	abiCA, err := abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
+	if err != nil {
+		log.Info("NewClient abi ca json", "err", err)
+	}
+	abiPer, err := abi.JSON(strings.NewReader(vm.PermissionABIJSON))
+	if err != nil {
+		log.Info("NewClient abi permission json", "err", err)
+	}
+	return &Client{c, &abiCA, &abiPer}
 }
 
 func (ec *Client) Close() {
@@ -585,3 +599,94 @@ func (ec *Client) ListAccounts(ctx context.Context) ([]common.Address, error) {
 	}
 	return result, nil
 }
+
+func (ec *Client) AppendCert(ctx context.Context, tx *types.Transaction, self, proposalCert []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", self, proposalCert, true)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("AppendCert", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) DelCert(ctx context.Context, tx *types.Transaction, self, proposalCert []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", self, proposalCert, false)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("DelCert", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) GrantPermission(ctx context.Context, tx *types.Transaction, ContractAddr, Member, GroupAddr common.Address, MPermType *big.Int, WhiteListisWork bool) (*types.Transaction, error) {
+	input, err := ec.permission.Pack("grantPermission", ContractAddr, Member, GroupAddr, MPermType, WhiteListisWork)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("GrantPermission", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) RevokePermission(ctx context.Context, tx *types.Transaction, ContractAddr, Member, GroupAddr common.Address, MPermType *big.Int, WhiteListisWork bool) (*types.Transaction, error) {
+	input, err := ec.permission.Pack("revokePermission", ContractAddr, Member, GroupAddr, MPermType, WhiteListisWork)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("RevokePermission", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) AddWhiteList(ctx context.Context, tx *types.Transaction, to []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", to, true)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("AddWhiteList", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) RemoveWhileList(ctx context.Context, tx *types.Transaction, to []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", to, true)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("RemoveWhileList", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) AddBlankList(ctx context.Context, tx *types.Transaction, to []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", to, true)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("AddBlankList", "err", err)
+	}
+	return tx, err
+}
+
+func (ec *Client) RemoveBlankList(ctx context.Context, tx *types.Transaction, to []byte) (*types.Transaction, error) {
+	input, err := ec.ca.Pack("multiProposal", to, true)
+	if err == nil {
+		tx.SetData(input)
+
+	} else {
+		log.Info("RemoveBlankList", "err", err)
+	}
+	return tx, err
+}
+
+//func (ec *Client) GetCertList() [][]byte {
+//}
