@@ -133,14 +133,15 @@ var (
 	MinimumCommitteeNumber  = 4
 )
 var (
-	GasUsed      byte = 0
-	BaseReward   byte = 0
-	KindOfCrypto byte = 2
+	GasUsed         byte = 0
+	BaseReward      byte = 0
+	KindOfCrypto    byte = 2
+	EnablePermision byte = 1
 )
 
 func ParseExtraDataFromGenesis(data []byte) {
 	if len(data) >= 3 {
-		GasUsed, BaseReward, KindOfCrypto = data[0], data[1], data[2]
+		GasUsed, BaseReward, KindOfCrypto, EnablePermision = data[0], data[1], data[2], data[3]
 		crypto.SetCrtptoType(uint8(KindOfCrypto))
 	}
 }
