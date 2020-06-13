@@ -78,7 +78,6 @@ type Backend interface {
 	BlockChain() *core.BlockChain
 	TxPool() *core.TxPool
 	Config() *Config
-	Etherbase() (etherbase common.Address, err error)
 }
 
 // PbftAgent receive events from election and communicate with pbftServer
