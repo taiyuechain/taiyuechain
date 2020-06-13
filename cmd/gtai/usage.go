@@ -86,6 +86,11 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.SingleNodeFlag,
 		},
 	},
+	{Name: "WHETHER DISABLE PERMISSION FUNCTION",
+		Flags: []cli.Flag{
+			utils.DisablePermissionFlag,
+		},
+	},
 	{Name: "TBFT COMMITTEE",
 		Flags: []cli.Flag{
 			utils.BFTIPFlag,

@@ -136,12 +136,12 @@ var (
 	GasUsed         byte = 0
 	BaseReward      byte = 0
 	KindOfCrypto    byte = 2
-	EnablePermision byte = 1
+	EnablePermission byte = 1
 )
 
 func ParseExtraDataFromGenesis(data []byte) {
 	if len(data) >= 3 {
-		GasUsed, BaseReward, KindOfCrypto, EnablePermision = data[0], data[1], data[2], data[3]
+		GasUsed, BaseReward, KindOfCrypto = data[0], data[1], data[2]
 		crypto.SetCrtptoType(uint8(KindOfCrypto))
 	}
 }
@@ -153,7 +153,7 @@ func GetBaseReward() byte {
 }
 
 func IsEnablePermission()  bool{
-	if EnablePermision == byte(1){
+	if EnablePermission == byte(1){
 		return  true
 	}else{
 		return false

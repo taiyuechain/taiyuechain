@@ -65,6 +65,7 @@ var (
 		utils.SnailPoolFruitCountFlag,
 		utils.SyncModeFlag,
 		utils.SingleNodeFlag,
+		utils.DisablePermissionFlag,
 
 		utils.BFTPortFlag,
 		utils.BFTStandbyPortFlag,

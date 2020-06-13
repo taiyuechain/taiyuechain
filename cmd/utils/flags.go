@@ -157,14 +157,10 @@ var (
 		Usage: "Document Root for HTTPClient file scheme",
 		Value: DirectoryString{homeDir()},
 	}
-	/*FastSyncFlag = cli.BoolFlag{
-		Name:  "fast",
-		Usage: "Enable fast syncing through state downloads (replaced by --syncmode)",
+	DisablePermissionFlag = cli.BoolFlag{
+		Name:  "disablePermission",
+		Usage: "whether disable permision function",
 	}
-	LightModeFlag = cli.BoolFlag{
-		Name:  "light",
-		Usage: "Enable light client mode (replaced by --syncmode)",
-	}*/
 	//SingleNodeFlag is single node setting
 	SingleNodeFlag = cli.BoolFlag{
 		Name:  "singlenode",
@@ -962,7 +958,9 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if ctx.GlobalBool(SingleNodeFlag.Name) {
 		cfg.NodeType = true
 	}
-
+	if ctx.GlobalBool(DisablePermissionFlag.Name) {
+		params.EnablePermission = 0
+	}
 	if ctx.GlobalIsSet(BFTIPFlag.Name) {
 		cfg.Host = ctx.GlobalString(BFTIPFlag.Name)
 	}
