@@ -151,3 +151,11 @@ func GetGasUsed() byte {
 func GetBaseReward() byte {
 	return BaseReward
 }
+
+func IsEnablePermission()  bool{
+	if EnablePermision == byte(1){
+		return  true
+	}else{
+		return false
+	}
+}
