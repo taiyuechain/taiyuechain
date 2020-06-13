@@ -14,6 +14,7 @@ import (
 	//"github.com/taiyuechain/taiyuechain/core/evm"
 	"bytes"
 	"github.com/taiyuechain/taiyuechain/params"
+	"math/big"
 )
 
 
@@ -25,6 +26,7 @@ type CimList struct {
 	lock sync.Mutex
 	CryptoType uint8
 	CimMap []CIM
+	CIM_Epoch  *big.Int
 	PTable *vm.PerminTable
 }
 
@@ -33,7 +35,9 @@ func NewCIMList(CryptoType uint8) *CimList {
 
 }
 
-
+func  (cl *CimList) SetCertEpoch(epoch *big.Int)  {
+	cl.CIM_Epoch = epoch
+}
 
 func (cl *CimList) AddCim(cimTemp CIM) error  {
 	for _,ci:= range cl.CimMap{

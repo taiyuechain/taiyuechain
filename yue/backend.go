@@ -186,8 +186,9 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := types.GetEpochIDFromHeight(etrue.blockchain.CurrentBlock().Number()).Uint64()
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
+	epoch := types.GetEpochIDFromHeight(etrue.blockchain.CurrentBlock().Number())
+	NewCIMList.SetCertEpoch(epoch)
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			return nil, err
