@@ -68,8 +68,6 @@ var (
 		utils.SingleNodeFlag,
 		utils.CryptoTypeFlag,
 
-		utils.EnableElectionFlag,
-
 		utils.BFTPortFlag,
 		utils.BFTStandbyPortFlag,
 		utils.BFTIPFlag,

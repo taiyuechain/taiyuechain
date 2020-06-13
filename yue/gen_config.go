@@ -41,7 +41,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		TxPool                  core.TxPoolConfig
 		GPO                     gasprice.Config
 		EnablePreimageRecording bool
-		EnableElection          bool
 		DocRoot                 string                    `toml:"-"`
 		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
@@ -70,7 +69,6 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.TxPool = c.TxPool
 	enc.GPO = c.GPO
 	enc.EnablePreimageRecording = c.EnablePreimageRecording
-	enc.EnableElection = c.EnableElection
 	enc.DocRoot = c.DocRoot
 	enc.Checkpoint = c.Checkpoint
 	return &enc, nil
@@ -103,7 +101,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		GasPrice                *big.Int `toml:",omitempty"`
 		GPO                     *gasprice.Config
 		EnablePreimageRecording *bool
-		EnableElection          *bool
 		DocRoot                 *string                   `toml:"-"`
 		Checkpoint              *params.TrustedCheckpoint `toml:",omitempty"`
 	}
@@ -182,9 +179,6 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.EnablePreimageRecording != nil {
 		c.EnablePreimageRecording = *dec.EnablePreimageRecording
-	}
-	if dec.EnableElection != nil {
-		c.EnableElection = *dec.EnableElection
 	}
 	if dec.DocRoot != nil {
 		c.DocRoot = *dec.DocRoot

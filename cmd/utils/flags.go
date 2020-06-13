@@ -178,12 +178,6 @@ var (
 		Value: 1,
 	}
 
-	//election setting
-	EnableElectionFlag = cli.BoolFlag{
-		Name:  "election",
-		Usage: "enable election",
-	}
-
 	//bpft setting
 	BFTIPFlag = cli.StringFlag{
 		Name:  "bftip",
@@ -805,7 +799,7 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if ctx.GlobalIsSet(MaxPeersFlag.Name) {
 		cfg.MaxPeers = ctx.GlobalInt(MaxPeersFlag.Name)
 	}
-	log.Info("Maximum peer count", "TaiYue", ethPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -833,7 +827,7 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 		cfg.NetRestrict = list
 	}
 
-	if !ctx.GlobalBool(SingleNodeFlag.Name) && ctx.GlobalBool(EnableElectionFlag.Name) && ctx.GlobalIsSet(BFTIPFlag.Name) {
+	if !ctx.GlobalBool(SingleNodeFlag.Name) && ctx.GlobalIsSet(BFTIPFlag.Name) {
 		cfg.Host = ctx.GlobalString(BFTIPFlag.Name)
 	}
 }
@@ -998,24 +992,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 		}
 	} else {
 		cfg.CommitteeKey = crypto.FromECDSA(priv)
-	}
-
-	if ctx.GlobalBool(EnableElectionFlag.Name) {
-		cfg.EnableElection = true
-	}
-	if cfg.EnableElection && !cfg.NodeType {
-		if cfg.Host == "" {
-			Fatalf("election set true,Option %q  must be exist.", BFTIPFlag.Name)
-		}
-		if cfg.Port == 0 {
-			Fatalf("election set true,Option %q  must be exist.", BFTPortFlag.Name)
-		}
-		if cfg.StandbyPort == 0 {
-			Fatalf("election set true,Option %q  must be exist.", BFTStandbyPortFlag.Name)
-		}
-		if cfg.Port == cfg.StandbyPort {
-			Fatalf("election set true,Option %q and %q must be different.", BFTPortFlag.Name, BFTStandbyPortFlag.Name)
-		}
 	}
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100

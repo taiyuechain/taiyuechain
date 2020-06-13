@@ -91,11 +91,6 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.CryptoTypeFlag,
 		},
 	},
-	{Name: "ELECTION",
-		Flags: []cli.Flag{
-			utils.EnableElectionFlag,
-		},
-	},
 	{Name: "TBFT COMMITTEE",
 		Flags: []cli.Flag{
 			utils.BFTIPFlag,
