@@ -46,13 +46,16 @@ type (
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
 
-	pTable := NewPerminTable()
-	err := pTable.Load(evm.StateDB)
-	if err != nil {
-		return nil, err
-	}
-	if !pTable.CheckActionPerm(contract.Caller(),common.Address{},contract.self.Address(),PerminType_AccessContract){
-		return nil,errors.New("VerifyPermission the cert error")
+	if params.IsEnablePermission() && len(evm.StateDB.GetCode(contract.CallerAddress))>0 && len(evm.StateDB.GetCode(contract.self.Address()))>0{
+
+		pTable := NewPerminTable()
+		err := pTable.Load(evm.StateDB)
+		if err != nil {
+			return nil, err
+		}
+		if !pTable.CheckActionPerm(contract.Caller(),common.Address{},contract.self.Address(),PerminType_AccessContract){
+			return nil,errors.New("VerifyPermission the cert error")
+		}
 	}
 
 	if contract.CodeAddr != nil {

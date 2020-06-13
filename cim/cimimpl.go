@@ -13,6 +13,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	//"github.com/taiyuechain/taiyuechain/core/evm"
 	"bytes"
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
 
@@ -105,6 +106,10 @@ func (cl *CimList) VerifyRootCert(cert []byte) error  {
 func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db state.StateDB) (bool  ,error){
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
+
+	if params.IsEnablePermission() {
+		return true,nil
+	}
 
 	if cl.PTable == nil{
 		return false,errors.New("permission table is nil at cimlist")
