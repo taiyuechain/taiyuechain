@@ -383,16 +383,11 @@ func (s *Taiyuechain) Etherbase() common.Address {
 	return etherbase
 }
 
-func (s *Taiyuechain) PbftAgent() *PbftAgent             { return s.agent }
-func (s *Taiyuechain) AccountManager() *accounts.Manager { return s.accountManager }
-func (s *Taiyuechain) BlockChain() *core.BlockChain      { return s.blockchain }
-func (s *Taiyuechain) Config() *Config                   { return s.config }
-
-//func (s *Taiyuechain) SnailBlockChain() *chain.SnailBlockChain { return s.snailblockchain }
-func (s *Taiyuechain) TxPool() *core.TxPool { return s.txPool }
-
-//func (s *Taiyuechain) SnailPool() *chain.SnailPool { return s.snailPool }
-
+func (s *Taiyuechain) PbftAgent() *PbftAgent              { return s.agent }
+func (s *Taiyuechain) AccountManager() *accounts.Manager  { return s.accountManager }
+func (s *Taiyuechain) BlockChain() *core.BlockChain       { return s.blockchain }
+func (s *Taiyuechain) Config() *Config                    { return s.config }
+func (s *Taiyuechain) TxPool() *core.TxPool               { return s.txPool }
 func (s *Taiyuechain) EventMux() *event.TypeMux           { return s.eventMux }
 func (s *Taiyuechain) Engine() consensus.Engine           { return s.engine }
 func (s *Taiyuechain) ChainDb() yuedb.Database            { return s.chainDb }

@@ -76,8 +76,6 @@ var (
 		utils.BftKeyHexFlag,
 
 		utils.GCModeFlag,
-		utils.LightServFlag,
-		utils.LightPeersFlag,
 		utils.LightKDFFlag,
 		utils.CacheFlag,
 		utils.CacheDatabaseFlag,
