@@ -64,9 +64,7 @@ var (
 		utils.SnailPoolRejournalFlag,
 		utils.SnailPoolFruitCountFlag,
 		utils.SyncModeFlag,
-
 		utils.SingleNodeFlag,
-		utils.CryptoTypeFlag,
 
 		utils.BFTPortFlag,
 		utils.BFTStandbyPortFlag,

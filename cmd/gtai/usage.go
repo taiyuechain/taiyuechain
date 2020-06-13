@@ -86,11 +86,6 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.SingleNodeFlag,
 		},
 	},
-	{Name: "CRYPTO TYPE",
-		Flags: []cli.Flag{
-			utils.CryptoTypeFlag,
-		},
-	},
 	{Name: "TBFT COMMITTEE",
 		Flags: []cli.Flag{
 			utils.BFTIPFlag,

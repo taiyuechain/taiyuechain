@@ -170,14 +170,6 @@ var (
 		Name:  "singlenode",
 		Usage: "sing node model start",
 	}
-
-	//SingleNodeFlag is single node setting
-	CryptoTypeFlag = cli.Uint64Flag{
-		Name:  "cryptotype",
-		Usage: "crypto type",
-		Value: 1,
-	}
-
 	//bpft setting
 	BFTIPFlag = cli.StringFlag{
 		Name:  "bftip",
