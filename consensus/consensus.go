@@ -234,8 +234,9 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 		//updata cim
 		rootCimList.UpdataCert(i.GetCertList(epoch.Uint64()))
 	}
+	if state.PermissionChange(){
+		rootCimList.UpdataPermission(state)
+	}
 
-
-	rootCimList.UpdataPermission(state)
 
 }
