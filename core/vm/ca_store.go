@@ -278,10 +278,17 @@ func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert
 		log.Info("--why is nil??", "senderCert", hex.EncodeToString(senderCert), "PHash", pHash)
 		ca.proposalMap[pHash] = &ProposalState{PState: pStateNil}
 		ca.proposalMap[pHash].SignMap = make(map[common.Hash]bool)
+	}else{
+		//check state is or end
+		if evm.Context.BlockNumber.Cmp(ca.proposalMap[pHash].EndHeight) >0{
+			delete(ca.proposalMap,pHash)
+			ca.proposalMap[pHash] = &ProposalState{PState: pStateNil}
+			ca.proposalMap[pHash].SignMap = make(map[common.Hash]bool)
+		}
 	}
 	ppState := ca.proposalMap[pHash].PState
 
-	if ppState != pStateNil && ppState != pStatePending {
+	if ppState != pStateNil && ppState != pStatePending  {
 		// need new one proposal
 		log.Info("retrurn err?? checkProposal ")
 		return false, errors.New("the proposal state not rgiht")
@@ -335,7 +342,8 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 		ca.copyCertToList(epoch)
 		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
 		if res && err == nil {
-			ca.proposalMap[pHash].PState = pStateSuccless
+			//ca.proposalMap[pHash].PState = pStateSuccless
+			delete(ca.proposalMap,pHash)
 			return true, nil
 		}
 	} else {
@@ -344,7 +352,8 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 			ca.copyCertToList(epoch)
 			res, err = ca.delCertToList(ca.proposalMap[pHash].CACert, epoch+1)
 			if res && err == nil {
-				ca.proposalMap[pHash].PState = pStateSuccless
+				//ca.proposalMap[pHash].PState = pStateSuccless
+				delete(ca.proposalMap,pHash)
 				return true, nil
 			}
 		}
@@ -484,20 +493,23 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
 	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd})
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
+
+	res, err := caCertList.IsInList(args.CaCert, epoch)
+
 	//check cacert
 	if !args.IsAdd {
 		// del this cacert to this group
-		res, err := caCertList.IsInList(args.CaCert, epoch)
-
 		if !res {
 			return nil, err
 		}
-
 		//check propsal
 		res, err = caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalDelCert)
 
 	} else {
 		//add
+		if res {
+			return nil, err
+		}
 		caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalAddCert)
 	}
 
