@@ -22,7 +22,9 @@ import (
 
 	"encoding/hex"
 	"errors"
+	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"math/big"
+	"net"
 	"sync"
 	"time"
 
@@ -212,11 +214,25 @@ func (agent *PbftAgent) initNodeInfo(yue Backend) {
 		agent.committeeNode.Coinbase = committees[0].Coinbase
 		agent.committeeNode.Publickey = committees[0].Publickey
 		agent.isCurrentCommitteeMember = true
+	} else if agent.isCommitteeMemberByCert() {
+		checkBftIp(config.Host)
 	}
 	log.Info("InitNodeInfo", "singleNode", agent.singleNode,
 		", port", config.Port, ", standByPort", config.StandbyPort, ", Host", config.Host,
 		", coinbase", crypto.AddressToHex(agent.committeeNode.Coinbase),
 		",pubKey", hex.EncodeToString(agent.committeeNode.Publickey))
+}
+
+func checkBftIp(ip string) bool {
+	correct := false
+	if ip == "" {
+		log.Error("please config correct bftip")
+	} else if netutil.IsLAN(net.ParseIP(ip)) {
+		log.Error("please config correct bftip address", "ip", ip)
+	} else {
+		correct = true
+	}
+	return correct
 }
 
 //initialize nodeInfoWorks
@@ -370,7 +386,7 @@ func (agent *PbftAgent) loop() {
 				}
 				agent.setCommitteeInfo(currentCommittee, types.CopyCommitteeInfo(agent.nextCommitteeInfo))
 				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
-				if agent.isCommitteeMemberByCert() {
+				if agent.isCommitteeMemberByCert() && checkBftIp(agent.committeeNode.IP) {
 					agent.isCurrentCommitteeMember = true
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				} else {
@@ -383,7 +399,7 @@ func (agent *PbftAgent) loop() {
 					continue
 				}
 				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
-				if agent.isCommitteeMemberByCert() {
+				if agent.isCommitteeMemberByCert() && checkBftIp(agent.committeeNode.IP) {
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				}
 				agent.stopSend()
@@ -405,7 +421,6 @@ func (agent *PbftAgent) loop() {
 				receivedCommitteeInfo := types.CopyCommitteeInfo(rawCommitteeInfo)
 				agent.setCommitteeInfo(nextCommittee, receivedCommitteeInfo)
 
-				//if agent.IsUsedOrUnusedMember(receivedCommitteeInfo, agent.committeeNode.Publickey) {
 				if agent.IsUsedOrUnusedMember(receivedCommitteeInfo, agent.committeeNode.Publickey) {
 					agent.startSend(receivedCommitteeInfo, true)
 					help.CheckAndPrintError(agent.server.PutCommittee(receivedCommitteeInfo))

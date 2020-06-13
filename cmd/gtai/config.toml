@@ -11,7 +11,6 @@ CommitteeBase = "0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"
 GasPrice = 10000
 EnablePreimageRecording = false
 NodeType = false
-EnableElection = true
 
 [Etrue.TxPool]
 NoGasUsage = true
