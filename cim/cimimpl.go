@@ -111,7 +111,7 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 	cl.lock.Lock()
 	defer cl.lock.Unlock()
 
-	if params.IsEnablePermission() {
+	if !params.IsEnablePermission() {
 		return true,nil
 	}
 

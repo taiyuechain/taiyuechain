@@ -198,6 +198,8 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 		NewCIMList.AddCim(cimCa)
 	}
 
+	NewCIMList.UpdataPermission(stateDB)
+
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
