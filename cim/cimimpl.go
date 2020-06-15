@@ -135,7 +135,11 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 		//create contract
 		//PerminType_CreateContract
 
-		cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_CreateContract)
+		if cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_CreateContract){
+			return true,nil
+		}else{
+			return false,errors.New("check PerminType_CreateContract fail")
+		}
 	}else{
 
 		// to set permisTable
@@ -146,11 +150,21 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 		//contract
 		if len(db.GetCode(toAddr))>0 && len(tx.Data()) >0{
 		//contract
-			cl.PTable.CheckActionPerm(from,common.Address{},toAddr,vm.PerminType_AccessContract)
+			if cl.PTable.CheckActionPerm(from,common.Address{},toAddr,vm.PerminType_AccessContract){
+				return true,nil
+			}else{
+				return false,errors.New("check PerminType_AccessContract fail")
+			}
+
 
 		}else{
 			//other transtion
-			cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_SendTx)
+			if cl.PTable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_SendTx){
+
+				return true,nil
+			}else{
+				return false,errors.New("check PerminType_SendTx fail")
+			}
 		}
 
 	}
