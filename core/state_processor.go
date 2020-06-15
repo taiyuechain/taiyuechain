@@ -71,7 +71,7 @@ func (fp *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cf
 	// Iterate over and process the individual transactions
 	for i, tx := range block.Transactions() {
 		if fp.mList != nil {
-			if err := fp.mList.VerifyCert(tx.Cert()); err != nil {
+			if check, err := fp.mList.VerifyPermission(tx, types.MakeSigner(fp.config, header.Number), *statedb); !check {
 				return nil, nil, 0, err
 			}
 		}

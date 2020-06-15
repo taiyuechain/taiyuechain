@@ -124,7 +124,7 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		ContractAddr	common.Address
 		Member  		common.Address
 		GropAddr		common.Address
-		MPermType 		int
+		MPermType 		*big.Int
 		WhitelistisWork bool
 	}{}
 
@@ -152,12 +152,12 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		return nil,ErrPermissionInvalidFrom
 	}
 
-	if !pTable.CheckActionPerm(from,args.GropAddr,args.ContractAddr,ModifyPerminType(args.MPermType)){
+	if !pTable.CheckActionPerm(from,args.GropAddr,args.ContractAddr,ModifyPerminType(args.MPermType.Int64())){
 		return nil,err
 	}
 
 
-	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType),"",args.WhitelistisWork)
+	res,err:=pTable.GrantPermission(creator,from,args.Member,args.GropAddr,ModifyPerminType(args.MPermType.Int64()),"",args.WhitelistisWork)
 	if !res{
 		return nil,err
 	}

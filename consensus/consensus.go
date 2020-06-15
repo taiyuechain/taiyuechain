@@ -188,20 +188,25 @@ func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumbe
 }
 
 func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim.CimList) {
-
+	CaCertAddress := types.CACertListAddress
 	epoch := types.GetEpochIDFromHeight(fastNumber)
+	start, end := types.GetEpochHeigth(epoch)
 
-	if epoch.Cmp(rootCimList.CIM_Epoch) > 0 {
-		CaCertAddress := types.CACertListAddress
+	if new(big.Int).Sub(end, fastNumber).Uint64() == types.EpochElectionPoint {
 		i := vm.NewCACertList()
 		i.LoadCACertList(state, CaCertAddress)
 		i.ChangeElectionCaList(fastNumber, state)
 
-		//updata cim
+	}
+
+	//updata cim
+	if start.Cmp(fastNumber) == 0 {
+		i := vm.NewCACertList()
+		i.LoadCACertList(state, CaCertAddress)
 		rootCimList.UpdataCert(i.GetCertList(epoch.Uint64()))
 	}
+
 	if state.PermissionChange() {
 		rootCimList.UpdataPermission(state)
 	}
-
 }

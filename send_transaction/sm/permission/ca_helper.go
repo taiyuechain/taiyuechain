@@ -2,8 +2,6 @@ package test
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
-	"fmt"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/cim"
@@ -28,14 +26,10 @@ var (
 	pbft2Name = "pbft2priv"
 	pbft3Name = "pbft3priv"
 	pbft4Name = "pbft4priv"
-	p2p1Name  = "p2p1cert"
-	p2p2Name  = "p2p2cert"
 	pbft1path = "../testcert/" + pbft1Name + ".pem"
 	pbft2path = "../testcert/" + pbft2Name + ".pem"
 	pbft3path = "../testcert/" + pbft3Name + ".pem"
 	pbft4path = "../testcert/" + pbft4Name + ".pem"
-	p2p1path  = "../testcert/" + p2p1Name + ".pem"
-	p2p2path  = "../testcert/" + p2p2Name + ".pem"
 
 	engine   = minerva.NewFaker()
 	db       = yuedb.NewMemDatabase()
@@ -43,44 +37,35 @@ var (
 	abiCA, _ = abi.JSON(strings.NewReader(vm.PermissionABIJSON))
 	signer   = types.NewSigner(gspec.Config.ChainID)
 
-	//p2p 1
-	priKey, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
-	// p2p 2
-	skey1, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
 	// pbft 1
-	dkey1, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
-	mAccount = crypto.PubkeyToAddress(priKey.PublicKey)
-	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
-	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
+	priKey, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+	// pbft 2
+	prikey2, _ = crypto.HexToECDSA("bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb")
+	// pbft 3
+	prikey3, _ = crypto.HexToECDSA("122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab")
+	mAccount   = crypto.PubkeyToAddress(priKey.PublicKey)
+	saddr1     = crypto.PubkeyToAddress(prikey2.PublicKey)
+	daddr1     = crypto.PubkeyToAddress(prikey3.PublicKey)
 
-	p2p1Byte, _  = crypto.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _  = crypto.ReadPemFileByPath(p2p2path)
 	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
 	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
 	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
 
-	pbft5PrivString = "77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489"
-	skey5, _        = crypto.HexToECDSA("5a25f1ad94e51092c041a38bd1f7a6dab203d90c0b673294cb7eb2c3e6a8576a")
-	saddr5          = crypto.PubkeyToAddress(skey5.PublicKey)
+	skey5, _ = crypto.HexToECDSA("77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489")
+	saddr5   = crypto.PubkeyToAddress(skey5.PublicKey)
 
 	pbft5Name    = "pbft5priv"
 	pbft5path    = "../testcert/" + pbft5Name + ".pem"
 	pbft5Byte, _ = crypto.ReadPemFileByPath(pbft5path)
-
-	p2p5Name    = "p2p5cert"
-	p2p5path    = "../testcert/" + p2p5Name + ".pem"
-	p2p5Byte, _ = crypto.ReadPemFileByPath(p2p5path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {
 	i, _ := new(big.Int).SetString("10000000000000000000000", 10)
-	key1 := crypto.FromECDSAPub(&dkey1.PublicKey)
-	prikey2, _ := crypto.HexToECDSA("f7f9ffe124547d3375765539aa3ccb4533057903e18f034045d233e547506d4e")
+	key1 := crypto.FromECDSAPub(&priKey.PublicKey)
 	key2 := crypto.FromECDSAPub(&prikey2.PublicKey)
-	prikey3, _ := crypto.HexToECDSA("acac261a29d3abdff1a96859cebaacdf73744279986349a3f8bc98884fccb641")
 	key3 := crypto.FromECDSAPub(&prikey3.PublicKey)
-	prikey4, _ := crypto.HexToECDSA("7decea0bad634a9cfcaf5442321a2668b791c064f48c1f7a2112624d022fc5eb")
+	prikey4, _ := crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
 	key4 := crypto.FromECDSAPub(&prikey4.PublicKey)
 
 	var certList = [][]byte{pbft1Byte, pbft2Byte, pbft3Byte, pbft4Byte}
@@ -154,17 +139,16 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
-		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, new(big.Int).SetUint64(1), false)
+		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }
 
 //neo test
-func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte, isAdd bool, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
-	if height == 40 {
-		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
-		fmt.Println("multiProposal ", hex.EncodeToString(cert), " ", hex.EncodeToString(certPar))
-		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar, cert, isAdd)
+func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+	if height == 30 {
+		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
+		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelSendTxPerm)), false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }
@@ -241,17 +225,12 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
-		remaining := new(big.Int).Sub(value, balance)
-		printTest("sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
-		if remaining.Sign() > 0 {
-			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
-			if gen != nil {
-				gen.AddTx(tx)
-			} else {
-				txPool.AddRemotes([]*types.Transaction{tx})
-			}
+		printTest("sendTranction ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
+		tx, _ := types.SignTx(types.NewTransaction(nonce, to, value, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
+		if gen != nil {
+			gen.AddTx(tx)
 		} else {
-			printTest("to ", crypto.AddressToHex(to), " have balance ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64())
+			txPool.AddRemotes([]*types.Transaction{tx})
 		}
 	}
 }

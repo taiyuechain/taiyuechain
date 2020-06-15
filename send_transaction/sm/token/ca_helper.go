@@ -102,7 +102,7 @@ func DefaulGenesisBlock() *core.Genesis {
 	}
 }
 
-func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB)) {
+func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB, *cim.CimList)) {
 
 	//new cimList
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
@@ -120,8 +120,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	}
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := blockchain.GetBlockNumber()
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
+	height := blockchain.CurrentBlock().Number()
+	epoch := types.GetEpochIDFromHeight(height)
+	cimList.SetCertEpoch(epoch)
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			panic(err)
@@ -136,30 +138,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 		header := gen.GetHeader()
 		stateDB := gen.GetStateDB()
-		executableTx(header.Number.Uint64(), gen, blockchain, header, stateDB)
+		executableTx(header.Number.Uint64(), gen, blockchain, header, stateDB,cimList)
 	})
 	if _, err := blockchain.InsertChain(chain); err != nil {
 		panic(err)
-	}
-}
-
-func loadCIMList(cimList *cim.CimList, blockchain *core.BlockChain) {
-	// need init cert list to statedb
-	stateDB, err := blockchain.State()
-	if err != nil {
-		panic(err)
-	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := blockchain.GetBlockNumber()
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			panic(err)
-		}
-
-		cimCa.SetUpFromCA(caCert)
-		cimList.AddCim(cimCa)
 	}
 }
 
