@@ -22,10 +22,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
@@ -50,7 +51,7 @@ func (t *BlockTest) UnmarshalJSON(in []byte) error {
 }
 
 type btJSON struct {
-	FastBlocks  []btBlock    `json:"fastBlocks"`
+	FastBlocks  []btBlock   `json:"fastBlocks"`
 	FastGenesis btHeader    `json:"genesisFastBlockHeader"`
 	Genesis     snailHeader `json:"genesisBlockHeader"`
 
@@ -149,11 +150,7 @@ func (t *BlockTest) Run() error {
 		engine = minerva.NewShared()
 	}
 
-	fastChain, err := core.NewBlockChain(db, nil, config, engine, vm.Config{})
-
-	genesis.MustSnailCommit(db)
-	// Initialize a fresh chain with only a genesis block
-	blockchain, err := snailchain.NewSnailBlockChain(db, params.TestChainConfig, engine, fastChain)
+	fastChain, err := core.NewBlockChain(db, nil, config, engine, vm.Config{}, nil)
 
 	if err != nil {
 		return err
@@ -280,13 +277,13 @@ func (t *BlockTest) validatePostState(statedb *state.StateDB) error {
 		balance2 := statedb.GetBalance(addr)
 		nonce2 := statedb.GetNonce(addr)
 		if !bytes.Equal(code2, acct.Code) {
-			return fmt.Errorf("account code mismatch for addr: %s want: %v have: %s", addr.String(), acct.Code, hex.EncodeToString(code2))
+			return fmt.Errorf("account code mismatch for addr: %s want: %v have: %s", hex.EncodeToString(addr[:]), acct.Code, hex.EncodeToString(code2))
 		}
 		if balance2.Cmp(acct.Balance) != 0 {
-			return fmt.Errorf("account balance mismatch for addr: %s, want: %d, have: %d", addr.String(), acct.Balance, balance2)
+			return fmt.Errorf("account balance mismatch for addr: %s, want: %d, have: %d", hex.EncodeToString(addr[:]), acct.Balance, balance2)
 		}
 		if nonce2 != acct.Nonce {
-			return fmt.Errorf("account nonce mismatch for addr: %s want: %d have: %d", addr.String(), acct.Nonce, nonce2)
+			return fmt.Errorf("account nonce mismatch for addr: %s want: %d have: %d", hex.EncodeToString(addr[:]), acct.Nonce, nonce2)
 		}
 	}
 	return nil
@@ -317,16 +314,6 @@ func (bb *btBlock) decode() (*types.Block, error) {
 		return nil, err
 	}
 	var b types.Block
-	err = rlp.DecodeBytes(data, &b)
-	return &b, err
-}
-
-func (bb *snailBlock) decode() (*types.SnailBlock, error) {
-	data, err := hexutil.Decode(bb.Rlp)
-	if err != nil {
-		return nil, err
-	}
-	var b types.SnailBlock
 	err = rlp.DecodeBytes(data, &b)
 	return &b, err
 }

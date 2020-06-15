@@ -110,7 +110,7 @@ func (t *VMTest) Run(vmconfig vm.Config) error {
 	// if root := statedb.IntermediateRoot(false); root != t.json.PostStateRoot {
 	// 	return fmt.Errorf("post state root mismatch, got %x, want %x", root, t.json.PostStateRoot)
 	// }
-	if logs := rlpHash(statedb.Logs()); logs != common.Hash(t.json.Logs) {
+	if logs := crypto.RlpHash(statedb.Logs()); logs != common.Hash(t.json.Logs) {
 		return fmt.Errorf("post state logs hash mismatch: got %x, want %x", logs, t.json.Logs)
 	}
 	return nil

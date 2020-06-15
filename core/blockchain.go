@@ -136,7 +136,6 @@ type BlockChain struct {
 	receiptsCache *lru.Cache     // Cache for the most recent receipts per block
 	blockCache    *lru.Cache     // Cache for the most recent entire blocks
 	futureBlocks  *lru.Cache     // future blocks are blocks added for later processing
-	rewardCache   *lru.Cache
 
 	quit    chan struct{} // blockchain quit channel
 	running int32         // running must be called atomically
@@ -178,7 +177,6 @@ func NewBlockChain(db yuedb.Database, cacheConfig *CacheConfig,
 	receiptsCache, _ := lru.New(receiptsCacheLimit)
 	badBlocks, _ := lru.New(badBlockLimit)
 	signCache, _ := lru.New(bodyCacheLimit)
-	rewardCache, _ := lru.New(bodyCacheLimit)
 
 	bc := &BlockChain{
 		chainConfig:   chainConfig,
@@ -193,7 +191,6 @@ func NewBlockChain(db yuedb.Database, cacheConfig *CacheConfig,
 		receiptsCache: receiptsCache,
 		blockCache:    blockCache,
 		futureBlocks:  futureBlocks,
-		rewardCache:   rewardCache,
 		engine:        engine,
 		vmConfig:      vmConfig,
 		badBlocks:     badBlocks,
@@ -366,7 +363,6 @@ func (bc *BlockChain) SetHead(head uint64) error {
 	bc.blockCache.Purge()
 	bc.futureBlocks.Purge()
 	bc.signCache.Purge()
-	bc.rewardCache.Purge()
 
 	if currentBlock := bc.CurrentBlock(); currentBlock != nil {
 		if _, err := state.New(currentBlock.Root(), bc.stateCache); err != nil {
@@ -1799,26 +1795,6 @@ func (bc *BlockChain) SubscribeChainSideEvent(ch chan<- types.FastChainSideEvent
 // SubscribeLogsEvent registers a subscription of []*types.Log.
 func (bc *BlockChain) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscription {
 	return bc.scope.Track(bc.logsFeed.Subscribe(ch))
-}
-
-func (bc *BlockChain) GetBlockReward(snumber uint64) *types.BlockReward {
-
-	if rewards_, ok := bc.rewardCache.Get(snumber); ok {
-		rewards := rewards_.(*types.BlockReward)
-		if bc.CurrentBlock().NumberU64() >= rewards.FastNumber.Uint64() {
-			return rewards
-		}
-		return nil
-	}
-
-	rewards := rawdb.ReadBlockReward(bc.db, snumber)
-
-	if rewards != nil && bc.CurrentBlock().NumberU64() >= rewards.FastNumber.Uint64() {
-		bc.rewardCache.Add(snumber, rewards)
-		return rewards
-	}
-
-	return nil
 }
 
 func (bc *BlockChain) GetBlockNumber() uint64 {

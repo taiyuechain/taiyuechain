@@ -19,10 +19,10 @@ package core
 import (
 	"fmt"
 
-	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 )
 
@@ -61,24 +61,6 @@ func (fv *BlockValidator) ValidateBody(block *types.Block, validateSign bool) er
 			return consensus.ErrUnknownAncestor
 		}
 		return consensus.ErrPrunedAncestor
-	}
-	//validate reward snailBlock
-	if block.SnailNumber() != nil && block.SnailNumber().Uint64() != 0 {
-		snailNumber := block.SnailNumber().Uint64()
-		blockReward := fv.bc.GetBlockReward(snailNumber)
-
-		if blockReward != nil && block.NumberU64() != blockReward.FastNumber.Uint64() {
-			log.Error("validateRewardError", "rewardFastNumber", blockReward.FastNumber.Uint64(),
-				"currentNumber", block.NumberU64(), "err", ErrSnailNumberAlreadyRewarded)
-			return ErrSnailNumberAlreadyRewarded
-		} else {
-			supposedRewardedNumber := fv.bc.NextSnailNumberReward()
-			if supposedRewardedNumber.Uint64() != snailNumber {
-				log.Error("validateRewardError", "snailNumber", snailNumber,
-					"supposedRewardedNumber", supposedRewardedNumber, "err", ErrRewardSnailNumberWrong)
-				return ErrRewardSnailNumberWrong
-			}
-		}
 	}
 
 	// Header validity is known at this point, check the transactions

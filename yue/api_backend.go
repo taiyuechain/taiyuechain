@@ -176,13 +176,6 @@ func (b *TrueAPIBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscr
 	return b.yue.BlockChain().SubscribeLogsEvent(ch)
 }
 
-func (b *TrueAPIBackend) GetReward(number int64) *types.BlockReward {
-	if number < 0 {
-		return b.yue.blockchain.CurrentReward()
-	}
-	return b.yue.blockchain.GetBlockReward(uint64(number))
-}
-
 func (b *TrueAPIBackend) GetCommittee(number rpc.BlockNumber) (map[string]interface{}, error) {
 	return b.yue.election.GetCommitteeById(big.NewInt(number.Int64())), nil
 }
