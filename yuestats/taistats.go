@@ -34,7 +34,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/consensus"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/rpc"
@@ -72,7 +71,6 @@ type blockChain interface {
 type Service struct {
 	server *p2p.Server      // Peer-to-peer server to retrieve networking infos
 	yue    *yue.Taiyuechain // Full Taiyuechain service if monitoring a full node
-	les    *les.LightEtrue  // Light Taiyuechain service if monitoring a light node
 	engine consensus.Engine // Consensus engine to retrieve variadic block fields
 
 	node string // Name of the node to display on the monitoring page
@@ -85,7 +83,7 @@ type Service struct {
 }
 
 // New returns a monitoring service ready for stats reporting.
-func New(url string, ethServ *yue.Taiyuechain, lesServ *les.LightEtrue) (*Service, error) {
+func New(url string, ethServ *yue.Taiyuechain) (*Service, error) {
 	// Parse the netstats connection url
 	re := regexp.MustCompile("([^:@]*)(:([^@]*))?@(.+)")
 	parts := re.FindStringSubmatch(url)
@@ -96,12 +94,9 @@ func New(url string, ethServ *yue.Taiyuechain, lesServ *les.LightEtrue) (*Servic
 	var engine consensus.Engine
 	if ethServ != nil {
 		engine = ethServ.Engine()
-	} else {
-		engine = lesServ.Engine()
 	}
 	return &Service{
 		yue:         ethServ,
-		les:         lesServ,
 		engine:      engine,
 		node:        parts[1],
 		pass:        parts[3],
@@ -139,15 +134,8 @@ func (s *Service) Stop() error {
 // until termination.
 func (s *Service) loop() {
 	// Subscribe to chain events to execute updates on
-	var blockchain blockChain
-	var txpool txPool
-	if s.yue != nil {
-		blockchain = s.yue.BlockChain()
-		txpool = s.yue.TxPool()
-	} else {
-		blockchain = s.les.BlockChain()
-		txpool = s.les.TxPool()
-	}
+	blockchain := s.yue.BlockChain()
+	txpool := s.yue.TxPool()
 	//fastBlock
 	chainHeadCh := make(chan types.FastChainHeadEvent, chainHeadChanSize)
 	headSub := blockchain.SubscribeChainHeadEvent(chainHeadCh)
@@ -414,8 +402,7 @@ func (s *Service) login(conn *websocket.Conn) error {
 		network = fmt.Sprintf("%d", info.(*yue.NodeInfo).Network)
 		protocol = fmt.Sprintf("yue/%d", yue.ProtocolVersions[0])
 	} else {
-		network = fmt.Sprintf("%d", infos.Protocols["les"].(*les.NodeInfo).Network)
-		protocol = fmt.Sprintf("les/%d", les.ClientProtocolVersions[0])
+		return errors.New("no service register")
 	}
 	//fmt.Println("infos.IP= ",infos.IP)
 	auth := &authMsg{
@@ -575,7 +562,6 @@ func (s *Service) reportSnailBlock(conn *websocket.Conn) error {
 		Miner:      common.Address{},
 		Diff:       "1000",
 		TotalDiff:  "1",
-		Uncles:     nil,
 		LastFruit:  new(big.Int).SetInt64(60),
 	}
 
@@ -612,11 +598,8 @@ func (s *Service) assembleBlockStats(block *types.Block) *blockStats {
 			txs[i].Hash = tx.Hash()
 		}
 	} else {
-		// Light nodes would need on-demand lookups for transactions/uncles, skip
 		if block != nil {
 			header = block.Header()
-		} else {
-			header = s.les.BlockChain().CurrentHeader()
 		}
 		txs = []txStats{}
 	}
@@ -643,12 +626,7 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 		indexes = append(indexes, list...)
 	} else {
 		// No indexes requested, send back the top ones
-		var head int64
-		if s.yue != nil {
-			head = s.yue.BlockChain().CurrentHeader().Number.Int64()
-		} else {
-			head = s.les.BlockChain().CurrentHeader().Number.Int64()
-		}
+		head := s.yue.BlockChain().CurrentHeader().Number.Int64()
 		start := head - historyUpdateRange + 1
 		if start < 0 {
 			start = 0
@@ -661,14 +639,7 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 	history := make([]*blockStats, len(indexes))
 	for i, number := range indexes {
 		// Retrieve the next block if it's known to us
-		var block *types.Block
-		if s.yue != nil {
-			block = s.yue.BlockChain().GetBlockByNumber(number)
-		} else {
-			if header := s.les.BlockChain().GetHeaderByNumber(number); header != nil {
-				block = types.NewBlockWithHeader(header)
-			}
-		}
+		block := s.yue.BlockChain().GetBlockByNumber(number)
 		// If we do have the block, add to the history and continue
 		if block != nil {
 			history[len(history)-1-i] = s.assembleBlockStats(block)
@@ -695,26 +666,6 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 }
 func (s *Service) reportSnailHistory(conn *websocket.Conn, list []uint64) error {
 	// Figure out the indexes that need reporting
-	indexes := make([]uint64, 0, historyUpdateRange)
-	if len(list) > 0 {
-		// Specific indexes requested, send them back in particular
-		indexes = append(indexes, list...)
-	} else {
-		// No indexes requested, send back the top ones
-		var head int64
-		if s.yue != nil {
-			//head = s.etrue.SnailBlockChain().CurrentHeader().Number.Int64()
-		} else {
-			//head = s.les.SnailBlockChain().CurrentHeader().Number.Int64()
-		}
-		start := head - historyUpdateRange + 1
-		if start < 0 {
-			start = 0
-		}
-		for i := uint64(start); i <= uint64(head); i++ {
-			indexes = append(indexes, i)
-		}
-	}
 	stats := map[string]interface{}{
 		"id":      s.node,
 		"history": "[]",
@@ -734,12 +685,7 @@ type pendStats struct {
 // it to the stats server.
 func (s *Service) reportPending(conn *websocket.Conn) error {
 	// Retrieve the pending count from the local blockchain
-	var pending int
-	if s.yue != nil {
-		pending, _ = s.yue.TxPool().Stats()
-	} else {
-		pending = s.les.TxPool().Stats()
-	}
+	pending, _ := s.yue.TxPool().Stats()
 	// Assemble the transaction stats and send it to the server
 	log.Trace("Sending pending transactions to etruestats", "count", pending)
 
@@ -786,8 +732,7 @@ func (s *Service) reportStats(conn *websocket.Conn) error {
 		isCommitteeMember = s.yue.PbftAgent().IsCommitteeMember()
 		isLeader = s.yue.PbftAgent().IsLeader()
 	} else {
-		sync := s.les.Downloader().Progress()
-		syncing = s.les.BlockChain().CurrentHeader().Number.Uint64() >= sync.HighestBlock
+		return errors.New("no service register")
 	}
 	// Assemble the node stats and send it to the server
 	log.Trace("Sending node details to taistats")

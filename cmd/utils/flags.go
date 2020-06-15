@@ -51,7 +51,6 @@ import (
 	//"github.com/taiyuechain/taiyuechain/dashboard"
 	"crypto/ecdsa"
 
-	"github.com/taiyuechain/taiyuechain/les"
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
 	"github.com/taiyuechain/taiyuechain/node"
@@ -1054,16 +1053,10 @@ func SetDashboardConfig(ctx *cli.Context, cfg *dashboard.Config) {
 func RegisterYueService(stack *node.Node, cfg *yue.Config) {
 	var err error
 	if cfg.SyncMode == downloader.LightSync {
-		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-			return les.New(ctx, cfg)
-		})
+		Fatalf("Failed to register the Taiyuechain les service")
 	} else {
 		err = stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 			fullNode, err := yue.New(ctx, cfg, stack.Config().P2P.P2PNodeCert)
-			if fullNode != nil && cfg.LightServ > 0 {
-				ls, _ := les.NewLesServer(fullNode, cfg)
-				fullNode.AddLesServer(ls)
-			}
 			return fullNode, err
 		})
 	}
@@ -1089,14 +1082,10 @@ func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit st
 // th egiven node.
 func RegisterEtrueStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both etrue and les services
+		// Retrieve both etrue services
 		var etrueServ *yue.Taiyuechain
 		ctx.Service(&etrueServ)
-
-		var lesServ *les.LightEtrue
-		ctx.Service(&lesServ)
-
-		return yuestats.New(url, etrueServ, lesServ)
+		return yuestats.New(url, etrueServ)
 	}); err != nil {
 		Fatalf("Failed to register the Taiyuechain Stats service: %v", err)
 	}
