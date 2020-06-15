@@ -248,11 +248,6 @@ func (d *Dataset) Hash() common.Hash {
 	return rlpHash(d.dataset)
 }
 
-//SetSnailChainReader Append interface SnailChainReader after instantiations
-func (m *Minerva) SetSnailChainReader(scr consensus.SnailChainReader) {
-	m.sbc = scr
-}
-
 //SetElection Append interface CommitteeElection after instantiation
 func (m *Minerva) SetElection(e consensus.CommitteeElection) {
 	m.election = e

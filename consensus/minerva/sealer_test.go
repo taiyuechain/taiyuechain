@@ -2,10 +2,11 @@ package minerva
 
 import (
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/core/types"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/core/types"
 )
 
 type SnailChainReader interface {
@@ -38,7 +39,6 @@ func TestUpdateLookup(t *testing.T) {
 		)
 		a, _ := chain.NewSnailBlockChain(testdb, nil, nil, nil, vm.Config{})
 		//NewBlockChain(testdb, nil, params.TestChainConfig, ethash.NewFaker(), vm.Config{})
-		minerva.SetSnailChainReader(a)
 		fmt.Println("191788 %  12000",191788%12000)
 		dataset:= make([]uint64, TBLSIZE*DATALENGTH*PMTSIZE*32)
 		//flag,dataset := minerva.updateLookupTBL(22250,dataset)

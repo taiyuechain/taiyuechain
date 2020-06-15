@@ -18,17 +18,13 @@ package minerva
 
 import (
 	"encoding/json"
-	"github.com/taiyuechain/taiyuechain/common"
 	"math/big"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/common/math"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/params"
 	osMath "math"
+
+	"github.com/taiyuechain/taiyuechain/common/math"
 )
 
 var (
@@ -70,109 +66,6 @@ func (d *diffTest) UnmarshalJSON(b []byte) (err error) {
 //	blocks := snailchain.GenerateChain
 
 //}
-
-func TestCalcSnailDifficulty(t *testing.T) {
-	var SnailHeadersMap map[*big.Int][]*types.SnailHeader
-	var targeDiff []*big.Int
-	var timeCurrent []*big.Int
-	n := 4
-	SnailHeadersMap = make(map[*big.Int][]*types.SnailHeader)
-	parents := make([]*types.SnailHeader, n)
-	//timeCurrent = make([]*big.Int,n)
-
-	parents[0] = &types.SnailHeader{
-		Number:     new(big.Int).SetUint64(0),
-		Time:       new(big.Int).SetUint64(60),
-		Difficulty: new(big.Int).SetUint64(2000000),
-	}
-	timeCurrent = append(timeCurrent, new(big.Int).SetUint64(90))
-	//SnailHeadersMap[]
-	parents[1] = &types.SnailHeader{
-		Number:     new(big.Int).SetUint64(1),
-		Time:       new(big.Int).SetUint64(90),
-		Difficulty: new(big.Int).SetUint64(2000000),
-	}
-	//SnailHeadersMap[]
-	timeCurrent = append(timeCurrent, new(big.Int).SetUint64(100))
-	parents[2] = &types.SnailHeader{
-		Number:     new(big.Int).SetUint64(2),
-		Time:       new(big.Int).SetUint64(100),
-		Difficulty: new(big.Int).SetUint64(2983333),
-	}
-	timeCurrent = append(timeCurrent, new(big.Int).SetUint64(150))
-	parents[3] = &types.SnailHeader{
-		Number:     new(big.Int).SetUint64(3),
-		Time:       new(big.Int).SetUint64(150),
-		Difficulty: new(big.Int).SetUint64(3675207),
-	}
-	timeCurrent = append(timeCurrent, new(big.Int).SetUint64(160))
-
-	SnailHeadersMap[new(big.Int).SetUint64(0)] = parents[:1]
-	SnailHeadersMap[new(big.Int).SetUint64(1)] = parents[:2]
-	SnailHeadersMap[new(big.Int).SetUint64(2)] = parents[:3]
-	SnailHeadersMap[new(big.Int).SetUint64(3)] = parents[:4]
-
-	tdiff := new(big.Int).SetUint64(2000000)
-	//for i:0;i<n;i++{
-	targeDiff = append(targeDiff, tdiff)
-	tdiff = new(big.Int).SetUint64(2983333)
-	//for i:0;i<n;i++{
-	targeDiff = append(targeDiff, tdiff)
-	tdiff = new(big.Int).SetUint64(3675207)
-	//for i:0;i<n;i++{
-	targeDiff = append(targeDiff, tdiff)
-	tdiff = new(big.Int).SetUint64(4273149)
-	//for i:0;i<n;i++{
-	targeDiff = append(targeDiff, tdiff)
-
-	config := &params.ChainConfig{ChainID: big.NewInt(1), Minerva: &params.MinervaConfig{MinimumDifficulty: params.MinimumDifficulty, MinimumFruitDifficulty: params.MinimumFruitDifficulty, DurationLimit: params.DurationLimit}, TIP3: &params.BlockConfig{FastNumber: common.Big0}, TIP5: &params.BlockConfig{FastNumber: common.Big0}}
-
-	for k, v := range SnailHeadersMap {
-		//i:= timeCurrent[k.Uint64()]
-		//t.Error( "failed. Expected", targeDiff[k.Uint64()], "time", timeCurrent[k.Uint64()],"v lenght",len(v))
-
-		diff := CalcDifficulty(config, timeCurrent[k.Uint64()].Uint64(), v)
-
-		if targeDiff[k.Uint64()].Cmp(diff) != 0 {
-			t.Error("fail targ", targeDiff[k.Uint64()], "and calculated", diff, "K", k, "v len", len(v))
-		} else {
-			fmt.Println("success tag diff", targeDiff[k.Uint64()], "and and calculated", diff, "K", k, "v len", len(v))
-		}
-	}
-
-}
-func TestCalcDifficulty(t *testing.T) {
-	file, err := os.Open(filepath.Join("..", "..", "tests", "testdata", "BasicTests", "difficulty.json"))
-	if err != nil {
-		t.Skip(err)
-	}
-	defer file.Close()
-
-	tests := make(map[string]diffTest)
-	err = json.NewDecoder(file).Decode(&tests)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	//config := &params.ChainConfig{HomesteadBlock: big.NewInt(1150000)}
-	config := &params.ChainConfig{}
-	var parents []*types.SnailHeader
-
-	for name, test := range tests {
-		number := new(big.Int).Sub(test.CurrentBlocknumber, big.NewInt(1))
-		/*parents[1]=&types.SnailHeader{
-			Number:     number,
-			Time:       new(big.Int).SetUint64(test.ParentTimestamp),
-			Difficulty: test.ParentDifficulty,
-		}*/
-		parents = append(parents, &types.SnailHeader{Number: number, Time: new(big.Int).SetUint64(test.ParentTimestamp), Difficulty: test.ParentDifficulty})
-
-		diff := CalcDifficulty(config, test.CurrentTimestamp, parents)
-		if diff.Cmp(test.CurrentDifficulty) != 0 {
-			t.Error(name, "failed. Expected", test.CurrentDifficulty, "and calculated", diff)
-		}
-	}
-}
 
 func TestAccountDiv(t *testing.T) {
 	r := new(big.Int)

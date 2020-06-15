@@ -188,10 +188,6 @@ func (b *LesApiBackend) GetCommittee(number rpc.BlockNumber) (map[string]interfa
 	return nil, nil
 }
 
-func (b *LesApiBackend) GetSnailRewardContent(number rpc.BlockNumber) *types.SnailRewardContenet {
-	return nil
-}
-
 func (b *LesApiBackend) Downloader() *downloader.Downloader {
 	return b.etrue.Downloader()
 }

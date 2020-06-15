@@ -21,11 +21,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/metrics"
 	"math/big"
 	"strings"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/metrics"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -42,6 +43,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -917,31 +919,6 @@ func (s *PublicBlockChainAPI) GetRewardBlock(ctx context.Context, blockNr rpc.Bl
 		return s.rpcOutputBlock(block, true, false)
 	}
 	return nil, err
-}
-
-/*func (s *PublicBlockChainAPI) GetSnailRewardContent(blockNr rpc.BlockNumber) map[string]interface{} {
-	snailRewardContent := s.b.GetSnailRewardContent(blockNr)
-	return RPCMarshalRewardContent(snailRewardContent)
-}*/
-
-func RPCMarshalRewardContent(content *types.SnailRewardContenet) map[string]interface{} {
-	if content == nil {
-		return nil
-	}
-	fields := map[string]interface{}{
-		"blockminer":     content.BlockMinerReward,
-		"fruitminer":     content.FruitMinerReward,
-		"committeReward": content.CommitteeReward,
-	}
-	/*log.Warn("api", "blockminer", content.BlockMinerReward)
-	log.Warn("api", "committeReward", content.CommitteeReward)
-	log.Warn("api", "fruitminer", len(content.FruitMinerReward))
-	for _,reward :=range content.FruitMinerReward{
-		for k,v :=range reward{
-			log.Warn("api", hex.EncodeToString(k[:]), v)
-		}
-	}*/
-	return fields
 }
 
 // RPCTransaction represents a transaction that will serialize to the RPC representation of a transaction
