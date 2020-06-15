@@ -188,19 +188,144 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 	copy(tempPT.BlackList, pt.BlackList)
 
 	for k, v := range pt.ContractPermi {
-		tempPT.ContractPermi[k] = v
+		wm := &MemberTable{}
+		wmb := &MemberTable{}
+		tempPT.ContractPermi[k] = &ContractListTable{v.GroupKey,v.Creator,v.CreateFlag,v.IsWhitListWork,wm,wmb}
+
+		if v.WhiteMembers != nil {
+			if len(v.WhiteMembers.Manager)>0{
+				for i:=0;i<len(v.WhiteMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.WhiteMembers.Manager[i].MemberID,v.WhiteMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.WhiteMembers.Member) >0{
+				for i:=0;i<len(v.WhiteMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.WhiteMembers.Member[i].MemberID,v.WhiteMembers.Member[i].JoinTime})
+				}
+			}
+		}
+
+		tempPT.ContractPermi[k].WhiteMembers = wm
+		if v.BlackMembers != nil {
+			if len(v.BlackMembers.Manager)>0{
+				for i:=0;i<len(v.BlackMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.BlackMembers.Manager[i].MemberID,v.BlackMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.BlackMembers.Member) >0{
+				for i:=0;i<len(v.BlackMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.BlackMembers.Member[i].MemberID,v.BlackMembers.Member[i].JoinTime})
+				}
+			}
+		}
+		tempPT.ContractPermi[k].BlackMembers = wmb
+
 	}
 	for k, v := range pt.GropPermi {
-		tempPT.GropPermi[k] = v
+		wm := &MemberTable{}
+		wmb := &MemberTable{}
+		tempPT.GropPermi[k] = &GropListTable{v.GroupKey,v.Id,v.Creator,v.Name,wm,wmb}
+		if v.WhiteMembers != nil {
+			if len(v.WhiteMembers.Manager)>0{
+				for i:=0;i<len(v.WhiteMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.WhiteMembers.Manager[i].MemberID,v.WhiteMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.WhiteMembers.Member) >0{
+				for i:=0;i<len(v.WhiteMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.WhiteMembers.Member[i].MemberID,v.WhiteMembers.Member[i].JoinTime})
+				}
+			}
+		}
+
+		tempPT.GropPermi[k].WhiteMembers = wm
+		if v.BlackMembers != nil {
+			if len(v.BlackMembers.Manager)>0{
+				for i:=0;i<len(v.BlackMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.BlackMembers.Manager[i].MemberID,v.BlackMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.BlackMembers.Member) >0{
+				for i:=0;i<len(v.BlackMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.BlackMembers.Member[i].MemberID,v.BlackMembers.Member[i].JoinTime})
+				}
+			}
+		}
+		tempPT.GropPermi[k].BlackMembers = wmb
 	}
 	for k, v := range pt.SendTranPermi {
-		tempPT.SendTranPermi[k] = v
+		wm := &MemberTable{}
+		wmb := &MemberTable{}
+		tempPT.SendTranPermi[k] = &MemberListTable{v.GroupKey,v.Id,v.Creator,v.IsWhitListWork,wm,wmb}
+		if v.WhiteMembers != nil {
+			if len(v.WhiteMembers.Manager)>0{
+				for i:=0;i<len(v.WhiteMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.WhiteMembers.Manager[i].MemberID,v.WhiteMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.WhiteMembers.Member) >0{
+				for i:=0;i<len(v.WhiteMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.WhiteMembers.Member[i].MemberID,v.WhiteMembers.Member[i].JoinTime})
+				}
+			}
+		}
+
+		tempPT.SendTranPermi[k].WhiteMembers = wm
+		if v.BlackMembers != nil {
+			if len(v.BlackMembers.Manager)>0{
+				for i:=0;i<len(v.BlackMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.BlackMembers.Manager[i].MemberID,v.BlackMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.BlackMembers.Member) >0{
+				for i:=0;i<len(v.BlackMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.BlackMembers.Member[i].MemberID,v.BlackMembers.Member[i].JoinTime})
+				}
+			}
+		}
+		tempPT.SendTranPermi[k].BlackMembers = wmb
+
 	}
 	for k, v := range pt.CrtContracetPermi {
-		tempPT.CrtContracetPermi[k] = v
+		wm := &MemberTable{}
+		wmb := &MemberTable{}
+		tempPT.CrtContracetPermi[k] = &MemberListTable{v.GroupKey,v.Id,v.Creator,v.IsWhitListWork,wm,wmb}
+		if v.WhiteMembers != nil {
+			if len(v.WhiteMembers.Manager)>0{
+				for i:=0;i<len(v.WhiteMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.WhiteMembers.Manager[i].MemberID,v.WhiteMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.WhiteMembers.Member) >0{
+				for i:=0;i<len(v.WhiteMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.WhiteMembers.Member[i].MemberID,v.WhiteMembers.Member[i].JoinTime})
+				}
+			}
+		}
+
+		tempPT.CrtContracetPermi[k].WhiteMembers = wm
+		if v.BlackMembers != nil {
+			if len(v.BlackMembers.Manager)>0{
+				for i:=0;i<len(v.BlackMembers.Manager);i++{
+					wm.Manager = append(wm.Manager,&MemberInfo{v.BlackMembers.Manager[i].MemberID,v.BlackMembers.Manager[i].JoinTime})
+				}
+			}
+			if len(v.BlackMembers.Member) >0{
+				for i:=0;i<len(v.BlackMembers.Member);i++{
+					wm.Member = append(wm.Member,&MemberInfo{v.BlackMembers.Member[i].MemberID,v.BlackMembers.Member[i].JoinTime})
+				}
+			}
+		}
+		tempPT.CrtContracetPermi[k].BlackMembers = wmb
+
 	}
 	for k, v := range pt.UserBasisPermi {
-		tempPT.UserBasisPermi[k] = v
+
+		tempPT.UserBasisPermi[k] = &BasisPermin{v.MemberID,v.CreatorRoot,v.SendTran,v.CrtContract,v.GropId,[]common.Address{}}
+
+		if len(v.GropList)>0{
+			tempPT.UserBasisPermi[k].GropList = append(tempPT.UserBasisPermi[k].GropList,v.GropList[:]...)
+		}
 	}
 
 	return tempPT
