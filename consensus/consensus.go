@@ -160,8 +160,6 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 		i.SaveCACertList(state, CaCertAddress)
 		state.SetNonce(CaCertAddress, 1)
 		state.SetCode(CaCertAddress, CaCertAddress[:])
-
-		return true
 	}
 
 	pTAddress := types.PermiTableAddress
@@ -182,8 +180,6 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 		i.Save(state)
 		state.SetNonce(pTAddress, 1)
 		state.SetCode(pTAddress, pTAddress[:])
-
-		return true
 	}
 	return false
 }

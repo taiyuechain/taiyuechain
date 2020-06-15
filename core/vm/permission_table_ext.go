@@ -222,3 +222,24 @@ func find(h *big.Int, vs []common.Address) int {
 	}
 	return mid
 }
+
+type extMemberInfo struct {
+	MemberID common.Address
+	JoinTime uint64
+}
+
+func (m *MemberInfo) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, extMemberInfo{
+		MemberID: m.MemberID,
+		JoinTime: uint64(m.JoinTime),
+	})
+}
+
+func (m *MemberInfo) DecodeRLP(s *rlp.Stream) error {
+	var ei extMemberInfo
+	if err := s.Decode(&ei); err != nil {
+		return err
+	}
+	m.JoinTime, m.MemberID = int64(ei.JoinTime), ei.MemberID
+	return nil
+}

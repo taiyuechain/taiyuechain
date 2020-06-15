@@ -62,7 +62,7 @@ var (
 
 	pbft5PrivString = "77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489"
 	skey5, _        = crypto.HexToECDSA("5a25f1ad94e51092c041a38bd1f7a6dab203d90c0b673294cb7eb2c3e6a8576a")
-	saddr5          = crypto.PubkeyToAddress(skey1.PublicKey)
+	saddr5          = crypto.PubkeyToAddress(skey5.PublicKey)
 
 	pbft5Name    = "pbft5priv"
 	pbft5path    = "../testcert/" + pbft5Name + ".pem"
@@ -125,8 +125,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	}
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := blockchain.GetBlockNumber()
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
+	height := blockchain.CurrentBlock().Number()
+	epoch := types.GetEpochIDFromHeight(height)
+	cimList.SetCertEpoch(epoch)
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
 		cimCa, err := cim.NewCIM()
 		if err != nil {
 			panic(err)

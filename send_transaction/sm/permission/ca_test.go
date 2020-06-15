@@ -21,7 +21,10 @@ func TestAllPermission(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(number uint64, gen *core.BlockGen, fastChain *core.BlockChain, header *types.Header, statedb *state.StateDB) {
 		sendTranction(number, gen, statedb, mAccount, saddr1, big.NewInt(6000000000000000000), priKey, signer, nil, header, p2p1Byte)
+		sendTranction(number - 1, gen, statedb, saddr1, saddr5, big.NewInt(5000000000000000000), skey1, signer, nil, header, p2p2Byte)
 		sendGrantPermissionTranscation(number, gen, saddr1, saddr5, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+
+		//sendTranction(number - 1 - 25, gen, statedb, saddr5, saddr1, big.NewInt(1000000000000000000), skey5, signer, nil, header, p2p5Byte)
 
 		//sendIsApproveCACertTranscation(number, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		//cert44 := pbft5Byte
