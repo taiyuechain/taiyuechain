@@ -2,15 +2,16 @@ package types
 
 import (
 	"errors"
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/event"
+	"github.com/taiyuechain/taiyuechain/log"
 )
 
 var (
@@ -361,24 +362,19 @@ func (ps *PeerSet) MedianRTT() time.Duration {
 
 // fetchRequest is a currently running data retrieval operation.
 type FetchRequest struct {
-	Peer     PeerConnection       // Peer to which the request was sent
-	From     uint64               // [eth/62] Requested chain element index (used for skeleton fills only)
-	Sheaders []*types.SnailHeader // [eth/62] Requested headers, sorted by request order
-	Fheaders []*types.Header      // [eth/62] Requested headers, sorted by request order
-	Time     time.Time            // Time when the request was made
+	Peer     PeerConnection  // Peer to which the request was sent
+	From     uint64          // [eth/62] Requested chain element index (used for skeleton fills only)
+	Fheaders []*types.Header // [eth/62] Requested headers, sorted by request order
+	Time     time.Time       // Time when the request was made
 
 }
 
 // fetchResult is a struct collecting partial results from data fetchers until
 // all outstanding pieces complete and the result as a whole can be processed.
 type FetchResult struct {
-	Pending int         // Number of data fetches still pending
-	Hash    common.Hash // Hash of the header to prevent recalculating
-
-	Signs   []*types.PbftSign
-	Sheader *types.SnailHeader
-	Fruits  types.SnailBlocks
-
+	Pending      int         // Number of data fetches still pending
+	Hash         common.Hash // Hash of the header to prevent recalculating
+	Signs        []*types.PbftSign
 	Fheader      *types.Header
 	Infos        types.CommitteeMembers
 	Transactions types.Transactions

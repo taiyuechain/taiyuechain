@@ -25,6 +25,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/rlp"
+
 	//"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 )
@@ -193,9 +194,8 @@ type getBlockHeadersData struct {
 
 // BlockHeadersData represents a block header send.
 type BlockHeadersData struct {
-	Headers      []*types.Header
-	SnailHeaders []*types.SnailHeader
-	Call         uint32 // Distinguish fetcher and downloader
+	Headers []*types.Header
+	Call    uint32 // Distinguish fetcher and downloader
 }
 
 // hashOrNumber is a combined field for specifying an origin block.
