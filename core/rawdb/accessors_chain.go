@@ -19,11 +19,12 @@ package rawdb
 import (
 	"bytes"
 	"encoding/binary"
+	"math/big"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
-	"math/big"
 )
 
 // ReadCanonicalHash retrieves the hash assigned to a canonical block number.
@@ -87,22 +88,6 @@ func ReadHeadBlockHash(db DatabaseReader) common.Hash {
 // WriteHeadBlockHash stores the head block's hash.
 func WriteHeadBlockHash(db DatabaseWriter, hash common.Hash) {
 	if err := db.Put(headBlockKey, hash.Bytes()); err != nil {
-		log.Crit("Failed to store last block's hash", "err", err)
-	}
-}
-
-// ReadHeadBlockHash retrieves the hash of the current canonical head block.
-func ReadHeadRewardNumber(db DatabaseReader) uint64 {
-	data, _ := db.Get(headRewardKey)
-	if len(data) == 0 {
-		return 0
-	}
-	return new(big.Int).SetBytes(data).Uint64()
-}
-
-// WriteHeadBlockHash stores the head block's hash.
-func WriteHeadRewardNumber(db DatabaseWriter, number uint64) {
-	if err := db.Put(headRewardKey, big.NewInt(int64(number)).Bytes()); err != nil {
 		log.Crit("Failed to store last block's hash", "err", err)
 	}
 }
@@ -424,49 +409,6 @@ func DeleteBlock(db DatabaseDeleter, hash common.Hash, number uint64) {
 	DeleteReceipts(db, hash, number)
 	DeleteHeader(db, hash, number)
 	DeleteBody(db, hash, number)
-}
-
-// ReadHeaderRLP retrieves a block header in its raw RLP database encoding.
-func ReadBlockRewardRLP(db DatabaseReader, number uint64) rlp.RawValue {
-	data, _ := db.Get(blockRewardKey(number))
-	return data
-}
-
-func ReadBlockReward(db DatabaseReader, number uint64) *types.BlockReward {
-
-	data := ReadBlockRewardRLP(db, number)
-	if len(data) == 0 {
-		return nil
-	}
-	header := new(types.BlockReward)
-	if err := rlp.Decode(bytes.NewReader(data), header); err != nil {
-		log.Error("Invalid block BlockReward RLP", "err", err)
-		return nil
-	}
-	return header
-}
-
-// WriteReward serializes a blockReward into the database.
-func WriteBlockReward(db DatabaseWriter, block *types.BlockReward) {
-
-	key := blockRewardKey(block.SnailNumber.Uint64())
-	// Write the encoded BlockReward
-	data, err := rlp.EncodeToBytes(block)
-	//log.Info("=========   size of BlockReward",len(data),"number of SnailNumber",block.SnailNumber)
-	if err != nil {
-		log.Crit("Failed to RLP encode BlockReward", "err", err)
-	}
-	if err := db.Put(key, data); err != nil {
-		log.Crit("Failed to store BlockReward", "err", err)
-	}
-
-}
-
-// DeleteReceipts removes all receipt data associated with a block hash.
-func DeleteBlockReward(db DatabaseDeleter, hash common.Hash, number uint64) {
-	if err := db.Delete(blockRewardKey(number)); err != nil {
-		log.Crit("Failed to delete block BlockReward", "err", err)
-	}
 }
 
 // FindCommonAncestor returns the last common ancestor of two block headers

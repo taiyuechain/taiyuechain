@@ -19,15 +19,16 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/cim"
-	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 	"math"
 	"math/big"
 	"sort"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/consensus/tbft/help"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -145,10 +146,8 @@ const (
 // some pre checks in tx pool and event subscribers.
 type blockChain interface {
 	CurrentBlock() *types.Block
-	CurrentReward() *types.BlockReward
 	GetBlock(hash common.Hash, number uint64) *types.Block
 	StateAt(root common.Hash) (*state.StateDB, error)
-
 	SubscribeChainHeadEvent(ch chan<- types.FastChainHeadEvent) event.Subscription
 }
 

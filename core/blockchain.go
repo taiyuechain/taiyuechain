@@ -127,7 +127,6 @@ type BlockChain struct {
 	checkpoint       int          // checkpoint counts towards the new checkpoint
 	currentBlock     atomic.Value // Current head of the block chain
 	currentFastBlock atomic.Value // Current head of the fast-sync chain (may be above the block chain!)
-	currentReward    atomic.Value // Current head of the currentReward
 
 	stateCache    state.Database // State database to reuse between imports (contains state cache)
 	bodyCache     *lru.Cache     // Cache for the most recent block bodies
@@ -287,19 +286,7 @@ func (bc *BlockChain) loadLastState() error {
 			bc.currentFastBlock.Store(block)
 		}
 	}
-	// Restore the last known currentReward
-	rewardHead := bc.GetLastRowByFastCurrentBlock()
 
-	if rewardHead != nil {
-		bc.currentReward.Store(rewardHead)
-		rawdb.WriteHeadRewardNumber(bc.db, rewardHead.SnailNumber.Uint64())
-	} else {
-		reward := &types.BlockReward{SnailNumber: big.NewInt(0)}
-		bc.currentReward.Store(reward)
-		rawdb.WriteHeadRewardNumber(bc.db, 0)
-	}
-
-	// Restore the last known currentReward
 	bc.lastBlock.Store(currentBlock)
 	if head := rawdb.ReadLastBlockHash(bc.db); head != (common.Hash{}) {
 		if block := bc.GetBlockByHash(head); block != nil {
@@ -318,24 +305,6 @@ func (bc *BlockChain) loadLastState() error {
 	log.Info("Loaded most recent local full Fastblock", "number", currentBlock.Number(), "hash", currentBlock.Hash())
 	log.Info("Loaded most recent local fast Fastblock", "number", currentFastBlock.Number(), "hash", currentFastBlock.Hash())
 	log.Info("Loaded most recent local lastBlock", "number", lastBlock.Number(), "hash", lastBlock.Hash())
-	return nil
-}
-
-//Gets the nearest reward block based on the current height of the fast chain
-func (bc *BlockChain) GetLastRowByFastCurrentBlock() *types.BlockReward {
-	block := bc.CurrentBlock()
-	for i := block.NumberU64(); i > 0; i-- {
-		if block.SnailNumber().Uint64() != 0 {
-			return &types.BlockReward{
-				SnailNumber: block.SnailNumber(),
-				SnailHash:   block.SnailHash(),
-				FastNumber:  block.Number(),
-				FastHash:    block.Hash(),
-			}
-		}
-		block = bc.GetBlockByNumber(i)
-	}
-
 	return nil
 }
 
@@ -454,26 +423,6 @@ func (bc *BlockChain) CurrentCommitHeight() *big.Int {
 	//commitHeight := bc.CurrentBlock().Number().Uint64() / uint64(blockDeleteHeight) * blockDeleteHeight
 	commitHeight := uint64(0)
 	return new(big.Int).SetUint64(commitHeight)
-}
-
-func (bc *BlockChain) CurrentReward() *types.BlockReward {
-	if bc.currentReward.Load() == nil {
-		return nil
-	}
-	return bc.currentReward.Load().(*types.BlockReward)
-}
-
-func (bc *BlockChain) NextSnailNumberReward() *big.Int {
-	var (
-		rewardSnailHegiht *big.Int
-		blockReward       = bc.CurrentReward()
-	)
-	if blockReward == nil {
-		rewardSnailHegiht = new(big.Int).Set(common.Big1)
-	} else {
-		rewardSnailHegiht = new(big.Int).Add(blockReward.SnailNumber, common.Big1)
-	}
-	return rewardSnailHegiht
 }
 
 // CurrentFastBlock retrieves the current fast-sync head block of the canonical
@@ -984,22 +933,6 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 			return i, fmt.Errorf("failed to set receipts data: %v", err)
 		}
 
-		if block.SnailNumber().Int64() != 0 {
-			//create BlockReward
-			br := &types.BlockReward{
-				FastHash:    block.Hash(),
-				FastNumber:  block.Number(),
-				SnailHash:   block.SnailHash(),
-				SnailNumber: block.SnailNumber(),
-			}
-			//insert BlockReward to db
-			rawdb.WriteBlockReward(batch, br)
-			rawdb.WriteHeadRewardNumber(bc.db, block.SnailNumber().Uint64())
-
-			bc.currentReward.Store(br)
-
-		}
-
 		// Write all the data out into the database
 		rawdb.WriteBody(batch, block.Hash(), block.NumberU64(), block.Body())
 		rawdb.WriteReceipts(batch, block.Hash(), block.NumberU64(), receipts)
@@ -1066,22 +999,6 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 
 	// Write other block data using a batch.
 	rawdb.WriteBlock(bc.db, block)
-
-	if block.SnailNumber().Int64() != 0 {
-		//create BlockReward
-		br := &types.BlockReward{
-			FastHash:    block.Hash(),
-			FastNumber:  block.Number(),
-			SnailHash:   block.SnailHash(),
-			SnailNumber: block.SnailNumber(),
-		}
-		//insert BlockReward to db
-		rawdb.WriteBlockReward(bc.db, br)
-		rawdb.WriteHeadRewardNumber(bc.db, block.SnailNumber().Uint64())
-
-		bc.currentReward.Store(br)
-
-	}
 	root, err := state.Commit(true)
 	if err != nil {
 		return NonStatTy, err

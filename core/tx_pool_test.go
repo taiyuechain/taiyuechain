@@ -57,10 +57,6 @@ func (bc *testBlockChain) CurrentBlock() *types.Block {
 	}, nil, nil, nil, nil)
 }
 
-func (bc *testBlockChain) CurrentReward() *types.BlockReward {
-	return &types.BlockReward{FastHash: bc.CurrentBlock().Hash(), FastNumber: bc.CurrentBlock().Number(), SnailHash: bc.CurrentBlock().SnailHash(), SnailNumber: bc.CurrentBlock().SnailNumber()}
-}
-
 func (bc *testBlockChain) GetBlock(hash common.Hash, number uint64) *types.Block {
 	return bc.CurrentBlock()
 }

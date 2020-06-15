@@ -184,14 +184,6 @@ type Body struct {
 	Infos        []*CommitteeMember
 }
 
-// BlockReward
-type BlockReward struct {
-	FastHash    common.Hash `json:"FastHash"        gencodec:"required"`
-	FastNumber  *big.Int    `json:"FastNumber"      gencodec:"required"`
-	SnailHash   common.Hash `json:"SnailHash"        gencodec:"required"`
-	SnailNumber *big.Int    `json:"SnailNumber"      gencodec:"required"`
-}
-
 // Block represents an entire block in the taiyuechain blockchain.
 type Block struct {
 	header       *Header
