@@ -16,7 +16,7 @@ func TestConfigTomlFile(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	pubk, err := crypto.GetPubByteFromCert(cfg.Etrue.Genesis.CertList[0])
+	pubk, err := crypto.GetPubByteFromCert(cfg.Etrue.NodeCert)
 	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")
@@ -24,7 +24,7 @@ func TestConfigTomlFile(t *testing.T) {
 	fmt.Println(hex.EncodeToString(pubk))
 
 	fmt.Println("---the commite")
-	fmt.Println(hex.EncodeToString(cfg.Etrue.Genesis.Committee[0].Coinbase[:]))
-	fmt.Println(hex.EncodeToString(cfg.Etrue.Genesis.Committee[1].Coinbase[:]))
+	fmt.Println(hex.EncodeToString(cfg.Etrue.CommitteeKey))
+	fmt.Println(hex.EncodeToString(cfg.Etrue.CommitteeBase[:]))
 	//fmt.Println(cfg.Etrue.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
 }
