@@ -78,11 +78,6 @@ func (b *LesApiBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumb
 	return b.GetBlock(ctx, header.Hash())
 }
 
-// TODO: fixed lightchain func.
-func (b *LesApiBackend) SnailBlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.SnailBlock, error) {
-	return nil, nil
-}
-
 func (b *LesApiBackend) StateAndHeaderByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*state.StateDB, *types.Header, error) {
 	header, err := b.HeaderByNumber(ctx, blockNr)
 	if header == nil || err != nil {
@@ -174,16 +169,6 @@ func (b *LesApiBackend) SubscribeLogsEvent(ch chan<- []*types.Log) event.Subscri
 func (b *LesApiBackend) SubscribeRemovedLogsEvent(ch chan<- types.RemovedLogsEvent) event.Subscription {
 	return b.etrue.blockchain.SubscribeRemovedLogsEvent(ch)
 }
-
-func (b *LesApiBackend) GetReward(number int64) *types.BlockReward {
-	//if number < 0 {
-	//	return b.etrue.blockchain.CurrentReward()
-	//}
-
-	//return b.etrue.blockchain.GetFastHeightBySnailHeight(uint64(number))
-	return nil
-}
-
 func (b *LesApiBackend) GetCommittee(number rpc.BlockNumber) (map[string]interface{}, error) {
 	return nil, nil
 }

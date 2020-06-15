@@ -61,11 +61,6 @@ func (m *Minerva) Author(header *types.Header) (common.Address, error) {
 	return common.Address{}, nil
 }
 
-//AuthorSnail return Snail mine coinbase
-func (m *Minerva) AuthorSnail(header *types.SnailHeader) (common.Address, error) {
-	return header.Coinbase, nil
-}
-
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock Taiyuechain m engine.
 func (m *Minerva) VerifyHeader(chain consensus.ChainReader, header *types.Header) error {
@@ -86,36 +81,6 @@ func (m *Minerva) VerifyHeader(chain consensus.ChainReader, header *types.Header
 	}
 
 	return m.verifyHeader(chain, header, parent)
-}
-
-func (m *Minerva) getParents(chain consensus.SnailChainReader, header *types.SnailHeader) []*types.SnailHeader {
-	return GetParents(chain, header)
-}
-
-//GetParents the calc different need parents
-func GetParents(chain consensus.SnailChainReader, header *types.SnailHeader) []*types.SnailHeader {
-	number := header.Number.Uint64()
-	period := params.DifficultyPeriod.Uint64()
-	if number < period {
-		period = number
-	}
-	//log.Info("getParents", "number", header.Number, "period", period)
-	parents := make([]*types.SnailHeader, period)
-	hash := header.ParentHash
-	for i := uint64(1); i <= period; i++ {
-		if number-i < 0 {
-			break
-		}
-		parent := chain.GetHeader(hash, number-i)
-		if parent == nil {
-			log.Warn("getParents get parent failed.", "number", number-i, "hash", hash)
-			return nil
-		}
-		parents[period-i] = parent
-		hash = parent.ParentHash
-	}
-
-	return parents
 }
 
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
@@ -336,22 +301,7 @@ func (m *Minerva) Prepare(chain consensus.ChainReader, header *types.Header) err
 // setting the final state and assembling the block.
 func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB,
 	txs []*types.Transaction, receipts []*types.Receipt, feeAmount *big.Int) (*types.Block, error) {
-
-	if header != nil && header.SnailHash != (common.Hash{}) && header.SnailNumber != nil {
-		log.Info("Finalize:", "header.SnailHash", header.SnailHash, "header.SnailNumber", header.SnailNumber, "number", header.Number)
-		sBlockHeader := m.sbc.GetHeaderByNumber(header.SnailNumber.Uint64())
-		if sBlockHeader == nil {
-			return nil, types.ErrSnailHeightNotYet
-		}
-		if sBlockHeader.Hash() != header.SnailHash {
-			return nil, types.ErrSnailBlockNotOnTheCain
-		}
-		sBlock := m.sbc.GetBlock(header.SnailHash, header.SnailNumber.Uint64())
-		if sBlock == nil {
-			return nil, types.ErrSnailHeightNotYet
-		}
-	}
-	//not need this
+	//assgin all tx fee in block
 	if err := m.assginFee(state, header.Number, feeAmount); err != nil {
 		return nil, err
 	}
@@ -384,44 +334,4 @@ func (m *Minerva) assginFee(state *state.StateDB, fastNumber *big.Int, feeAmount
 //LogPrint log debug
 func LogPrint(info string, addr common.Address, amount *big.Int) {
 	log.Debug("[Consensus AddBalance]", "info", info, "CoinBase:", crypto.AddressToHex(addr), "amount", amount)
-}
-
-//Reward for block allocation
-func GetBlockReward(num *big.Int) (committee, minerBlock, minerFruit *big.Int, e error) {
-	base := new(big.Int).Div(getCurrentCoin(num), Big1e6).Int64()
-	m, c, e := getDistributionRatio(NetworkFragmentsNuber)
-	if e != nil {
-		return
-	}
-
-	committee = new(big.Int).Mul(big.NewInt(int64(c*float64(base))), Big1e6)
-	minerBlock = new(big.Int).Mul(big.NewInt(int64(m*float64(base)/3*2)), Big1e6)
-	minerFruit = new(big.Int).Mul(big.NewInt(int64(m*float64(base)/3)), Big1e6)
-	return
-}
-
-// get Distribution ratio for miner and committee
-func getDistributionRatio(fragmentation int) (miner, committee float64, e error) {
-	if fragmentation <= SqrtMin {
-		return 0.8, 0.2, nil
-	}
-	if fragmentation >= SqrtMax {
-		return 0.2, 0.8, nil
-	}
-	committee = SqrtArray[fragmentation]
-	return 1 - committee, committee, nil
-}
-
-func powerf(x float64, n int64) float64 {
-	if n == 0 {
-		return 1
-	}
-	return x * powerf(x, n-1)
-}
-
-//Get the total reward for the current block
-func getCurrentCoin(h *big.Int) *big.Int {
-	d := h.Int64() / int64(SnailBlockRewardsChangeInterval)
-	ratio := big.NewInt(int64(powerf(0.98, d) * float64(SnailBlockRewardsBase)))
-	return new(big.Int).Mul(ratio, Big1e6)
 }

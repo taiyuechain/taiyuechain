@@ -22,14 +22,16 @@ package yue
 import (
 	"crypto/ecdsa"
 	"crypto/rand"
+
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/forkid"
 
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"math/big"
 	"sort"
 	"sync"
 	"testing"
+
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core"
@@ -155,49 +157,6 @@ func (p *testTxPool) Pending() (map[common.Address]types.Transactions, error) {
 
 func (p *testTxPool) SubscribeNewTxsEvent(ch chan<- types.NewTxsEvent) event.Subscription {
 	return p.txFeed.Subscribe(ch)
-}
-
-// testSnailPool is a fake, helper fruit pool for testing purposes
-type testSnailPool struct {
-	fruitFeed event.Feed
-	pool      []*types.SnailBlock        // Collection of all fruits
-	added     chan<- []*types.SnailBlock // Notification channel for new fruits
-
-	lock sync.RWMutex // Protects the transaction pool
-}
-
-// AddRemoteFruits appends a batch of fruits to the pool, and notifies any
-// listeners if the addition channel is non nil
-func (p *testSnailPool) AddRemoteFruits(fts []*types.SnailBlock, local bool) []error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
-	p.pool = append(p.pool, fts...)
-	if p.added != nil {
-		p.added <- fts
-	}
-	return make([]error, len(fts))
-}
-
-// PendingFruits returns all the fruits known to the pool
-func (p *testSnailPool) PendingFruits() map[common.Hash]*types.SnailBlock {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-
-	rtfruits := make(map[common.Hash]*types.SnailBlock)
-
-	for _, fruit := range p.pool {
-		rtfruits[fruit.FastHash()] = types.CopyFruit(fruit)
-	}
-
-	return rtfruits
-}
-
-func (p *testSnailPool) SubscribeNewFruitEvent(ch chan<- types.NewFruitsEvent) event.Subscription {
-	return p.fruitFeed.Subscribe(ch)
-}
-
-func (p *testSnailPool) RemovePendingFruitByFastHash(fasthash common.Hash) {
 }
 
 // testAgentNetwork is a fake, helper agent for testing purposes

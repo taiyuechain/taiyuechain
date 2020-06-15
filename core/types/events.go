@@ -17,18 +17,13 @@
 package types
 
 import (
-	"github.com/taiyuechain/taiyuechain/common"
 	"math/big"
+
+	"github.com/taiyuechain/taiyuechain/common"
 )
 
 // NewTxsEvent is posted when a batch of transactions enter the transaction pool.
 type NewTxsEvent struct{ Txs []*Transaction }
-
-//NewFruitsEvent is posted when a fruit has been imported.
-type NewFruitsEvent struct{ Fruits []*SnailBlock }
-
-// NewMinedFruitEvent is posted when a block has been Mined.
-type NewMinedFruitEvent struct{ Block *SnailBlock }
 
 // NewFastBlocksEvent is posted when a block has been imported.
 type NewFastBlocksEvent struct{ FastBlocks []*Block }
@@ -56,25 +51,6 @@ type FastChainSideEvent struct {
 
 type FastChainHeadEvent struct{ Block *Block }
 
-type SnailChainEvent struct {
-	Block *SnailBlock
-	Hash  common.Hash
-}
-
-// SnailChainSideEvent is posted when a block in SideStatTy
-type SnailChainSideEvent struct {
-	Block *SnailBlock
-}
-
-type SnailChainHeadEvent struct{ Block *SnailBlock }
-
-// FruitEvent for fruit event,seems not used
-type FruitEvent struct {
-	Block *Block
-	Hash  common.Hash
-	Logs  []*Log
-}
-
 type ElectionEvent struct {
 	Option           uint
 	CommitteeID      *big.Int
@@ -88,9 +64,6 @@ type PbftSignEvent struct {
 	Block    *Block
 	PbftSign *PbftSign
 }
-
-// NewMinedBlockEvent is posted when a block has been imported.
-type NewMinedBlockEvent struct{ Block *SnailBlock }
 
 // NodeInfoEvent is posted when nodeInfo send
 type NodeInfoEvent struct{ NodeInfo *EncryptNodeMessage }

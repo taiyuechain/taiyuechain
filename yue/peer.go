@@ -105,7 +105,7 @@ type propHashEvent struct {
 	fast   bool
 }
 
-// dropPeerEvent is a snailBlock propagation, waiting for its turn in the broadcast queue.
+// dropPeerEvent waiting for its turn in the broadcast queue.
 type dropPeerEvent struct {
 	id     string
 	reason string

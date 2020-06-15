@@ -229,7 +229,6 @@ type Minerva struct {
 
 	lock sync.Mutex // Ensures thread safety for the in-memory caches and mining fields
 
-	sbc      consensus.SnailChainReader
 	election consensus.CommitteeElection
 	certList *cim.CimList
 }

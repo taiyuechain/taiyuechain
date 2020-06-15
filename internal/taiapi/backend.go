@@ -57,7 +57,6 @@ type Backend interface {
 	SubscribeChainEvent(ch chan<- types.FastChainEvent) event.Subscription
 	SubscribeChainHeadEvent(ch chan<- types.FastChainHeadEvent) event.Subscription
 	SubscribeChainSideEvent(ch chan<- types.FastChainSideEvent) event.Subscription
-	GetReward(number int64) *types.BlockReward
 	GetCommittee(id rpc.BlockNumber) (map[string]interface{}, error)
 
 	// TxPool API

@@ -18,12 +18,10 @@ package election
 
 import (
 	"bytes"
-	"math/big"
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
-	"github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -100,32 +98,6 @@ func committeeEqual(left, right []*types.CommitteeMember) bool {
 	return true
 }
 
-func makeChain(n int) (*snailchain.SnailBlockChain, *core.BlockChain) {
-	var (
-		// 	testdb  = etruedb.NewMemDatabase()
-		genesis = core.DefaultGenesisBlock()
-	// 	engine  = minerva.NewFaker()
-	)
-	// fastGenesis := genesis.MustCommit(testdb)
-	// fastchain, _ := core.NewBlockChain(testdb, nil, params.AllMinervaProtocolChanges, engine, vm.Config{})
-	// fastblocks := makeFast(fastGenesis, n * params.MinimumFruits, engine, testdb, canonicalSeed)
-	// fastchain.InsertChain(fastblocks)
-
-	// snailGenesis := genesis.MustSnailCommit(testdb)
-	// snail, _ := snailchain.NewSnailBlockChain(testdb, nil, params.TestChainConfig, engine, vm.Config{})
-	// blocks := makeSnail(snail, fastchain, snailGenesis, n, engine, testdb, canonicalSeed)
-	// snail.InsertChain(blocks)
-	snail, fastchain := snailchain.MakeChain(n*params.MinimumFruits, n, genesis, minerva.NewFaker())
-
-	return snail, fastchain
-}
-
-func makeSnail(snail *snailchain.SnailBlockChain, fastchain *core.BlockChain, parent *types.SnailBlock, n int, engine consensus.Engine, db yuedb.Database, seed int) []*types.SnailBlock {
-	blocks, _ := snailchain.MakeSnailBlockFruits(snail, fastchain, 1, n, 1, n*params.MinimumFruits,
-		parent.PublicKey(), parent.Coinbase(), true, big.NewInt(20000))
-	return blocks
-}
-
 // makeBlockChain creates a deterministic chain of blocks rooted at parent.
 func makeFast(parent *types.Block, n int, engine consensus.Engine, db yuedb.Database, seed int) []*types.Block {
 	blocks, _ := core.GenerateChain(params.TestChainConfig, parent, engine, db, n, func(i int, b *core.BlockGen) {
@@ -134,15 +106,3 @@ func makeFast(parent *types.Block, n int, engine consensus.Engine, db yuedb.Data
 
 	return blocks
 }
-
-// func TestCommitteeMembers(t *testing.T) {
-// 	snail, fast := makeChain(180)
-// 	election := NewElection(fast, snail, nodeType{})
-// 	members := election.electCommittee(big.NewInt(1), big.NewInt(144)).Members
-// 	if len(members) == 0 {
-// 		t.Errorf("Committee election get none member")
-// 	}
-// 	if int64(len(members)) > params.MaximumCommitteeNumber.Int64() {
-// 		t.Errorf("Elected members exceed MAX member num")
-// 	}
-// }

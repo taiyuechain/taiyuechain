@@ -51,8 +51,6 @@ func (t *BlockTest) UnmarshalJSON(in []byte) error {
 
 type btJSON struct {
 	FastBlocks  []btBlock    `json:"fastBlocks"`
-	SnailBlocks []snailBlock `json:"snailBlocks"`
-
 	FastGenesis btHeader    `json:"genesisFastBlockHeader"`
 	Genesis     snailHeader `json:"genesisBlockHeader"`
 
@@ -69,13 +67,6 @@ type btBlock struct {
 	Txs         []*types.Transaction
 	Signs       []*types.PbftSign
 	Infos       []*types.CommitteeMember
-	Rlp         string
-}
-
-type snailBlock struct {
-	BlockHeader *snailHeader
-	Fruits      []*types.SnailBlock
-	Signs       []*types.PbftSign
 	Rlp         string
 }
 
@@ -175,12 +166,6 @@ func (t *BlockTest) Run() error {
 		return err
 	}
 
-	_, err = t.insertSnailBlocks(blockchain)
-
-	if err != nil {
-		return err
-	}
-
 	newDB, err := fastChain.State()
 	if err != nil {
 		return err
@@ -248,53 +233,6 @@ func (t *BlockTest) insertFastBlocks(blockchain *core.BlockChain) ([]btBlock, er
 		if err = validateHeader(b.BlockHeader, cb.Header()); err != nil {
 			return nil, fmt.Errorf("Deserialised block header validation failed: %v", err)
 		}
-		validBlocks = append(validBlocks, b)
-	}
-	return validBlocks, nil
-}
-
-/* See https://github.com/ethereum/tests/wiki/Blockchain-Tests-II
-
-   Whether a block is valid or not is a bit subtle, it's defined by presence of
-   blockHeader, transactions and uncleHeaders fields. If they are missing, the block is
-   invalid and we must verify that we do not accept it.
-
-   Since some tests mix valid and invalid blocks we need to check this for every block.
-
-   If a block is invalid it does not necessarily fail the test, if it's invalidness is
-   expected we are expected to ignore it and continue processing and then validate the
-   post state.
-*/
-func (t *BlockTest) insertSnailBlocks(blockchain *snailchain.SnailBlockChain) ([]snailBlock, error) {
-	validBlocks := make([]snailBlock, 0)
-	// insert the test blocks, which will execute all transactions
-	for _, b := range t.json.SnailBlocks {
-		cb, err := b.decode()
-		if err != nil {
-			if b.BlockHeader == nil {
-				continue // OK - block is supposed to be invalid, continue with next block
-			} else {
-				return nil, fmt.Errorf("Block RLP decoding failed when expected to succeed: %v", err)
-			}
-		}
-		// RLP decoding worked, try to insert into chain:
-		blocks := types.SnailBlocks{cb}
-		i, err := blockchain.InsertChain(blocks)
-		if err != nil {
-			if b.BlockHeader == nil {
-				continue // OK - block is supposed to be invalid, continue with next block
-			} else {
-				return nil, fmt.Errorf("Block #%v insertion into chain failed: %v", blocks[i].Number(), err)
-			}
-		}
-		if b.BlockHeader == nil {
-			return nil, fmt.Errorf("Block insertion should have failed")
-		}
-
-		// validate RLP decoding by checking all values against test file JSON
-		//if err = validateHeader(b.BlockHeader, cb.Header()); err != nil {
-		//	return nil, fmt.Errorf("Deserialised block header validation failed: %v", err)
-		//}
 		validBlocks = append(validBlocks, b)
 	}
 	return validBlocks, nil

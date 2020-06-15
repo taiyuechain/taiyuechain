@@ -20,12 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/cim"
 	"math"
 	"math/big"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/cim"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/consensus"
@@ -87,10 +88,9 @@ type ProtocolManager struct {
 	txFetcher    *fetcher.TxFetcher
 	peers        *peerSet
 
-	eventMux      *event.TypeMux
-	txsCh         chan types.NewTxsEvent
-	txsSub        event.Subscription
-	minedBlockSub *event.TypeMuxSubscription
+	eventMux *event.TypeMux
+	txsCh    chan types.NewTxsEvent
+	txsSub   event.Subscription
 
 	whitelist map[uint64]common.Hash
 
@@ -329,10 +329,6 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 	pm.txsSub = pm.txpool.SubscribeNewTxsEvent(pm.txsCh)
 	go pm.txBroadcastLoop()
 
-	// broadcast mined blocks
-	pm.minedBlockSub = pm.eventMux.Subscribe(core.NewMinedBlockEvent{})
-	go pm.minedBroadcastLoop()
-
 	// broadcast fastBlocks
 	pm.minedFastCh = make(chan types.PbftSignEvent, blockChanSize)
 	pm.minedFastSub = pm.agentProxy.SubscribeNewPbftSignEvent(pm.minedFastCh)
@@ -351,9 +347,8 @@ func (pm *ProtocolManager) Start(maxPeers int) {
 func (pm *ProtocolManager) Stop() {
 	log.Info("Stopping TaiYue protocol")
 
-	pm.txsSub.Unsubscribe()        // quits txBroadcastLoop
-	pm.minedBlockSub.Unsubscribe() // quits blockBroadcastLoop
-	pm.minedFastSub.Unsubscribe()  // quits minedFastBroadcastLoop
+	pm.txsSub.Unsubscribe()       // quits txBroadcastLoop
+	pm.minedFastSub.Unsubscribe() // quits minedFastBroadcastLoop
 	pm.pbNodeInfoSub.Unsubscribe()
 
 	// Quit the sync loop.
@@ -1111,17 +1106,6 @@ func (pm *ProtocolManager) pbNodeInfoBroadcastLoop() {
 			// Err() channel will be closed when unsubscribing.
 		case <-pm.pbNodeInfoSub.Err():
 			return
-		}
-	}
-}
-
-// Mined broadcast loop
-func (pm *ProtocolManager) minedBroadcastLoop() {
-	// automatically stops if unsubscribe
-	for obj := range pm.minedBlockSub.Chan() {
-		if ev, ok := obj.Data.(core.NewMinedBlockEvent); ok {
-			pm.BroadcastBlock(ev.Block, true)  // First propagate block to peers
-			pm.BroadcastBlock(ev.Block, false) // Only then announce to the rest
 		}
 	}
 }

@@ -54,29 +54,6 @@ type ChainReader interface {
 	GetBlock(hash common.Hash, number uint64) *types.Block
 }
 
-// ChainSnailReader defines a small collection of methods needed to access the local
-// block chain during header and/or uncle verification.
-// Temporary interface for snail
-type SnailChainReader interface {
-	// Config retrieves the blockchain's chain configuration.
-	Config() *params.ChainConfig
-
-	// CurrentHeader retrieves the current header from the local chain.
-	CurrentHeader() *types.SnailHeader
-
-	// GetHeader retrieves a block header from the database by hash and number.
-	GetHeader(hash common.Hash, number uint64) *types.SnailHeader
-
-	// GetHeaderByNumber retrieves a block header from the database by number.
-	GetHeaderByNumber(number uint64) *types.SnailHeader
-
-	// GetHeaderByHash retrieves a block header from the database by its hash.
-	GetHeaderByHash(hash common.Hash) *types.SnailHeader
-
-	// GetBlock retrieves a block from the database by hash and number.
-	GetBlock(hash common.Hash, number uint64) *types.SnailBlock
-}
-
 // Engine is an algorithm agnostic consensus engine.
 type Engine interface {
 	SetElection(e CommitteeElection)
@@ -89,13 +66,11 @@ type Engine interface {
 	// block, which may be different from the header's coinbase if a consensus
 	// engine is based on signatures.
 	Author(header *types.Header) (common.Address, error)
-	AuthorSnail(header *types.SnailHeader) (common.Address, error)
 
 	// VerifyHeader checks whether a header conforms to the consensus rules of a
 	// given engine. Verifying the seal may be done optionally here, or explicitly
 	// via the VerifySeal method.
 	VerifyHeader(chain ChainReader, header *types.Header) error
-	//VerifySnailHeader(chain SnailChainReader, fastchain ChainReader, header *types.SnailHeader, seal bool, isFruit bool) error
 
 	// VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 	// concurrently. The method returns a quit channel to abort the operations and
@@ -116,13 +91,6 @@ type Engine interface {
 	// consensus rules that happen at finalization (e.g. block rewards).
 	Finalize(chain ChainReader, header *types.Header, state *state.StateDB,
 		txs []*types.Transaction, receipts []*types.Receipt, feeAmount *big.Int) (*types.Block, error)
-	// Seal generates a new block for the given input block with the local miner's
-	//Seal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}) (*types.SnailBlock, error)
-
-	// ConSeal generates a new block for the given input block with the local miner's
-	// seal place on top.
-	//ConSeal(chain SnailChainReader, block *types.SnailBlock, stop <-chan struct{}, send chan *types.SnailBlock)
-	// APIs returns the RPC APIs this consensus engine provides.
 	APIs(chain ChainReader) []rpc.API
 }
 

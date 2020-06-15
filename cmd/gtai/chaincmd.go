@@ -530,29 +530,11 @@ func removeDB(ctx *cli.Context) error {
 }
 
 func dump(ctx *cli.Context) error {
-	stack := makeFullNode(ctx)
-	_, chainDb := utils.MakeChain(ctx, stack)
-	/*for _, arg := range ctx.Args() {
-		var block *types.SnailBlock
-		if hashish(arg) {
-			block = schain.GetBlockByHash(common.HexToHash(arg))
-		} else {
-			num, _ := strconv.Atoi(arg)
-			block = schain.GetBlockByNumber(uint64(num))
-		}
-		if block == nil {
-			fmt.Println("{}")
-			utils.Fatalf("block not found")
-		} else {
-			//state, err := state.New(block.Root(), state.NewDatabase(chainDb))
-			//if err != nil {
-			//	utils.Fatalf("could not create new state: %v", err)
-			//}
-			//fmt.Printf("%s\n", state.Dump())
-		}
-	}*/
-	chainDb.Close()
 	return nil
+	// stack := makeFullNode(ctx)
+	// _, chainDb := utils.MakeChain(ctx, stack)
+	// chainDb.Close()
+	// return nil
 }
 
 // hashish returns true for strings that look like hashes.

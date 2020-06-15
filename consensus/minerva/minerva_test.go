@@ -18,7 +18,6 @@ package minerva
 
 import (
 	"io/ioutil"
-	"time"
 
 	"github.com/taiyuechain/taiyuechain/core/types"
 
@@ -29,38 +28,7 @@ import (
 	"testing"
 
 	"math/big"
-
-	"github.com/taiyuechain/taiyuechain/params"
 )
-
-// Tests that minerva works correctly in test mode
-func TestTestMode(t *testing.T) {
-	header := &types.SnailHeader{Number: big.NewInt(1), Difficulty: params.MinimumFruitDifficulty /*big.NewInt(150)*/, FruitDifficulty: params.MinimumFruitDifficulty /*big.NewInt(3)*/, FastNumber: big.NewInt(2)}
-	minerva := NewTester()
-	results := make(chan *types.SnailBlock)
-
-	block := types.NewSnailBlockWithHeader(header)
-	block.SetSnailBlockSigns(nil)
-	go minerva.ConSeal(nil, block, nil, results)
-
-	var isFruit bool
-	if len(block.Fruits()) > 0 {
-		isFruit = false
-	} else {
-		isFruit = true
-	}
-
-	select {
-	case block := <-results:
-		header.Nonce = types.EncodeNonce(block.Nonce())
-		header.MixDigest = block.MixDigest()
-		if err := minerva.VerifySnailSeal(nil, header, isFruit); err != nil {
-			t.Fatalf("unexpected verification error: %v", err)
-		}
-	case <-time.NewTimer(time.Second * 500).C:
-		t.Error("sealing result timeout")
-	}
-}
 
 // This test checks that cache lru logic doesn't crash under load.
 // It reproduces https://github.com/taiyuechain/taiyuechain/issues/14943
@@ -95,37 +63,4 @@ func verifyTest(wg *sync.WaitGroup, e *Minerva, workerIndex, epochs int) {
 		head := &types.SnailHeader{Number: big.NewInt(block), Difficulty: big.NewInt(180), FruitDifficulty: big.NewInt(100)}
 		e.VerifySnailSeal(nil, head, true)
 	}
-}
-
-func TestAwardTest(t *testing.T) {
-	//getCurrentBlockCoins(big.NewInt(5000));
-	//fmt.Println(getCurrentCoin(big.NewInt(1)))
-	//fmt.Println(getCurrentCoin(big.NewInt(5000)))
-	//fmt.Println(getCurrentCoin(big.NewInt(9000)))
-	//
-	//fmt.Println(getBlockReward(big.NewInt(9000)))
-
-	//snailchain.MakeChain(160,2)
-	//sblock := snailChain.GetBlockByNumber(uint64(1))
-	//header := &types.SnailHeader{Number: big.NewInt(1), Difficulty: big.NewInt(150), FruitDifficulty: big.NewInt(100), FastNumber: big.NewInt(2)}
-	//minerva := NewTester()
-	//results := make(chan *types.SnailBlock)
-	//
-	////block := types.NewSnailBlockWithHeader(header)
-	//header :=sblock.Header()
-	//go minerva.ConSeal(nil, sblock, nil, results)
-	//
-	//select {
-	//case block := <-results:
-	//	header.Fruit = block.IsFruit()
-	//	header.Nonce = types.EncodeNonce(block.Nonce())
-	//	header.MixDigest = block.MixDigest()
-	//
-	//	if err := minerva.VerifySnailSeal(nil, header); err != nil {
-	//		t.Fatalf("unexpected verification error: %v", err)
-	//	}
-	//case <-time.NewTimer(time.Second * 500).C:
-	//	t.Error("sealing result timeout")
-	//}
-
 }

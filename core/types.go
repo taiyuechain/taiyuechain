@@ -17,13 +17,9 @@
 package core
 
 import (
-	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/event"
-	"github.com/taiyuechain/taiyuechain/params"
-	"math/big"
 )
 
 // Validator is an interface which defines the standard for block validation. It
@@ -47,58 +43,4 @@ type Validator interface {
 // failed.
 type Processor interface {
 	Process(block *types.Block, statedb *state.StateDB, cfg vm.Config) (types.Receipts, []*types.Log, uint64, error)
-}
-
-// SnailValidator is an interface which defines the standard for block validation. It
-// is only responsible for validating block contents, as the header validation is
-// done by the specific consensus engines.
-//
-type SnailValidator interface {
-	// SetElection set election
-	//SetElection(e consensus.CommitteeElection, fc consensus.ChainReader) error
-
-	// ValidateBody validates the given block's content.
-	ValidateBody(block *types.SnailBlock, verifyFruits bool) error
-
-	// ValidateFruit validates the given fruit's content
-	ValidateFruit(fruit *types.SnailBlock, headerNumber *big.Int, canonical bool) error
-	// VerifySnailSeal checking whether the given block satisfies
-	// the PoW difficulty requirements.
-	//VerifySnailSeal(chain consensus.SnailChainReader, header *types.SnailHeader, isFruit bool) error
-	// ValidateRewarded validates the given block if rewarded
-	ValidateRewarded(number uint64, hash common.Hash) error
-}
-
-// SnailChain is an interface which defines the standard for snail block.
-type SnailChain interface {
-	// Config retrieves the blockchain's chain configuration.
-	Config() *params.ChainConfig
-
-	// CurrentHeader retrieves the current header from the local chain.
-	CurrentHeader() *types.SnailHeader
-
-	// GetHeader retrieves a block header from the database by hash and number.
-	GetHeader(hash common.Hash, number uint64) *types.SnailHeader
-
-	// GetHeaderByNumber retrieves a block header from the database by number.
-	GetHeaderByNumber(number uint64) *types.SnailHeader
-
-	// GetHeaderByHash retrieves a block header from the database by its hash.
-	GetHeaderByHash(hash common.Hash) *types.SnailHeader
-
-	// CurrentBlock retrieves the current block from the local chain.
-	CurrentBlock() *types.SnailBlock
-
-	// GetBlock retrieves a block from the database by hash and number.
-	GetBlock(hash common.Hash, number uint64) *types.SnailBlock
-
-	// GetBlockByNumber retrieves a snail block from the database by number.
-	GetBlockByNumber(number uint64) *types.SnailBlock
-
-	// GetBlockByHash retrieves a snail block from the database by its hash.
-	GetBlockByHash(hash common.Hash) *types.SnailBlock
-
-	SubscribeChainHeadEvent(ch chan<- types.SnailChainHeadEvent) event.Subscription
-
-	Validator() SnailValidator
 }
