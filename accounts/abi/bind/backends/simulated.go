@@ -68,7 +68,7 @@ func NewSimulatedBackendWithDatabase(database yuedb.Database, alloc *core.Genesi
 	genesis := alloc
 	genesis.MustCommit(database)
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(cimList)
 
 	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, engine, vm.Config{}, cimList)
 
@@ -78,17 +78,9 @@ func NewSimulatedBackendWithDatabase(database yuedb.Database, alloc *core.Genesi
 	if err != nil {
 		panic(err)
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := blockchain.GetBlockNumber()
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch).CACert {
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			panic(err)
-		}
-
-		cimCa.SetUpFromCA(caCert)
-		cimList.AddCim(cimCa)
+	err = cimList.InitCertAndPermission(blockchain.CurrentBlock().Number(), stateDB)
+	if err != nil {
+		panic(err)
 	}
 
 	backend := &SimulatedBackend{

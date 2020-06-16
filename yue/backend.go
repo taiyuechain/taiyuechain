@@ -147,15 +147,13 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 		chainConfig:    chainConfig,
 		eventMux:       ctx.EventMux,
 		accountManager: ctx.AccountManager,
-		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.ToMinervaMode(config.MinervaMode)}, chainConfig, chainDb),
+		engine:         CreateConsensusEngine(ctx, &ethash.Config{PowMode: ethash.ToMinervaMode(config.MinervaMode)},NewCIMList),
 		shutdownChan:   make(chan bool),
 		networkID:      config.NetworkId,
 		gasPrice:       config.GasPrice,
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   NewBloomIndexer(chainDb, params.BloomBitsBlocks),
 	}
-
-	etrue.engine.SetCimList(NewCIMList)
 
 	log.Info("Initialising Taiyuechain protocol", "versions", ProtocolVersions, "network", config.NetworkId)
 
@@ -184,21 +182,10 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 		return nil, err
 	}
 
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	epoch := types.GetEpochIDFromHeight(etrue.blockchain.CurrentBlock().Number())
-	NewCIMList.SetCertEpoch(epoch)
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			return nil, err
-		}
-
-		cimCa.SetUpFromCA(caCert)
-		NewCIMList.AddCim(cimCa)
+	err = NewCIMList.InitCertAndPermission(etrue.blockchain.CurrentBlock().Number(), stateDB)
+	if err != nil {
+		panic(err)
 	}
-
-	NewCIMList.UpdataPermission(stateDB)
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
@@ -285,30 +272,23 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (yuedb.Data
 }
 
 // CreateConsensusEngine creates the required type of consensus engine instance for an Taiyuechain service
-func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig,
-	db yuedb.Database) consensus.Engine {
-	// If proof-of-authority is requested, set it up
-	// snail chain not need clique
-	/*
-		if chainConfig.Clique != nil {
-			return clique.New(chainConfig.Clique, db)
-		}*/
+func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config,cimList *cim.CimList) consensus.Engine {
 	// Otherwise assume proof-of-work
 	switch config.PowMode {
 	case ethash.ModeFake:
 		log.Info("-----Fake mode")
 		log.Warn("Ethash used in fake mode")
-		return ethash.NewFaker()
+		return ethash.NewFaker(cimList)
 	case ethash.ModeTest:
 		log.Warn("Ethash used in test mode")
-		return ethash.NewTester()
+		return ethash.NewTester(cimList)
 	case ethash.ModeShared:
 		log.Warn("Ethash used in shared mode")
-		return ethash.NewShared()
+		return ethash.NewShared(cimList)
 	default:
 		engine := ethash.New(ethash.Config{
 			PowMode: config.PowMode,
-		})
+		},cimList)
 		//engine.SetThreads(-1) // Disable CPU mining
 		return engine
 	}

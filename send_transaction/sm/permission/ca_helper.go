@@ -2,6 +2,7 @@ package test
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/cim"
@@ -31,7 +32,6 @@ var (
 	pbft3path = "../testcert/" + pbft3Name + ".pem"
 	pbft4path = "../testcert/" + pbft4Name + ".pem"
 
-	engine   = minerva.NewFaker()
 	db       = yuedb.NewMemDatabase()
 	gspec    = DefaulGenesisBlock()
 	abiCA, _ = abi.JSON(strings.NewReader(vm.PermissionABIJSON))
@@ -52,12 +52,12 @@ var (
 	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
 	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
 
-	skey5, _ = crypto.HexToECDSA("77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489")
-	saddr5   = crypto.PubkeyToAddress(skey5.PublicKey)
+	skey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
+	saddr4   = crypto.PubkeyToAddress(skey4.PublicKey)
 
-	pbft5Name    = "pbft5priv"
-	pbft5path    = "../testcert/" + pbft5Name + ".pem"
-	pbft5Byte, _ = crypto.ReadPemFileByPath(pbft5path)
+	p2p4Name    = "p2p4cert"
+	p2p4path    = "../testcert/" + p2p4Name + ".pem"
+	p2p4Byte, _ = crypto.ReadPemFileByPath(p2p4path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {
@@ -92,10 +92,11 @@ func DefaulGenesisBlock() *core.Genesis {
 	}
 }
 
-func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB)) {
+func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *core.BlockChain, *types.Header, *state.StateDB, *cim.CimList)) {
 
 	//new cimList
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
+	engine   := minerva.NewFaker(cimList)
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
@@ -108,27 +109,16 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	if err != nil {
 		panic(err)
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	height := blockchain.CurrentBlock().Number()
-	epoch := types.GetEpochIDFromHeight(height)
-	cimList.SetCertEpoch(epoch)
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			panic(err)
-		}
-
-		cimCa.SetUpFromCA(caCert)
-		cimList.AddCim(cimCa)
+	err = cimList.InitCertAndPermission(blockchain.CurrentBlock().Number(),stateDB)
+	if err != nil {
+		panic(err)
 	}
-	engine.SetCimList(cimList)
 
 	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, db, sBlocks*60, func(i int, gen *core.BlockGen) {
 
 		header := gen.GetHeader()
 		stateDB := gen.GetStateDB()
-		executableTx(header.Number.Uint64(), gen, blockchain, header, stateDB)
+		executableTx(header.Number.Uint64(), gen, blockchain, header, stateDB, cimList)
 	})
 	if _, err := blockchain.InsertChain(chain); err != nil {
 		panic(err)
@@ -146,7 +136,7 @@ func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to 
 
 //neo test
 func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
-	if height == 30 {
+	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
 		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelSendTxPerm)), false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
@@ -221,14 +211,18 @@ func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, me
 	return nonce, stateDb
 }
 
-func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte) {
+func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte, cimList *cim.CimList) {
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
 		printTest("sendTranction ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
 		tx, _ := types.SignTx(types.NewTransaction(nonce, to, value, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
 		if gen != nil {
-			gen.AddTx(tx)
+			if check,err := cimList.VerifyPermission(tx,signer, *statedb); !check {
+				fmt.Println(header.Number.Uint64()," --------------------------------- ",err," ---------------------------------------")
+			} else {
+				gen.AddTx(tx)
+			}
 		} else {
 			txPool.AddRemotes([]*types.Transaction{tx})
 		}

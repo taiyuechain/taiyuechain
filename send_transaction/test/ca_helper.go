@@ -38,7 +38,6 @@ var (
 	p2p1path  = "../../cim/testdata/testcert/" + p2p1Name + ".pem"
 	p2p2path  = "../../cim/testdata/testcert/" + p2p2Name + ".pem"
 
-	engine   = minerva.NewFaker()
 	db       = yuedb.NewMemDatabase()
 	gspec    = DefaulGenesisBlock()
 	abiCA, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
@@ -77,10 +76,8 @@ func DefaulGenesisBlock() *core.Genesis {
 
 	return &core.Genesis{
 		Config:     params.DevnetChainConfig,
-		Nonce:      928,
 		ExtraData:  nil,
 		GasLimit:   88080384,
-		Difficulty: big.NewInt(20000),
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},
 		},
@@ -101,6 +98,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
+	engine := minerva.NewFaker(cimList)
 
 	genesis := gspec.MustCommit(db)
 	blockchain, _ := core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, cimList)

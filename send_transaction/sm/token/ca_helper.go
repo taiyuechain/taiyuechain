@@ -37,7 +37,6 @@ var (
 	p2p1path  = "../testcert/" + p2p1Name + ".pem"
 	p2p2path  = "../testcert/" + p2p2Name + ".pem"
 
-	engine   = minerva.NewFaker()
 	db       = yuedb.NewMemDatabase()
 	gspec    = DefaulGenesisBlock()
 	abiCA, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
@@ -106,6 +105,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	//new cimList
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
+	engine   := minerva.NewFaker(cimList)
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
@@ -118,22 +118,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	if err != nil {
 		panic(err)
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(stateDB, types.CACertListAddress)
-	height := blockchain.CurrentBlock().Number()
-	epoch := types.GetEpochIDFromHeight(height)
-	cimList.SetCertEpoch(epoch)
-	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
-		cimCa, err := cim.NewCIM()
-		if err != nil {
-			panic(err)
-		}
-
-		cimCa.SetUpFromCA(caCert)
-		cimList.AddCim(cimCa)
+	err = cimList.InitCertAndPermission(blockchain.CurrentBlock().Number(), stateDB)
+	if err != nil {
+		panic(err)
 	}
-	engine.SetCimList(cimList)
-
 	chain, _ := core.GenerateChain(gspec.Config, genesis, engine, db, sBlocks*60, func(i int, gen *core.BlockGen) {
 
 		header := gen.GetHeader()

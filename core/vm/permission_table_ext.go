@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/rlp"
 	"io"
 	"math/big"
+	"strconv"
 )
 
 func (pt *PerminTable) Load(state StateDB) error {
@@ -65,6 +67,79 @@ func (pt *PerminTable) Save(state StateDB) error {
 	return err
 }
 
+func (h *MemberTable) String() string {
+	s := "Manager "
+	for _, v := range h.Manager {
+		s += crypto.AddressToHex(v.MemberID) + " "
+		s += strconv.FormatUint(uint64(v.JoinTime), 10) + " "
+	}
+	s = "\n Member "
+	for _, v := range h.Member {
+		s += crypto.AddressToHex(v.MemberID) + " "
+		s += strconv.FormatUint(uint64(v.JoinTime), 10) + " "
+	}
+	return s
+}
+
+func (h *extPerminTable) String() string {
+	s := "BlackList"
+	for _, v := range h.BlackList {
+		s += crypto.AddressToHex(v)
+	}
+	s += "WhiteList\n"
+	for _, v := range h.WhiteList {
+		s += crypto.AddressToHex(v)
+	}
+	s += "ContractPermi\n"
+	for _, v := range h.ContractPermi {
+		s += crypto.AddressToHex(v.GroupKey) + " "
+		s += crypto.AddressToHex(v.Creator) + " "
+		s += strconv.FormatUint(uint64(v.CreateFlag), 10) + " "
+		s += strconv.FormatBool(v.IsWhitListWork) + " "
+		s += v.WhiteMembers.String() + " WhiteMembers "
+		s += v.BlackMembers.String() + " BlackMembers "
+	}
+	s += "GropPermi\n"
+	for _, v := range h.GropPermi {
+		s += crypto.AddressToHex(v.GroupKey) + " "
+		s += strconv.FormatUint(uint64(v.Id), 10) + " "
+		s += crypto.AddressToHex(v.Creator) + " "
+		s += v.Name + " "
+		s += v.WhiteMembers.String() + " WhiteMembers "
+		s += v.BlackMembers.String() + " BlackMembers "
+	}
+	s += "SendTranPermi\n"
+	for _, v := range h.SendTranPermi {
+		s += crypto.AddressToHex(v.GroupKey) + " "
+		s += strconv.FormatUint(uint64(v.Id), 10) + " "
+		s += crypto.AddressToHex(v.Creator) + " "
+		s += strconv.FormatBool(v.IsWhitListWork) + " "
+		s += v.WhiteMembers.String() + " WhiteMembers "
+		s += v.BlackMembers.String() + " BlackMembers "
+	}
+	s += "CrtContracetPermi\n"
+	for _, v := range h.CrtContracetPermi {
+		s += crypto.AddressToHex(v.GroupKey) + " "
+		s += strconv.FormatUint(uint64(v.Id), 10) + " "
+		s += crypto.AddressToHex(v.Creator) + " "
+		s += strconv.FormatBool(v.IsWhitListWork) + " "
+		s += v.WhiteMembers.String() + " WhiteMembers "
+		s += v.BlackMembers.String() + " BlackMembers "
+	}
+	s += "UserBasisPermi\n"
+	for _, v := range h.UserBasisPermi {
+		s += crypto.AddressToHex(v.MemberID) + " "
+		s += crypto.AddressToHex(v.CreatorRoot) + " "
+		s += strconv.FormatBool(v.SendTran) + " "
+		s += strconv.FormatBool(v.CrtContract) + " "
+		s += strconv.FormatUint(uint64(v.GropId), 10) + " "
+		for _, vv := range v.GropList {
+			s += crypto.AddressToHex(vv) + " "
+		}
+	}
+	return s
+}
+
 // "external" PerminTable encoding. used for pos staking.
 type extPerminTable struct {
 	WhiteList         []common.Address
@@ -86,6 +161,7 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&ei); err != nil {
 		return err
 	}
+
 	clts := make(map[common.Address]*ContractListTable)
 	for i, cert := range ei.ContractPermi {
 		clts[ei.CPArray[i]] = cert
@@ -189,8 +265,7 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 	for _, index := range bpOrders {
 		bps = append(bps, i.UserBasisPermi[index])
 	}
-
-	return rlp.Encode(w, extPerminTable{
+	ei := extPerminTable{
 		WhiteList:         i.WhiteList,
 		BlackList:         i.BlackList,
 		ContractPermi:     clts,
@@ -203,7 +278,8 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 		CCPArray:          ctpOrders,
 		UserBasisPermi:    bps,
 		UBPArray:          bpOrders,
-	})
+	}
+	return rlp.Encode(w, ei)
 }
 
 func find(h *big.Int, vs []common.Address) int {

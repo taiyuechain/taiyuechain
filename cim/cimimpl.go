@@ -3,7 +3,6 @@ package cim
 import (
 	"crypto/x509"
 	"crypto/x509/pkix"
-
 	"errors"
 
 	"github.com/taiyuechain/taiyuechain/common"
@@ -33,6 +32,37 @@ type CimList struct {
 func NewCIMList(CryptoType uint8) *CimList {
 	return &CimList{CryptoType:CryptoType}
 
+}
+
+func  (cl *CimList) InitCertAndPermission(height *big.Int,stateDB *state.StateDB) error {
+	caCertList := vm.NewCACertList()
+	err := caCertList.LoadCACertList(stateDB, types.CACertListAddress)
+	if err != nil {
+		return err
+	}
+	epoch := types.GetEpochIDFromHeight(height)
+	cl.SetCertEpoch(epoch)
+	for _, caCert := range caCertList.GetCACertMapByEpoch(epoch.Uint64()).CACert {
+		cimCa, err := NewCIM()
+		if err != nil {
+			return err
+		}
+
+		err = cimCa.SetUpFromCA(caCert)
+		if err != nil {
+			return err
+		}
+		err = cl.AddCim(cimCa)
+		if err != nil {
+			return err
+		}
+	}
+	err = cl.UpdataPermission(stateDB)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func  (cl *CimList) SetCertEpoch(epoch *big.Int)  {

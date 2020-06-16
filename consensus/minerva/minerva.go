@@ -55,7 +55,7 @@ var (
 	maxUint128 = new(big.Int).Exp(big.NewInt(2), big.NewInt(128), big.NewInt(0))
 
 	// sharedMinerva is a full instance that can be shared between multiple users.
-	sharedMinerva = New(Config{ModeNormal})
+	sharedMinerva = New(Config{ModeNormal},nil)
 
 	//SnailBlockRewardsBase Snail block rewards base value is 115.555555555555 * 10^12
 	SnailBlockRewardsBase = 115555555555555
@@ -236,9 +236,10 @@ type Minerva struct {
 //var MinervaLocal *Minerva
 
 // New creates a full sized minerva hybrid consensus scheme.
-func New(config Config) *Minerva {
+func New(config Config,cimList *cim.CimList) *Minerva {
 	minerva := &Minerva{
 		config: config,
+		certList: cimList,
 	}
 	return minerva
 }
@@ -266,18 +267,19 @@ func (m *Minerva) SetCimList(clist *cim.CimList) {
 
 // NewTester creates a small sized minerva scheme useful only for testing
 // purposes.
-func NewTester() *Minerva {
-	return New(Config{PowMode: ModeTest})
+func NewTester(cimList *cim.CimList) *Minerva {
+	return New(Config{PowMode: ModeTest},cimList)
 }
 
 // NewFaker creates a minerva consensus engine with a fake PoW scheme that accepts
 // all blocks' seal as valid, though they still have to conform to the Ethereum
 // consensus rules.
-func NewFaker() *Minerva {
+func NewFaker(cimList *cim.CimList) *Minerva {
 	return &Minerva{
 		config: Config{
 			PowMode: ModeFake,
 		},
+		certList: cimList,
 		election: newFakeElection(),
 	}
 }
@@ -320,8 +322,8 @@ func NewFullFaker() *Minerva {
 
 // NewShared creates a full sized minerva shared between all requesters running
 // in the same process.
-func NewShared() *Minerva {
-	return &Minerva{shared: sharedMinerva}
+func NewShared(cimList *cim.CimList) *Minerva {
+	return &Minerva{shared: sharedMinerva,certList: cimList}
 }
 
 // Threads returns the number of mining threads currently enabled. This doesn't
