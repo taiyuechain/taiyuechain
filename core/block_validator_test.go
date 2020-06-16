@@ -32,7 +32,7 @@ import (
 func TestHeaderVerification(t *testing.T) {
 	// Create a simple chain to verify
 	var (
-		engine    = minerva.NewFaker()
+		engine    = minerva.NewFaker(nil)
 		testdb    = yuedb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
 		genesis   = gspec.MustCommit(testdb)
@@ -51,7 +51,7 @@ func TestHeaderVerification(t *testing.T) {
 			var results <-chan error
 
 			if valid {
-				engine := minerva.NewFaker()
+				engine := minerva.NewFaker(nil)
 				_, results = engine.VerifyHeaders(blockchain, []*types.Header{headers[i]}, []bool{true})
 			}
 
@@ -89,7 +89,7 @@ func testHeaderConcurrentVerification(t *testing.T, threads int) {
 		testdb    = yuedb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
 		genesis   = gspec.MustCommit(testdb)
-		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(), testdb, 8, nil)
+		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(nil), testdb, 8, nil)
 	)
 	headers := make([]*types.Header, len(blocks))
 	seals := make([]bool, len(blocks))
@@ -108,7 +108,7 @@ func testHeaderConcurrentVerification(t *testing.T, threads int) {
 		var results <-chan error
 
 		if valid {
-			chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFaker(), vm.Config{}, nil)
+			chain, _ := NewBlockChain(testdb, nil, params.TestChainConfig, minerva.NewFaker(nil), vm.Config{}, nil)
 			_, results = chain.engine.VerifyHeaders(chain, headers, seals)
 			chain.Stop()
 		}
@@ -157,7 +157,7 @@ func testHeaderConcurrentAbortion(t *testing.T, threads int) {
 		testdb    = yuedb.NewMemDatabase()
 		gspec     = &Genesis{Config: params.TestChainConfig}
 		genesis   = gspec.MustCommit(testdb)
-		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(), testdb, 1024, nil)
+		blocks, _ = GenerateChain(params.TestChainConfig, genesis, minerva.NewFaker(nil), testdb, 1024, nil)
 	)
 	headers := make([]*types.Header, len(blocks))
 	seals := make([]bool, len(blocks))

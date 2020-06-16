@@ -65,7 +65,6 @@ func ExampleGenerateChain() {
 			Alloc:  types.GenesisAlloc{addr1: {Balance: big.NewInt(3000000)}},
 		}
 		genesis = gspec.MustCommit(db)
-		pow     = minerva.NewFaker()
 		signer  = types.NewSigner(gspec.Config.ChainID)
 	)
 
@@ -79,6 +78,7 @@ func ExampleGenerateChain() {
 	cimList := cim.NewCIMList(CryptoSM2)
 	cimList.AddCim(cim.CreateCim(pbft1Byte))
 	cimList.AddCim(cim.CreateCim(pbft2Byte))
+	pow := minerva.NewFaker(cimList)
 
 	// This call generates a chain of 5 blocks. The function runs for
 	// each block and adds different features to gen based on the
@@ -140,7 +140,7 @@ func TestTransactionCost(t *testing.T) {
 	params.MinimumFruits = 1
 	var (
 		db    = yuedb.NewMemDatabase()
-		pow   = minerva.NewFaker()
+		pow   = minerva.NewFaker(nil)
 		gspec = &Genesis{
 			Config: params.TestChainConfig,
 			Alloc: types.GenesisAlloc{

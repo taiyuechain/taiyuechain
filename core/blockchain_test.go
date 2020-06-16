@@ -41,7 +41,7 @@ var (
 //The test block is inserted into the chain
 func TestInsertBlock(t *testing.T) {
 
-	_, blockchain, err := newCanonical(ethash.NewFaker(), 0, true)
+	_, blockchain, err := newCanonical(ethash.NewFaker(nil), 0, true)
 	if err != nil {
 		t.Fatalf("failed to create pristine chain: %v", err)
 	}
@@ -126,7 +126,7 @@ func TestBrokenBlockChain(t *testing.T)  { testBrokenChain(t, true) }
 
 func testBrokenChain(t *testing.T, full bool) {
 	// Make chain starting from genesis
-	db, blockchain, err := newCanonical(ethash.NewFaker(), 10, full)
+	db, blockchain, err := newCanonical(ethash.NewFaker(nil), 10, full)
 	if err != nil {
 		t.Fatalf("failed to make new canonical chain: %v", err)
 	}
@@ -134,12 +134,12 @@ func testBrokenChain(t *testing.T, full bool) {
 
 	// Create a forked chain, and try to insert with a missing link
 	if full {
-		chain := makeBlockChain(blockchain.CurrentBlock(), 5, ethash.NewFaker(), db, forkSeed)[1:]
+		chain := makeBlockChain(blockchain.CurrentBlock(), 5, ethash.NewFaker(nil), db, forkSeed)[1:]
 		if err := testBlockChainImport(chain, blockchain); err == nil {
 			t.Errorf("broken block chain not reported")
 		}
 	} else {
-		chain := makeHeaderChain(blockchain.CurrentHeader(), 5, ethash.NewFaker(), db, forkSeed)[1:]
+		chain := makeHeaderChain(blockchain.CurrentHeader(), 5, ethash.NewFaker(nil), db, forkSeed)[1:]
 		if err := testHeaderChainImport(chain, blockchain); err == nil {
 			t.Errorf("broken header chain not reported")
 		}
@@ -152,7 +152,7 @@ func TestBadBlockHashes(t *testing.T)  { testBadHashes(t, true) }
 
 func testBadHashes(t *testing.T, full bool) {
 
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(nil)
 	// Create a pristine chain and database
 	db, blockchain, err := newCanonical(engine, 0, full)
 	if err != nil {
@@ -169,7 +169,7 @@ func testBadHashes(t *testing.T, full bool) {
 
 		_, err = blockchain.InsertChain(blocks)
 	} else {
-		headers := makeHeaderChain(blockchain.CurrentHeader(), 3, ethash.NewFaker(), db, 10)
+		headers := makeHeaderChain(blockchain.CurrentHeader(), 3, ethash.NewFaker(nil), db, 10)
 
 		BadHashes[headers[2].Hash()] = true
 		defer func() { delete(BadHashes, headers[2].Hash()) }()
@@ -197,7 +197,7 @@ func TestFastVsFullChains(t *testing.T) {
 		}
 		genesis = gspec.MustCommit(gendb)
 		signer  = types.NewSigner(gspec.Config.ChainID)
-		engine  = ethash.NewFaker()
+		engine  = ethash.NewFaker(nil)
 	)
 	blocks, receipts := GenerateChain(gspec.Config, genesis, engine, gendb, 1024, func(i int, block *BlockGen) {
 		block.SetCoinbase(common.Address{0x00})
@@ -225,7 +225,7 @@ func TestFastVsFullChains(t *testing.T) {
 	// Fast import the chain as a non-archive node to test
 	fastDb := yuedb.NewMemDatabase()
 	gspec.MustCommit(fastDb)
-	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil)
+	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, ethash.NewFaker(nil), vm.Config{}, nil)
 	defer fast.Stop()
 
 	headers := make([]*types.Header, len(blocks))
@@ -278,7 +278,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 		genesis = gspec.MustCommit(gendb)
 	)
 	height := uint64(1024)
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(nil)
 
 	blocks, receipts := GenerateChain(gspec.Config, genesis, engine, gendb, int(height), nil)
 
@@ -303,7 +303,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	archiveDb := yuedb.NewMemDatabase()
 	gspec.MustCommit(archiveDb)
 
-	//engine1 := ethash.NewFaker()
+	//engine1 := ethash.NewFaker(nil)
 	archive, _ := NewBlockChain(archiveDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	if n, err := archive.InsertChain(blocks); err != nil {
 		t.Fatalf("failed to process block %d: %v", n, err)
@@ -319,7 +319,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	fastDb := yuedb.NewMemDatabase()
 	gspec.MustCommit(fastDb)
 
-	engine = ethash.NewFaker()
+	engine = ethash.NewFaker(nil)
 
 	fast, _ := NewBlockChain(fastDb, nil, gspec.Config, engine, vm.Config{}, nil)
 	defer fast.Stop()
@@ -343,7 +343,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 	//lightDb := etruedb.NewMemDatabase()
 	//gspec.MustCommit(lightDb)
 	//
-	//light, _ := NewBlockChain(lightDb, nil, gspec.Config, ethash.NewFaker(), vm.Config{})
+	//light, _ := NewBlockChain(lightDb, nil, gspec.Config, ethash.NewFaker(nil), vm.Config{})
 	//if n, err := light.InsertHeaderChain(headers, 1); err != nil {
 	//	t.Fatalf("failed to insert header %d: %v", n, err)
 	//}
@@ -357,7 +357,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 
 // Tests if the canonical block can be fetched from the database during chain insertion.
 func TestCanonicalBlockRetrieval(t *testing.T) {
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(nil)
 
 	_, blockchain, err := newCanonical(engine, 0, true)
 	if err != nil {
@@ -405,7 +405,7 @@ func TestCanonicalBlockRetrieval(t *testing.T) {
 // cache (which would eventually cause memory issues).
 func TestTrieForkGC(t *testing.T) {
 	// Generate a canonical chain to act as the main dataset
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(nil)
 
 	db := yuedb.NewMemDatabase()
 	genesis := new(Genesis).MustCommit(db)
@@ -467,7 +467,7 @@ func benchmarkLargeNumberOfValueToNonexisting(b *testing.B, numTxs, numBlocks in
 		}
 	)
 	// Generate the original common chain segment and the two competing forks
-	engine := ethash.NewFaker()
+	engine := ethash.NewFaker(nil)
 	db := yuedb.NewMemDatabase()
 	genesis := gspec.MustCommit(db)
 

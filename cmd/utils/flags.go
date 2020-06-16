@@ -1156,11 +1156,11 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (fchain *core.BlockChain, cha
 	// 	//TODO not need clique
 	// 	//engine = clique.New(config.Clique, chainDb)
 	// } else {
-	engine = minerva.NewFaker()
+	engine = minerva.NewFaker(nil)
 	if !ctx.GlobalBool(FakePoWFlag.Name) {
 		engine = minerva.New(minerva.Config{
 			PowMode: minerva.ToMinervaMode(yue.DefaultConfig.MinervaMode),
-		})
+		}, nil)
 	}
 	if gcmode := ctx.GlobalString(GCModeFlag.Name); gcmode != "full" && gcmode != "archive" {
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)

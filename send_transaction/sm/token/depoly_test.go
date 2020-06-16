@@ -55,7 +55,7 @@ var (
 func TestDeployContract(t *testing.T) {
 	var (
 		db  = yuedb.NewMemDatabase()
-		pow = minerva.NewFaker()
+		pow = minerva.NewFaker(nil)
 	)
 
 	params.MinTimeGap = big.NewInt(0)

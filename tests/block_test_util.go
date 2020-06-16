@@ -143,7 +143,7 @@ func (t *BlockTest) Run() error {
 
 	var engine consensus.Engine
 	if t.json.SealEngine == "NoProof" {
-		engine = minerva.NewFaker()
+		engine = minerva.NewFaker(nil)
 	} else {
 		engine = minerva.NewShared()
 	}

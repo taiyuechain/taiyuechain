@@ -470,7 +470,7 @@ func TestBroadcastBlock(t *testing.T) {
 func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 	var (
 		evmux = new(event.TypeMux)
-		pow   = ethash.NewFaker()
+		pow   = ethash.NewFaker(nil)
 		db    = yuedb.NewMemDatabase()
 		gspec = &core.Genesis{
 			Config:     params.TestChainConfig,
