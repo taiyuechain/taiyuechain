@@ -302,8 +302,8 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 	for _, member := range committee.Members {
 		//caolaing modify
 		//pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
-		cc := hex.EncodeToString(member.Publickey)
-		fmt.Sprintln("cccccc" + cc)
+		// cc := hex.EncodeToString(member.Publickey)
+		// fmt.Sprintln("cccccc" + cc)
 		pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
 
 		member.Flag = types.StateUsedFlag
@@ -437,7 +437,6 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
 	key1 := hexutil.MustDecode(
 		"0x04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
-
 
 	/*seedkey1 := hexutil.MustDecode("0x04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
 	seedkey2 := hexutil.MustDecode("0x045e1711b6cd8550a5e5466f7f0868b5507929cb69c2f0fca84f8f94816eb40a808ea8a77c3d83c9d16341acb037fbea2f7d9d4af46326defa39b408f40f28fb98")
