@@ -118,7 +118,6 @@ type Header struct {
 	CommitteeHash common.Hash    `json:"committeeRoot"    gencodec:"required"`
 	Proposer      common.Address `json:"maker"            gencodec:"required"`
 	Bloom         Bloom          `json:"logsBloom"        gencodec:"required"`
-	SnailNumber   *big.Int       `json:"snailNumber"      gencodec:"required"`
 	Number        *big.Int       `json:"number"           gencodec:"required"`
 	GasLimit      uint64         `json:"gasLimit"         gencodec:"required"`
 	GasUsed       uint64         `json:"gasUsed"          gencodec:"required"`

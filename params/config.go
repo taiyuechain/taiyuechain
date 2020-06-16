@@ -189,11 +189,6 @@ func (c *TrustedCheckpoint) Empty() bool {
 	return c.SectionHead == (common.Hash{}) || c.CHTRoot == (common.Hash{}) || c.BloomRoot == (common.Hash{})
 }
 
-type BlockConfig struct {
-	FastNumber  *big.Int
-	SnailNumber *big.Int
-}
-
 func (c *ChainConfig) UnmarshalJSON(input []byte) error {
 	type ChainConfig struct {
 		ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
