@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"time"
 )
 
 ////cache
@@ -487,7 +486,7 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 				}
 			}
 
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.SendTranPermi[key].WhiteMembers.Member = append(pt.SendTranPermi[key].WhiteMembers.Member,mber )
 
 		}
@@ -527,7 +526,7 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 
 			}
 			}
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.SendTranPermi[key].BlackMembers.Member = append(pt.SendTranPermi[key].BlackMembers.Member,mber )
 
 		}
@@ -592,7 +591,7 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 			}
 		}
 
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.SendTranPermi[key].WhiteMembers.Manager = append(pt.SendTranPermi[key].WhiteMembers.Manager,mber )
 
 
@@ -675,7 +674,7 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 				}
 			}
 
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].WhiteMembers.Member = append(pt.CrtContracetPermi[key].WhiteMembers.Member,mber )
 
 		}
@@ -712,7 +711,7 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 				}
 
 			}}
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].BlackMembers.Member = append(pt.CrtContracetPermi[key].BlackMembers.Member,mber )
 
 		}
@@ -778,7 +777,7 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 
 			}
 
-			mber := &MemberInfo{member,time.Now().Unix()}
+			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].WhiteMembers.Manager = append(pt.CrtContracetPermi[key].WhiteMembers.Manager,mber )
 
 
@@ -887,7 +886,7 @@ func (pt *PerminTable) setGropMemberPerm(gropAddr ,member common.Address,isAdd b
 			}
 		}
 
-		mst := &MemberInfo{member,time.Now().Unix()}
+		mst := &MemberInfo{member,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Member = append(pt.GropPermi[gropAddr].WhiteMembers.Member,mst)
 
 	}else{
@@ -933,7 +932,7 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 		}
 		}
 
-		mst := &MemberInfo{manager,time.Now().Unix()}
+		mst := &MemberInfo{manager,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Manager = append(pt.GropPermi[gropAddr].WhiteMembers.Manager,mst)
 
 	}else{
@@ -1000,7 +999,7 @@ func (pt *PerminTable) setContractMember(contractAddr,member common.Address,isAd
 				}
 			}
 
-			mem :=&MemberInfo{member,time.Now().Unix()}
+			mem :=&MemberInfo{member,0}
 			pt.ContractPermi[contractAddr].WhiteMembers.Member = append(pt.ContractPermi[contractAddr].WhiteMembers.Member,mem)
 		}
 	}else{
@@ -1026,7 +1025,7 @@ func (pt *PerminTable) setContractMember(contractAddr,member common.Address,isAd
 				}
 			}
 
-			mem :=&MemberInfo{member,time.Now().Unix()}
+			mem :=&MemberInfo{member,0}
 			pt.ContractPermi[contractAddr].BlackMembers.Member = append(pt.ContractPermi[contractAddr].BlackMembers.Member,mem)
 		}
 	}
@@ -1055,7 +1054,7 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 			}
 			}
 
-			mem :=&MemberInfo{manager,time.Now().Unix()}
+			mem :=&MemberInfo{manager,0}
 			pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager,mem)
 		}
 	}else{
@@ -1085,7 +1084,7 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 				}
 			}
 
-			mem :=&MemberInfo{manager,time.Now().Unix()}
+			mem :=&MemberInfo{manager,0}
 			pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager,mem)
 		}
 	}
