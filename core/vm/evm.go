@@ -17,15 +17,17 @@
 package vm
 
 import (
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"sync/atomic"
 	"time"
 
+	"github.com/taiyuechain/taiyuechain/crypto"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	//"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/params"
 	"errors"
+
+	"github.com/taiyuechain/taiyuechain/params"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -46,15 +48,15 @@ type (
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) ([]byte, error) {
 
-	if params.IsEnablePermission() && len(evm.StateDB.GetCode(contract.CallerAddress))>0 && len(evm.StateDB.GetCode(contract.self.Address()))>0{
+	if params.IsEnablePermission() && len(evm.StateDB.GetCode(contract.CallerAddress)) > 0 && len(evm.StateDB.GetCode(contract.self.Address())) > 0 {
 
 		pTable := NewPerminTable()
 		err := pTable.Load(evm.StateDB)
 		if err != nil {
 			return nil, err
 		}
-		if !pTable.CheckActionPerm(contract.Caller(),common.Address{},contract.self.Address(),PerminType_AccessContract){
-			return nil,errors.New("VerifyPermission the cert error")
+		if !pTable.CheckActionPerm(contract.Caller(), common.Address{}, contract.self.Address(), PerminType_AccessContract) {
+			return nil, errors.New("VerifyPermission the cert error")
 		}
 	}
 
@@ -445,7 +447,7 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	//if maxCodeSizeExceeded || err != nil && err != ErrCodeStoreOutOfGas {
-	if maxCodeSizeExceeded || (err != nil && (evm.ChainConfig().IsTIP3(evm.BlockNumber) || err != ErrCodeStoreOutOfGas)) {
+	if maxCodeSizeExceeded || (err != nil && err != ErrCodeStoreOutOfGas) {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != errExecutionReverted {
 			contract.UseGas(contract.Gas)

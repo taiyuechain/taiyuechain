@@ -73,8 +73,6 @@ type btBlock struct {
 
 //go:generate gencodec -type btHeader -field-override btHeaderMarshaling -out gen_btheader.go
 type btHeader struct {
-	SnailHash        common.Hash
-	SnailNumber      *big.Int
 	CommitteeHash    common.Hash
 	Bloom            types.Bloom
 	Number           *big.Int

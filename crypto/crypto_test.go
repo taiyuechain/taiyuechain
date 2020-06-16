@@ -5,16 +5,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/crypto/ecies"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
-	"golang.org/x/crypto/sha3"
 	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/crypto/ecies"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
+	"golang.org/x/crypto/sha3"
 )
 
 func TestDecrypt(t *testing.T) {
@@ -166,8 +167,6 @@ type Header struct {
 	CommitteeHash common.Hash    `json:"committeeRoot"    gencodec:"required"`
 	Proposer      common.Address `json:"maker"            gencodec:"required"`
 	Bloom         Bloom          `json:"logsBloom"        gencodec:"required"`
-	SnailHash     common.Hash    `json:"snailHash"        gencodec:"required"`
-	SnailNumber   *big.Int       `json:"snailNumber"      gencodec:"required"`
 	Number        *big.Int       `json:"number"           gencodec:"required"`
 	GasLimit      uint64         `json:"gasLimit"         gencodec:"required"`
 	GasUsed       uint64         `json:"gasUsed"          gencodec:"required"`

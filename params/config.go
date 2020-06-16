@@ -18,6 +18,7 @@ package params
 
 import (
 	"encoding/json"
+
 	"github.com/taiyuechain/taiyuechain/crypto"
 
 	"encoding/binary"
@@ -50,14 +51,14 @@ var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 }
 
 const (
-	SY_CRYPTO_SM4  = 1
+	SY_CRYPTO_SM4 = 1
 	SY_CRYPTO_AES = 2
 
-	ASY_CRYPTO_SM2 = 1
-	ASY_CRYPTO_P256 =2
-	ASY_CRYPTO_S256 =3
+	ASY_CRYPTO_SM2  = 1
+	ASY_CRYPTO_P256 = 2
+	ASY_CRYPTO_S256 = 3
 
-	HASH_CRYPTO_SM3 = 1
+	HASH_CRYPTO_SM3  = 1
 	HASH_CRYPTO_SHA3 = 2
 )
 
@@ -70,10 +71,6 @@ var (
 			MinimumFruitDifficulty: big.NewInt(262144),
 			DurationLimit:          big.NewInt(600),
 		}),
-		TIP3: &BlockConfig{FastNumber: big.NewInt(1500000)},
-		TIP5: &BlockConfig{SnailNumber: big.NewInt(12800)},
-		TIP9: &BlockConfig{SnailNumber: big.NewInt(47000)},
-
 	}
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -84,10 +81,6 @@ var (
 			MinimumFruitDifficulty: big.NewInt(200),
 			DurationLimit:          big.NewInt(600),
 		}),
-		TIP3: &BlockConfig{FastNumber: big.NewInt(450000)},
-		TIP5: &BlockConfig{SnailNumber: big.NewInt(4000)},
-		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
-
 	}
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
@@ -126,8 +119,6 @@ var (
 			MinimumFruitDifficulty: big.NewInt(2),
 			DurationLimit:          big.NewInt(120),
 		}),
-		TIP3: &BlockConfig{FastNumber: big.NewInt(380000)},
-		TIP5: &BlockConfig{SnailNumber: big.NewInt(5000)},
 	}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
@@ -138,23 +129,17 @@ var (
 			MinimumFruitDifficulty: big.NewInt(100),
 			DurationLimit:          big.NewInt(150),
 		}),
-		TIP3: &BlockConfig{FastNumber: big.NewInt(380000)},
-		TIP5: &BlockConfig{SnailNumber: big.NewInt(5000)},
-		TIP9: &BlockConfig{SnailNumber: big.NewInt(20)},
-
 	}
 
 	chainId = big.NewInt(9223372036854775790)
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId, Minerva: new(MinervaConfig),
-		TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil, TIP9: nil}
+	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId, Minerva: new(MinervaConfig)}
 
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
 
-	TestChainConfig = &ChainConfig{ChainID: chainId, Minerva: &MinervaConfig{MinimumDifficulty, MinimumFruitDifficulty, DurationLimit},
-		TIP3: &BlockConfig{FastNumber: big.NewInt(0)}, TIP5: nil, TIP9: nil}
+	TestChainConfig = &ChainConfig{ChainID: chainId, Minerva: &MinervaConfig{MinimumDifficulty, MinimumFruitDifficulty, DurationLimit}}
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -164,19 +149,8 @@ var (
 // set of configuration options.
 type ChainConfig struct {
 	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
-
 	// Various consensus engines
 	Minerva *MinervaConfig `json:"minerva"`
-	//Clique *CliqueConfig  `json:"clique,omitempty"`
-
-	TIP3 *BlockConfig `json:"tip3"`
-
-	TIP5 *BlockConfig `json:"tip5"`
-	TIP9 *BlockConfig `json:"tip9"`
-
-
-
-
 }
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
@@ -413,7 +387,6 @@ func (err *ConfigCompatError) Error() string {
 // phases.
 type Rules struct {
 	ChainID *big.Int
-	IsTIP3  bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -424,31 +397,5 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 	}
 	return Rules{
 		ChainID: new(big.Int).Set(chainID),
-		IsTIP3:  c.IsTIP3(num),
 	}
 }
-
-// IsTIP3 returns whether num is either equal to the IsTIP3 fork block or greater.
-func (c *ChainConfig) IsTIP3(num *big.Int) bool {
-	if c.TIP3 == nil {
-		return false
-	}
-	return isForked(c.TIP3.FastNumber, num)
-}
-
-// IsTIP5 returns whether num is either equal to the IsTIP5 fork block or greater.
-func (c *ChainConfig) IsTIP5(num *big.Int) bool {
-	if c.TIP5 == nil {
-		return false
-	}
-	return isForked(c.TIP5.SnailNumber, num)
-}
-func (c *ChainConfig) IsTIP9(num *big.Int) bool {
-	if c.TIP9 == nil {
-		return false
-	}
-	return isForked(c.TIP9.SnailNumber, num)
-}
-
-
-

@@ -823,8 +823,6 @@ func RPCMarshalBlock(b *types.Block, inclTx bool, fullTx bool) (map[string]inter
 		"maker":            head.Proposer,
 		"logsBloom":        head.Bloom,
 		"stateRoot":        head.Root,
-		"SnailHash":        head.SnailHash,
-		"SnailNumber":      (*hexutil.Big)(head.SnailNumber),
 		"extraData":        hexutil.Bytes(head.Extra),
 		"size":             hexutil.Uint64(b.Size()),
 		"gasLimit":         hexutil.Uint64(head.GasLimit),

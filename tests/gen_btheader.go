@@ -17,8 +17,6 @@ var _ = (*btHeaderMarshaling)(nil)
 func (b btHeader) MarshalJSON() ([]byte, error) {
 	type btHeader struct {
 		CommitteeHash    common.Hash
-		SnailHash        common.Hash
-		SnailNumber      *math.HexOrDecimal256
 		Bloom            types.Bloom
 		Number           *math.HexOrDecimal256
 		Hash             common.Hash
@@ -33,8 +31,6 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 	}
 	var enc btHeader
 	enc.CommitteeHash = b.CommitteeHash
-	enc.SnailHash = b.SnailHash
-	enc.SnailNumber = (*math.HexOrDecimal256)(b.SnailNumber)
 	enc.Bloom = b.Bloom
 	enc.Number = (*math.HexOrDecimal256)(b.Number)
 	enc.Hash = b.Hash
@@ -52,8 +48,6 @@ func (b btHeader) MarshalJSON() ([]byte, error) {
 func (b *btHeader) UnmarshalJSON(input []byte) error {
 	type btHeader struct {
 		CommitteeHash    *common.Hash
-		SnailHash        *common.Hash
-		SnailNumber      *math.HexOrDecimal256
 		Bloom            *types.Bloom
 		Number           *math.HexOrDecimal256
 		Hash             *common.Hash
@@ -73,12 +67,6 @@ func (b *btHeader) UnmarshalJSON(input []byte) error {
 
 	if dec.CommitteeHash != nil {
 		b.CommitteeHash = *dec.CommitteeHash
-	}
-	if dec.SnailHash != nil {
-		b.SnailHash = *dec.SnailHash
-	}
-	if dec.SnailNumber != nil {
-		b.SnailNumber = (*big.Int)(dec.SnailNumber)
 	}
 	if dec.Bloom != nil {
 		b.Bloom = *dec.Bloom

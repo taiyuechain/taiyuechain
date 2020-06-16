@@ -23,8 +23,6 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		CommitteeHash common.Hash    `json:"committeeRoot"    gencodec:"required"`
 		Proposer      common.Address `json:"maker"            gencodec:"required"`
 		Bloom         Bloom          `json:"logsBloom"        gencodec:"required"`
-		SnailHash     common.Hash    `json:"snailHash"        gencodec:"required"`
-		SnailNumber   *hexutil.Big   `json:"snailNumber"      gencodec:"required"`
 		Number        *hexutil.Big   `json:"number"           gencodec:"required"`
 		GasLimit      hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
 		GasUsed       hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
@@ -40,8 +38,6 @@ func (h Header) MarshalJSON() ([]byte, error) {
 	enc.CommitteeHash = h.CommitteeHash
 	enc.Proposer = h.Proposer
 	enc.Bloom = h.Bloom
-	enc.SnailHash = h.SnailHash
-	enc.SnailNumber = (*hexutil.Big)(h.SnailNumber)
 	enc.Number = (*hexutil.Big)(h.Number)
 	enc.GasLimit = hexutil.Uint64(h.GasLimit)
 	enc.GasUsed = hexutil.Uint64(h.GasUsed)
@@ -61,8 +57,6 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		CommitteeHash *common.Hash    `json:"committeeRoot"    gencodec:"required"`
 		Proposer      *common.Address `json:"maker"            gencodec:"required"`
 		Bloom         *Bloom          `json:"logsBloom"        gencodec:"required"`
-		SnailHash     *common.Hash    `json:"snailHash"        gencodec:"required"`
-		SnailNumber   *hexutil.Big    `json:"snailNumber"      gencodec:"required"`
 		Number        *hexutil.Big    `json:"number"           gencodec:"required"`
 		GasLimit      *hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
 		GasUsed       *hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
@@ -101,14 +95,6 @@ func (h *Header) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'logsBloom' for Header")
 	}
 	h.Bloom = *dec.Bloom
-	if dec.SnailHash == nil {
-		return errors.New("missing required field 'snailHash' for Header")
-	}
-	h.SnailHash = *dec.SnailHash
-	if dec.SnailNumber == nil {
-		return errors.New("missing required field 'snailNumber' for Header")
-	}
-	h.SnailNumber = (*big.Int)(dec.SnailNumber)
 	if dec.Number == nil {
 		return errors.New("missing required field 'number' for Header")
 	}

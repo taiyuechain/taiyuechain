@@ -38,9 +38,8 @@ import (
 )
 
 var (
-	EmptyRootHash  = DeriveSha(Transactions{})
-	EmptyUncleHash = CalcUncleHash(nil)
-	EmptySignHash  = CalcSignHash(nil)
+	EmptyRootHash = DeriveSha(Transactions{})
+	EmptySignHash = CalcSignHash(nil)
 )
 
 // A BlockNonce is a 64-bit hash which proves (combined with the
@@ -76,11 +75,6 @@ func (c *writeCounter) Write(b []byte) (int, error) {
 	*c += writeCounter(len(b))
 	return len(b), nil
 }
-
-func CalcUncleHash(uncles []*Header) common.Hash {
-	return rlpHash(uncles)
-}
-
 func CalcSignHash(signs []*PbftSign) common.Hash {
 	return rlpHash(signs)
 }
@@ -124,7 +118,6 @@ type Header struct {
 	CommitteeHash common.Hash    `json:"committeeRoot"    gencodec:"required"`
 	Proposer      common.Address `json:"maker"            gencodec:"required"`
 	Bloom         Bloom          `json:"logsBloom"        gencodec:"required"`
-	SnailHash     common.Hash    `json:"snailHash"        gencodec:"required"`
 	SnailNumber   *big.Int       `json:"snailNumber"      gencodec:"required"`
 	Number        *big.Int       `json:"number"           gencodec:"required"`
 	GasLimit      uint64         `json:"gasLimit"         gencodec:"required"`
@@ -135,13 +128,12 @@ type Header struct {
 
 // field type overrides for gencodec
 type headerMarshaling struct {
-	SnailNumber *hexutil.Big
-	Number      *hexutil.Big
-	GasLimit    hexutil.Uint64
-	GasUsed     hexutil.Uint64
-	Time        *hexutil.Big
-	Extra       hexutil.Bytes
-	Hash        common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
+	Number   *hexutil.Big
+	GasLimit hexutil.Uint64
+	GasUsed  hexutil.Uint64
+	Time     *hexutil.Big
+	Extra    hexutil.Bytes
+	Hash     common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
 }
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its
@@ -169,7 +161,7 @@ func (h *Header) SanityCheck() error {
 // to approximate and limit the memory consumption of various caches.
 func (h *Header) Size() common.StorageSize {
 	return common.StorageSize(unsafe.Sizeof(*h)) + common.StorageSize(len(h.Extra)+
-		(h.SnailNumber.BitLen()+h.Number.BitLen()+h.Time.BitLen())/8)
+		(h.Number.BitLen()+h.Time.BitLen())/8)
 }
 
 func rlpHash(x interface{}) (h common.Hash) {
@@ -284,9 +276,6 @@ func CopyHeader(h *Header) *Header {
 	if cpy.Time = new(big.Int); h.Time != nil {
 		cpy.Time.Set(h.Time)
 	}
-	if cpy.SnailNumber = new(big.Int); h.SnailNumber != nil {
-		cpy.SnailNumber.Set(h.SnailNumber)
-	}
 	if cpy.Number = new(big.Int); h.Number != nil {
 		cpy.Number.Set(h.Number)
 	}
@@ -337,15 +326,13 @@ func (b *Block) Transaction(hash common.Hash) *Transaction {
 	}
 	return nil
 }
-func (b *Block) Number() *big.Int      { return new(big.Int).Set(b.header.Number) }
-func (b *Block) GasLimit() uint64      { return b.header.GasLimit }
-func (b *Block) GasUsed() uint64       { return b.header.GasUsed }
-func (b *Block) SnailNumber() *big.Int { return new(big.Int).Set(b.header.SnailNumber) }
-func (b *Block) Time() *big.Int        { return new(big.Int).Set(b.header.Time) }
+func (b *Block) Number() *big.Int { return new(big.Int).Set(b.header.Number) }
+func (b *Block) GasLimit() uint64 { return b.header.GasLimit }
+func (b *Block) GasUsed() uint64  { return b.header.GasUsed }
+func (b *Block) Time() *big.Int   { return new(big.Int).Set(b.header.Time) }
 
 func (b *Block) Proposer() common.Address        { return b.header.Proposer }
 func (b *Block) NumberU64() uint64               { return b.header.Number.Uint64() }
-func (b *Block) SnailHash() common.Hash          { return b.header.SnailHash }
 func (b *Block) Bloom() Bloom                    { return b.header.Bloom }
 func (b *Block) Coinbase() common.Address        { return common.Address{} }
 func (b *Block) Root() common.Hash               { return b.header.Root }
@@ -396,13 +383,6 @@ func (b *Block) GetLeaderSign() *PbftSign {
 	return nil
 }
 
-func (b *Block) IsAward() bool {
-	if b.SnailHash() != *new(common.Hash) && b.SnailNumber() != nil {
-		return true
-	}
-	return false
-}
-
 func (b *Block) IsSwitch() bool {
 	if b.infos != nil && len(b.infos) > 0 {
 		return true
@@ -412,10 +392,7 @@ func (b *Block) IsSwitch() bool {
 
 //Condition when proposal block award or switch is not nil
 func (b *Block) IsProposal() bool {
-	if b.IsAward() || b.IsSwitch() {
-		return true
-	}
-	return false
+	return b.IsSwitch()
 }
 
 // Size returns the true RLP encoded storage size of the block, either by encoding
