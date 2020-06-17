@@ -96,7 +96,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	//new cimList
 	cimList := cim.NewCIMList(uint8(crypto.CryptoType))
-	engine   := minerva.NewFaker(cimList)
+	engine := minerva.NewFaker(cimList)
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
@@ -109,7 +109,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	if err != nil {
 		panic(err)
 	}
-	err = cimList.InitCertAndPermission(blockchain.CurrentBlock().Number(),stateDB)
+	err = cimList.InitCertAndPermission(blockchain.CurrentBlock().Number(), stateDB)
 	if err != nil {
 		panic(err)
 	}
@@ -139,6 +139,24 @@ func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
 		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelSendTxPerm)), false)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+	}
+}
+
+//neo test
+func sendCreateGroupPermissionTranscation(height uint64, gen *core.BlockGen, from common.Address, gropName string, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+	if height == 60 {
+		nonce, _ := getNonce(gen, from, state, "sendCreateGroupPermissionTranscation", txPool)
+		input := packInput(abiStaking, "createGroupPermission", "sendCreateGroupPermissionTranscation", gropName)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+	}
+}
+
+//neo test
+func sendDelGroupPermissionTranscation(height uint64, gen *core.BlockGen, from, GroupAddr common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+	if height == 70 {
+		nonce, _ := getNonce(gen, from, state, "sendDelGroupPermissionTranscation", txPool)
+		input := packInput(abiStaking, "delGroupPermission", "sendDelGroupPermissionTranscation", GroupAddr)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }
@@ -218,8 +236,8 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 		printTest("sendTranction ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
 		tx, _ := types.SignTx(types.NewTransaction(nonce, to, value, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
 		if gen != nil {
-			if check,err := cimList.VerifyPermission(tx,signer, *statedb); !check {
-				fmt.Println(header.Number.Uint64()," --------------------------------- ",err," ---------------------------------------")
+			if check, err := cimList.VerifyPermission(tx, signer, *statedb); !check {
+				fmt.Println(header.Number.Uint64(), " --------------------------------- ", err, " ---------------------------------------")
 			} else {
 				gen.AddTx(tx)
 			}
