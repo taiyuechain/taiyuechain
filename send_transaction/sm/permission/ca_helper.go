@@ -43,17 +43,20 @@ var (
 	prikey2, _ = crypto.HexToECDSA("bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb")
 	// pbft 3
 	prikey3, _ = crypto.HexToECDSA("122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab")
-	mAccount   = crypto.PubkeyToAddress(priKey.PublicKey)
-	saddr1     = crypto.PubkeyToAddress(prikey2.PublicKey)
-	daddr1     = crypto.PubkeyToAddress(prikey3.PublicKey)
+	prikey4, _ = crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
+
+	saddr1     = crypto.PubkeyToAddress(priKey.PublicKey)
+	saddr2     = crypto.PubkeyToAddress(prikey2.PublicKey)
+	saddr3     = crypto.PubkeyToAddress(prikey3.PublicKey)
+	saddr4     = crypto.PubkeyToAddress(prikey4.PublicKey)
 
 	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
 	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
 	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
 
-	skey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
-	saddr4   = crypto.PubkeyToAddress(skey4.PublicKey)
+	pkey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
+	paddr4   = crypto.PubkeyToAddress(pkey4.PublicKey)
 
 	p2p4Name    = "p2p4cert"
 	p2p4path    = "../testcert/" + p2p4Name + ".pem"
@@ -65,11 +68,10 @@ func DefaulGenesisBlock() *core.Genesis {
 	key1 := crypto.FromECDSAPub(&priKey.PublicKey)
 	key2 := crypto.FromECDSAPub(&prikey2.PublicKey)
 	key3 := crypto.FromECDSAPub(&prikey3.PublicKey)
-	prikey4, _ := crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
 	key4 := crypto.FromECDSAPub(&prikey4.PublicKey)
 
 	var certList = [][]byte{pbft1Byte, pbft2Byte, pbft3Byte, pbft4Byte}
-	coinbase := daddr1
+	coinbase := saddr3
 
 	return &core.Genesis{
 		Config:       params.DevnetChainConfig,
@@ -80,7 +82,7 @@ func DefaulGenesisBlock() *core.Genesis {
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
-			mAccount: {Balance: i},
+			saddr1: {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
 			&types.CommitteeMember{Coinbase: coinbase, Publickey: key1, LocalCert: pbft1Byte},
@@ -126,10 +128,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 }
 
 //neo test
-func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address,permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
-		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), false)
+		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, permission, false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }

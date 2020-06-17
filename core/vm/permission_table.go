@@ -342,7 +342,7 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 		//send contract
 		key2 := crypto.CreateGroupkey(root, 2)
 		stp2 := &MemberListTable{Id: 2, GroupKey: key2, Creator: root, IsWhitListWork: false, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
-		pt.CrtContracetPermi[key] = stp2
+		pt.CrtContracetPermi[key2] = stp2
 
 		groplist :=[]common.Address{}
 		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
@@ -637,7 +637,7 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 		if from != creator{
 			return false,FristGreateGropError
 		}
-		pt.CrtContracetPermi[key] = &MemberListTable{}
+		pt.CrtContracetPermi[key] = &MemberListTable{WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
 		pt.CrtContracetPermi[key].Id = 2;
 		pt.CrtContracetPermi[key].GroupKey = key
 		pt.CrtContracetPermi[key].Creator = creator
@@ -736,7 +736,7 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
 	if pt.CrtContracetPermi[key] == nil{
-		pt.CrtContracetPermi[key] = &MemberListTable{}
+		pt.CrtContracetPermi[key] = &MemberListTable{WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
 	}
 	if pt.CrtContracetPermi[key].Id == 0 {
 		if from != creator{
@@ -826,7 +826,7 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 	key := crypto.CreateGroupkey(creator,id)
 
 	if pt.GropPermi[key] == nil{
-		pt.GropPermi[key] = &GropListTable{}
+		pt.GropPermi[key] = &GropListTable{WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
 	}
 
 	if pt.UserBasisPermi[creator].GropList != nil{

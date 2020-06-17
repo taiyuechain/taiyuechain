@@ -19,6 +19,7 @@ package core
 import (
 	"bufio"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/log"
 	"io/ioutil"
 	"math"
 	"math/big"
@@ -264,6 +265,10 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 			if err != nil {
 				panic(fmt.Sprintf("state write error: %v", err))
 			}
+
+			if len(b.txs) > 0 {
+				log.Info("GenerateChain", "number", b.header.Number,"root",root.String(),"block",block.Header().Root.String())
+			}
 			if err := statedb.Database().TrieDB().Commit(root, false); err != nil {
 				panic(fmt.Sprintf("trie write error: %v", err))
 			}
@@ -293,7 +298,7 @@ func makeHeader(chain consensus.ChainReader, parent *types.Block, state *state.S
 	}
 
 	return &types.Header{
-		Root:       state.IntermediateRoot(true),
+		Root:       common.Hash{},
 		ParentHash: parent.Hash(),
 		GasLimit:   FastCalcGasLimit(parent, parent.GasLimit(), parent.GasLimit()),
 		Number:     new(big.Int).Add(parent.Number(), common.Big1),
