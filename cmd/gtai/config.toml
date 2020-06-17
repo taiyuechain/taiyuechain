@@ -13,7 +13,6 @@ EnablePreimageRecording = false
 NodeType = false
 
 [Etrue.TxPool]
-NoGasUsage = true
 NoLocals = false
 Journal = "transactions.rlp"
 Rejournal = 3600000000000

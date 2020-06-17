@@ -948,8 +948,10 @@ func validateTxInCommittee(fb *types.Block) error {
 			err = core.ErrNegativeValue
 		} else if tx.Fee() != nil && tx.Fee().Sign() < 0 {
 			err = core.ErrNegativeFee
-		} else if big.NewInt(core.MinimumGasPrice).Cmp(tx.GasPrice()) > 0 {
+		} else if params.IsGasUsed() && big.NewInt(core.MinimumGasPrice).Cmp(tx.GasPrice()) > 0 {
 			err = core.ErrUnderpriced
+		} else if !params.IsGasUsed() && tx.GasPrice().Sign() != 0 {
+			err = core.ErrGasPriceGtZero
 		}
 		if err != nil {
 			log.Error("validateTxInCommittee", "hash", tx.Hash(), "err", err)

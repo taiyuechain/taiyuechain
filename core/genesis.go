@@ -347,8 +347,8 @@ func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:       params.MainnetChainConfig,
 		GasLimit:     16777216,
-		UseGas:       0,
-		BaseReward:   0,
+		UseGas:       1,
+		BaseReward:   1,
 		KindOfCrypto: 2,
 		//Timestamp:  1553918400,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
@@ -419,8 +419,8 @@ func DefaultDevGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:       params.DevnetChainConfig,
 		GasLimit:     88080384,
-		UseGas:       0,
-		BaseReward:   0,
+		UseGas:       1,
+		BaseReward:   1,
 		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -456,8 +456,8 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:       params.SingleNodeChainConfig,
 		GasLimit:     22020096,
-		UseGas:       0,
-		BaseReward:   0,
+		UseGas:       1,
+		BaseReward:   1,
 		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -496,8 +496,8 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:       params.TestnetChainConfig,
 		GasLimit:     20971520,
-		UseGas:       0,
-		BaseReward:   0,
+		UseGas:       1,
+		BaseReward:   1,
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),

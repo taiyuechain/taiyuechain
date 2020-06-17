@@ -75,6 +75,9 @@ func (fp *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cf
 				return nil, nil, 0, err
 			}
 		}
+		if !params.IsGasUsed() && tx.GasPrice().Sign() != 0 {
+			return nil, nil, 0, ErrGasPriceGtZero
+		}
 		statedb.Prepare(tx.Hash(), block.Hash(), i)
 		receipt, _, err := ApplyTransaction(fp.config, fp.bc, gp, statedb, header, tx, usedGas, feeAmount, cfg)
 		if err != nil {

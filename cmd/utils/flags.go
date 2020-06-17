@@ -860,13 +860,8 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	if ctx.GlobalIsSet(TxPoolNoLocalsFlag.Name) {
 		cfg.NoLocals = ctx.GlobalBool(TxPoolNoLocalsFlag.Name)
 	}
-	if ctx.GlobalIsSet(GasUsageFlag.Name) {
-		cfg.NoGasUsage = ctx.GlobalBool(GasUsageFlag.Name)
-		cfg.PriceLimit = core.MinimumGasPrice
-	} else {
-		if ctx.GlobalIsSet(TxPoolPriceLimitFlag.Name) {
-			cfg.PriceLimit = ctx.GlobalUint64(TxPoolPriceLimitFlag.Name)
-		}
+	if ctx.GlobalIsSet(TxPoolPriceLimitFlag.Name) {
+		cfg.PriceLimit = ctx.GlobalUint64(TxPoolPriceLimitFlag.Name)
 	}
 	if ctx.GlobalIsSet(TxPoolJournalFlag.Name) {
 		cfg.Journal = ctx.GlobalString(TxPoolJournalFlag.Name)

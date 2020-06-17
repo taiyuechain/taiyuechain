@@ -153,11 +153,10 @@ type blockChain interface {
 
 // TxPoolConfig are the configuration parameters of the transaction pool.
 type TxPoolConfig struct {
-	CimList    *cim.CimList
-	NoGasUsage bool          // Whether to use gas or not
-	NoLocals   bool          // Whether local transaction handling should be disabled
-	Journal    string        // Journal of local transactions to survive node restarts
-	Rejournal  time.Duration // Time interval to regenerate the local transaction journal
+	CimList   *cim.CimList
+	NoLocals  bool          // Whether local transaction handling should be disabled
+	Journal   string        // Journal of local transactions to survive node restarts
+	Rejournal time.Duration // Time interval to regenerate the local transaction journal
 
 	PriceLimit uint64 // Minimum gas price to enforce for acceptance into the pool
 	PriceBump  uint64 // Minimum price bump percentage to replace an already existing transaction (nonce)
@@ -195,7 +194,7 @@ func (config *TxPoolConfig) sanitize() TxPoolConfig {
 		log.Warn("Sanitizing invalid txpool journal time", "provided", conf.Rejournal, "updated", time.Second)
 		conf.Rejournal = time.Second
 	}
-	if !conf.NoGasUsage && conf.PriceLimit < defaultGasPrice {
+	if params.IsGasUsed() && conf.PriceLimit < defaultGasPrice {
 		log.Warn("Sanitizing invalid txpool price limit", "provided", conf.PriceLimit, "updated", DefaultTxPoolConfig.PriceLimit)
 		conf.PriceLimit = DefaultTxPoolConfig.PriceLimit
 	}
@@ -558,7 +557,7 @@ func (pool *TxPool) State() *state.ManagedState {
 }
 
 func (pool *TxPool) IsNoGasUsageModel() bool {
-	return pool.config.NoGasUsage
+	return !params.IsGasUsed()
 }
 
 // Stats retrieves the current pool stats, namely the number of pending and the
@@ -635,7 +634,7 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	// NoGasUsage model , gasprice cannot greater than zero
-	if pool.config.NoGasUsage && tx.GasPriceGtZero() {
+	if pool.IsNoGasUsageModel() && tx.GasPriceGtZero() {
 		return ErrGasPriceGtZero
 	}
 	// Heuristic limit, reject transactions over 32KB to prevent DOS attacks
@@ -668,7 +667,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	}
 	// Drop non-local transactions under our own minimal accepted gas price
 	local = local || pool.locals.contains(from) // account may be local even if the transaction arrived from the network
-	if pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
+	if !pool.IsNoGasUsageModel() && pool.gasPrice.Cmp(tx.GasPrice()) > 0 {
 		return ErrUnderpriced
 	}
 	// Ensure the transaction adheres to nonce ordering

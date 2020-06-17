@@ -133,9 +133,9 @@ var (
 	MinimumCommitteeNumber  = 4
 )
 var (
-	GasUsed         byte = 0
-	BaseReward      byte = 0
-	KindOfCrypto    byte = 2
+	GasUsed          byte = 1
+	BaseReward       byte = 1
+	KindOfCrypto     byte = 2
 	EnablePermission byte = 1
 )
 
@@ -148,14 +148,17 @@ func ParseExtraDataFromGenesis(data []byte) {
 func GetGasUsed() byte {
 	return GasUsed
 }
+func IsGasUsed() bool {
+	return GasUsed != 0
+}
 func GetBaseReward() byte {
 	return BaseReward
 }
 
-func IsEnablePermission()  bool{
-	if EnablePermission == byte(1){
-		return  true
-	}else{
+func IsEnablePermission() bool {
+	if EnablePermission == byte(1) {
+		return true
+	} else {
 		return false
 	}
 }
