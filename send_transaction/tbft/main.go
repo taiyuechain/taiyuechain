@@ -211,6 +211,7 @@ func sendTransaction(client *rpc.Client, account []string, wait *sync.WaitGroup)
 	map_data["from"] = account[from]
 	map_data["to"] = account[to]
 	map_data["value"] = "0x2100"
+	map_data["gasPrice"] = "0x5000"
 	map_data["cert"] = hexutil.Encode(cert)
 	var result string
 	err := client.Call(&result, "etrue_sendTransaction", map_data)
