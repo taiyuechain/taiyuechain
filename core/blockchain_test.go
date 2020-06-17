@@ -17,6 +17,10 @@
 package core
 
 import (
+	"math/big"
+	"sync"
+	"testing"
+
 	"github.com/taiyuechain/taiyuechain/common"
 	ethash "github.com/taiyuechain/taiyuechain/consensus/minerva"
 	"github.com/taiyuechain/taiyuechain/core/rawdb"
@@ -27,9 +31,6 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yuedb"
-	"math/big"
-	"sync"
-	"testing"
 )
 
 // So we can deterministically seed different blockchains
@@ -95,7 +96,6 @@ func testBlockChainImport(chain types.Blocks, blockchain *BlockChain) error {
 			return err
 		}
 		blockchain.chainmu.Lock()
-		//rawdb.WriteTd(blockchain.db, block.Hash(), block.NumberU64(), new(big.Int).Add(block.Difficulty(), blockchain.GetTdByHash(block.ParentHash())))
 		rawdb.WriteBlock(blockchain.db, block)
 		statedb.Commit(false)
 		blockchain.chainmu.Unlock()
@@ -113,7 +113,6 @@ func testHeaderChainImport(chain []*types.Header, blockchain *BlockChain) error 
 		}
 		// Manually insert the header into the database, but don't reorganise (allows subsequent testing)
 		blockchain.chainmu.Lock()
-		//rawdb.WriteTd(blockchain.db, header.Hash(), header.Number.Uint64(), new(big.Int).Add(header.Difficulty, blockchain.GetTdByHash(header.ParentHash)))
 		rawdb.WriteHeader(blockchain.db, header)
 		blockchain.chainmu.Unlock()
 	}

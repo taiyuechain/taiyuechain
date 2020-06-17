@@ -19,14 +19,15 @@ package downloader
 import (
 	"errors"
 	"fmt"
-	taiyuechain "github.com/taiyuechain/taiyuechain"
-	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	taiyuechain "github.com/taiyuechain/taiyuechain"
+	"github.com/taiyuechain/taiyuechain/log"
 
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
@@ -225,17 +226,6 @@ func (dl *downloadTester) FastSyncCommitHead(hash common.Hash) error {
 		return err
 	}
 	return fmt.Errorf("non existent block: %x", hash[:4])
-}
-
-// GetTd retrieves the block's total difficulty from the canonical chain.
-func (dl *downloadTester) GetTd(hash common.Hash, number uint64) *big.Int {
-	dl.lock.RLock()
-	defer dl.lock.RUnlock()
-
-	if td := dl.ancientChainTd[hash]; td != nil {
-		return td
-	}
-	return dl.ownChainTd[hash]
 }
 
 // InsertHeaderChain injects a new batch of headers into the simulated chain.

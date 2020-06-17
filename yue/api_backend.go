@@ -143,11 +143,6 @@ func (b *TrueAPIBackend) GetLogs(ctx context.Context, hash common.Hash) ([][]*ty
 	return logs, nil
 }
 
-func (b *TrueAPIBackend) GetTd(blockHash common.Hash) *big.Int {
-	//return b.yue.snailblockchain.GetTdByHash(blockHash)
-	return nil
-}
-
 func (b *TrueAPIBackend) GetEVM(ctx context.Context, msg core.Message, state *state.StateDB, header *types.Header, vmCfg vm.Config) (*vm.EVM, func() error, error) {
 	state.SetBalance(msg.From(), math.MaxBig256)
 	vmError := func() error { return nil }

@@ -830,26 +830,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 		p.MarkBlock(request.Block.Hash())
 		pm.blockFetcher.Enqueue(p.id, request.Block)
 
-		// Assuming the block is importable by the peer, but possibly not yet done so,
-		// calculate the head hash and TD that the peer truly must have.
-		//TODO
-		/*var (
-			trueHead = request.Block.ParentHash()
-			trueTD   = new(big.Int).Sub(request.TD, request.Block.Difficulty())
-		)
-		// Update the peer's total difficulty if better than the previous
-		if _, td := p.Head(); trueTD.Cmp(td) > 0 {
-			p.SetHead(trueHead, trueTD)
-
-			// Schedule a sync if above ours. Note, this will not fire a sync for a gap of
-			// a single block (as the true TD is below the propagated block), however this
-			// scenario should easily be covered by the fetcher.
-			currentBlock := pm.blockchain.CurrentBlock()
-			if trueTD.Cmp(pm.blockchain.GetTd(currentBlock.Hash(), currentBlock.NumberU64())) > 0 {
-				go pm.synchronise(p)
-			}
-		}*/
-
 	case msg.Code == NewPooledTransactionHashesMsg && p.version >= eth65:
 		// New transaction announcement arrived, make sure we have
 		// a valid and fresh chain to handle them
