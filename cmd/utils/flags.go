@@ -586,8 +586,8 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) *ecdsa.PrivateKey {
-	if key, err := crypto.HexToECDSA(ctx.GlobalString(BftKeyHexFlag.Name)); err != nil {
-		Fatalf("Option %q: %v", BftKeyHexFlag.Name, err)
+	if key, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
+		Fatalf("Option %v: %v", cfg.CommitteeKey, err)
 	} else {
 		return key
 	}
