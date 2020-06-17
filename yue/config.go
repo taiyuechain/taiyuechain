@@ -41,6 +41,8 @@ var DefaultConfig = Config{
 	//GasPrice:      big.NewInt(18 * params.Shannon),
 	MinervaMode: 0,
 	GasPrice:    big.NewInt(1 * params.Babbage),
+	MinerGasFloor: 12000000,
+	MinerGasCeil:  16000000,
 	TxPool:      core.DefaultTxPoolConfig,
 	GPO: gasprice.Config{
 		Blocks:     20,
