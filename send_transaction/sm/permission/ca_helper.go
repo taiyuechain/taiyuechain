@@ -45,10 +45,10 @@ var (
 	prikey3, _ = crypto.HexToECDSA("122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab")
 	prikey4, _ = crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
 
-	saddr1     = crypto.PubkeyToAddress(priKey.PublicKey)
-	saddr2     = crypto.PubkeyToAddress(prikey2.PublicKey)
-	saddr3     = crypto.PubkeyToAddress(prikey3.PublicKey)
-	saddr4     = crypto.PubkeyToAddress(prikey4.PublicKey)
+	saddr1 = crypto.PubkeyToAddress(priKey.PublicKey)
+	saddr2 = crypto.PubkeyToAddress(prikey2.PublicKey)
+	saddr3 = crypto.PubkeyToAddress(prikey3.PublicKey)
+	saddr4 = crypto.PubkeyToAddress(prikey4.PublicKey)
 
 	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
@@ -75,10 +75,9 @@ func DefaulGenesisBlock() *core.Genesis {
 
 	return &core.Genesis{
 		Config:       params.DevnetChainConfig,
-		ExtraData:    nil,
-		GasLimit:     88080384,
-		UseGas:       0,
-		BaseReward:   0,
+		GasLimit:     20971520,
+		UseGas:       1,
+		BaseReward:   1,
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -128,7 +127,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 }
 
 //neo test
-func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address,permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
 		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, permission, false)
