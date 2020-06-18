@@ -210,7 +210,7 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 		return nil, err
 	}
 
-	res, err := pTable.GrantPermission(common.Address{}, common.Address{}, common.Address{}, args.GroupAddr, ModifyPerminType_DelGrop, "", false)
+	res, err := pTable.GrantPermission(from, from, common.Address{}, args.GroupAddr, ModifyPerminType_DelGrop, "", false)
 	if !res {
 		return nil, err
 	}
