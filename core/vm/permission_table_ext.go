@@ -184,7 +184,7 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 	}
 
 	p.WhiteList, p.BlackList, p.ContractPermi = ei.WhiteList, ei.BlackList, clts
-	p.GropPermi, p.SendTranPermi, p.ContractPermi, p.UserBasisPermi = gps, mlts, clts, bps
+	p.GropPermi, p.SendTranPermi, p.CrtContracetPermi, p.UserBasisPermi = gps, mlts, ctps, bps
 	return nil
 }
 
