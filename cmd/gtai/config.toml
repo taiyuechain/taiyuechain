@@ -16,7 +16,7 @@ NodeType = false
 NoLocals = false
 Journal = "transactions.rlp"
 Rejournal = 3600000000000
-PriceLimit = 1000000
+PriceLimit = 1000
 PriceBump = 10
 AccountSlots = 80
 GlobalSlots = 100
@@ -34,7 +34,7 @@ IPCPath = "geth.ipc"
 HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
-HTTPModules = ["net", "web3", "yue", "shh"]
+HTTPModules = ["net", "web3", "yue", "shh", "etrue"]
 WSPort = 8546
 WSModules = ["net", "web3", "yue", "shh"]
 
