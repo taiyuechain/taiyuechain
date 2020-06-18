@@ -159,7 +159,12 @@ func SetupGenesisBlock(db yuedb.Database, genesis *Genesis) (*params.ChainConfig
 	fastConfig, fastHash, fastErr := setupGenesisBlock(db, genesis)
 	genesisBlock := rawdb.ReadBlock(db, fastHash, 0)
 	if genesisBlock != nil {
-		params.ParseExtraDataFromGenesis(genesisBlock.Header().Extra)
+		data := genesisBlock.Header().Extra
+		params.ParseExtraDataFromGenesis(data)
+		GasUsed, BaseReward, KindOfCrypto := data[0], data[1], data[2]
+		if err := baseCheck(GasUsed,BaseReward,KindOfCrypto); err != nil {
+			return nil,common.Hash{},err
+		}
 	}
 	return fastConfig, fastHash, fastErr
 
@@ -318,6 +323,9 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 // MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
 func (g *Genesis) MustCommit(db yuedb.Database) *types.Block {
+	if err := baseCheck(g.UseGas,g.BaseReward,g.KindOfCrypto); err != nil {
+		panic(err)
+	}
 	block, err := g.Commit(db)
 	if err != nil {
 		panic(err)
@@ -516,4 +524,13 @@ func DefaultTestnetGenesisBlock() *Genesis {
 		},
 		CertList: certList,
 	}
+}
+func baseCheck(useGas,baseReward,kindCrypto byte) error {
+	if int(kindCrypto) < crypto.CRYPTO_P256_SH3_AES || int(kindCrypto) > crypto.CRYPTO_S256_SH3_AES {
+		return errors.New("wrong param on kindCrypto")
+	}
+	if baseReward == 0 && useGas != 0 {
+		return errors.New("has gas used on no any rewards")
+	}
+	return nil
 }
