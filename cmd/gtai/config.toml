@@ -31,6 +31,7 @@ Percentile = 60
 [Node]
 DataDir = "data"
 IPCPath = "geth.ipc"
+HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
 HTTPModules = ["net", "web3", "yue", "shh"]
