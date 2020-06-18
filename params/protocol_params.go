@@ -136,7 +136,7 @@ var (
 	GasUsed          byte = 1
 	BaseReward       byte = 1
 	KindOfCrypto     byte = 2
-	EnablePermission byte = 1
+	EnablePermission byte = 0
 )
 
 func ParseExtraDataFromGenesis(data []byte) {
