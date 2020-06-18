@@ -1147,12 +1147,12 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}
 		break
 	case PerminType_SendTx,ModifyPerminType_CrtGrop:
-		if pt.UserBasisPermi[from].SendTran {
+		v,ok := pt.UserBasisPermi[from]
+		if ok && v.SendTran {
 			return true
 		}else{
 			return pt.checkSendTx(from,creator)
 		}
-		break
 	case ModifyPerminType_DelGrop:
 		if pt.UserBasisPermi[from].GropList != nil{
 			for _,g := range pt.UserBasisPermi[from].GropList{

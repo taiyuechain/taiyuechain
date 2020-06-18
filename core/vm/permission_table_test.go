@@ -43,15 +43,17 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 
 	//add send tx
 	ptable := NewPerminTable()
-
-
-
-
 	ptable.InitPBFTRootGrop(rootList)
 
 	root1 := rootList[1]
 	member1 :=common.HexToAddress("0xf22142DbF24C324Eb021332c2D673d3B819B955a")
-	member2 :=common.HexToAddress("0x21C16f03bbF085D6908569d159Ad40BcafdB80C5")
+	member2 :=common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")
+
+	// check no permission account
+	if ptable.CheckActionPerm(common.BytesToAddress([]byte("1234")),common.Address{},common.Address{},PerminType_SendTx){
+
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
+	}
 
 	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	if !res{
