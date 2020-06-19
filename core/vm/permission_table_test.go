@@ -108,12 +108,16 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("Grent err")
 	}
-
+	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err")
+	}
 	if !ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_SendTx){
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 
-	res, err =ptable.GrantPermission(member1,root1,member1,common.Address{},ModifyPerminType_CrtGrop,"a",true)
+	res, err =ptable.GrantPermission(common.Address{},member1,member1,common.Address{},ModifyPerminType_CrtGrop,"a",true)
 	if !res {
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_CrtGrop")
@@ -122,7 +126,7 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 	gropAddr := crypto.CreateGroupkey(member1,3)
 
 	//ModifyPerminType_AddGropManagerPerm
-	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
+	res, err =ptable.GrantPermission(common.Address{},member1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
 	if !res {
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
@@ -157,7 +161,7 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
 	}
-	if ptable.CheckActionPerm(member2,gropAddr,common.Address{},PerminType_SendTx){
+	if !ptable.CheckActionPerm(member2,gropAddr,common.Address{},PerminType_SendTx){
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 
@@ -165,7 +169,7 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 	if !ptable.CheckActionPerm(member1,gropAddr,common.Address{},ModifyPerminType_DelGrop){
 		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
 	}
-	res, err =ptable.GrantPermission(member1,root1,member1,gropAddr,ModifyPerminType_DelGrop,"a",true)
+	res, err =ptable.GrantPermission(common.Address{},member1,member1,gropAddr,ModifyPerminType_DelGrop,"a",true)
 	if !res{
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
