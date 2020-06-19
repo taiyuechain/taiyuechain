@@ -284,7 +284,7 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 		}
 	}
 
-	consensus.OnceInitCAState(g.Config, statedb, new(big.Int).SetUint64(g.Number), g.CertList)
+	consensus.OnceInitCAState(statedb, new(big.Int).SetUint64(g.Number), g.CertList)
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
@@ -309,8 +309,10 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 		//pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
 		// cc := hex.EncodeToString(member.Publickey)
 		// fmt.Sprintln("cccccc" + cc)
-		pubkey, _ := crypto.UnmarshalPubkey(member.Publickey)
-
+		pubkey, e := crypto.UnmarshalPubkey(member.Publickey)
+		if e != nil {
+			fmt.Println(e)
+		}
 		member.Flag = types.StateUsedFlag
 		member.MType = types.TypeFixed
 		//caolaing modify

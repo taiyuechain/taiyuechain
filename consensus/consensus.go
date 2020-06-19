@@ -151,7 +151,7 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 	}
 	return false
 }
-func OnceInitCAState(config *params.ChainConfig, state *state.StateDB, fastNumber *big.Int, certList [][]byte) bool {
+func OnceInitCAState(state *state.StateDB, fastNumber *big.Int, certList [][]byte) bool {
 	return makeCAContractInitState(state, certList, fastNumber)
 }
 

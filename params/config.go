@@ -26,7 +26,7 @@ import (
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/common/math"
+	// "github.com/taiyuechain/taiyuechain/common/math"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 )
 
@@ -64,24 +64,10 @@ const (
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
-	MainnetChainConfig = &ChainConfig{
-		ChainID: big.NewInt(19330),
-		Minerva: &(MinervaConfig{
-			MinimumDifficulty:      big.NewInt(134217728),
-			MinimumFruitDifficulty: big.NewInt(262144),
-			DurationLimit:          big.NewInt(600),
-		}),
-	}
+	MainnetChainConfig = &ChainConfig{ ChainID: big.NewInt(19330) }
 
 	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
-	TestnetChainConfig = &ChainConfig{
-		ChainID: big.NewInt(999),
-		Minerva: &(MinervaConfig{
-			MinimumDifficulty:      big.NewInt(60000),
-			MinimumFruitDifficulty: big.NewInt(200),
-			DurationLimit:          big.NewInt(600),
-		}),
-	}
+	TestnetChainConfig = &ChainConfig{ ChainID: big.NewInt(999) }
 
 	// MainnetTrustedCheckpoint contains the light client trusted checkpoint for the main network.
 	MainnetTrustedCheckpoint = &TrustedCheckpoint{
@@ -112,34 +98,20 @@ var (
 		BloomRoot:    common.HexToHash("0x331b7a7b273e81daeac8cafb9952a16669d7facc7be3b0ebd3a792b4d8b95cc5"),
 	}
 
-	SingleNodeChainConfig = &ChainConfig{
-		ChainID: big.NewInt(400),
-		Minerva: &(MinervaConfig{
-			MinimumDifficulty:      big.NewInt(200),
-			MinimumFruitDifficulty: big.NewInt(2),
-			DurationLimit:          big.NewInt(120),
-		}),
-	}
+	SingleNodeChainConfig = &ChainConfig{ChainID: big.NewInt(400)}
 
 	// DevnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
-	DevnetChainConfig = &ChainConfig{
-		ChainID: big.NewInt(100),
-		Minerva: &(MinervaConfig{
-			MinimumDifficulty:      big.NewInt(10000),
-			MinimumFruitDifficulty: big.NewInt(100),
-			DurationLimit:          big.NewInt(150),
-		}),
-	}
+	DevnetChainConfig = &ChainConfig{ ChainID: big.NewInt(100) }
 
 	chainId = big.NewInt(9223372036854775790)
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId, Minerva: new(MinervaConfig)}
+	AllMinervaProtocolChanges = &ChainConfig{ChainID: chainId}
 
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
 
-	TestChainConfig = &ChainConfig{ChainID: chainId, Minerva: &MinervaConfig{MinimumDifficulty, MinimumFruitDifficulty, DurationLimit}}
+	TestChainConfig = &ChainConfig{ChainID: chainId}
 )
 
 // ChainConfig is the core config which determines the blockchain settings.
@@ -149,8 +121,6 @@ var (
 // set of configuration options.
 type ChainConfig struct {
 	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
-	// Various consensus engines
-	Minerva *MinervaConfig `json:"minerva"`
 }
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
@@ -192,102 +162,18 @@ func (c *TrustedCheckpoint) Empty() bool {
 func (c *ChainConfig) UnmarshalJSON(input []byte) error {
 	type ChainConfig struct {
 		ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
-
-		Minerva *MinervaConfig `json:"minerva"`
 	}
 	var dec ChainConfig
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	c.ChainID = dec.ChainID
-	if dec.Minerva == nil {
-		c.Minerva = &(MinervaConfig{
-			MinimumDifficulty:      MinimumDifficulty,
-			MinimumFruitDifficulty: MinimumFruitDifficulty,
-			DurationLimit:          DurationLimit,
-		})
-	} else {
-		c.Minerva = dec.Minerva
-	}
-
 	return nil
-}
-
-// MinervaConfig is the consensus engine configs for proof-of-work based sealing.
-type MinervaConfig struct {
-	MinimumDifficulty      *big.Int `json:"minimumDifficulty"`
-	MinimumFruitDifficulty *big.Int `json:"minimumFruitDifficulty"`
-	DurationLimit          *big.Int `json:"durationLimit"`
-}
-
-func (c *MinervaConfig) UnmarshalJSON(input []byte) error {
-	type MinervaConfig struct {
-		MinimumDifficulty      *math.HexOrDecimal256 `json:"minimumDifficulty"`
-		MinimumFruitDifficulty *math.HexOrDecimal256 `json:"minimumFruitDifficulty"`
-		DurationLimit          *math.HexOrDecimal256 `json:"durationLimit"`
-	}
-	var dec MinervaConfig
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	if dec.MinimumDifficulty == nil {
-		c.MinimumDifficulty = MinimumDifficulty
-		//return errors.New("missing required field 'MinimumDifficulty' for Genesis")
-	} else {
-		c.MinimumDifficulty = (*big.Int)(dec.MinimumDifficulty)
-	}
-	if dec.MinimumFruitDifficulty == nil {
-		c.MinimumFruitDifficulty = MinimumFruitDifficulty
-		//return errors.New("missing required field 'MinimumFruitDifficulty' for Genesis")
-	} else {
-		c.MinimumFruitDifficulty = (*big.Int)(dec.MinimumFruitDifficulty)
-	}
-	if dec.DurationLimit == nil {
-		c.DurationLimit = DurationLimit
-		//return errors.New("missing required field 'DurationLimit' for Genesis")
-	} else {
-		c.DurationLimit = (*big.Int)(dec.DurationLimit)
-	}
-	return nil
-}
-
-func (c MinervaConfig) MarshalJSON() ([]byte, error) {
-	type MinervaConfig struct {
-		MinimumDifficulty      *math.HexOrDecimal256 `json:"minimumDifficulty,omitempty"`
-		MinimumFruitDifficulty *math.HexOrDecimal256 `json:"minimumFruitDifficulty,omitempty"`
-		DurationLimit          *math.HexOrDecimal256 `json:"durationLimit,omitempty"`
-	}
-	var enc MinervaConfig
-	enc.MinimumDifficulty = (*math.HexOrDecimal256)(c.MinimumDifficulty)
-	enc.MinimumFruitDifficulty = (*math.HexOrDecimal256)(c.MinimumFruitDifficulty)
-	enc.DurationLimit = (*math.HexOrDecimal256)(c.DurationLimit)
-	return json.Marshal(&enc)
-}
-
-// String implements the stringer interface, returning the consensus engine details.
-func (c *MinervaConfig) String() string {
-	return fmt.Sprintf("{MinimumDifficulty: %v MinimumFruitDifficulty: %v DurationLimit: %v}",
-		c.MinimumDifficulty,
-		c.MinimumFruitDifficulty,
-		c.DurationLimit,
-	)
 }
 
 // String implements the fmt.Stringer interface.
 func (c *ChainConfig) String() string {
-	var engine interface{}
-	switch {
-	case c.Minerva != nil:
-		engine = c.Minerva
-		// case c.Clique != nil:
-		// 	engine = c.Clique
-	default:
-		engine = "unknown"
-	}
-	return fmt.Sprintf("{ChainID: %v Engine: %v}",
-		c.ChainID,
-		engine,
-	)
+	return fmt.Sprintf("{ChainID: %v Engine: Minerva}",c.ChainID)
 }
 
 // GasTable returns the gas table corresponding to the current phase (homestead or homestead reprice).
