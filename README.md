@@ -141,4 +141,4 @@ $ gtai init path/to/genesis.json
 ```
 
 more infomation:
-[setup.md](https://github.com/taiyuechain/taiyuechain/setup.md "setup.md")
+[setup.md](https://github.com/taiyuechain/taiyuechain/blob/master/setup.md "setup.md")
