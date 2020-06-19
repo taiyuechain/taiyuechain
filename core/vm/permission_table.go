@@ -858,10 +858,14 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 
 func (pt *PerminTable) delGropPerm(from,gropAddr common.Address) (bool,error){
 
-	if pt.UserBasisPermi[from] == nil{
+	/*if pt.UserBasisPermi[from] == nil{
+		return false,GropNotExitError
+	}*/
+
+	if pt.GropPermi[gropAddr] != nil{
 		return false,GropNotExitError
 	}
-
+	if pt.UserBasisPermi[from] != nil{
 
 	for i,g := range pt.UserBasisPermi[from].GropList{
 		if g == gropAddr{
@@ -872,12 +876,14 @@ func (pt *PerminTable) delGropPerm(from,gropAddr common.Address) (bool,error){
 
 	}
 
-	if pt.GropPermi[gropAddr] != nil{
-		delete(pt.GropPermi,gropAddr)
-		return true,nil
 	}
 
-	return false,GropNotExitError
+
+		delete(pt.GropPermi,gropAddr)
+		return true,nil
+
+
+
 }
 
 func (pt *PerminTable) setGropMemberPerm(gropAddr ,member common.Address,isAdd bool) (bool,error){
@@ -959,7 +965,7 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 
 		mst := &MemberInfo{manager,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Manager = append(pt.GropPermi[gropAddr].WhiteMembers.Manager,mst)
-		
+
 
 	}else{
 
