@@ -88,8 +88,7 @@ func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
 	cfg.Version = params.VersionWithCommit(gitCommit)
-	//cfg.HTTPModules = append(cfg.HTTPModules, "etrue", "eth", "shh")
-	cfg.HTTPModules = append(cfg.HTTPModules, "yue", "eth", "shh", "etrue")
+	cfg.HTTPModules = append(cfg.HTTPModules, "yue", "shh", "etrue")
 	cfg.WSModules = append(cfg.WSModules, "yue")
 	cfg.IPCPath = "gtai.ipc"
 	return cfg
