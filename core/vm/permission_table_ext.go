@@ -59,6 +59,7 @@ func (pt *PerminTable) Save(state StateDB) error {
 	}
 	state.SetCAState(preAddr, key, data)
 
+
 	tmp := ClonePerminCaCache(pt)
 	if tmp != nil {
 		hash := types.RlpHash(data)

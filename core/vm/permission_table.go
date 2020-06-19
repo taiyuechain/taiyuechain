@@ -28,6 +28,7 @@ var whitelistIsWork_SendTx bool
 var whitelistIsWork_CrtContract bool
 
 var(
+	NotRootSendTxError = errors.New("not root sendtx error")
 	FristGreateGropError = errors.New("the frist create grop err create not equl from")
 	MemberAreadInGropError = errors.New("member alread in grop")
 	MemberNotInGropError = errors.New("member not in grop")
@@ -448,6 +449,9 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 	}
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,1)
+	if pt.SendTranPermi[key] == nil{
+		return false,NotRootSendTxError
+	}
 	if pt.SendTranPermi[key].Id == 0 {
 		if from != creator{
 			return false,FristGreateGropError
@@ -465,16 +469,28 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 	}
 
 	if isAdd {
+		if pt.GropPermi[member] == nil{
+
 		if pt.UserBasisPermi[member] == nil{
 			pt.UserBasisPermi[member] = &BasisPermin{}
+		}else{
+			if pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID == member {
+				//data base is nill
+				return false,MemberAreadInGropError
+			}}
+
+			pt.UserBasisPermi[member].MemberID = member
+			pt.UserBasisPermi[member].SendTran = true
+			pt.UserBasisPermi[member].CreatorRoot = creator
+
+		}else{
+			if !pt.SetGropMemberRoot(member,creator){
+				return false,MemberAreadInGropError
+			}
+
 		}
-		if pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID == member {
-			//data base is nill
-			return false,MemberAreadInGropError
-		}
-		pt.UserBasisPermi[member].MemberID = member
-		pt.UserBasisPermi[member].SendTran = true
-		pt.UserBasisPermi[member].CreatorRoot = creator
+
+
 
 		if iswhitelistWork{
 
@@ -491,6 +507,9 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 
 			mber := &MemberInfo{member,0}
 			pt.SendTranPermi[key].WhiteMembers.Member = append(pt.SendTranPermi[key].WhiteMembers.Member,mber )
+
+
+
 
 		}
 	}else{
@@ -621,6 +640,31 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 	}
 
 	return true, nil
+}
+
+func (pt *PerminTable)SetGropMemberRoot(gropAddr,creator common.Address) bool{
+	if pt.GropPermi[gropAddr] == nil{
+		return false
+	}
+
+	for _,v := range  pt.GropPermi[gropAddr].WhiteMembers.Manager{
+		if pt.GropPermi[v.MemberID] != nil{
+			pt.SetGropMemberRoot(v.MemberID,creator)
+		}else{
+			pt.UserBasisPermi[v.MemberID].CreatorRoot = creator
+		}
+	}
+
+	for _,v := range  pt.GropPermi[gropAddr].WhiteMembers.Member{
+		if pt.GropPermi[v.MemberID] !=nil{
+			pt.SetGropMemberRoot(v.MemberID,creator)
+		}else{
+			pt.UserBasisPermi[v.MemberID].CreatorRoot = creator
+		}
+	}
+
+	return true
+
 }
 
 func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
@@ -862,7 +906,7 @@ func (pt *PerminTable) delGropPerm(from,gropAddr common.Address) (bool,error){
 		return false,GropNotExitError
 	}*/
 
-	if pt.GropPermi[gropAddr] != nil{
+	if pt.GropPermi[gropAddr] == nil{
 		return false,GropNotExitError
 	}
 	if pt.UserBasisPermi[from] != nil{
@@ -901,9 +945,9 @@ func (pt *PerminTable) setGropMemberPerm(gropAddr ,member common.Address,isAdd b
 
 	if isAdd{
 
-		if pt.UserBasisPermi[member] == nil{
+		/*if pt.UserBasisPermi[member] == nil{
 			return false,MemberNotSentTXPerm
-		}
+		}*/
 
 		for _,m :=range  pt.GropPermi[gropAddr].WhiteMembers.Member{
 			if m.MemberID == member{
@@ -913,6 +957,10 @@ func (pt *PerminTable) setGropMemberPerm(gropAddr ,member common.Address,isAdd b
 
 		mst := &MemberInfo{member,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Member = append(pt.GropPermi[gropAddr].WhiteMembers.Member,mst)
+
+		if pt.UserBasisPermi[member] == nil{
+			pt.UserBasisPermi[member] = &BasisPermin{member,common.Address{},false,false,0,[]common.Address{gropAddr}}
+		}
 
 	}else{
 
@@ -942,9 +990,7 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 	if pt.GropPermi[gropAddr] == nil{
 		return false,GropNotExitError
 	}
-	if pt.UserBasisPermi[manager] == nil{
-		return false,MemberNotSentTXPerm
-	}
+
 
 	if pt.GropPermi[gropAddr].GroupKey != gropAddr{
 		return false,GropNotExitError
@@ -966,6 +1012,9 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 		mst := &MemberInfo{manager,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Manager = append(pt.GropPermi[gropAddr].WhiteMembers.Manager,mst)
 
+		if pt.UserBasisPermi[manager] == nil{
+			pt.UserBasisPermi[manager] = &BasisPermin{manager,common.Address{},false,false,0,[]common.Address{gropAddr}}
+		}
 
 	}else{
 
@@ -1149,7 +1198,6 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 	ModifyPerminType_DelSendTxPerm ,
 	ModifyPerminType_AddSendTxManagerPerm ,
 	ModifyPerminType_DelSendTxManagerPerm:
-
 		return pt.checkSendTx(from,creator)
 	case ModifyPerminType_AddCrtContractPerm,
 	ModifyPerminType_DelCrtContractPerm,
@@ -1194,15 +1242,14 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}
 		break
 	case PerminType_SendTx,ModifyPerminType_CrtGrop:
-		if  pt.UserBasisPermi[from] == nil{
-			return false
-		}
+
 		v,ok := pt.UserBasisPermi[from]
 		if ok && v.SendTran {
 			return true
 		}else{
 			return pt.checkSendTx(from,creator)
 		}
+		break
 	case ModifyPerminType_DelGrop:
 
 		if pt.GropPermi[gropAddr] == nil{
@@ -1319,9 +1366,9 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 		return true
 	}
 	if !pt.SendTranPermi[key].IsWhitListWork{
-		if pt.SendTranPermi[key].BlackMembers.Manager == nil{
-			return false
-		}
+		if pt.SendTranPermi[key].BlackMembers.Manager != nil{
+
+
 		for _ ,m := range pt.SendTranPermi[key].BlackMembers.Manager{
 			//need check MemberID is grop id or not
 			if pt.GropPermi[m.MemberID] != nil{
@@ -1331,14 +1378,46 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 			}
 
 		}
+		}
+
+		if pt.SendTranPermi[key].BlackMembers.Member != nil{
+
+
+			for _ ,m := range pt.SendTranPermi[key].BlackMembers.Member{
+				//need check MemberID is grop id or not
+				if pt.GropPermi[m.MemberID] != nil{
+					return pt.findMember(m.MemberID,from,false)
+				}else{
+					if m.MemberID == from{return false}
+				}
+
+			}
+		}
+
 
 		return true
 	}else{
-		if pt.SendTranPermi[key].WhiteMembers.Manager == nil{
-			return false
+		if pt.SendTranPermi[key].WhiteMembers.Manager != nil{
+
+
+
+			for _ ,m := range pt.SendTranPermi[key].WhiteMembers.Manager{
+				if pt.GropPermi[m.MemberID] != nil{
+					return pt.findMember(m.MemberID,from,true)
+				}else{
+					if m.MemberID == from{return true}
+				}
+			}
 		}
-		for _ ,m := range pt.SendTranPermi[key].WhiteMembers.Manager{
-			if m.MemberID == from{return true}
+
+		if pt.SendTranPermi[key].WhiteMembers.Member != nil{
+			for _ ,m := range pt.SendTranPermi[key].WhiteMembers.Member{
+				if pt.GropPermi[m.MemberID] != nil{
+					return pt.findMember(m.MemberID,from,true)
+				}else{
+					if m.MemberID == from{return true}
+				}
+			}
 		}
 	}
 	return false
