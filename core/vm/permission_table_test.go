@@ -20,6 +20,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
+	"runtime/debug"
 	"testing"
 )
 
@@ -58,18 +59,28 @@ func printResError(res bool,err error,t *testing.T,str string) {
 	}
 }
 
-func TestPerminTable_DeletePermission(t *testing.T) {
-	// check no permission account
-	if ptable.CheckActionPerm(common.BytesToAddress([]byte("1234")),common.Address{},common.Address{},PerminType_SendTx){
+func checkSendTxPermission(from common.Address,t *testing.T,has bool) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},PerminType_SendTx) != has {
+		debug.PrintStack()
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
+}
+
+func checkDelGropPermission(member,gropAddr common.Address,t *testing.T,has bool) {
+		if ptable.CheckActionPerm(member,gropAddr,common.Address{},ModifyPerminType_DelGrop) != has {
+		debug.PrintStack()
+		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
+	}
+}
+
+func TestPerminTable_DeletePermission(t *testing.T) {
+	// check no permission account
+	checkSendTxPermission(common.BytesToAddress([]byte("1234")),t,false)
 
 	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	printResError(res,err,t,"Grent err")
 
-	if !ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_SendTx){
-		t.Fatalf("CheckActionPerm err PerminType_SendTx")
-	}
+	checkSendTxPermission(member1,t,true)
 
 	res, err =ptable.GrantPermission(common.Address{},member1,common.Address{},common.Address{},ModifyPerminType_CrtGrop,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_CrtGrop")
@@ -78,26 +89,29 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropMemberPerm")
 
+	checkSendTxPermission(member2,t,false)
+
 	res, err =ptable.GrantPermission(root1,root1,gropAddr,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxPerm")
+
+	checkSendTxPermission(member2,t,true)
 
 	//ModifyPerminType_AddGropManagerPerm
 	res, err =ptable.GrantPermission(common.Address{},member1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropManagerPerm")
 
-	if !ptable.CheckActionPerm(member2,common.Address{},common.Address{},PerminType_SendTx){
-		t.Fatalf("CheckActionPerm err PerminType_SendTx")
-	}
-	if !ptable.CheckActionPerm(member2,gropAddr,common.Address{},ModifyPerminType_DelGrop){
-		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
-	}
+	checkDelGropPermission(member2,gropAddr,t,true)
 
 	//ModifyPerminType_DelGropManagerPerm
 	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_DelGropManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGropManagerPerm")
 
+	checkDelGropPermission(member2,gropAddr,t,true)
+
 	res, err = ptable.GrantPermission(member1, root1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGrop")
+
+	checkSendTxPermission(member2,t,false)
 }
 
 func TestPerminTable_GrantPermission(t *testing.T) {
