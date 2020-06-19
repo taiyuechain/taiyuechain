@@ -51,6 +51,13 @@ func init() {
 	member2 = common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")
 }
 
+func printResError(res bool,err error,t *testing.T,str string) {
+	if !res{
+		fmt.Println(err)
+		t.Fatalf(str)
+	}
+}
+
 func TestPerminTable_DeletePermission(t *testing.T) {
 	// check no permission account
 	if ptable.CheckActionPerm(common.BytesToAddress([]byte("1234")),common.Address{},common.Address{},PerminType_SendTx){
@@ -58,32 +65,28 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 	}
 
 	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
-	if !res{
-		fmt.Println(err)
-		t.Fatalf("Grent err")
-	}
-	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
-	if !res{
-		fmt.Println(err)
-		t.Fatalf("Grent err")
-	}
+	printResError(res,err,t,"Grent err")
 
 	if !ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_SendTx){
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 
 	res, err =ptable.GrantPermission(common.Address{},member1,common.Address{},common.Address{},ModifyPerminType_CrtGrop,"a",true)
-	if !res {
-		fmt.Println(err)
-		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
-	}
+	printResError(res,err,t,"Grent err,ModifyPerminType_CrtGrop")
 
 	gropAddr := crypto.CreateGroupkey(member1,3)
+	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropMemberPerm")
+
+	res, err =ptable.GrantPermission(root1,root1,gropAddr,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxPerm")
+
 	//ModifyPerminType_AddGropManagerPerm
 	res, err =ptable.GrantPermission(common.Address{},member1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
-	if !res {
-		fmt.Println(err)
-		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropManagerPerm")
+
+	if !ptable.CheckActionPerm(member2,common.Address{},common.Address{},PerminType_SendTx){
+		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 	if !ptable.CheckActionPerm(member2,gropAddr,common.Address{},ModifyPerminType_DelGrop){
 		t.Fatalf("CheckActionPerm err ModifyPerminType_DelGrop")
@@ -91,15 +94,10 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 
 	//ModifyPerminType_DelGropManagerPerm
 	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_DelGropManagerPerm,"a",true)
-	if !res {
-		fmt.Println(err)
-		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
-	}
+	printResError(res,err,t,"Grent err,ModifyPerminType_DelGropManagerPerm")
 
 	res, err = ptable.GrantPermission(member1, root1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
-	if !res {
-		t.Fatalf("Grent err,ModifyPerminType_DelGrop")
-	}
+	printResError(res,err,t,"Grent err,ModifyPerminType_DelGrop")
 }
 
 func TestPerminTable_GrantPermission(t *testing.T) {
