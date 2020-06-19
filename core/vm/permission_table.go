@@ -1205,6 +1205,9 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}
 	case ModifyPerminType_DelGrop:
 
+		if pt.GropPermi[gropAddr] == nil{
+			return false
+		}
 		if pt.UserBasisPermi[from] != nil {
 
 			if pt.UserBasisPermi[from].GropList != nil {
@@ -1217,7 +1220,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}
 
 
-			if pt.GropPermi[gropAddr] != nil{
+
 
 			if pt.GropPermi[gropAddr].WhiteMembers.Manager != nil{
 				for _,g := range pt.GropPermi[gropAddr].WhiteMembers.Manager {
@@ -1226,7 +1229,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 					}
 				}
 			}
-			}
+			//}
 
 
 		break
