@@ -62,12 +62,17 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("Grent err")
 	}
+	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
+	if !res{
+		fmt.Println(err)
+		t.Fatalf("Grent err")
+	}
 
 	if !ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_SendTx){
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}
 
-	res, err =ptable.GrantPermission(member1,root1,member1,common.Address{},ModifyPerminType_CrtGrop,"a",true)
+	res, err =ptable.GrantPermission(common.Address{},member1,common.Address{},common.Address{},ModifyPerminType_CrtGrop,"a",true)
 	if !res {
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
@@ -75,7 +80,7 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 
 	gropAddr := crypto.CreateGroupkey(member1,3)
 	//ModifyPerminType_AddGropManagerPerm
-	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
+	res, err =ptable.GrantPermission(common.Address{},member1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
 	if !res {
 		fmt.Println(err)
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
@@ -91,7 +96,7 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
 	}
 
-	res, err = ptable.GrantPermission(member2, root1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
+	res, err = ptable.GrantPermission(member1, root1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
 	if !res {
 		t.Fatalf("Grent err,ModifyPerminType_DelGrop")
 	}
@@ -111,10 +116,11 @@ func TestPerminTable_GrantPermission(t *testing.T) {
 	res, err =ptable.GrantPermission(member1,root1,member1,common.Address{},ModifyPerminType_CrtGrop,"a",true)
 	if !res {
 		fmt.Println(err)
-		t.Fatalf("Grent err,ModifyPerminType_AddCrtContractManagerPerm")
+		t.Fatalf("Grent err,ModifyPerminType_CrtGrop")
 	}
 
 	gropAddr := crypto.CreateGroupkey(member1,3)
+
 	//ModifyPerminType_AddGropManagerPerm
 	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
 	if !res {
@@ -326,6 +332,8 @@ func Test1(t *testing.T) {
 	}else{
 		t.Fatalf("transfer error")
 	}
+
+
 }
 
 func TestSortRlp(t *testing.T) {

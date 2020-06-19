@@ -35,11 +35,12 @@ var(
 	ErrorMemberAlreadIn = errors.New("Mamber alread have this perminssion")
 	GropNameAlreadyUseError = errors.New("Grop Name alread use")
 	GropNotExitError = errors.New("Grop not exit")
-	MemberGropNotExitError = errors.New("Grop not exit")
+	MemberGropNotExitError = errors.New("member Grop not exit")
 	ContractAlreadyCreatePremError = errors.New("Contract already create prem")
 	ContractNotCreatePremError = errors.New("Contract not create prem")
 	ContractPremFlagError = errors.New("Contract premission flage error")
 	MemberInBlackListError = errors.New("member is in black list")
+	MemberNotSentTXPerm = errors.New("member have not sentTx permission")
 )
 
 var PerminCache *PerminssionCache
@@ -361,6 +362,8 @@ func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
 
 //Grant Perminission
 func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
+
+	//creator := pt.UserBasisPermi[from].CreatorRoot
 	switch mPermType {
 	case ModifyPerminType_AddSendTxPerm:
 		return pt.setSendTxPerm(creator,from,member,true)
@@ -379,9 +382,9 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 	case ModifyPerminType_DelCrtContractManagerPerm:
 		return pt.setCrtContractManegerPerm(creator,from,member,false)
 	case ModifyPerminType_CrtGrop:
-		return pt.createGropPerm(creator,gropName)
+		return pt.createGropPerm(from,gropName)
 	case ModifyPerminType_DelGrop:
-		return pt.delGropPerm(creator,gropAddr)
+		return pt.delGropPerm(from,gropAddr)
 	case ModifyPerminType_AddGropManagerPerm:
 		return pt.setGropManagerPerm(gropAddr,member,true)
 	case ModifyPerminType_DelGropManagerPerm:
@@ -814,7 +817,9 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 	if len(gropName) == 0{
 		return false, errors.New("Grop name len is zero")
 	}
-
+	if pt.UserBasisPermi[creator] == nil{
+		return false,GropNotExitError
+	}
 	id := pt.UserBasisPermi[creator].GropId
 	if id == 0{
 		pt.UserBasisPermi[creator].GropId = 3
@@ -832,11 +837,12 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 	if pt.UserBasisPermi[creator].GropList != nil{
 
 
-	for _,gropAddr := range pt.UserBasisPermi[creator].GropList{
-		if gropName == pt.GropPermi[gropAddr].Name{
-			return false,GropNameAlreadyUseError
+		for _,gropAddr := range pt.UserBasisPermi[creator].GropList{
+			if gropName == pt.GropPermi[gropAddr].Name{
+				return false,GropNameAlreadyUseError
+			}
 		}
-	}
+
 	}
 
 	pt.GropPermi[key].Name = gropName
@@ -850,20 +856,25 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 
 }
 
-func (pt *PerminTable) delGropPerm(creator,gropAddr common.Address) (bool,error){
-	id := pt.UserBasisPermi[creator].GropId
-	if id <3{
+func (pt *PerminTable) delGropPerm(from,gropAddr common.Address) (bool,error){
+
+	if pt.UserBasisPermi[from] == nil{
 		return false,GropNotExitError
 	}
 
 
-	for i,g := range pt.UserBasisPermi[creator].GropList{
+	for i,g := range pt.UserBasisPermi[from].GropList{
 		if g == gropAddr{
-			pt.UserBasisPermi[creator].GropList = append(pt.UserBasisPermi[creator].GropList[:i],pt.UserBasisPermi[creator].GropList[i+1:]...)
+			pt.UserBasisPermi[from].GropList = append(pt.UserBasisPermi[from].GropList[:i],pt.UserBasisPermi[from].GropList[i+1:]...)
 			delete(pt.GropPermi,gropAddr)
 			return true,nil
 		}
 
+	}
+
+	if pt.GropPermi[gropAddr] != nil{
+		delete(pt.GropPermi,gropAddr)
+		return true,nil
 	}
 
 	return false,GropNotExitError
@@ -883,6 +894,11 @@ func (pt *PerminTable) setGropMemberPerm(gropAddr ,member common.Address,isAdd b
 	}
 
 	if isAdd{
+
+		if pt.UserBasisPermi[member] == nil{
+			return false,MemberNotSentTXPerm
+		}
+
 		for _,m :=range  pt.GropPermi[gropAddr].WhiteMembers.Member{
 			if m.MemberID == member{
 				return false, MemberAreadInGropError
@@ -920,6 +936,10 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 	if pt.GropPermi[gropAddr] == nil{
 		return false,GropNotExitError
 	}
+	if pt.UserBasisPermi[manager] == nil{
+		return false,MemberNotSentTXPerm
+	}
+
 	if pt.GropPermi[gropAddr].GroupKey != gropAddr{
 		return false,GropNotExitError
 	}
@@ -939,6 +959,7 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 
 		mst := &MemberInfo{manager,0}
 		pt.GropPermi[gropAddr].WhiteMembers.Manager = append(pt.GropPermi[gropAddr].WhiteMembers.Manager,mst)
+		
 
 	}else{
 
@@ -1187,7 +1208,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 					}
 				}
 			}
-		}else{
+		}
 
 
 			if pt.GropPermi[gropAddr] != nil{
@@ -1200,7 +1221,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 				}
 			}
 			}
-		}
+
 
 		break
 	case PerminType_CreateContract:
