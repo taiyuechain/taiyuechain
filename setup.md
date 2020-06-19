@@ -1,102 +1,36 @@
-## TaiyueChain
+## 编译
+linux下获取源码地址后进行如下操作，将在build目录下生成可执行程序。
 
-TaiyueChain is a truly fast, permissionless, secure and scalable public blockchain platform 
-which is supported by hybrid consensus technology called Minerva and a global developer community. 
- 
-TaiyueChain uses hybrid consensus combining PBFT and fPoW to solve the biggest problem confronting public blockchain: 
-the contradiction between decentralization and efficiency. 
-
-TaiyueChain uses PBFT as fast-chain to process transactions, and leave the oversight and election of PBFT to the hands of PoW nodes. 
-Besides, TaiyueChain integrates fruitchain technology into the traditional PoW protocol to become fPoW, 
-to make the chain even more decentralized and fair. 
+ + git clone
+ + cd taiyuechain
+ + make gtai
  
-TaiyueChain also creates a hybrid consensus incentive model and a stable gas fee mechanism to lower the cost for the developers 
-and operators of DApps, and provide better infrastructure for decentralized eco-system. 
+## 运行
+程序首次运行需要初始化创世区块。
 
-<a href="https://github.com/taiyuechain/taiyuechain/blob/master/COPYING"><img src="https://img.shields.io/badge/license-GPL%20%20taiyuechain-lightgrey.svg"></a>
+`gtai --datadir "./data" init genesis.json`
 
-## Building the source
+初始化创世块后，就可以启动泰岳节点了。
 
+`gtai` 或者 `gtai --config "./config.toml"`
 
-Building gtai requires both a Go (version 1.9 or later) and a C compiler.
-You can install them using your favourite package manager.
-Once the dependencies are installed, run
+> 注：确保初始化创世时的--datadir指定的目录与config.toml中指定的目录一致。
 
-    make gtai
-
-or, to build the full suite of utilities:
-
-    make all
-
-The execuable command gtai will be found in the `cmd` directory.
-
-## Running gtai
-
-Going through all the possible command line flags is out of scope here (please consult our
-[CLI Wiki page](https://github.com/taiyuechain/taiyuechain/wiki/Command-Line-Options)), 
-also you can quickly run your own gtai instance with a few common parameter combos.
-
-### Running on the Taiyuechain main network
+### genesis参数
+genesis.json文件指定了创世块的样式。创世中定义了chainid,密码库类型，链奖励参数，在有链奖励时，可以配置预分配地址与余额。
+`kindOfCrypto`: 表示加密库类型，2表示国密密码，0表示国际标准密码(S256曲线类型)，1表示国际标准密码(P256曲线类型)
+`baseReward`: 链是否支持币。
+`useGas`: 链支持币是gas有效，否则gas为0。
 
 ```
-$ gtai console
-```
-
-This command will:
-
- * Start gtai with network ID `19330` in full node mode(default, can be changed with the `--syncmode` flag after version 1.1).
- * Start up Gtai's built-in interactive console,
-   (via the trailing `console` subcommand) through which you can invoke all official [`web3` methods](https://github.com/taiyuechain/taiyuechain/wiki/RPC-API)
-   as well as Geth's own [management APIs](https://github.com/taiyuechain/taiyuechain/wiki/Management-API).
-   This too is optional and if you leave it out you can always attach to an already running Gtai instance
-   with `gtai attach`.
-
-
-### Running on the Taiyuechain test network
-
-To test your contracts, you can join the test network with your node.
-
-```
-$ gtai --testnet console
-```
-
-The `console` subcommand has the exact same meaning as above and they are equally useful on the
-testnet too. Please see above for their explanations if you've skipped here.
-
-Specifying the `--testnet` flag, however, will reconfigure your Geth instance a bit:
-
- * Test network uses different network ID `18928`
- * Instead of connecting the main TaiyueChain network, the client will connect to the test network, which uses testnet P2P bootnodes,  and genesis states.
-
-
-### Configuration
-
-As an alternative to passing the numerous flags to the `gtai` binary, you can also pass a configuration file via:
-
-```
-$ gtai --config /path/to/your_config.toml
-```
-
-To get an idea how the file should look like you can use the `dumpconfig` subcommand to export your existing configuration:
-
-```
-$ gtai --your-favourite-flags dumpconfig
-```
-
-### Operating a private network
-
-Maintaining your own private network is more involved as a lot of configurations taken for granted in
-the official networks need to be manually set up.
-
-#### Defining the private genesis state
-
-First, you'll need to create the genesis state of your networks, which all nodes need to be aware of
-and agree upon. We provide a single node JSON file at cmd/gtai/genesis_single.json:
-
-```json
 {
   "config": {
     "chainId": 1
+  },
+
+  "alloc":{
+    "0x9d3c4a33d3bcbd2245a1bebd8e989b696e561eae" : { "balance" : "90000000000000000000000"},
+    "0x35c9d83c3de709bbd2cb4a8a42b89e0317abe6d4" : { "balance" : "90000000000000000000000"}
   },
   
   "CertList" : [
@@ -133,12 +67,58 @@ and agree upon. We provide a single node JSON file at cmd/gtai/genesis_single.js
 }
 ```
 
-With the genesis state defined in the above JSON file, you'll need to initialize **every** Gtai node
-with it prior to starting it up to ensure all blockchain parameters are correctly set:
+### 参数配置
+config.toml文件配置了链的一些基础参数。
 
 ```
-$ gtai init path/to/genesis.json
-```
+[Etrue]
+NetworkId = 2812913
+SyncMode = "full"
+MinervaMode = 0
+CommitteeKey = "0x7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
+NodeCert = "0x3082028e3082023aa0030201020201ff300a06082a811ccf55018375303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d301e170d3230303630313034313133385a170d3233303830323133353831385a303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d3059301306072a8648ce3d020106082a811ccf5501822d03420004bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bda38201433082013f300e0603551d0f0101ff04040302020430260603551d25041f301d06082b0601050507030206082b0601050507030106022a030603810b01300f0603551d130101ff040530030101ff300d0603551d0e0406040401020304305f06082b0601050507010104533051302306082b060105050730018617687474703a2f2f6f6373702e6578616d706c652e636f6d302a06082b06010505073002861e687474703a2f2f6372742e6578616d706c652e636f6d2f6361312e637274301a0603551d1104133011820f666f6f2e6578616d706c652e636f6d300f0603551d2004083006300406022a0330570603551d1f0450304e3025a023a021861f687474703a2f2f63726c312e6578616d706c652e636f6d2f6361312e63726c3025a023a021861f687474703a2f2f63726c322e6578616d706c652e636f6d2f6361312e63726c300a06082a811ccf550183750342008851ca997c3b35b6de11fa5e43d04dfb76cd4177c4517e60f72db9373fec1a3731c46b70b562240a1cbd98e22dec6e1fd857e6b88fee893897c39e61e9bb502c01"
+Host = "127.0.0.1"
+Port = 8797
+StandbyPort = 30311
+CommitteeBase = "0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"
+GasPrice = 10000
+EnablePreimageRecording = false
+NodeType = false
 
-more infomation:
-[setup.md](https://github.com/taiyuechain/taiyuechain/setup.md "setup.md")
+[Etrue.TxPool]
+NoLocals = false
+Journal = "transactions.rlp"
+Rejournal = 3600000000000
+PriceLimit = 1000
+PriceBump = 10
+AccountSlots = 80
+GlobalSlots = 100
+AccountQueue = 100
+GlobalQueue = 100
+Lifetime = 10800000000000
+
+[Etrue.GPO]
+Blocks = 20
+Percentile = 60
+
+[Node]
+DataDir = "data"
+IPCPath = "geth.ipc"
+HTTPHost = "127.0.0.1"
+HTTPPort = 8545
+HTTPVirtualHosts = ["localhost"]
+HTTPModules = ["net", "web3", "yue", "shh", "etrue"]
+WSPort = 8546
+WSModules = ["net", "web3", "yue", "shh"]
+
+[Node.P2P]
+MaxPeers = 25
+NoDiscovery = false
+StaticNodes = []
+TrustedNodes = []
+ListenAddr = ":30303"
+EnableMsgEvents = false
+P2PNodeCert = "0x3082026630820212a0030201020201ff300a06082a811ccf55018375303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d301e170d3230303630313034313534345a170d3233303830323134303232345a303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d3059301306072a8648ce3d020106082a811ccf5501822d0342000441dbdfd708e660fc955820d257b8783b51c5a75d6f0988257e204147759d9d3dba9eebdd7970d2196b64197f3e1de6bc6714176aa709cd4a3bb6b0ff90f93667a382011b30820117300e0603551d0f0101ff040403020204300f0603551d130101ff040530030101ff300d0603551d0e0406040401020304305f06082b0601050507010104533051302306082b060105050730018617687474703a2f2f6f6373702e6578616d706c652e636f6d302a06082b06010505073002861e687474703a2f2f6372742e6578616d706c652e636f6d2f6361312e637274301a0603551d1104133011820f666f6f2e6578616d706c652e636f6d300f0603551d2004083006300406022a0330570603551d1f0450304e3025a023a021861f687474703a2f2f63726c312e6578616d706c652e636f6d2f6361312e63726c3025a023a021861f687474703a2f2f63726c322e6578616d706c652e636f6d2f6361312e63726c300a06082a811ccf550183750342003cf8cb80a445caddc039e34e7b942c8688862f607edfcf426c94764364ac995158f51be0c4d00fb9684a85648273108d5cd28483cff1206dd6d8b27ee0041f5401"
+P2PKey = "0xd5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
+
+```
