@@ -52,5 +52,5 @@ func TestCreateGroupPermission(t *testing.T) {
 
 func TestGetAddress(t *testing.T) {
 	fmt.Println("saddr1", crypto.AddressToHex(saddr1), "saddr2", crypto.AddressToHex(saddr2), "\n saddr3", crypto.AddressToHex(saddr3), "saddr4 ", crypto.AddressToHex(saddr4))
-	fmt.Println("paddr1", crypto.AddressToHex(paddr4))
+	fmt.Println("paddr3", crypto.AddressToHex(paddr3),"paddr4", crypto.AddressToHex(paddr4))
 }

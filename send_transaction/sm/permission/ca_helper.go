@@ -55,6 +55,13 @@ var (
 	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
 	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
 
+	pkey3, _ = crypto.HexToECDSA("86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc")
+	paddr3   = crypto.PubkeyToAddress(pkey3.PublicKey)
+
+	p2p3Name    = "p2p3cert"
+	p2p3path    = "../testcert/" + p2p3Name + ".pem"
+	p2p3Byte, _ = crypto.ReadPemFileByPath(p2p3path)
+
 	pkey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
 	paddr4   = crypto.PubkeyToAddress(pkey4.PublicKey)
 
