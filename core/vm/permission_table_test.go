@@ -106,7 +106,7 @@ func TestPerminTable_DeletePermission(t *testing.T) {
 	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_DelGropManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGropManagerPerm")
 
-	checkDelGropPermission(member2,gropAddr,t,true)
+	checkDelGropPermission(member2,gropAddr,t,false)
 
 	res, err = ptable.GrantPermission(member1, root1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGrop")
