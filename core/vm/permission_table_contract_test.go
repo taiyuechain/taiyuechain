@@ -24,7 +24,7 @@ import (
 )
 
 func init() {
-	SetConfig(true, true)
+	/*SetConfig(true, true)
 
 	rootList = append(rootList, common.HexToAddress("0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"))
 	rootList = append(rootList, common.HexToAddress("0xa9A2CbA5d5d16DE370375B42662F3272279B2b89"))
@@ -37,7 +37,7 @@ func init() {
 	root1 = rootList[1]
 	member1 = common.HexToAddress("0xf22142DbF24C324Eb021332c2D673d3B819B955a")
 	member2 = common.HexToAddress("0x1b3d007C0D5318D241F26374F379E882cDCbc371")
-	member3 = common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")
+	member3 = common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")*/
 }
 
 func TestContractManagerPermissionTable(t *testing.T) {
