@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"fmt"
 )
 
 ////cache
@@ -105,11 +106,13 @@ func newImpawnCache() *PerminssionCache {
 type PerminTable struct {
 	WhiteList  []common.Address
 	BlackList  []common.Address
+	RootList 	[]common.Address
 	ContractPermi map[common.Address]*ContractListTable  //contract Addr=> Memberlist
 	GropPermi	map[common.Address]*GropListTable //group addr => GropListTable
 	SendTranPermi map[common.Address]*MemberListTable //Group Addr=> MemberList
 	CrtContracetPermi map[common.Address]*MemberListTable //Group Addr => MemberList
 	UserBasisPermi  map[common.Address]*BasisPermin   // persion addr => basisperim
+
 }
 
 type MemberListTable struct {
@@ -163,6 +166,7 @@ func NewPerminTable() *PerminTable {
 	return &PerminTable{
 		WhiteList:         []common.Address{},
 		BlackList:         []common.Address{},
+		RootList:			[]common.Address{},
 		ContractPermi:     make(map[common.Address]*ContractListTable),
 		GropPermi:         make(map[common.Address]*GropListTable),
 		SendTranPermi:     make(map[common.Address]*MemberListTable),
@@ -179,6 +183,7 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 	tempPT := &PerminTable{
 		WhiteList:         make([]common.Address, len(pt.WhiteList)),
 		BlackList:         make([]common.Address, len(pt.BlackList)),
+		RootList:			make([]common.Address, len(pt.RootList)),
 		ContractPermi:     make(map[common.Address]*ContractListTable),
 		GropPermi:         make(map[common.Address]*GropListTable),
 		SendTranPermi:     make(map[common.Address]*MemberListTable),
@@ -187,6 +192,7 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 	}
 	copy(tempPT.WhiteList, pt.WhiteList)
 	copy(tempPT.BlackList, pt.BlackList)
+	copy(tempPT.RootList, pt.RootList)
 
 	for k, v := range pt.ContractPermi {
 		wm := &MemberTable{}
@@ -336,20 +342,25 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 
 	for _, root := range rootAddr {
 		//send tx
-		key := crypto.CreateGroupkey(root, 1)
 
-		stp := &MemberListTable{Id: 1, GroupKey: key, Creator: root, IsWhitListWork: false, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
+		key := crypto.CreateGroupkey(root, 1)
+		if pt.UserBasisPermi[root] != nil{
+			continue
+		}
+		pt.RootList = append(pt.RootList,root)
+
+		stp := &MemberListTable{Id: 1, GroupKey: key, Creator: root, IsWhitListWork: whitelistIsWork_SendTx, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
 		pt.SendTranPermi[key] = stp
 
 		//send contract
 		key2 := crypto.CreateGroupkey(root, 2)
-		stp2 := &MemberListTable{Id: 2, GroupKey: key2, Creator: root, IsWhitListWork: false, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
+		stp2 := &MemberListTable{Id: 2, GroupKey: key2, Creator: root, IsWhitListWork: whitelistIsWork_CrtContract, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
 		pt.CrtContracetPermi[key2] = stp2
 
 		groplist :=[]common.Address{}
 		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
 
-	}
+		}
 
 }
 
@@ -1354,12 +1365,15 @@ func (pt *PerminTable)checkCrtContract(from,creator common.Address) bool{
 	return false
 }
 
+
 func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 
 	key := crypto.CreateGroupkey(creator,1)
 
 	if pt.SendTranPermi[key] == nil{
-		return false
+
+		//need check grop
+		return pt.findGroupSendTxPerm(from)
 	}
 
 	if from == pt.SendTranPermi[key].Creator  {
@@ -1395,7 +1409,7 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 		}
 
 
-		return true
+		//return false
 	}else{
 		if pt.SendTranPermi[key].WhiteMembers.Manager != nil{
 
@@ -1416,6 +1430,29 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 					return pt.findMember(m.MemberID,from,true)
 				}else{
 					if m.MemberID == from{return true}
+				}
+			}
+		}
+	}
+	return false
+}
+
+/*func (pt *PerminTable)findAllSendTx(member common.Address) (res bool) {
+	key := crypto.CreateGroupkey(creator,1)
+
+	if pt.SendTranPermi[key] == nil{
+
+	}
+}*/
+
+
+func (pt *PerminTable)findGroupSendTxPerm(member common.Address) (res bool)   {
+	if len(pt.UserBasisPermi[member].GropList) > 0{
+		for i :=0;i<len(pt.UserBasisPermi[member].GropList);i++{
+			for j:=0;j<len(pt.RootList);j++{
+				fmt.Println(pt.RootList[j])
+				if pt.checkSendTx(pt.UserBasisPermi[member].GropList[i],pt.RootList[j]){
+					return true;
 				}
 			}
 		}
