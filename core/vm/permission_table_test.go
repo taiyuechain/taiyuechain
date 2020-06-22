@@ -52,7 +52,10 @@ func init() {
 //
 func TestSendTxManagerPermissionTable(t *testing.T) {
 	// check no permission account
-	checkSendTxPermission(common.BytesToAddress([]byte("1234")),t,false)
+	errAddr := common.BytesToAddress([]byte("1234"))
+	checkSendTxPermission(errAddr,t,false)
+	checkSendTxManagerPermission(errAddr,t,false)
+	checkDelSendTxManagerPermission(errAddr,t,false)
 
 	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	printResError(res,err,t,"Grent err")
@@ -103,7 +106,9 @@ func TestGroupPermission(t *testing.T) {
 	//ModifyPerminType_AddGropManagerPerm
 	res, err =ptable.GrantPermission(common.Address{},member1,member2,gropAddr,ModifyPerminType_AddGropManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropManagerPerm")
+	checkAddGroupManagerPermission(member2,gropAddr,t,true)
 	checkDelGropPermission(member2,gropAddr,t,true)
+	checkAddGroupMemberPermission(member2,gropAddr,t,true)
 
 	res, err =ptable.GrantPermission(common.Address{},member2,member3,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropMemberPerm")
@@ -113,6 +118,8 @@ func TestGroupPermission(t *testing.T) {
 	res, err =ptable.GrantPermission(member1,member1,member2,gropAddr,ModifyPerminType_DelGropManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGropManagerPerm")
 	checkDelGropPermission(member2,gropAddr,t,false)
+	checkAddGroupManagerPermission(member2,gropAddr,t,false)
+	checkAddGroupMemberPermission(member2,gropAddr,t,false)
 
 	res, err = ptable.GrantPermission(member1, member1, member2, gropAddr, ModifyPerminType_DelGrop, "a", true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelGrop")
@@ -133,6 +140,10 @@ func TestTxGroupMemberPermissionTable(t *testing.T) {
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxManagerPerm")
 	checkSendTxManagerPermission(member1,t,true)
 
+	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_AddSendTxManagerPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	checkSendTxManagerPermission(member2,t,true)
+
 	res, err =ptable.GrantPermission(root1,member1,member2,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxPerm")
 	checkSendTxPermission(member2,t,true)
@@ -140,7 +151,20 @@ func TestTxGroupMemberPermissionTable(t *testing.T) {
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxManagerPerm")
 	checkDelSendTxManagerPermission(member1,t,false)
+	checkSendTxPermission(member1,t,true)
 	checkSendTxPermission(member2,t,true)
+	checkSendTxManagerPermission(member2,t,true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxPerm")
+	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_DelSendTxPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxPerm")
+	checkSendTxPermission(member1,t,false)
+	checkSendTxPermission(member2,t,true)
+
+	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_DelSendTxManagerPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxManagerPerm")
+	checkSendTxPermission(member2,t,false)
 }
 
 func TestTxGroupNormalPermissionTable(t *testing.T) {
