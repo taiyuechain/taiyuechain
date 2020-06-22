@@ -45,6 +45,16 @@ participating.
 
 It expects the genesis file as argument.`,
 	}
+	enodeCommand = cli.Command{
+		Action:    utils.MigrateFlags(localEnode),
+		Name:      "enode",
+		Usage:     "make a enode string from nodekey",
+		ArgsUsage: "<nodekey> <type>",
+		Flags: []cli.Flag{
+		},
+		Category: "BLOCKCHAIN COMMANDS",
+		Description: `make a enode string from nodekey.`,
+	}
 	importCommand = cli.Command{
 		Action:    utils.MigrateFlags(importChain),
 		Name:      "import",

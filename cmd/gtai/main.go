@@ -139,6 +139,7 @@ func init() {
 		// See chaincmd.go:
 		initCommand,
 		importCommand,
+		enodeCommand,
 		exportCommand,
 		importPreimagesCommand,
 		exportPreimagesCommand,
