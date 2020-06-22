@@ -680,6 +680,3 @@ func (ec *Client) RemoveBlankList(ctx context.Context, tx *types.Transaction, to
 	}
 	return tx, err
 }
-
-//func (ec *Client) GetCertList() [][]byte {
-//}

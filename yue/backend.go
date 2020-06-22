@@ -321,11 +321,6 @@ func (s *Taiyuechain) APIs() []rpc.API {
 				Version:   "1.0",
 				Service:   filters.NewPublicFilterAPI(s.APIBackend, false),
 				Public:    true,
-			}, {
-				Namespace: name,
-				Version:   "1.0",
-				Service:   taiapi.NewPublicCertAPI(s.APIBackend),
-				Public:    true,
 			},
 		}...)
 	}
@@ -348,6 +343,11 @@ func (s *Taiyuechain) APIs() []rpc.API {
 			Namespace: "net",
 			Version:   "1.0",
 			Service:   s.netRPCService,
+			Public:    true,
+		}, {
+			Namespace: "cpm",
+			Version:   "1.0",
+			Service:   taiapi.NewPublicCertAPI(s.APIBackend),
 			Public:    true,
 		},
 	}...)

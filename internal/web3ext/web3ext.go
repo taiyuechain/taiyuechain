@@ -29,7 +29,7 @@ var Modules = map[string]string{
 	"shh":        Shh_JS,
 	"swarmfs":    SWARMFS_JS,
 	"txpool":     TxPool_JS,
-	"cert":       CERT_JS,
+	"cpm": CPM_JS,
 }
 
 const Chequebook_JS = `
@@ -603,7 +603,7 @@ web3._extend({
 });
 `
 
-const CERT_JS = `
+const CPM_JS = `
 web3._extend({
 	property: 'cert',
 	methods: [

@@ -1684,7 +1684,7 @@ func NewPublicCertAPI(b Backend) *PublicCertAPI {
 	return &PublicCertAPI{b}
 }
 
-// GetAllStakingAccount returns the pendingFruits contained within the snail pool.
+// GetCACertList returns the all cert list.
 func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
@@ -1692,6 +1692,108 @@ func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumb
 	}
 	caCertList := vm.NewCACertList()
 	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// GetCACertList returns the all cert list.
+func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// GetCACertList returns the all cert list.
+func (s *PublicCertAPI) ShowWhiteList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// GetCACertList returns the all cert list.
+func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// ShowGroup returns the all cert list.
+func (s *PublicCertAPI) ShowGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// ShowMyGroup returns the all cert list.
+func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return caCertList.GetCACertList(), nil
+}
+
+// ListBasePermission returns the all cert list.
+func (s *PublicCertAPI) ListBasePermission(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	caCertList := vm.NewCACertList()
+	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
