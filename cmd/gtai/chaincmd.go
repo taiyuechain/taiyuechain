@@ -4,16 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"io/ioutil"
 	"runtime"
 	"strconv"
 	"sync/atomic"
 	"time"
+	"errors"
 
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/console"
 	"github.com/taiyuechain/taiyuechain/core"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -159,8 +162,9 @@ Use "taiyuechain dump 0" to dump the genesis block.`,
 func initGenesis(ctx *cli.Context) error {
 	// Make sure we have a valid genesis JSON
 	genesisPath := ctx.Args().First()
-	if len(genesisPath) == 0 {
-		utils.Fatalf("Must supply path to genesis JSON file")
+	certPath := ctx.Args().Get(1)
+	if len(genesisPath) == 0 || len(certPath) == 0 {
+		utils.Fatalf("Must supply path to genesis JSON file or cert path")
 	}
 	file, err := os.Open(genesisPath)
 	if err != nil {
@@ -170,6 +174,9 @@ func initGenesis(ctx *cli.Context) error {
 
 	genesis := new(core.Genesis)
 	if err := json.NewDecoder(file).Decode(genesis); err != nil {
+		utils.Fatalf("invalid genesis file: %v", err)
+	}
+	if err := setCertForGenesis(certPath,genesis); err != nil {
 		utils.Fatalf("invalid genesis file: %v", err)
 	}
 	params.ParseExtraDataFromGenesis(genesis.ExtraData)
@@ -188,7 +195,37 @@ func initGenesis(ctx *cli.Context) error {
 	}
 	return nil
 }
-
+func setCertForGenesis(certPath string,genesis *core.Genesis) error {
+	names,err := getAllFile(certPath)
+	if err != nil || len(names) == 0 {
+		return errors.New("node ca files or err:" + err.Error())
+	}
+	certs :=[][]byte{}
+	for _,v :=range names {
+		if data, err := crypto.ReadPemFileByPath(v); err != nil {
+			certs = append(certs,data)
+		}
+	}
+	if len(certs) == 0 {
+		return errors.New("wrong CA files")
+	}
+	genesis.CertList = certs
+	return nil
+}
+func getAllFile(pathname string) ([]string,error) {
+	s := []string{}
+	rd, err := ioutil.ReadDir(pathname)
+	if err != nil {
+		return s, err
+	}
+	for _, fi := range rd {
+		if !fi.IsDir() {
+			fullName := pathname + "/" + fi.Name()
+			s = append(s, fullName)
+		}
+	}
+	return s, nil
+}
 func importChain(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {
 		utils.Fatalf("This command requires an argument.")
@@ -291,7 +328,6 @@ func importChain(ctx *cli.Context) error {
 
 	return nil
 }
-
 func exportChain(ctx *cli.Context) error {
 	if len(ctx.Args()) < 2 {
 		utils.Fatalf("This command requires an argument.")
@@ -347,7 +383,6 @@ func exportChain(ctx *cli.Context) error {
 	fmt.Printf("Export done in %v\n", time.Since(start))
 	return nil
 }
-
 // importPreimages imports preimage data from the specified file.
 func importPreimages(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {

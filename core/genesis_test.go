@@ -307,8 +307,12 @@ func TestGenesisFromJson(t *testing.T) {
 	}
 	fmt.Println("finish")
 }
-
+func updateSlice(s *[]int,a int) {
+	*s = append(*s,a)
+}
 func Test07(t *testing.T) {
+	aa := []int{1,2}
+	updateSlice(&aa,3)
 	m3 := map[string]*big.Int{
 		"a": big.NewInt(10),
 		"b": big.NewInt(20),
