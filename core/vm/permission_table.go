@@ -63,7 +63,7 @@ const (
 	ModifyPerminType_DelGropManagerPerm
 	ModifyPerminType_AddGropMemberPerm
 	ModifyPerminType_DelGropMemberPerm
-	ModifyPerminType_CrtContractPerm
+	ModifyPerminType_CrtContractPerm //create permission for contract
 	ModifyPerminType_AddContractMemberPerm
 	ModifyPerminType_DelContractMemberPerm
 	ModifyPerminType_AddContractManagerPerm
@@ -73,7 +73,7 @@ const (
 	ModifyPerminType_AddBlockListPerm
 	ModifyPerminType_DelBlockListPerm
 	PerminType_SendTx
-	PerminType_CreateContract
+	PerminType_CreateContract // this is memeber owner create contract perminssion
 	ModifyPerminType_DelGrop
 	ModifyPerminType_CrtGrop
 	PerminType_AccessContract
@@ -837,7 +837,7 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].WhiteMembers.Manager = append(pt.CrtContracetPermi[key].WhiteMembers.Manager,mber )
 
-
+			pt.UserBasisPermi[member].CrtContract = true
 
 	}else{
 
@@ -1369,6 +1369,19 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		if pt.ContractPermi[contractAddr] == nil{
 			return false
 		}
+
+		if pt.UserBasisPermi[from] == nil{
+			return false
+		}
+
+		if pt.UserBasisPermi[from].SendTran != true {
+			return false
+		}else{
+			if !pt.checkSendTx(from,creator){
+				return false
+			}
+		}
+		
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
 				if c.MemberID == from{return false}
