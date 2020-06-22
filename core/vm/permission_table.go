@@ -1628,6 +1628,9 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 
 
 func (pt *PerminTable)findGroupSendTxPerm(member common.Address) (res bool)   {
+	if pt.UserBasisPermi[member] == nil{
+		return false
+	}
 	if len(pt.UserBasisPermi[member].GropList) > 0{
 		for i :=0;i<len(pt.UserBasisPermi[member].GropList);i++{
 			for j:=0;j<len(pt.RootList);j++{
