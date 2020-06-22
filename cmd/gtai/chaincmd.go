@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync/atomic"
+	"encoding/hex"
 	"time"
 	"errors"
 
@@ -31,7 +32,7 @@ var (
 		Action:    utils.MigrateFlags(initGenesis),
 		Name:      "init",
 		Usage:     "Bootstrap and initialize a new genesis block",
-		ArgsUsage: "<genesisPath>",
+		ArgsUsage: "<genesisPath> <certPath>",
 		Flags: []cli.Flag{
 			utils.DataDirFlag,
 			//utils.LightModeFlag,
@@ -507,7 +508,36 @@ func dump(ctx *cli.Context) error {
 	// chainDb.Close()
 	// return nil
 }
-
+func localEnode(ctx *cli.Context) error {
+	privStr := ctx.Args().First()
+	ct := ctx.Args().Get(1)
+	if len(privStr) == 0 {
+		utils.Fatalf("Must supply nodekey")
+	}
+	ct0 := 2
+	if len(ct) > 0 {
+		if ct1,err := strconv.Atoi(ct); err != nil {
+			utils.Fatalf("strconv.Atoi error:%v\n",err)
+		} else {
+			if ct1>=0 && ct1<=2 {
+				ct0 = ct1
+			}
+		}
+	}
+	params.KindOfCrypto = byte(ct0)
+	
+	key, err := hex.DecodeString(privStr)
+	if err != nil {
+		utils.Fatalf("DecodeString error: %v\n", err)
+	}
+	if priv, err := crypto.ToECDSA(key); err != nil {
+		utils.Fatalf("ToECDSA error: %v\n", err)
+	} else {
+		str := fmt.Sprintf("enode://%x@127.0.0.1:30303",crypto.FromECDSAPub(&priv.PublicKey)[1:])
+		fmt.Println(str)
+	}
+	return nil
+}
 // hashish returns true for strings that look like hashes.
 func hashish(x string) bool {
 	_, err := strconv.Atoi(x)
