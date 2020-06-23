@@ -34,6 +34,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/p2p/simulations/pipes"
 	"github.com/taiyuechain/taiyuechain/rlp"
 )
@@ -167,11 +168,11 @@ func TestProtocolHandshake(t *testing.T) {
 		CryptoSM2 = uint8(2)
 	)
 
-	pbft1Byte, err := crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
+	pbft1Byte, err := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
 
-	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _ := crypto.ReadPemFileByPath(p2p2path)
+	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)

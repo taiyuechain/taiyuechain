@@ -22,6 +22,7 @@ import (
 	"crypto/cipher"
 	"encoding/hex"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"reflect"
 
@@ -330,7 +331,7 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
-		pub, err := crypto.FromCertBytesToPubKey(buf)
+		pub, err := taicert.FromCertBytesToPubKey(buf)
 		if err != nil {
 			return s, err
 		}
@@ -447,7 +448,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
-		pub, err := crypto.FromCertBytesToPubKey(buf)
+		pub, err := taicert.FromCertBytesToPubKey(buf)
 		if err != nil {
 			return s, err
 		}

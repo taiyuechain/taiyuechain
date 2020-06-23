@@ -5,7 +5,8 @@ import (
 	"github.com/pkg/errors"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 )
 
 type ReIdentity struct {
@@ -23,7 +24,7 @@ func (id *identity) ExpiresAt() time.Time {
 
 func (id *identity) VerifyByte(cert []byte) error {
 
-	needVerfyCert, err := crypto.GetCertFromByte(cert)
+	needVerfyCert, err := taicert.GetCertFromByte(cert)
 	if err != nil {
 		return err
 	}
@@ -34,11 +35,11 @@ func (id *identity) VerifyByte(cert []byte) error {
 		return errors.New("x509: certificate has expired or is not yet valid")
 	}
 
-	if !crypto.IsCorrectSY(needVerfyCert.PublicKey) {
+	if !taicert.IsCorrectSY(needVerfyCert.PublicKey) {
 		return errors.New("x509: publick key crypto Algorithm not right")
 	}
 
-	err = crypto.CheckSignatureFrom(needVerfyCert, id.cert)
+	err = taicert.CheckSignatureFrom(needVerfyCert, id.cert)
 	if err != nil {
 		return err
 	}
@@ -48,17 +49,17 @@ func (id *identity) VerifyByte(cert []byte) error {
 
 func (id *identity) isEqulIdentity(cert []byte) error {
 
-	needVerfyCert, err := crypto.GetCertFromByte(cert)
+	needVerfyCert, err := taicert.GetCertFromByte(cert)
 	if err != nil {
 		return err
 	}
 
-	err = crypto.CheckSignatrue(needVerfyCert)
+	err = taicert.CheckSignature(needVerfyCert)
 	if err != nil {
 		return err
 	}
 
-	err = crypto.IsEqulCert(id.cert, cert)
+	err = taicert.IsEqulCert(id.cert, cert)
 	if err != nil {
 		return err
 	}
@@ -70,12 +71,12 @@ func NewIdentity(cert *x509.Certificate) (Identity, error) {
 }
 
 func GetIdentityFromByte(idBytes []byte) (Identity, error) {
-	cert, err := crypto.GetCertFromByte(idBytes)
+	cert, err := taicert.GetCertFromByte(idBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	err = crypto.CheckSignatrue(cert)
+	err = taicert.CheckSignature(cert)
 	if err != nil {
 		return nil, err
 	}

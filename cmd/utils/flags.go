@@ -31,7 +31,7 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
-
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -557,7 +557,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCertFile) <= 0 {
 		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCertFile is nil")
 	} 
-	if data, err := crypto.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
+	if data, err := taicert.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
 		Fatalf("setNodeKey failed,the wrong P2PNodeCertFile")
 	} else {
 		cfg.P2PNodeCert = data
@@ -580,7 +580,7 @@ func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
 	if len(cfg.CommitteeKey) > 0 {
 		if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
 			Fatalf("init CommitteeKey failed,err:", err)
-		} 
+		}
 	}
 }
 

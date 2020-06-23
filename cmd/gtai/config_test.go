@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/cert"
 )
 
 func TestConfigTomlFile(t *testing.T) {
@@ -16,13 +16,13 @@ func TestConfigTomlFile(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	if data, err := crypto.ReadPemFileByPath(cfg.GTai.NodeCertFile); err != nil {
+	if data, err := cert.ReadPemFileByPath(cfg.GTai.NodeCertFile); err != nil {
 		t.Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
 	} else {
 		cfg.GTai.NodeCert = data
 	}
 
-	pubk, err := crypto.GetPubByteFromCert(cfg.GTai.NodeCert)
+	pubk, err := cert.GetPubByteFromCert(cfg.GTai.NodeCert)
 	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")

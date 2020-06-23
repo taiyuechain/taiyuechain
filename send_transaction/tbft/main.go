@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/rpc"
 	"math/big"
 	"os"
@@ -89,7 +89,7 @@ func main() {
 		fmt.Println(getTime(), "from err default 1")
 	}
 
-	p2p1Byte, err := crypto.ReadPemFileByPath(os.Args[7])
+	p2p1Byte, err := taicert.ReadPemFileByPath(os.Args[7])
 	if err != nil {
 		fmt.Println(getTime(), " cert err ", err)
 	}

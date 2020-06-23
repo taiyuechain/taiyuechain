@@ -21,6 +21,7 @@ import (
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/log"
 
 	"github.com/taiyuechain/taiyuechain/cim"
@@ -137,7 +138,7 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 		i := vm.NewPerminTable()
 		var addrs []common.Address
 		for _, cert := range certList {
-			pub, err := crypto.FromCertBytesToPubKey(cert)
+			pub, err := taicert.FromCertBytesToPubKey(cert)
 			if err != nil {
 				log.Error("makeCAContractInitState permission error")
 				return false

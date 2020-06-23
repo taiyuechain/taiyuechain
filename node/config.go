@@ -18,6 +18,7 @@ package node
 
 import (
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 
 	"fmt"
 	"io/ioutil"
@@ -490,7 +491,7 @@ func (c *Config) BftCommitteeCert() []byte {
 		return nil
 	}
 	var err error
-	cert, err = crypto.ReadPemFileByPath(certfile)
+	cert, err = taicert.ReadPemFileByPath(certfile)
 	if err != nil {
 		log.Error("ReadPemFileByPath", "err", err)
 		return nil
@@ -512,7 +513,7 @@ func (c *Config) NodeKeyCert() []byte {
 		return nil
 	}
 	var err error
-	cert, err = crypto.ReadPemFileByPath(certfile)
+	cert, err = taicert.ReadPemFileByPath(certfile)
 	if err != nil {
 		log.Error("ReadPemFileByPath", "err", err)
 		return nil

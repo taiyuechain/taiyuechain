@@ -33,6 +33,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yuedb"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 )
 
 func init() {
@@ -68,11 +69,11 @@ func ExampleGenerateChain() {
 		signer  = types.NewSigner(gspec.Config.ChainID)
 	)
 
-	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
 
-	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _ := crypto.ReadPemFileByPath(p2p2path)
+	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)

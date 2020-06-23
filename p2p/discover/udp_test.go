@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert  "github.com/taiyuechain/taiyuechain/cert"
 	"io"
 	"math/rand"
 	"net"
@@ -401,8 +402,8 @@ func TestUDP_successfulPing(t *testing.T) {
 	p2p1Name := "p2p1cert"
 	p2p1path := "../../cim/testdata/testcert/" + p2p1Name + ".pem"
 
-	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
-	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
 
 	CryptoSM2 := uint8(2)
 	cimList := cim.NewCIMList(CryptoSM2)

@@ -22,6 +22,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yuedb"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 )
 
 var (
@@ -53,12 +54,12 @@ var (
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
 
-	p2p1Byte, _  = crypto.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _  = crypto.ReadPemFileByPath(p2p2path)
-	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
-	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
-	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
+	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _  = taicert.ReadPemFileByPath(p2p2path)
+	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ = taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ = taicert.ReadPemFileByPath(pbft3path)
+	pbft4Byte, _ = taicert.ReadPemFileByPath(pbft4path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {

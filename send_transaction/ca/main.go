@@ -14,6 +14,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/yueclient"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/rpc"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"math/big"
 	"os"
 	"strconv"
@@ -161,7 +162,7 @@ func SendP256Transtion(ip string) {
 
 	// from
 	path := "../../cim/testdata/testcert/testOkp2p.pem"
-	fromcert, err := crypto.ReadPemFileByPath(path)
+	fromcert, err := taicert.ReadPemFileByPath(path)
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {

@@ -13,7 +13,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/console"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
-	"github.com/taiyuechain/taiyuechain/crypto"
+	//"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/yueclient"
 	"gopkg.in/urfave/cli.v1"
 	"io/ioutil"
@@ -279,11 +280,11 @@ func getPubFromFile(certfile string) ([]byte, *ecdsa.PublicKey) {
 	if !common.FileExist(certfile) {
 		printError("cert file not exist", certfile)
 	}
-	certByte, err := crypto.ReadPemFileByPath(certfile)
+	certByte, err := taicert.ReadPemFileByPath(certfile)
 	if err != nil {
 		printError("can't read cert from file ", certfile)
 	}
-	pub, err := crypto.FromCertBytesToPubKey(certByte)
+	pub, err := taicert.FromCertBytesToPubKey(certByte)
 	if err != nil {
 		printError("cert convert to pub, no correct cert file", certfile)
 	}

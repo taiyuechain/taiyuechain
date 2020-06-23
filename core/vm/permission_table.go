@@ -1381,7 +1381,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 				return false
 			}
 		}
-		
+
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
 				if c.MemberID == from{return false}

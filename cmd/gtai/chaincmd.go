@@ -18,6 +18,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/console"
 	"github.com/taiyuechain/taiyuechain/core"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -220,7 +221,7 @@ func setCertForGenesis(certPath string,genesis *core.Genesis) error {
 	}
 	certs :=[][]byte{}
 	for _,v :=range names {
-		if data, err := crypto.ReadPemFileByPath(v); err == nil {
+		if data, err := taicert.ReadPemFileByPath(v); err == nil {
 			certs = append(certs,data)
 		}
 	}

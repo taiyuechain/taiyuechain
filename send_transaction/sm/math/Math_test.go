@@ -11,6 +11,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 	"os"
@@ -39,8 +40,8 @@ var (
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
 
-	p2p1Byte, _  = crypto.ReadPemFileByPath(p2p1path)
-	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
+	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
+	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {

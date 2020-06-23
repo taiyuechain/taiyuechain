@@ -27,6 +27,7 @@ import (
 
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/cert"
 
 	//"crypto/ecdsa"
 	"encoding/hex"
@@ -653,7 +654,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 	for i, caCert := range caCertMap.CACert {
 		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", caCert)
 
-		pub, err := crypto.GetPubByteFromCert(caCert)
+		pub, err := cert.GetPubByteFromCert(caCert)
 		if err != nil {
 			log.Warn("assignmentCommitteeMember", "GetPubByteFromCert err", err)
 			continue

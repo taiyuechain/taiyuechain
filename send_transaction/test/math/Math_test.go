@@ -3,6 +3,7 @@ package math
 import (
 	"encoding/hex"
 	"fmt"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind"
 	"github.com/taiyuechain/taiyuechain/accounts/abi/bind/backends"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -39,8 +40,8 @@ var (
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
 
-	p2p1Byte, _  = crypto.ReadPemFileByPath(p2p1path)
-	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
+	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
+	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {

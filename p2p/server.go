@@ -30,6 +30,7 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/rlp"
@@ -502,7 +503,7 @@ func (srv *Server) setupLocalNode() error {
 		list, cert := p.CimList()
 		if list != nil {
 			srv.localnode.CM = &enode.CertManager{List: list, Cert: cert}
-			pub, err := crypto.FromCertBytesToPubKey(cert)
+			pub, err := taicert.FromCertBytesToPubKey(cert)
 			if err != nil {
 				return err
 			}

@@ -22,12 +22,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 )
 
 var (
@@ -283,7 +285,7 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, sig, cert []byte) (com
 		return common.Address{}, errors.New("can't verify signature")
 	}
 
-	pub, err := crypto.GetPubByteFromCert(cert)
+	pub, err := taicert.GetPubByteFromCert(cert)
 	if err != nil {
 		return common.Address{}, errors.New("cert can't conversion to pub")
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/params"
 	"github.com/taiyuechain/taiyuechain/yuedb"
@@ -50,24 +51,24 @@ var (
 	saddr3 = crypto.PubkeyToAddress(prikey3.PublicKey)
 	saddr4 = crypto.PubkeyToAddress(prikey4.PublicKey)
 
-	pbft1Byte, _ = crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ = crypto.ReadPemFileByPath(pbft2path)
-	pbft3Byte, _ = crypto.ReadPemFileByPath(pbft3path)
-	pbft4Byte, _ = crypto.ReadPemFileByPath(pbft4path)
+	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ = taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ = taicert.ReadPemFileByPath(pbft3path)
+	pbft4Byte, _ = taicert.ReadPemFileByPath(pbft4path)
 
 	pkey3, _ = crypto.HexToECDSA("86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc")
 	paddr3   = crypto.PubkeyToAddress(pkey3.PublicKey)
 
 	p2p3Name    = "p2p3cert"
 	p2p3path    = "../testcert/" + p2p3Name + ".pem"
-	p2p3Byte, _ = crypto.ReadPemFileByPath(p2p3path)
+	p2p3Byte, _ = taicert.ReadPemFileByPath(p2p3path)
 
 	pkey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
 	paddr4   = crypto.PubkeyToAddress(pkey4.PublicKey)
 
 	p2p4Name    = "p2p4cert"
 	p2p4path    = "../testcert/" + p2p4Name + ".pem"
-	p2p4Byte, _ = crypto.ReadPemFileByPath(p2p4path)
+	p2p4Byte, _ = taicert.ReadPemFileByPath(p2p4path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {

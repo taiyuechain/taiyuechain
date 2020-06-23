@@ -15,6 +15,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/params"
 
 	//"github.com/taiyuechain/taiyuechain/params"
@@ -25,7 +26,7 @@ import (
 
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	//sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
 )
 
 var (
@@ -187,9 +188,9 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//var rootpri, _ = sm2.RawBytesToPrivateKey(pribytebyte)
 	//var rootPuk = sm2.PrivteToPublickey(*rootpri)
 	rootpri, rootPuk, err := sm2.GenerateKey(rand.Reader)
-	ca_b := sm2_cert.CreateCertBySMPrivte(rootpri, rootPuk)
+	ca_b := taicert.CreateCertBySMPrivte(rootpri, rootPuk)
 
-	rootCert, err := sm2_cert.ParseCertificate(ca_b)
+	rootCert, err := taicert.ParseCertificate(ca_b)
 	if err != nil {
 		t.Fatalf("cert error")
 	}
@@ -222,12 +223,12 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//var sonPuk = sm2.PrivteToPublickey(*son)
 	_, sonPuk, err := sm2.GenerateKey(rand.Reader)
 
-	rootcert, err := sm2_cert.ParseCertificate(ca_b)
+	rootcert, err := taicert.ParseCertificate(ca_b)
 	if err != nil {
 		t.Fatalf("ParseCertificate error")
 	}
 
-	son_byte, err := sm2_cert.IssueCert(rootcert, rootpri, sonPuk)
+	son_byte, err := taicert.IssueCert(rootcert, rootpri, sonPuk)
 	if err != nil {
 		t.Fatalf("IssueCert error")
 	}
@@ -508,7 +509,7 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 
 func TestReadPemFile(t *testing.T) {
 	path := "./testdata/testcert/peer-expired.pem"
-	byte, _ := crypto.ReadPemFileByPath(path)
+	byte, _ := cert.ReadPemFileByPath(path)
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
 }
@@ -592,36 +593,36 @@ func TestIsuseP2PCert(t *testing.T) {
 	p2p5priv, _ := crypto.HexToECDSA(p2p5PrivString)
 
 	//pbft1RootCert
-	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
-	pbft1Cert, _ := crypto.ParseCertificate(pbft1Byte)
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft1Cert, _ := taicert.ParseCertificate(pbft1Byte)
 	IssueCert(pbft1Cert, pbft1priv, &p2p1priv.PublicKey, p2p1Name)
 
 	//pbft2RootCert
-	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
-	pbft2Cert, _ := crypto.ParseCertificate(pbft2Byte)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+	pbft2Cert, _ := taicert.ParseCertificate(pbft2Byte)
 	IssueCert(pbft2Cert, pbft2priv, &p2p2priv.PublicKey, p2p2Name)
 
 	//pbft3RootCert
-	pbft3Byte, _ := crypto.ReadPemFileByPath(pbft3path)
-	pbft3Cert, _ := crypto.ParseCertificate(pbft3Byte)
+	pbft3Byte, _ := taicert.ReadPemFileByPath(pbft3path)
+	pbft3Cert, _ := taicert.ParseCertificate(pbft3Byte)
 	IssueCert(pbft3Cert, pbft3priv, &p2p3priv.PublicKey, p2p3Name)
 
 	//pbft4RootCert
-	pbft4Byte, _ := crypto.ReadPemFileByPath(pbft4path)
-	pbft4Cert, _ := crypto.ParseCertificate(pbft4Byte)
+	pbft4Byte, _ := taicert.ReadPemFileByPath(pbft4path)
+	pbft4Cert, _ := taicert.ParseCertificate(pbft4Byte)
 	IssueCert(pbft4Cert, pbft4priv, &p2p4priv.PublicKey, p2p4Name)
 
-	pbft5Byte, _ := crypto.ReadPemFileByPath(pbft5path)
-	pbft5Cert, _ := crypto.ParseCertificate(pbft5Byte)
+	pbft5Byte, _ := taicert.ReadPemFileByPath(pbft5path)
+	pbft5Cert, _ := taicert.ParseCertificate(pbft5Byte)
 	IssueCert(pbft5Cert, pbft5priv, &p2p5priv.PublicKey, p2p5Name)
 }
 
 func TestGetPBFTCertBytes(t *testing.T) {
 
-	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
-	pbft3Byte, _ := crypto.ReadPemFileByPath(pbft3path)
-	pbft4Byte, _ := crypto.ReadPemFileByPath(pbft4path)
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ := taicert.ReadPemFileByPath(pbft3path)
+	pbft4Byte, _ := taicert.ReadPemFileByPath(pbft4path)
 
 	fmt.Println("byt1")
 	for i := 0; i < len(pbft1Byte); i++ {
@@ -659,15 +660,15 @@ func TestGetPBFTCertBytes(t *testing.T) {
 
 func TestVerifyCert(t *testing.T) {
 
-	pbft1Byte, _ := crypto.ReadPemFileByPath(pbft1path)
-	pbft2Byte, _ := crypto.ReadPemFileByPath(pbft2path)
-	pbft3Byte, _ := crypto.ReadPemFileByPath(pbft3path)
-	pbft4Byte, _ := crypto.ReadPemFileByPath(pbft4path)
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ := taicert.ReadPemFileByPath(pbft3path)
+	pbft4Byte, _ := taicert.ReadPemFileByPath(pbft4path)
 
-	p2p1Byte, _ := crypto.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _ := crypto.ReadPemFileByPath(p2p2path)
-	p2p3Byte, _ := crypto.ReadPemFileByPath(p2p3path)
-	p2p4Byte, _ := crypto.ReadPemFileByPath(p2p4path)
+	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
+	p2p3Byte, _ := taicert.ReadPemFileByPath(p2p3path)
+	p2p4Byte, _ := taicert.ReadPemFileByPath(p2p4path)
 
 	//new cimList
 	cimList := NewCIMList(CryptoSM2)
@@ -675,6 +676,7 @@ func TestVerifyCert(t *testing.T) {
 	cimList.AddCim(CreateCim(pbft2Byte))
 	cimList.AddCim(CreateCim(pbft3Byte))
 	cimList.AddCim(CreateCim(pbft4Byte))
+
 
 	err := cimList.VerifyCert(p2p1Byte)
 	if err != nil {
@@ -696,7 +698,7 @@ func TestVerifyCert(t *testing.T) {
 		t.Fatalf("verify cert 4 error")
 	}
 
-	_, err = crypto.GetPubByteFromCert(p2p1Byte)
+	_, err = taicert.GetPubByteFromCert(p2p1Byte)
 	if err != nil {
 		panic(err)
 	}
@@ -707,22 +709,22 @@ func TestVerfyDempFile(t *testing.T) {
 	cert2 := []byte{48, 130, 2, 142, 48, 130, 2, 58, 160, 3, 2, 1, 2, 2, 1, 255, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 30, 23, 13, 50, 48, 48, 53, 49, 50, 49, 49, 49, 57, 49, 54, 90, 23, 13, 50, 51, 48, 55, 49, 51, 50, 49, 48, 53, 53, 54, 90, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 89, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 129, 28, 207, 85, 1, 130, 45, 3, 66, 0, 4, 94, 23, 17, 182, 205, 133, 80, 165, 229, 70, 111, 127, 8, 104, 181, 80, 121, 41, 203, 105, 194, 240, 252, 168, 79, 143, 148, 129, 110, 180, 10, 128, 142, 168, 167, 124, 61, 131, 201, 209, 99, 65, 172, 176, 55, 251, 234, 47, 125, 157, 74, 244, 99, 38, 222, 250, 57, 180, 8, 244, 15, 40, 251, 152, 163, 130, 1, 67, 48, 130, 1, 63, 48, 14, 6, 3, 85, 29, 15, 1, 1, 255, 4, 4, 3, 2, 2, 4, 48, 38, 6, 3, 85, 29, 37, 4, 31, 48, 29, 6, 8, 43, 6, 1, 5, 5, 7, 3, 2, 6, 8, 43, 6, 1, 5, 5, 7, 3, 1, 6, 2, 42, 3, 6, 3, 129, 11, 1, 48, 15, 6, 3, 85, 29, 19, 1, 1, 255, 4, 5, 48, 3, 1, 1, 255, 48, 13, 6, 3, 85, 29, 14, 4, 6, 4, 4, 1, 2, 3, 4, 48, 95, 6, 8, 43, 6, 1, 5, 5, 7, 1, 1, 4, 83, 48, 81, 48, 35, 6, 8, 43, 6, 1, 5, 5, 7, 48, 1, 134, 23, 104, 116, 116, 112, 58, 47, 47, 111, 99, 115, 112, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 42, 6, 8, 43, 6, 1, 5, 5, 7, 48, 2, 134, 30, 104, 116, 116, 112, 58, 47, 47, 99, 114, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 116, 48, 26, 6, 3, 85, 29, 17, 4, 19, 48, 17, 130, 15, 102, 111, 111, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 15, 6, 3, 85, 29, 32, 4, 8, 48, 6, 48, 4, 6, 2, 42, 3, 48, 87, 6, 3, 85, 29, 31, 4, 80, 48, 78, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 49, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 50, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 3, 66, 0, 54, 1, 43, 195, 143, 59, 59, 1, 217, 61, 117, 20, 211, 235, 240, 170, 36, 249, 228, 206, 10, 160, 246, 47, 38, 23, 140, 33, 150, 164, 210, 130, 163, 224, 124, 78, 241, 143, 7, 36, 39, 218, 139, 125, 36, 68, 65, 212, 170, 159, 86, 100, 223, 212, 24, 109, 113, 24, 210, 220, 210, 190, 190, 240, 27}
 	cert3 := []byte{48, 130, 2, 142, 48, 130, 2, 58, 160, 3, 2, 1, 2, 2, 1, 255, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 30, 23, 13, 50, 48, 48, 53, 49, 50, 49, 49, 49, 57, 49, 54, 90, 23, 13, 50, 51, 48, 55, 49, 51, 50, 49, 48, 53, 53, 54, 90, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 89, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 129, 28, 207, 85, 1, 130, 45, 3, 66, 0, 4, 27, 147, 29, 53, 2, 87, 232, 129, 242, 123, 206, 37, 99, 217, 140, 153, 177, 60, 164, 245, 37, 160, 102, 47, 94, 125, 83, 240, 133, 237, 255, 13, 202, 140, 234, 174, 85, 12, 159, 76, 238, 207, 33, 127, 114, 128, 106, 72, 164, 143, 176, 36, 145, 99, 146, 174, 65, 215, 196, 81, 104, 232, 155, 148, 163, 130, 1, 67, 48, 130, 1, 63, 48, 14, 6, 3, 85, 29, 15, 1, 1, 255, 4, 4, 3, 2, 2, 4, 48, 38, 6, 3, 85, 29, 37, 4, 31, 48, 29, 6, 8, 43, 6, 1, 5, 5, 7, 3, 2, 6, 8, 43, 6, 1, 5, 5, 7, 3, 1, 6, 2, 42, 3, 6, 3, 129, 11, 1, 48, 15, 6, 3, 85, 29, 19, 1, 1, 255, 4, 5, 48, 3, 1, 1, 255, 48, 13, 6, 3, 85, 29, 14, 4, 6, 4, 4, 1, 2, 3, 4, 48, 95, 6, 8, 43, 6, 1, 5, 5, 7, 1, 1, 4, 83, 48, 81, 48, 35, 6, 8, 43, 6, 1, 5, 5, 7, 48, 1, 134, 23, 104, 116, 116, 112, 58, 47, 47, 111, 99, 115, 112, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 42, 6, 8, 43, 6, 1, 5, 5, 7, 48, 2, 134, 30, 104, 116, 116, 112, 58, 47, 47, 99, 114, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 116, 48, 26, 6, 3, 85, 29, 17, 4, 19, 48, 17, 130, 15, 102, 111, 111, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 15, 6, 3, 85, 29, 32, 4, 8, 48, 6, 48, 4, 6, 2, 42, 3, 48, 87, 6, 3, 85, 29, 31, 4, 80, 48, 78, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 49, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 50, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 3, 66, 0, 23, 99, 174, 106, 168, 143, 97, 153, 142, 22, 9, 195, 162, 11, 204, 116, 48, 40, 149, 188, 129, 27, 73, 87, 44, 255, 22, 78, 131, 126, 150, 132, 56, 217, 250, 135, 153, 217, 27, 154, 225, 182, 2, 128, 193, 77, 27, 112, 199, 26, 195, 78, 146, 192, 47, 101, 168, 118, 251, 254, 110, 238, 154, 61, 252}
 	cert4 := []byte{48, 130, 2, 142, 48, 130, 2, 58, 160, 3, 2, 1, 2, 2, 1, 255, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 30, 23, 13, 50, 48, 48, 53, 49, 50, 49, 49, 49, 57, 49, 54, 90, 23, 13, 50, 51, 48, 55, 49, 51, 50, 49, 48, 53, 53, 54, 90, 48, 48, 49, 19, 48, 17, 6, 3, 85, 4, 10, 12, 10, 206, 163, 32, 65, 99, 109, 101, 32, 67, 111, 49, 25, 48, 23, 6, 3, 85, 4, 3, 19, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 89, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 129, 28, 207, 85, 1, 130, 45, 3, 66, 0, 4, 153, 35, 119, 125, 134, 111, 216, 4, 133, 190, 87, 161, 38, 214, 56, 204, 125, 218, 120, 165, 214, 149, 138, 255, 120, 76, 167, 237, 157, 156, 123, 228, 148, 18, 91, 247, 95, 208, 50, 132, 144, 174, 81, 2, 2, 116, 66, 123, 159, 187, 7, 245, 158, 76, 155, 81, 4, 172, 105, 36, 114, 26, 68, 56, 163, 130, 1, 67, 48, 130, 1, 63, 48, 14, 6, 3, 85, 29, 15, 1, 1, 255, 4, 4, 3, 2, 2, 4, 48, 38, 6, 3, 85, 29, 37, 4, 31, 48, 29, 6, 8, 43, 6, 1, 5, 5, 7, 3, 2, 6, 8, 43, 6, 1, 5, 5, 7, 3, 1, 6, 2, 42, 3, 6, 3, 129, 11, 1, 48, 15, 6, 3, 85, 29, 19, 1, 1, 255, 4, 5, 48, 3, 1, 1, 255, 48, 13, 6, 3, 85, 29, 14, 4, 6, 4, 4, 1, 2, 3, 4, 48, 95, 6, 8, 43, 6, 1, 5, 5, 7, 1, 1, 4, 83, 48, 81, 48, 35, 6, 8, 43, 6, 1, 5, 5, 7, 48, 1, 134, 23, 104, 116, 116, 112, 58, 47, 47, 111, 99, 115, 112, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 42, 6, 8, 43, 6, 1, 5, 5, 7, 48, 2, 134, 30, 104, 116, 116, 112, 58, 47, 47, 99, 114, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 116, 48, 26, 6, 3, 85, 29, 17, 4, 19, 48, 17, 130, 15, 102, 111, 111, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 48, 15, 6, 3, 85, 29, 32, 4, 8, 48, 6, 48, 4, 6, 2, 42, 3, 48, 87, 6, 3, 85, 29, 31, 4, 80, 48, 78, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 49, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 37, 160, 35, 160, 33, 134, 31, 104, 116, 116, 112, 58, 47, 47, 99, 114, 108, 50, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109, 47, 99, 97, 49, 46, 99, 114, 108, 48, 10, 6, 8, 42, 129, 28, 207, 85, 1, 131, 117, 3, 66, 0, 73, 105, 46, 107, 12, 203, 248, 158, 67, 242, 104, 99, 83, 203, 126, 29, 111, 44, 140, 197, 57, 122, 49, 73, 25, 32, 96, 22, 151, 95, 174, 87, 52, 219, 117, 204, 227, 227, 32, 6, 11, 152, 89, 254, 173, 69, 140, 8, 156, 233, 7, 38, 117, 88, 223, 205, 150, 34, 231, 133, 66, 105, 110, 244, 46}
-	cert, err := crypto.ParseCertificate(cert1)
+	cert, err := taicert.ParseCertificate(cert1)
 	if err != nil {
 		t.Fatalf("1111")
 	}
 
-	cert, err = crypto.ParseCertificate(cert2)
+	cert, err = taicert.ParseCertificate(cert2)
 	if err != nil {
 		t.Fatalf("1111")
 	}
 
-	cert, err = crypto.ParseCertificate(cert3)
+	cert, err = taicert.ParseCertificate(cert3)
 	if err != nil {
 		t.Fatalf("1111")
 	}
 
-	cert, err = crypto.ParseCertificate(cert4)
+	cert, err = taicert.ParseCertificate(cert4)
 	if err != nil {
 		t.Fatalf("1111")
 	}
@@ -754,13 +756,14 @@ func createRootCert(priKey *ecdsa.PrivateKey, name string) (cert []byte, err err
 
 		ca_b, err := x509.CreateCertificate(rand.Reader, ca, ca, &priKey.PublicKey, priKey)
 
+
 		withPemFile(filepath, ca_b)
 
 		return ca_b, err
 	}
 
 	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4 {
-		ca_b, err := sm2_cert.CreateRootCert(sm2.ToSm2privatekey(priKey))
+		ca_b, err := taicert.CreateRootCert(sm2.ToSm2privatekey(priKey))
 
 		File, err := os.Create(filepath)
 		defer File.Close()
@@ -805,7 +808,7 @@ func IssueCert(rootCert *x509.Certificate, rootPri *ecdsa.PrivateKey, sonPuk *ec
 	}
 
 	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4 {
-		ca_b, err := sm2_cert.IssueCert(rootCert, sm2.ToSm2privatekey(rootPri), sm2.ToSm2Publickey(sonPuk))
+		ca_b, err := taicert.IssueCert(rootCert, sm2.ToSm2privatekey(rootPri), sm2.ToSm2Publickey(sonPuk))
 		if err != nil {
 			return nil, err
 		}
@@ -868,7 +871,7 @@ func SendP256Transtion() {
 
 	// from
 	path := "./testdata/testcert/testOkp2p.pem"
-	fromcert, err := crypto.ReadPemFileByPath(path)
+	fromcert, err := taicert.ReadPemFileByPath(path)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -893,4 +896,54 @@ func SendP256Transtion() {
 	}
 	fmt.Println("--end send ")
 	fmt.Println("tx Hash", "is", hexutil.Encode(signTx.Hash().Bytes()))
+}
+func TestO12(t *testing.T) {
+	//var s [][]byte
+	//var t1 [][]byte
+	s := make([][]byte,2)
+	s[0] = []byte{'1','2'}
+	s[1] = []byte{'3','4'}
+
+	t1 := make([][]byte,2)
+	for i:=0;i<len(s);i++{
+		t1[i] = append(t1[i],s[i][:]...)
+	}
+
+	fmt.Println("t","t",t1[1][1])
+
+
+	s[1] = []byte{'3','9'}
+
+	fmt.Println("t","t",t1[1][1])
+
+
+
+	ss := []byte{'1','2'}
+	fmt.Println("t","t",ss[1])
+	ss =ss[0:0]
+	fmt.Println("t","t",len(ss))
+
+
+
+}
+
+func TestGMSSL(t *testing.T){
+
+	rootPath := "./testdata/testcert/" + "root.pem"
+	rootByte, _ := taicert.ReadPemFileByPath(rootPath)
+
+
+	certPath :="./testdata/testcert/" + "ca.pem"
+	certByte, _ := taicert.ReadPemFileByPath(certPath)
+
+
+	//new cimList
+	cimList := NewCIMList(CryptoSM2)
+	cimList.AddCim(CreateCim(rootByte))
+
+
+	err := cimList.VerifyCert(certByte)
+	if err != nil{
+		t.Fatalf("verfiy error")
+	}
 }

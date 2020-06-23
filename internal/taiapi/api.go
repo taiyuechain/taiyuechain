@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/metrics"
 
 	"github.com/davecgh/go-spew/spew"
@@ -1318,7 +1319,7 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 
 	sendCert := args.Cert
 	if sendCert != nil && len(*sendCert) != 0 {
-		pub, err := crypto.FromCertBytesToPubKey(*sendCert)
+		pub, err := taicert.FromCertBytesToPubKey(*sendCert)
 		if err != nil {
 			return common.Hash{}, errors.New("cert convert to pub")
 		}
