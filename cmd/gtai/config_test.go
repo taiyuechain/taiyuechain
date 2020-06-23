@@ -16,13 +16,13 @@ func TestConfigTomlFile(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	if data, err := crypto.ReadPemFileByPath(cfg.Etrue.NodeCertFile); err != nil {
+	if data, err := crypto.ReadPemFileByPath(cfg.GTai.NodeCertFile); err != nil {
 		t.Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
 	} else {
-		cfg.Etrue.NodeCert = data
+		cfg.GTai.NodeCert = data
 	}
 
-	pubk, err := crypto.GetPubByteFromCert(cfg.Etrue.NodeCert)
+	pubk, err := crypto.GetPubByteFromCert(cfg.GTai.NodeCert)
 	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")
@@ -30,9 +30,9 @@ func TestConfigTomlFile(t *testing.T) {
 	fmt.Println(hex.EncodeToString(pubk))
 
 	fmt.Println("---the commite")
-	fmt.Println(hex.EncodeToString(cfg.Etrue.CommitteeKey))
-	fmt.Println(hex.EncodeToString(cfg.Etrue.CommitteeBase[:]))
-	//fmt.Println(cfg.Etrue.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
+	fmt.Println(hex.EncodeToString(cfg.GTai.CommitteeKey))
+	fmt.Println(hex.EncodeToString(cfg.GTai.CommitteeBase[:]))
+	//fmt.Println(cfg.GTai.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
 }
 func Test_01(t *testing.T) {
 	privStr := "c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc"

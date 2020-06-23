@@ -71,7 +71,7 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 config.toml文件配置了链的一些基础参数。
 
 ```
-[Etrue]
+[GTai]
 NetworkId = 2812913
 SyncMode = "full"
 MinervaMode = 0
@@ -85,7 +85,7 @@ GasPrice = 10000
 EnablePreimageRecording = false
 NodeType = false
 
-[Etrue.TxPool]
+[GTai.TxPool]
 NoLocals = false
 Journal = "transactions.rlp"
 Rejournal = 3600000000000
@@ -97,7 +97,7 @@ AccountQueue = 100
 GlobalQueue = 100
 Lifetime = 10800000000000
 
-[Etrue.GPO]
+[GTai.GPO]
 Blocks = 20
 Percentile = 60
 
