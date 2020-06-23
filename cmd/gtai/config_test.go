@@ -29,8 +29,9 @@ func TestConfigTomlFile(t *testing.T) {
 	//fmt.Println(cfg.Etrue.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
 }
 func TestInitGenesis(t *testing.T) {
-	// certPath := "E:\\work\\seven\\truechain\\src\\github.com\\taiyuechain\\taiyuechain\\cim\\testdata"
-	genesisPath,certPath := ".genesis.json","../cmd/testdata"
+	certPath := "E:\\work\\seven\\truechain\\src\\github.com\\taiyuechain\\taiyuechain\\cim\\testdata\\testcert"
+	genesisPath := "./genesis.json"
+	// genesisPath,certPath := "./genesis.json","../../cmd/testdata/testcert"
 	genesis := makeGenesis0(genesisPath,certPath)
 	if genesis == nil {
 		fmt.Println("error")

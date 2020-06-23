@@ -217,7 +217,7 @@ func setCertForGenesis(certPath string,genesis *core.Genesis) error {
 	}
 	certs :=[][]byte{}
 	for _,v :=range names {
-		if data, err := crypto.ReadPemFileByPath(v); err != nil {
+		if data, err := crypto.ReadPemFileByPath(v); err == nil {
 			certs = append(certs,data)
 		}
 	}
