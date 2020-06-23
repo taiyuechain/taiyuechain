@@ -1,4 +1,4 @@
-package crypto
+package cert
 
 import (
 	"crypto/ecdsa"
@@ -8,8 +8,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	"github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"strings"
 )
@@ -18,13 +18,13 @@ func IsCorrectSY(syCrypto interface{}) bool {
 
 	switch pub := syCrypto.(type) {
 	case *sm2.PublicKey:
-		if CryptoType == CRYPTO_SM2_SM3_SM4 {
+		if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4 {
 			return true
 		}
 	case *ecdsa.PublicKey:
 		switch pub.Curve {
 		case elliptic.P256():
-			if CryptoType == CRYPTO_P256_SH3_AES {
+			if crypto.CryptoType == crypto.CRYPTO_P256_SH3_AES {
 				return true
 			}
 		}
@@ -50,32 +50,40 @@ func ParseCertificate(asn1Data []byte) (*x509.Certificate, error) {
 	if asn1Data == nil {
 		return nil, errors.New("ParseCertificate error: nil idBytes")
 	}
-	if CryptoType == CRYPTO_P256_SH3_AES {
-		return x509.ParseCertificate(asn1Data)
-	} else if CryptoType == CRYPTO_SM2_SM3_SM4 {
-		return sm2_cert.ParseCertificate(asn1Data)
+
+	cert ,err := x509.ParseCertificate(asn1Data)
+	if err != nil{
+		return ParseCertificateSM2(asn1Data)
+
 	}
-	return nil, nil
+
+
+	return cert, err
 
 }
 
 func CheckSignatureFrom(son *x509.Certificate, parent *x509.Certificate) error {
-	if CryptoType == CRYPTO_P256_SH3_AES {
-		return son.CheckSignatureFrom(parent)
+
+
+	switch son.PublicKey.(type) {
+	case *sm2.PublicKey:
+		CheckSignatureFromSM2(son, parent)
+	case *ecdsa.PublicKey:
+		son.CheckSignatureFrom(parent)
 	}
-	if CryptoType == CRYPTO_SM2_SM3_SM4 {
-		return sm2_cert.CheckSignatureFrom(son, parent)
-	}
+
 	return nil
 }
 
-func CheckSignatrue(cert *x509.Certificate) error {
-	if CryptoType == CRYPTO_P256_SH3_AES {
-		return cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
+func CheckSignature(cert *x509.Certificate) error {
+
+	switch cert.PublicKey.(type) {
+	case *sm2.PublicKey:
+		CheckSignatureSM2(cert)
+	case *ecdsa.PublicKey:
+		cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
 	}
-	if CryptoType == CRYPTO_SM2_SM3_SM4 { //sm2
-		return sm2_cert.CheckSignature(cert)
-	}
+
 	return nil
 }
 
@@ -137,16 +145,25 @@ func GetPubByteFromCert(asn1Data []byte) ([]byte, error) {
 }
 
 func FromCertBytesToPubKey(asn1Data []byte) (*ecdsa.PublicKey, error) {
-	data, err := GetPubByteFromCert(asn1Data)
-	if err != nil {
-		return nil, err
-	}
-	pub, err := UnmarshalPubkey(data)
+	//data, err := GetPubByteFromCert(asn1Data)
+
+
+	cert, err := ParseCertificate(asn1Data)
 	if err != nil {
 		return nil, err
 	}
 
-	return pub, nil
+	pubk := cert.PublicKey
+	switch pub2 := pubk.(type) {
+	case *ecdsa.PublicKey:
+
+		return &ecdsa.PublicKey{Curve: pub2.Curve, X: pub2.X, Y: pub2.Y}, nil
+	case *sm2.PublicKey:
+		return &ecdsa.PublicKey{Curve: pub2.Curve, X: pub2.X, Y: pub2.Y}, nil
+	}
+
+
+	return nil, nil
 }
 
 func FromCertBytesToPubKey1(asn1Data []byte) (*ecdsa.PublicKey, error) {

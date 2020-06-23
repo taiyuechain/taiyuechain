@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
 )
 
 func TestX500Name(t *testing.T) {
@@ -362,3 +362,112 @@ func TestCheckSignatureFrom(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+
+
+func TestOpenCertificate(t *testing.T) {
+	/*rootPath := "../root.pem"
+	rootByte, _ := ReadPemFileByPath(rootPath)*/
+
+	/*certificate, err := ParseCertificate(rootByte)
+	if err!=nil{
+		t.Fatalf("111")
+	}*/
+
+
+	caPath := "CA.pem"
+	cabyte, _ := ReadPemFileByPath(caPath)
+
+	ca, err := ParseCertificate(cabyte)
+	if err!=nil{
+		t.Fatalf("111")
+	}
+
+	/*rootPath := "../root.pem"
+	rootbyte, _ := ReadPemFileByPath(rootPath)
+
+	root, err := ParseCertificate(rootbyte)
+	if err!=nil{
+		t.Fatalf("331")
+	}*/
+
+	fmt.Println(ca)
+	//st := "n1"
+	//by := []byte(st)
+	//_,err:=VerifyDERCSRSign(rootByte,[]byte{'1','2','3','4','5','6'})
+	//pub := root.PublicKey.(*sm2.PublicKey)
+	pub := ca.PublicKey.(*sm2.PublicKey)
+
+	res :=sm2.Verify(pub, nil, ca.RawTBSCertificate, ca.Signature)
+	if !res{
+		t.Fatalf("222")
+	}
+
+
+
+}
+
+func TestOpenParentCertificate(t *testing.T) {
+	/*rootPath := "../root.pem"
+	rootByte, _ := ReadPemFileByPath(rootPath)*/
+
+	/*certificate, err := ParseCertificate(rootByte)
+	if err!=nil{
+		t.Fatalf("111")
+	}*/
+
+
+	caPath := "CA.pem"
+	cabyte, _ := ReadPemFileByPath(caPath)
+
+	ca, err := ParseCertificate(cabyte)
+	if err!=nil{
+		t.Fatalf("111")
+	}
+
+	sitePath := "site.pem"
+	sitebyte, _ := ReadPemFileByPath(sitePath)
+
+	site, err := ParseCertificate(sitebyte)
+	if err!=nil{
+		t.Fatalf("331")
+	}
+
+	fmt.Println(ca)
+	//st := "n1"
+	//by := []byte(st)
+	//_,err:=VerifyDERCSRSign(rootByte,[]byte{'1','2','3','4','5','6'})
+	//pub := root.PublicKey.(*sm2.PublicKey)
+	pub := ca.PublicKey.(*sm2.PublicKey)
+
+	res :=sm2.Verify(pub, nil, site.RawTBSCertificate, site.Signature)
+	if !res{
+		t.Fatalf("222")
+	}
+
+
+
+}
+/*
+func ReadPemFileByPath(path string) ([]byte, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Unable to read test certificate from %q - %q "+
+				"Does a unit test have an incorrect test file name?\n",
+			path, err))
+	}
+
+	if strings.Contains(string(data), "-BEGIN CERTIFICATE-") {
+		block, _ := pem.Decode(data)
+		if block == nil {
+			panic(fmt.Sprintf(
+				"Failed to PEM decode test certificate from %q - "+
+					"Does a unit test have a buggy test cert file?\n",
+				path))
+		}
+		data = block.Bytes
+	}
+	return data, nil
+}*/
+

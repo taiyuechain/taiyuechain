@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte"
 	cryptobyte_asn1 "github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte/asn1"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
 	//"log"
 	"math/big"
 	"net"
@@ -619,7 +619,7 @@ func VerifyCSRSign(csr *x509.CertificateRequest, userId []byte) bool {
 	return sm2.Verify(pub, userId, csr.RawTBSCertificateRequest, csr.Signature)
 }
 
-func CheckSignature(csr *x509.Certificate)  error{
+func CheckSignatureSM2(csr *x509.Certificate)  error{
 
 	pub := csr.PublicKey.(*sm2.PublicKey)
 
@@ -631,7 +631,7 @@ func CheckSignature(csr *x509.Certificate)  error{
 	}
 }
 
-func CheckSignatureFrom(son,parent *x509.Certificate)  error{
+func CheckSignatureFromSM2(son,parent *x509.Certificate)  error{
 
 	pub := parent.PublicKey.(*sm2.PublicKey)
 
@@ -1160,7 +1160,7 @@ func CreateCertificate(cinfo *TBSCertificate, signature []byte) ([]byte, error) 
 }
 
 // ParseCertificate parses a single certificate from the given ASN.1 DER data.
-func ParseCertificate(asn1Data []byte) (*x509.Certificate, error) {
+func ParseCertificateSM2(asn1Data []byte) (*x509.Certificate, error) {
 	var cert certificate
 	rest, err := asn1.Unmarshal(asn1Data, &cert)
 	if err != nil {
@@ -1754,7 +1754,7 @@ func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 	}
 
 	bytes, _ := base64.StdEncoding.DecodeString(string(cert))
-	theCert, err := ParseCertificate(bytes)
+	theCert, err := ParseCertificateSM2(bytes)
 	if err != nil {
 		return err
 	}
@@ -1777,7 +1777,7 @@ func VarifyCertByPubKey(pubkey *sm2.PublicKey, cert []byte) error {
 func CreateRootCert(rootPri *sm2.PrivateKey)  (cert []byte, err error) {
 
 	pri := rootPri
-	pub :=&rootPri.PublicKey
+	pub :=sm2.CalculatePubKey(rootPri)
 	sanContents, err := marshalSANs([]string{"foo.example.com"}, nil, nil, nil)
 	if err != nil {
 		return nil,err
