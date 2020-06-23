@@ -64,6 +64,7 @@ func newCAStoreCache() *CAStoreCache {
 
 type CACert struct {
 	CACert  []Cert `json:"cacert"`
+	Pubky	map[common.Hash][]byte  // cacert hash=> publick key
 	IsStore []bool `json:"isstore"`
 }
 
@@ -84,6 +85,7 @@ func (cacert *CACert) GetIsStore(point int) bool {
 type ProposalState struct {
 	PHash              common.Hash
 	CACert             []byte
+	Pubk               []byte
 	StartHeight        *big.Int
 	EndHeight          *big.Int
 	PState             uint8
@@ -94,7 +96,7 @@ type ProposalState struct {
 }
 
 type CACertList struct {
-	caCertMap   map[uint64]*CACert
+	caCertMap   map[uint64]*CACert  //epcoh ->cert
 	proposalMap map[common.Hash]*ProposalState
 }
 
@@ -106,12 +108,12 @@ func NewCACertList() *CACertList {
 	}
 }
 
-func (ca *CACertList) InitCACertList(caList [][]byte, blockHight *big.Int) {
+func (ca *CACertList) InitCACertList(caList [][]byte,  blockHight *big.Int,pubk [][]byte) {
 
 	len := len(caList)
 	epoch := types.GetEpochIDFromHeight(blockHight).Uint64()
 	for i := 0; i < len; i++ {
-		ca.addCertToList(caList[i], epoch, true)
+		ca.addCertToList(caList[i], epoch, true,pubk[i])
 	}
 }
 
@@ -130,11 +132,14 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 
 		items := &CACert{
 			make([]Cert, len(val.CACert)),
+			make(map[common.Hash][]byte),
 			make([]bool, len(val.IsStore)),
 		}
 
 		for i := 0; i < len(val.CACert); i++ {
+			hash_val := types.RlpHash(val.CACert[i])
 			items.CACert[i] = append(items.CACert[i], val.CACert[i][:]...)
+			items.Pubky[hash_val] = val.Pubky[hash_val]
 			items.IsStore[i] = val.IsStore[i]
 		}
 
@@ -142,10 +147,12 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 	}
 
 	for key, value := range cachaList.proposalMap {
-		//log.Info("---clone", "k", key, "value", value.CACert, "isstart", value.PHash)
+		//log.Info("---clone", "k", key, "value", value.CACert, "isstart", value.PHash)ha
+		//hash_val := types.RlpHash(value.CACert)
 		item := &ProposalState{
 			value.PHash,
 			value.CACert,
+			value.Pubk,
 			big.NewInt(value.StartHeight.Int64()),
 			big.NewInt(value.EndHeight.Int64()),
 			value.PState,
@@ -167,38 +174,42 @@ func (ca *CACertList) GetCACertMapByEpoch(epoch uint64) *CACert {
 	return ca.caCertMap[epoch]
 }
 
-func (ca *CACertList) IsInList(caCert []byte, epoch uint64) (bool, error) {
+func (ca *CACertList) IsInList(caCert []byte, epoch uint64,pubk []byte) (bool, error) {
 	hash := types.RlpHash(caCert)
 	certList := ca.caCertMap[epoch]
 	for i, val := range certList.CACert {
 		//log.Info("-=-==-=CA info", "Ce name", val.CACert, "is store", val.IsStore)
-		if hash == types.RlpHash(val) && certList.IsStore[i] == true {
+		if (hash == types.RlpHash(val) && certList.IsStore[i] == true) || types.RlpHash(certList.Pubky[hash]) == types.RlpHash(pubk)  {
 			return true, nil
 		}
 	}
 	return false, errors.New("not in List")
 }
 
-func (ca *CACertList) addCertToList(caCert []byte, epoch uint64, isInit bool) (bool, error) {
+func (ca *CACertList) addCertToList(caCert []byte, epoch uint64, isInit bool,pubk []byte) (bool, error) {
 	if len(caCert) == 0 {
 		return false, errors.New("ca cert len is zeor")
 	}
 	if !isInit {
 
-		ok, _ := ca.IsInList(caCert, epoch)
+		ok, _ := ca.IsInList(caCert, epoch,pubk)
 		//log.Info("---addCertToList", "isInlist", ok, "caCert", caCert)
 		if ok {
 			return false, errors.New("ca cert is alread exit")
 		}
+
+
 	}
 
 	cac := &CACert{}
 	if ca.caCertMap[epoch] == nil {
 		cac.CACert = append(cac.CACert, caCert)
+		cac.Pubky[types.RlpHash(caCert)] = pubk
 		cac.IsStore = append(cac.IsStore, true)
 		ca.caCertMap[epoch] = cac
 	} else {
 		ca.caCertMap[epoch].CACert = append(ca.caCertMap[epoch].CACert, caCert)
+		ca.caCertMap[epoch].Pubky[types.RlpHash(caCert)] = pubk
 		ca.caCertMap[epoch].IsStore = append(ca.caCertMap[epoch].IsStore, true)
 	}
 
@@ -221,6 +232,7 @@ func (ca *CACertList) delCertToList(caCert []byte, epoch uint64) (bool, error) {
 		if hash == types.RlpHash(val) {
 			ca.caCertMap[epoch].CACert = append(ca.caCertMap[epoch].CACert[:i], ca.caCertMap[epoch].CACert[i+1:]...)
 			ca.caCertMap[epoch].IsStore = append(ca.caCertMap[epoch].IsStore[:i], ca.caCertMap[epoch].IsStore[i+1:]...)
+			delete(ca.caCertMap[epoch].Pubky,hash)
 			return true, nil
 		}
 	}
@@ -233,7 +245,9 @@ func (ca *CACertList) copyCertToList(epoch uint64) {
 	if ca.caCertMap[epoch+1] == nil {
 		calist := &CACert{}
 		for i, val := range ca.caCertMap[epoch].CACert {
+			hash_val := types.RlpHash(val)
 			calist.CACert = append(calist.CACert, val)
+			calist.Pubky[hash_val] = ca.caCertMap[epoch].Pubky[hash_val]
 			calist.IsStore = append(calist.IsStore, ca.caCertMap[epoch].IsStore[i])
 		}
 		ca.caCertMap[epoch+1] = calist
@@ -265,6 +279,17 @@ func (ca *CACertList) GetCertList(epoch uint64) [][]byte {
 	return certList
 }
 
+func (ca *CACertList) GetRootPubk(epoch uint64,caCert []byte) []byte {
+	if ca.caCertMap[epoch] == nil {
+		return []byte{}
+	}
+
+	//certList := make([][]byte, len(ca.caCertMap[epoch].CACert))
+
+
+	return ca.caCertMap[epoch].Pubky[types.RlpHash(caCert)]
+}
+
 func (ca *CACertList) GetCaCertAmount(epoch uint64) uint64 {
 	if ca.caCertMap[epoch] == nil {
 		return uint64(0)
@@ -272,7 +297,7 @@ func (ca *CACertList) GetCaCertAmount(epoch uint64) uint64 {
 	return uint64(len(ca.caCertMap[epoch].CACert))
 }
 
-func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert []byte, evm *EVM, needDo uint8) (bool, error) {
+func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert []byte, evm *EVM, needDo uint8,pubk []byte) (bool, error) {
 
 	if ca.proposalMap[pHash] == nil {
 		log.Info("--why is nil??", "senderCert", hex.EncodeToString(senderCert), "PHash", pHash)
@@ -305,6 +330,7 @@ func (ca *CACertList) checkProposal(pHash common.Hash, senderCert []byte, cACert
 		log.Info("the new one")
 		ca.proposalMap[pHash].PHash = pHash
 		ca.proposalMap[pHash].CACert = cACert
+		ca.proposalMap[pHash].Pubk = pubk
 		ca.proposalMap[pHash].StartHeight = evm.Context.BlockNumber
 		ca.proposalMap[pHash].EndHeight = new(big.Int).Add(evm.Context.BlockNumber, big.NewInt(proposalTimeLine))
 		ca.proposalMap[pHash].NeedPconfirmNumber = uint64((len(ca.caCertMap[epoch].CACert) / 3)) * 2
@@ -340,7 +366,7 @@ func (ca *CACertList) exeProposal(pHash common.Hash, blockHight *big.Int) (bool,
 	if ca.proposalMap[pHash].PNeedDo == proposalAddCert {
 		log.Info("----add cert proposal exe", "the len", len(ca.caCertMap[epoch].CACert), "epoch", epoch)
 		ca.copyCertToList(epoch)
-		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false)
+		res, err = ca.addCertToList(ca.proposalMap[pHash].CACert, epoch+1, false,ca.proposalMap[pHash].Pubk)
 		if res && err == nil {
 			//ca.proposalMap[pHash].PState = pStateSuccless
 			delete(ca.proposalMap,pHash)
@@ -395,10 +421,6 @@ func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err
 	data := input[4:]
 
 	switch method.Name {
-	case "getCaAmount":
-		ret, err = getCaAmount(evm, contract, data)
-	case "isApproveCaCert":
-		ret, err = isApproveCaCert(evm, contract, data)
 	case "multiProposal":
 		ret, err = multiProposal(evm, contract, data)
 	default:
@@ -422,57 +444,13 @@ func logForReceipt(evm *EVM, contract *Contract, topics []common.Hash, data []by
 	return nil, nil
 }
 
-func getCaAmount(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 
-	method, _ := abiCaCertStore.Methods["getCaAmount"]
-	caCertList := NewCACertList()
-	err = caCertList.LoadCACertList(evm.StateDB, types.CACertListAddress)
-	if err != nil {
-		log.Error("Staking load error", "error", err)
-		return nil, err
-	}
-
-	epoch := types.GetEpochIDFromHeight(evm.Context.BlockNumber).Uint64()
-
-	amount := caCertList.GetCaCertAmount(epoch)
-	log.Info("----amount", "is", amount)
-	ret, err = method.Outputs.Pack(amount)
-
-	return ret, err
-}
-
-func isApproveCaCert(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
-
-	var caCert []byte
-
-	log.Info(" isApproveCaCert 1")
-	method, _ := abiCaCertStore.Methods["isApproveCaCert"]
-	err = method.Inputs.Unpack(&caCert, input)
-	log.Info(" isApproveCaCert 2", "ca", hex.EncodeToString(caCert))
-	caCertList := NewCACertList()
-	err = caCertList.LoadCACertList(evm.StateDB, types.CACertListAddress)
-	if err != nil {
-		log.Error("Staking load error", "error", err)
-		return nil, err
-	}
-
-	epoch := types.GetEpochIDFromHeight(evm.BlockNumber).Uint64()
-
-	//is in list
-	var ok bool
-	log.Info(" isApproveCaCert 3", "ca", hex.EncodeToString(caCert), "calist amount", len(caCertList.caCertMap[epoch].CACert))
-
-	ok, _ = caCertList.IsInList(caCert, epoch)
-
-	ret, err = method.Outputs.Pack(ok)
-
-	return ret, err
-}
 
 func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	args := struct {
 		SenderCert []byte
 		CaCert     []byte
+		Pubk	   []byte
 		IsAdd      bool
 	}{}
 
@@ -494,7 +472,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 	pHash := types.RlpHash([]interface{}{args.CaCert, args.IsAdd})
 	log.Info("multiProposal arg is ", "senderca", hex.EncodeToString(args.SenderCert), "ca", hex.EncodeToString(args.CaCert), "isAdd", args.IsAdd)
 
-	res, err := caCertList.IsInList(args.CaCert, epoch)
+	res, err := caCertList.IsInList(args.CaCert, epoch,args.Pubk)
 
 	//check cacert
 	if !args.IsAdd {
@@ -503,14 +481,14 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 			return nil, err
 		}
 		//check propsal
-		res, err = caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalDelCert)
+		res, err = caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalDelCert,args.Pubk)
 
 	} else {
 		//add
 		if res {
 			return nil, err
 		}
-		caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalAddCert)
+		caCertList.checkProposal(pHash, args.SenderCert, args.CaCert, evm, proposalAddCert,args.Pubk)
 	}
 
 	//caCertList.proposalMap[PHash]
@@ -525,64 +503,7 @@ func multiProposal(evm *EVM, contract *Contract, input []byte) (ret []byte, err 
 
 const CACertStoreABIJSON = `
 [
-	{
-    	"name": "AddCaCert",
-    	"outputs": [],
-    	"inputs": [
-	 	 {
-        	"type": "bytes",
-        	"name": "CaCert",
-        	"indexed": false
-		 }
-    	],
-    	"anonymous": false,
-    	"type": "event"
-   	},
-	{
-    	"name": "DelCaCert",
-    	"outputs": [],
-    	"inputs": [
-	  	 {
-        	"type": "bytes",
-        	"name": "CaCert",
-        	"indexed": false
-      	 }
-    	],
-    	"anonymous": false,
-    	"type": "event"
-   	},
-	{
-    	"name": "getCaAmount",
-    	"outputs": [
-			{
-        		"type": "uint64",
-        		"name": "caAmount"
-      		}
-		],
-    	"inputs": [],
-    	"constant": true,
-    	"payable": false,
-    	"type": "function"
-	},
-	{
-    	"name": "isApproveCaCert",
-    	"outputs": [
-			{
-				"type": "bool",
-				"name": "isApproveCC"
-			}
-		],
-    	"inputs": [
-	  	{
-        	"type": "bytes",
-        	"name": "CaCert",
-        	"indexed": false
-      	}
-    	],
-    	"constant": true,
-    	"payable": false,
-    	"type": "function"
-   	},
+	
 	{
     	"name": "multiProposal",
     	"outputs": [],
@@ -594,6 +515,10 @@ const CACertStoreABIJSON = `
 		{
         	"type": "bytes",
         	"name": "CaCert"
+      	},
+		{
+        	"type": "bytes",
+        	"name": "Pubk"
       	},
 		{
         	"type": "bool",

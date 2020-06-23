@@ -283,8 +283,11 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
-
-	consensus.OnceInitCAState(statedb, new(big.Int).SetUint64(g.Number), g.CertList)
+	pubk := [][]byte{}
+	for _,v:= range  g.Committee{
+		pubk = append(pubk,v.Publickey)
+	}
+	consensus.OnceInitCAState(statedb, new(big.Int).SetUint64(g.Number), g.CertList,pubk)
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
