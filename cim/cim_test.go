@@ -25,8 +25,8 @@ import (
 	"os"
 
 	"github.com/taiyuechain/taiyuechain/core/types"
-	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
-	//sm2_cert "github.com/taiyuechain/taiyuechain/crypto/gm/sm2/cert"
+	//"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	cert_sm2 "github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
 )
 
 var (
@@ -187,7 +187,7 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//pribytebyte, err := hex.DecodeString("696b0620068602ecdda42ada206f74952d8c305a811599d463b89cfa3ba3bb98")
 	//var rootpri, _ = sm2.RawBytesToPrivateKey(pribytebyte)
 	//var rootPuk = sm2.PrivteToPublickey(*rootpri)
-	rootpri, rootPuk, err := sm2.GenerateKey(rand.Reader)
+	rootpri, rootPuk, err := cert_sm2.GenerateKey(rand.Reader)
 	ca_b := taicert.CreateCertBySMPrivte(rootpri, rootPuk)
 
 	rootCert, err := taicert.ParseCertificate(ca_b)
@@ -221,7 +221,7 @@ func TestCertCIMAndVerfiyCert_SM2(t *testing.T) {
 	//pribytebyte_son, err := hex.DecodeString("c1094d6cc368fa78f0175974968e9bf3d82216e87a6dfd59328220ac74181f47")
 	//var son, _ = sm2.RawBytesToPrivateKey(pribytebyte_son)
 	//var sonPuk = sm2.PrivteToPublickey(*son)
-	_, sonPuk, err := sm2.GenerateKey(rand.Reader)
+	_, sonPuk, err := cert_sm2.GenerateKey(rand.Reader)
 
 	rootcert, err := taicert.ParseCertificate(ca_b)
 	if err != nil {
@@ -509,7 +509,7 @@ func TestCreateAndVerifyRoot22(t *testing.T) {
 
 func TestReadPemFile(t *testing.T) {
 	path := "./testdata/testcert/peer-expired.pem"
-	byte, _ := cert.ReadPemFileByPath(path)
+	byte, _ := taicert.ReadPemFileByPath(path)
 	encodeca2 := base64.StdEncoding.EncodeToString(byte)
 	fmt.Println(encodeca2)
 }
@@ -763,7 +763,7 @@ func createRootCert(priKey *ecdsa.PrivateKey, name string) (cert []byte, err err
 	}
 
 	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4 {
-		ca_b, err := taicert.CreateRootCert(sm2.ToSm2privatekey(priKey))
+		ca_b, err := taicert.CreateRootCert(cert_sm2.EcsdAToSm2Pri(priKey))
 
 		File, err := os.Create(filepath)
 		defer File.Close()
@@ -808,7 +808,7 @@ func IssueCert(rootCert *x509.Certificate, rootPri *ecdsa.PrivateKey, sonPuk *ec
 	}
 
 	if crypto.CryptoType == crypto.CRYPTO_SM2_SM3_SM4 {
-		ca_b, err := taicert.IssueCert(rootCert, sm2.ToSm2privatekey(rootPri), sm2.ToSm2Publickey(sonPuk))
+		ca_b, err := taicert.IssueCert(rootCert, cert_sm2.EcsdAToSm2Pri(rootPri), cert_sm2.EcsdAToSm2Pubk(sonPuk))
 		if err != nil {
 			return nil, err
 		}

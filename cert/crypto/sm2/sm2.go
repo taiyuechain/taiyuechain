@@ -187,6 +187,24 @@ func (pri *PrivateKey) GetRawBytes() []byte {
 	}
 }
 
+// ecdsa privatekey covert to gm privatekey.
+func EcsdAToSm2Pri(key *ecdsa.PrivateKey) *PrivateKey {
+	return &PrivateKey{
+		D:         key.D,
+
+		Curve:     sm2P256V1,
+	}
+}
+
+//ecdsa publickey covert to gm publickey.
+func EcsdAToSm2Pubk(key *ecdsa.PublicKey) *PublicKey {
+	return &PublicKey{
+		X:     key.X,
+		Y:     key.Y,
+		Curve: sm2P256V1,
+	}
+}
+
 func CalculatePubKey(priv *PrivateKey) *PublicKey {
 	pub := new(PublicKey)
 	pub.Curve = priv.Curve
