@@ -43,7 +43,7 @@ import (
 	"time"
 
 	//	"github.com/tjfoc/gmsm/sm3"
-	"github.com/taiyuechain/test_Gm/gmsm/sm3"
+	"github.com/taiyuechain/taiyuechain/gmsm/sm3"
 	//"golang.org/x/crypto/ripemd160"
 	"golang.org/x/crypto/sha3"
 )
