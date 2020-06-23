@@ -570,18 +570,18 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
-	if len(cfg.CommitteeKey) <= 0 || len(cfg.NodeCertFile) <= 0 {
-		Fatalf("setBftCommitteeKey failed,CommitteeKey is nil or NodeCertFile is nil")
-	} 
-	if data, err := crypto.ReadPemFileByPath(cfg.NodeCertFile); err != nil {
-		Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
-	} else {
-		cfg.NodeCert = data
+	if len(cfg.NodeCertFile) > 0 {
+		if data, err := crypto.ReadPemFileByPath(cfg.NodeCertFile); err != nil {
+			Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
+		} else {
+			cfg.NodeCert = data
+		}
 	}
-
-	if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
-		Fatalf("init CommitteeKey failed,err:", err)
-	} 
+	if len(cfg.CommitteeKey) > 0 {
+		if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
+			Fatalf("init CommitteeKey failed,err:", err)
+		} 
+	}
 }
 
 // setNodeUserIdent creates the user identifier from CLI flags.
