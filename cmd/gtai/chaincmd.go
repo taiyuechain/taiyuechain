@@ -178,6 +178,9 @@ func initGenesis(ctx *cli.Context) error {
 		utils.Fatalf("Must supply path to genesis JSON file or cert path")
 	}
 	genesis := makeGenesis0(genesisPath,certPath)
+	if len(genesis.Committee) == 0 || len(genesis.Committee) != len(genesis.CertList)  {
+		utils.Fatalf("Must supply Committee info and Cert list")
+	}
 	params.ParseExtraDataFromGenesis(genesis.ExtraData)
 	// Open an initialise both full and light databases
 	stack := makeFullNode(ctx)
@@ -536,12 +539,12 @@ func makeEnode(privStr,ct string) error {
 		if ct1,err := strconv.Atoi(ct); err != nil {
 			utils.Fatalf("strconv.Atoi error:%v\n",err)
 		} else {
-			if ct1>=0 && ct1<=2 {
+			if ct1>=1 && ct1<=3 {
 				ct0 = ct1
 			}
 		}
 	}
-	params.KindOfCrypto = byte(ct0)
+	crypto.SetCrtptoType(uint8(ct0))
 	
 	key, err := hex.DecodeString(privStr)
 	if err != nil {
