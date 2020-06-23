@@ -528,6 +528,9 @@ func localEnode(ctx *cli.Context) error {
 	if len(privStr) == 0 {
 		utils.Fatalf("Must supply nodekey")
 	}
+	return makeEnode(privStr,ct)
+}
+func makeEnode(privStr,ct string) error {
 	ct0 := 2
 	if len(ct) > 0 {
 		if ct1,err := strconv.Atoi(ct); err != nil {
