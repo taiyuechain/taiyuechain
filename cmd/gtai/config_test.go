@@ -11,11 +11,17 @@ import (
 func TestConfigTomlFile(t *testing.T) {
 
 	cfg := gethConfig{}
-	file := "./config.toml"
+	file := "d:\\config.toml"
 	if err := loadConfig(file, &cfg); err != nil {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
+	if data, err := crypto.ReadPemFileByPath(cfg.Etrue.NodeCertFile); err != nil {
+		t.Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
+	} else {
+		cfg.Etrue.NodeCert = data
+	}
+
 	pubk, err := crypto.GetPubByteFromCert(cfg.Etrue.NodeCert)
 	if err != nil {
 		fmt.Println(err)

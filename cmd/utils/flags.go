@@ -49,7 +49,6 @@ import (
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	//"github.com/taiyuechain/taiyuechain/dashboard"
-	"crypto/ecdsa"
 
 	"github.com/taiyuechain/taiyuechain/metrics"
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
@@ -555,28 +554,13 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
-	// var (
-	// 	hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
-	// 	file = ctx.GlobalString(NodeKeyFileFlag.Name)
-	// 	key  *ecdsa.PrivateKey
-	// 	err  error
-	// )
-	// switch {
-	// case file != "" && hex != "":
-	// 	Fatalf("Options %q and %q are mutually exclusive", NodeKeyFileFlag.Name, NodeKeyHexFlag.Name)
-	// case file != "":
-	// 	if key, err = crypto.LoadECDSA(file); err != nil {
-	// 		Fatalf("Option %q: %v", NodeKeyFileFlag.Name, err)
-	// 	}
-	// 	cfg.PrivateKey = key
-	// case hex != "":
-	// 	if key, err = crypto.HexToECDSA(hex); err != nil {
-	// 		Fatalf("Option %q: %v", NodeKeyHexFlag.Name, err)
-	// 	}
-	// 	cfg.PrivateKey = key
-	// }
-	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCert) <= 0 {
-		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCert is nil")
+	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCertFile) <= 0 {
+		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCertFile is nil")
+	} 
+	if data, err := crypto.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
+		Fatalf("setNodeKey failed,the wrong P2PNodeCertFile")
+	} else {
+		cfg.P2PNodeCert = data
 	}
 	if key, err := crypto.ToECDSA(cfg.P2PKey); err != nil {
 		Fatalf("Option %v: %v", cfg.P2PKey, err)
@@ -585,13 +569,19 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	}
 }
 
-func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) *ecdsa.PrivateKey {
-	if key, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
-		Fatalf("Option %v: %v", cfg.CommitteeKey, err)
+func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
+	if len(cfg.CommitteeKey) <= 0 || len(cfg.NodeCertFile) <= 0 {
+		Fatalf("setBftCommitteeKey failed,CommitteeKey is nil or NodeCertFile is nil")
+	} 
+	if data, err := crypto.ReadPemFileByPath(cfg.NodeCertFile); err != nil {
+		Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
 	} else {
-		return key
+		cfg.NodeCert = data
 	}
-	return nil
+
+	if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
+		Fatalf("init CommitteeKey failed,err:", err)
+	} 
 }
 
 // setNodeUserIdent creates the user identifier from CLI flags.
@@ -966,17 +956,8 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	}
 
 	//set PrivateKey by config,file or hex
-	priv := setBftCommitteeKey(ctx, cfg)
-	if priv == nil {
-		if cfg.CommitteeKey == nil {
-			Fatalf("init CommitteeKey  nil.")
-		}
-		if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
-			Fatalf("init CommitteeKey failed,err:", err)
-		}
-	} else {
-		cfg.CommitteeKey = crypto.FromECDSA(priv)
-	}
+	setBftCommitteeKey(ctx, cfg)
+
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 	}

@@ -68,7 +68,8 @@ type Config struct {
 	// This field must be set to a valid secp256k1 private key.
 	//caoliang modify
 	PrivateKey  *ecdsa.PrivateKey `toml:"-"`
-	P2PNodeCert []byte
+	P2PNodeCertFile string 
+	P2PNodeCert []byte	`toml:"-"`
 	P2PKey      []byte
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.

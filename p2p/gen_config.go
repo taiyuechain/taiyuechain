@@ -19,8 +19,9 @@ var _ = (*configMarshaling)(nil)
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
 		PrivateKey       *ecdsa.PrivateKey `toml:"-"`
-		P2PNodeCert      hexutil.Bytes
+		P2PNodeCert      hexutil.Bytes  `toml:"-"`
 		P2PKey           hexutil.Bytes
+		P2PNodeCertFile  string
 		MaxPeers         int
 		MaxPendingPeers  int `toml:",omitempty"`
 		DialRatio        int `toml:",omitempty"`
@@ -46,6 +47,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.PrivateKey = c.PrivateKey
 	enc.P2PNodeCert = c.P2PNodeCert
 	enc.P2PKey = c.P2PKey
+	enc.P2PNodeCertFile = c.P2PNodeCertFile
 	enc.MaxPeers = c.MaxPeers
 	enc.MaxPendingPeers = c.MaxPendingPeers
 	enc.DialRatio = c.DialRatio
@@ -73,8 +75,9 @@ func (c Config) MarshalTOML() (interface{}, error) {
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
 		PrivateKey       *ecdsa.PrivateKey `toml:"-"`
-		P2PNodeCert      *hexutil.Bytes
+		P2PNodeCert      *hexutil.Bytes  `toml:"-"`
 		P2PKey           *hexutil.Bytes
+		P2PNodeCertFile  *string
 		MaxPeers         *int
 		MaxPendingPeers  *int `toml:",omitempty"`
 		DialRatio        *int `toml:",omitempty"`
@@ -105,6 +108,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.P2PNodeCert != nil {
 		c.P2PNodeCert = *dec.P2PNodeCert
+	}
+	if dec.P2PNodeCertFile != nil {
+		c.P2PNodeCertFile = *dec.P2PNodeCertFile
 	}
 	if dec.P2PKey != nil {
 		c.P2PKey = *dec.P2PKey

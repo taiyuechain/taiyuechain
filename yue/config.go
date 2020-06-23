@@ -83,7 +83,8 @@ type Config struct {
 	CommitteeKey  []byte
 	CommitteeBase common.Address
 	// Node Cert used for consensus
-	NodeCert []byte
+	NodeCert []byte  `toml:"-"`
+	NodeCertFile string 
 	// Host is the host interface on which to start the pbft server. If this
 	// field is empty, can't be a committee member.
 	Host string `toml:",omitempty"`
@@ -122,7 +123,6 @@ type Config struct {
 type configMarshaling struct {
 	CommitteeKey hexutil.Bytes
 	NodeCert     hexutil.Bytes
-	P2PNodeCert  hexutil.Bytes
 }
 
 func (c *Config) GetNodeType() bool {
