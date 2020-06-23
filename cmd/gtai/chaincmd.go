@@ -177,19 +177,7 @@ func initGenesis(ctx *cli.Context) error {
 	if len(genesisPath) == 0 || len(certPath) == 0 {
 		utils.Fatalf("Must supply path to genesis JSON file or cert path")
 	}
-	file, err := os.Open(genesisPath)
-	if err != nil {
-		utils.Fatalf("Failed to read genesis file: %v", err)
-	}
-	defer file.Close()
-
-	genesis := new(core.Genesis)
-	if err := json.NewDecoder(file).Decode(genesis); err != nil {
-		utils.Fatalf("invalid genesis file: %v", err)
-	}
-	if err := setCertForGenesis(certPath,genesis); err != nil {
-		utils.Fatalf("invalid genesis file: %v", err)
-	}
+	genesis := makeGenesis0(genesisPath,certPath)
 	params.ParseExtraDataFromGenesis(genesis.ExtraData)
 	// Open an initialise both full and light databases
 	stack := makeFullNode(ctx)
@@ -205,6 +193,22 @@ func initGenesis(ctx *cli.Context) error {
 		log.Info("Successfully wrote genesis state", "database", name, "fastHash", fastHash)
 	}
 	return nil
+}
+func makeGenesis0(genesisPath,certPath string) *core.Genesis {
+	file, err := os.Open(genesisPath)
+	if err != nil {
+		utils.Fatalf("Failed to read genesis file: %v", err)
+	}
+	defer file.Close()
+
+	genesis := new(core.Genesis)
+	if err := json.NewDecoder(file).Decode(genesis); err != nil {
+		utils.Fatalf("invalid genesis file: %v", err)
+	}
+	if err := setCertForGenesis(certPath,genesis); err != nil {
+		utils.Fatalf("invalid genesis file: %v", err)
+	}
+	return genesis
 }
 func setCertForGenesis(certPath string,genesis *core.Genesis) error {
 	names,err := getAllFile(certPath)
