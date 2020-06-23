@@ -63,7 +63,7 @@ func TestCreateContractPermissionTable(t *testing.T) {
 
 	checkAddContractPermission(member1,t,false)
 	checkSendTxPermission(member1,t,false)
-	checkCreateContractTxPermission(member1,t,false)
+	checkCreateContractTxPermission(member1,t,true)
 
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
 	printResError(res,err,t,"Grent err")
@@ -177,17 +177,17 @@ func TestContractSimplePermissionTable(t *testing.T) {
 	checkCreateContractTxPermission(member1,t,true)
 
 	//ModifyPerminType_AddContractMemberPerm
-	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractMemberPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,member1,member2,contractAddr,ModifyPerminType_AddContractMemberPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddContractMemberPerm")
 	checkAccessContractPermission(member2,contractAddr,t,true)
 
 	//ModifyPerminType_DelContractMemberPerm
-	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_DelContractMemberPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,member1,member2,contractAddr,ModifyPerminType_DelContractMemberPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelContractMemberPerm")
 	checkAccessContractPermission(member2,contractAddr,t,false)
 
 	//ModifyPerminType_AddContractManagerPerm
-	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractManagerPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,member1,member2,contractAddr,ModifyPerminType_AddContractManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddContractManagerPerm")
 
 	checkAddContractMemberPermission(member2,contractAddr,t,true)
@@ -196,13 +196,13 @@ func TestContractSimplePermissionTable(t *testing.T) {
 	checkDelContractManagerPermission(member2,contractAddr,t,true)
 
 	//ModifyPerminType_DelContractManagerPerm
-	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_DelContractManagerPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,member1,member2,contractAddr,ModifyPerminType_DelContractManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelContractManagerPerm")
 	checkAddContractMemberPermission(member2,contractAddr,t,false)
 	checkDelContractMemberPermission(member2,contractAddr,t,false)
 	checkAddContractManagerPermission(member2,contractAddr,t,false)
 	checkDelContractManagerPermission(member2,contractAddr,t,false)
-	checkAccessContractPermission(member2,contractAddr,t,true)
+	checkAccessContractPermission(member2,contractAddr,t,false)
 
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelCrtContractPerm")
@@ -332,7 +332,7 @@ func TestContractNormalPermissionTable(t *testing.T) {
 
 		t.Fatalf("CheckActionPerm err ModifyPerminType_AddCrtContractPerm")
 	}
-	if ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_CreateContract){
+	if !ptable.CheckActionPerm(member1,common.Address{},common.Address{},PerminType_CreateContract){
 
 		t.Fatalf("CheckActionPerm err PerminType_SendTx")
 	}

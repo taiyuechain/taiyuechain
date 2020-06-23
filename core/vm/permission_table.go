@@ -481,17 +481,14 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 	if isAdd {
 		if pt.GropPermi[member] == nil{
 
-		if pt.UserBasisPermi[member] == nil{
-			pt.UserBasisPermi[member] = &BasisPermin{}
-		}else{
-			if pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID == member {
-				//data base is nill
-				return false,MemberAreadInGropError
-			}}
+			if pt.UserBasisPermi[member] == nil{
+				pt.UserBasisPermi[member] = &BasisPermin{}
+				pt.UserBasisPermi[member].MemberID = member
+				pt.UserBasisPermi[member].CreatorRoot = creator
+			}
 
-			pt.UserBasisPermi[member].MemberID = member
 			pt.UserBasisPermi[member].SendTran = true
-			pt.UserBasisPermi[member].CreatorRoot = creator
+
 
 		}else{
 			if !pt.SetGropMemberRoot(member,creator){

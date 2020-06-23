@@ -77,7 +77,7 @@ func TestSendTxManagerPermissionTable(t *testing.T) {
 
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxManagerPerm")
-	checkSendTxPermission(member1,t,true)
+	checkSendTxPermission(member1,t,false)
 	checkDelSendTxManagerPermission(member1,t,false)
 
 	checkSendTxPermission(member2,t,true)
