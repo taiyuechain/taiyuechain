@@ -156,7 +156,7 @@ func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to
 
 //neo test
 func sendCreateGroupPermissionTranscation(height uint64, gen *core.BlockGen, from common.Address, gropName string, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
-	if height == 60 {
+	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "sendCreateGroupPermissionTranscation", txPool)
 		input := packInput(abiStaking, "createGroupPermission", "sendCreateGroupPermissionTranscation", gropName)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
