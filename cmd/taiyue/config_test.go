@@ -16,13 +16,7 @@ func TestConfigTomlFile(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	if data, err := cert.ReadPemFileByPath(cfg.taiyue.NodeCertFile); err != nil {
-		t.Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
-	} else {
-		cfg.taiyue.NodeCert = data
-	}
-
-	pubk, err := cert.GetPubByteFromCert(cfg.taiyue.NodeCert)
+	pubk, err := cert.GetPubByteFromCert(cfg.taiyue.CommitteeKey)
 	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")

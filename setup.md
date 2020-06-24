@@ -89,7 +89,6 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 config.toml文件配置了链的一些基础参数,下面是一些主要参数的介绍。
 
 + `taiyue.CommitteeKey`: 节点参与委员会的私钥。如果不参与可以忽略。
-+ `taiyue.NodeCertFile`: 节点参与委员会的CA证书文件。如果不参与可以忽略。在国密标准下，可以与CommitteeKey公用相同的私钥。
 + `taiyue.Host`: 节点参与委员会的本机外网IP地址。如果不参与可以忽略。
 + `taiyue.Port`: 节点参与委员会的本机主端口。如果不参与可以忽略。
 + `taiyue.StandbyPort`: 节点参与委员会的本机附端口。如果不参与可以忽略。
@@ -107,7 +106,6 @@ NetworkId = 2812913
 SyncMode = "full"
 MinervaMode = 0
 CommitteeKey = "0x7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
-NodeCertFile = "./cert/nodecert.pem"
 Host = "127.0.0.1"
 Port = 8797
 StandbyPort = 30311
@@ -199,7 +197,6 @@ BootstrapNodes = ["enode://a979fb575495b8d6db44f750317d0f4622bf4c2aa3365d6af7c28
 
 独立配置：
 `taiyue.CommitteeKey`: 4个节点每个节点配置一个私钥，十六进制表示的字符串私钥。
-`taiyue.NodeCertFile`: 4个节点每个节点指定一个证书文件(证书文件完整路径)。
 `taiyue.Host`: 4个节点各自的IP地址(如果需要连接外网，则需要外网IP地址)。
 `Node.DataDir`: 4个节点各自的数据目录,(跟初始化创世时指定的目录一致)。
 `Node.P2P.P2PNodeCertFile`： 4个节点每个节点指定一个证书文件，对应于NodeCertFile参数。

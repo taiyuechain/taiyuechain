@@ -570,13 +570,6 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
-	if len(cfg.NodeCertFile) > 0 {
-		if data, err := taicert.ReadPemFileByPath(cfg.NodeCertFile); err != nil {
-			Fatalf("setBftCommitteeKey failed,the wrong NodeCertFile")
-		} else {
-			cfg.NodeCert = data
-		}
-	}
 	if len(cfg.CommitteeKey) > 0 {
 		if _, err := crypto.ToECDSA(cfg.CommitteeKey); err != nil {
 			Fatalf("init CommitteeKey failed,err:", err)

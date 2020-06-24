@@ -3,7 +3,6 @@ NetworkId = 2812913
 SyncMode = "full"
 MinervaMode = 0
 CommitteeKey = "0x7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
-NodeCertFile = "./cert/nodecert.pem"
 Host = "127.0.0.1"
 Port = 8797
 StandbyPort = 30311
