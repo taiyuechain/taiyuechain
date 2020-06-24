@@ -76,7 +76,6 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
     }
   ]
 ,
-  "coinbase"   		: "0x0000000000000000000000000000000000000000",
   "useGas" 	   		: 1,
   "isCoin"  	: 1,
   "kindOfCrypto" 	: 2,
@@ -89,18 +88,18 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 ### 参数配置
 config.toml文件配置了链的一些基础参数,下面是一些主要参数的介绍。
 
-`taiyue.CommitteeKey`: 节点参与委员会的私钥。如果不参与可以忽略。
-`taiyue.NodeCertFile`: 节点参与委员会的CA证书文件。如果不参与可以忽略。在国密标准下，可以与CommitteeKey公用相同的私钥。
-`taiyue.Host`: 节点参与委员会的本机外网IP地址。如果不参与可以忽略。
-`taiyue.Port`: 节点参与委员会的本机主端口。如果不参与可以忽略。
-`taiyue.StandbyPort`: 节点参与委员会的本机附端口。如果不参与可以忽略。
-`taiyue.NodeType`: 节点启动模式，false表示单节点模式。
++ `taiyue.CommitteeKey`: 节点参与委员会的私钥。如果不参与可以忽略。
++ `taiyue.NodeCertFile`: 节点参与委员会的CA证书文件。如果不参与可以忽略。在国密标准下，可以与CommitteeKey公用相同的私钥。
++ `taiyue.Host`: 节点参与委员会的本机外网IP地址。如果不参与可以忽略。
++ `taiyue.Port`: 节点参与委员会的本机主端口。如果不参与可以忽略。
++ `taiyue.StandbyPort`: 节点参与委员会的本机附端口。如果不参与可以忽略。
++ `taiyue.NodeType`: 节点启动模式，false表示单节点模式。
 
-`Node.DataDir`:  节点数据目录。
-`Node.P2P.ListenAddr`： 节点网络通讯地址。
-`Node.P2P.P2PNodeCertFile`： 节点网络通讯证书文件。
-`Node.P2P.P2PKey`：节点网络通讯的nodekey,用于标识节点的身份，在国密标准下，可以与P2PNodeCertFile公用相同的私钥。
-`Node.P2P.BootstrapNodes`： 节点初始网络发现的地址。
++ `Node.DataDir`:  节点数据目录。
++ `Node.P2P.ListenAddr`： 节点网络通讯地址。
++ `Node.P2P.P2PNodeCertFile`： 节点网络通讯证书文件。
++ `Node.P2P.P2PKey`：节点网络通讯的nodekey,用于标识节点的身份，在国密标准下，可以与P2PNodeCertFile公用相同的私钥。
++ `Node.P2P.BootstrapNodes`： 节点初始网络发现的地址。
 
 ```
 [taiyue]
@@ -139,7 +138,7 @@ IPCPath = "geth.ipc"
 HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
-HTTPModules = ["net", "web3", "yue", "shh", "etrue"]
+HTTPModules = ["net", "web3", "yue", "shh"]
 WSPort = 8546
 WSModules = ["net", "web3", "yue", "shh"]
 
