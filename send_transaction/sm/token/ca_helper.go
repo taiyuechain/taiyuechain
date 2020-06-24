@@ -86,7 +86,7 @@ func DefaulGenesisBlock() *core.Genesis {
 		ExtraData:    nil,
 		GasLimit:     88080384,
 		UseGas:       0,
-		BaseReward:   0,
+		IsCoin:   0,
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{

@@ -60,7 +60,7 @@ type Genesis struct {
 	ExtraData    []byte                   `json:"extraData"`
 	GasLimit     uint64                   `json:"gasLimit"   gencodec:"required"`
 	UseGas       uint8                    `json:"useGas" 		gencodec:"required"`
-	BaseReward   uint8                    `json:"baseReward" 		gencodec:"required"`
+	IsCoin   uint8                    `json:"isCoin" 		gencodec:"required"`
 	KindOfCrypto uint8                    `json:"kindOfCrypto" 		gencodec:"required"`
 	Coinbase     common.Address           `json:"coinbase"`
 	Alloc        types.GenesisAlloc       `json:"alloc"`
@@ -161,8 +161,8 @@ func SetupGenesisBlock(db yuedb.Database, genesis *Genesis) (*params.ChainConfig
 	if genesisBlock != nil {
 		data := genesisBlock.Header().Extra
 		params.ParseExtraDataFromGenesis(data)
-		GasUsed, BaseReward, KindOfCrypto := data[0], data[1], data[2]
-		if err := baseCheck(GasUsed,BaseReward,KindOfCrypto); err != nil {
+		GasUsed, IsCoin, KindOfCrypto := data[0], data[1], data[2]
+		if err := baseCheck(GasUsed,IsCoin,KindOfCrypto); err != nil {
 			return nil,common.Hash{},err
 		}
 	}
@@ -260,7 +260,7 @@ func (g *Genesis) Commit(db yuedb.Database) (*types.Block, error) {
 	return block, nil
 }
 func (g *Genesis) makeExtraData() []byte {
-	h := []byte{g.UseGas, g.BaseReward, g.KindOfCrypto}
+	h := []byte{g.UseGas, g.IsCoin, g.KindOfCrypto}
 	g.ExtraData = h
 	return g.ExtraData
 }
@@ -328,7 +328,7 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 // MustCommit writes the genesis block and state to db, panicking on error.
 // The block is committed as the canonical head block.
 func (g *Genesis) MustCommit(db yuedb.Database) *types.Block {
-	if err := baseCheck(g.UseGas,g.BaseReward,g.KindOfCrypto); err != nil {
+	if err := baseCheck(g.UseGas,g.IsCoin,g.KindOfCrypto); err != nil {
 		panic(err)
 	}
 	block, err := g.Commit(db)
@@ -361,7 +361,7 @@ func DefaultGenesisBlock() *Genesis {
 		Config:       params.MainnetChainConfig,
 		GasLimit:     16777216,
 		UseGas:       1,
-		BaseReward:   1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
 		//Timestamp:  1553918400,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
@@ -433,7 +433,7 @@ func DefaultDevGenesisBlock() *Genesis {
 		Config:       params.DevnetChainConfig,
 		GasLimit:     88080384,
 		UseGas:       1,
-		BaseReward:   1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -465,7 +465,7 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 		Config:       params.SingleNodeChainConfig,
 		GasLimit:     22020096,
 		UseGas:       1,
-		BaseReward:   1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
@@ -504,7 +504,7 @@ func DefaultTestnetGenesisBlock() *Genesis {
 		Config:       params.TestnetChainConfig,
 		GasLimit:     20971520,
 		UseGas:       1,
-		BaseReward:   1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
@@ -524,11 +524,11 @@ func DefaultTestnetGenesisBlock() *Genesis {
 		CertList: certList,
 	}
 }
-func baseCheck(useGas,baseReward,kindCrypto byte) error {
+func baseCheck(useGas,isCoin,kindCrypto byte) error {
 	if int(kindCrypto) < crypto.CRYPTO_P256_SH3_AES || int(kindCrypto) > crypto.CRYPTO_S256_SH3_AES {
 		return errors.New("wrong param on kindCrypto")
 	}
-	if baseReward == 0 && useGas != 0 {
+	if isCoin == 0 && useGas != 0 {
 		return errors.New("has gas used on no any rewards")
 	}
 	return nil

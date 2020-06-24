@@ -85,7 +85,7 @@ func DefaulGenesisBlock() *core.Genesis {
 		Config:       params.DevnetChainConfig,
 		GasLimit:     20971520,
 		UseGas:       1,
-		BaseReward:   1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{

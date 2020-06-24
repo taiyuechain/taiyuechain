@@ -8,7 +8,7 @@ linux下获取源码地址后进行如下操作，将在build目录下生成可�
 ## 运行
 程序首次运行需要初始化创世区块。
 
-`taiyue --datadir "./data" init genesis.json "./cretlist" ` 
+`taiyue --datadir "./data" init genesis.json "./certlist" ` 
 
 使用指定的创世区块配置json文件和初始的根证书列表目录，初始化创世块后，就可以启动泰岳节点了。
 
@@ -38,14 +38,12 @@ linux下获取源码地址后进行如下操作，将在build目录下生成可�
 
 ### genesis参数
 genesis.json文件指定了创世块的样式。创世中定义了chainid,密码库类型，链奖励参数，在有链奖励时，可以配置预分配地址与余额。
-`kindOfCrypto`: 表示加密库类型，2表示国密密码，0表示国际标准密码(S256曲线类型)，1表示国际标准密码(P256曲线类型)
-`baseReward`: 链是否支持币。
-`useGas`: 链支持币是gas有效，否则gas为0。
-`CertList`: 创世根证书列表,该参数在json文件中可忽略，由CA列表指定。
-`committee`: 创世委员会的公钥和奖励地址，委员会的数量与根证书的数量必须保持一致。
-`useGas`: 0--不使用gas即gasprice=0,1--表示使用gas.
-`baseReward`: 表示链是否有奖励(有币)，0--无，1--有。当baseReward=0时，useGas不能为 1.
-`kindOfCrypto`: 表示加密系统类型1-ECC国际标准(p256曲线)，2--ECC国家标准(SM2)，3--ECC国际标准(s256曲线)
+
++ `CertList`: 创世根证书列表,该参数在json文件中可忽略，由CA列表指定。
++ `committee`: 创世委员会的公钥和奖励地址，委员会的数量与根证书的数量必须保持一致。
++ `useGas`: 0--不使用gas即gasprice=0,1--表示使用gas.
++ `isCoin`: 表示链是否有奖励(有币)，0--无，1--有。当isCoin=0时，useGas不能为 1.
++ `kindOfCrypto`: 表示加密系统类型1-ECC国际标准(p256曲线)，2--ECC国家标准(SM2)，3--ECC国际标准(s256曲线)
 
 
 ```
@@ -80,7 +78,7 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 ,
   "coinbase"   		: "0x0000000000000000000000000000000000000000",
   "useGas" 	   		: 1,
-  "baseReward"  	: 1,
+  "isCoin"  	: 1,
   "kindOfCrypto" 	: 2,
   "gasLimit"   		: "0x5400000",
   "parentHash" 		: "0x0000000000000000000000000000000000000000000000000000000000000000",

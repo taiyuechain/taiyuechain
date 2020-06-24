@@ -134,13 +134,13 @@ var (
 )
 var (
 	GasUsed          byte = 1
-	BaseReward       byte = 1
+	IsCoin       byte = 1
 	EnablePermission byte = 0
 )
 
 func ParseExtraDataFromGenesis(data []byte) {
 	if len(data) >= 3 {
-		GasUsed, BaseReward = data[0], data[1]
+		GasUsed, IsCoin = data[0], data[1]
 		crypto.SetCrtptoType(uint8(data[2]))
 	}
 }
@@ -150,8 +150,8 @@ func GetGasUsed() byte {
 func IsGasUsed() bool {
 	return GasUsed != 0
 }
-func GetBaseReward() byte {
-	return BaseReward
+func GetIsCoin() byte {
+	return IsCoin
 }
 
 func IsEnablePermission() bool {

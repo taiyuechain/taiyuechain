@@ -312,7 +312,7 @@ func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, st
 
 // gas allocation
 func (m *Minerva) assginFee(state *state.StateDB, fastNumber *big.Int, feeAmount *big.Int) error {
-	if params.GetBaseReward() == 0 {
+	if params.GetIsCoin() == 0 {
 		return nil
 	}
 	if feeAmount == nil || feeAmount.Uint64() == 0 {

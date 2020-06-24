@@ -23,7 +23,7 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 		ExtraData    hexutil.Bytes                                     `json:"extraData"`
 		GasLimit     math.HexOrDecimal64                               `json:"gasLimit"   gencodec:"required"`
 		UseGas       uint8                                             `json:"useGas" 		gencodec:"required"`
-		BaseReward   uint8                                             `json:"baseReward" 		gencodec:"required"`
+		IsCoin   uint8                                             `json:"isCoin" 		gencodec:"required"`
 		KindOfCrypto uint8                                             `json:"kindOfCrypto" 		gencodec:"required"`
 		Coinbase     common.Address                                    `json:"coinbase"`
 		Alloc        map[common.UnprefixedAddress]types.GenesisAccount `json:"alloc"`
@@ -39,7 +39,7 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 	enc.ExtraData = g.ExtraData
 	enc.GasLimit = math.HexOrDecimal64(g.GasLimit)
 	enc.UseGas = g.UseGas
-	enc.BaseReward = g.BaseReward
+	enc.IsCoin = g.IsCoin
 	enc.KindOfCrypto = g.KindOfCrypto
 	enc.Coinbase = g.Coinbase
 	if g.Alloc != nil {
@@ -69,7 +69,7 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 		ExtraData    *hexutil.Bytes                                    `json:"extraData"`
 		GasLimit     *math.HexOrDecimal64                              `json:"gasLimit"   gencodec:"required"`
 		UseGas       *uint8                                            `json:"useGas" 		gencodec:"required"`
-		BaseReward   *uint8                                            `json:"baseReward" 		gencodec:"required"`
+		IsCoin   *uint8                                            `json:"isCoin" 		gencodec:"required"`
 		KindOfCrypto *uint8                                            `json:"kindOfCrypto" 		gencodec:"required"`
 		Coinbase     *common.Address                                   `json:"coinbase"`
 		Alloc        map[common.UnprefixedAddress]types.GenesisAccount `json:"alloc"`
@@ -99,8 +99,8 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 	if dec.UseGas != nil {
 		g.UseGas = *dec.UseGas
 	}
-	if dec.BaseReward != nil {
-		g.BaseReward = *dec.BaseReward
+	if dec.IsCoin != nil {
+		g.IsCoin = *dec.IsCoin
 	}
 	if dec.KindOfCrypto != nil {
 		g.KindOfCrypto = *dec.KindOfCrypto

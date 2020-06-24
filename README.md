@@ -125,7 +125,7 @@ and agree upon. We provide a single node JSON file at cmd/taiyue/genesis_single.
 ,
   "coinbase"   		: "0x0000000000000000000000000000000000000000",
   "useGas" 	   		: 1,
-  "baseReward"  	: 1,
+  "isCoin"  	: 1,
   "kindOfCrypto" 	: 2,
   "gasLimit"   		: "0x5400000",
   "parentHash" 		: "0x0000000000000000000000000000000000000000000000000000000000000000",
