@@ -61,7 +61,7 @@ func DefaulGenesisBlock() *core.Genesis {
 			mAccount: {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: key1, LocalCert: pbft1Byte},
+			&types.CommitteeMember{Coinbase: coinbase, Publickey: key1},
 		},
 		CertList: certList,
 	}

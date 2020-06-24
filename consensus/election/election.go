@@ -669,7 +669,6 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 		members[i] = &types.CommitteeMember{
 			CommitteeBase: address,
 			Coinbase:      address,
-			LocalCert:     caCert,
 			Publickey:     pub,
 			Flag:          types.StateUsedFlag,
 			MType:         types.TypeWorked,

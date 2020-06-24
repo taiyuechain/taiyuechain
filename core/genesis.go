@@ -516,10 +516,10 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
-			{Coinbase: coinbase, Publickey: seedkey1, LocalCert: cert1},
-			{Coinbase: coinbase, Publickey: seedkey2, LocalCert: cert2},
-			{Coinbase: coinbase, Publickey: seedkey3, LocalCert: cert3},
-			{Coinbase: coinbase, Publickey: seedkey4, LocalCert: cert4},
+			{Coinbase: coinbase, Publickey: seedkey1},
+			{Coinbase: coinbase, Publickey: seedkey2},
+			{Coinbase: coinbase, Publickey: seedkey3},
+			{Coinbase: coinbase, Publickey: seedkey4},
 		},
 		CertList: certList,
 	}

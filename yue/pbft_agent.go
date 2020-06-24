@@ -204,7 +204,6 @@ func (agent *PbftAgent) initNodeInfo(yue Backend) {
 		Port2:     uint32(config.StandbyPort),
 		Coinbase:  coinbase,
 		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
-		LocalCert: config.NodeCert,
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {
@@ -515,8 +514,9 @@ func (agent *PbftAgent) loop() {
 	}
 }
 func (agent *PbftAgent) isCommitteeMemberByCert() bool {
-	err := agent.cIMList.VerifyRootCert(agent.committeeNode.LocalCert)
-	return err == nil
+	// err := agent.cIMList.VerifyRootCert(agent.committeeNode.LocalCert)
+	// return err == nil
+	return false
 }
 
 func copyCommitteeID(CommitteeID *big.Int) *big.Int {

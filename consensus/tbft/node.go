@@ -460,7 +460,7 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
 		}
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1)
 		health := ttypes.NewHealth(id, v.MType, v.Flag, val, self)
 		h.PutWorkHealth(health)
 	}
@@ -471,7 +471,7 @@ func (n *Node) AddHealthForCommittee(h *ttypes.HealthMgr, c *types.CommitteeInfo
 			log.Debug("AddHealthForCommittee pk error", "pk", v.Publickey)
 		}
 		id := pkToP2pID(pk)
-		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1,v.LocalCert)
+		val := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), 1)
 		self := false
 		if n.nodekey.PubKey().Equals(tcrypto.PubKeyTrue(*pk)) {
 			self = true
@@ -593,7 +593,7 @@ func MakeValidators(cmm *types.CommitteeInfo) *ttypes.ValidatorSet {
 			log.Debug("MakeValidators pk error", "pk", m.Publickey)
 		}
 
-		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power,m.LocalCert)
+		v := ttypes.NewValidator(tcrypto.PubKeyTrue(*pk), power)
 		vals = append(vals, v)
 	}
 	return ttypes.NewValidatorSet(vals)
