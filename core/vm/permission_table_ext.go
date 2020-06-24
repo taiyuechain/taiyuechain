@@ -32,10 +32,10 @@ func (pt *PerminTable) Load(state StateDB) error {
 			log.Error("Invalid Permission entry RLP", "err", err)
 			return errors.New(fmt.Sprintf("Invalid Permission entry RLP %s", err.Error()))
 		}
-		tmp := ClonePerminCaCache(&temp)
-		if tmp != nil {
-			PerminCache.Cache.Add(hash, tmp)
-		}
+		//tmp := ClonePerminCaCache(&temp)
+		//if tmp != nil {
+		//	PerminCache.Cache.Add(hash, tmp)
+		//}
 	}
 
 	pt.WhiteList = temp.WhiteList
@@ -60,11 +60,11 @@ func (pt *PerminTable) Save(state StateDB) error {
 	state.SetCAState(preAddr, key, data)
 
 
-	tmp := ClonePerminCaCache(pt)
-	if tmp != nil {
-		hash := types.RlpHash(data)
-		PerminCache.Cache.Add(hash, tmp)
-	}
+	//tmp := ClonePerminCaCache(pt)
+	//if tmp != nil {
+	//	hash := types.RlpHash(data)
+	//	PerminCache.Cache.Add(hash, tmp)
+	//}
 	return err
 }
 
@@ -92,7 +92,8 @@ func (h *extPerminTable) String() string {
 		s += crypto.AddressToHex(v)
 	}
 	s += "ContractPermi\n"
-	for _, v := range h.ContractPermi {
+	for k, v := range h.ContractPermi {
+		s += "key "+ crypto.AddressToHex(h.CPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
 		s += strconv.FormatUint(uint64(v.CreateFlag), 10) + " "
@@ -101,7 +102,8 @@ func (h *extPerminTable) String() string {
 		s += v.BlackMembers.String() + " BlackMembers "
 	}
 	s += "GropPermi\n"
-	for _, v := range h.GropPermi {
+	for k, v := range h.GropPermi {
+		s += "key "+ crypto.AddressToHex(h.GPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -110,7 +112,8 @@ func (h *extPerminTable) String() string {
 		s += v.BlackMembers.String() + " BlackMembers "
 	}
 	s += "SendTranPermi\n"
-	for _, v := range h.SendTranPermi {
+	for k, v := range h.SendTranPermi {
+		s += "key "+ crypto.AddressToHex(h.SPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -119,7 +122,8 @@ func (h *extPerminTable) String() string {
 		s += v.BlackMembers.String() + " BlackMembers "
 	}
 	s += "CrtContracetPermi\n"
-	for _, v := range h.CrtContracetPermi {
+	for k, v := range h.CrtContracetPermi {
+		s += "key "+ crypto.AddressToHex(h.CCPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -128,7 +132,8 @@ func (h *extPerminTable) String() string {
 		s += v.BlackMembers.String() + " BlackMembers "
 	}
 	s += "UserBasisPermi\n"
-	for _, v := range h.UserBasisPermi {
+	for k, v := range h.UserBasisPermi {
+		s += "key "+ crypto.AddressToHex(h.UBPArray[k]) + " "
 		s += crypto.AddressToHex(v.MemberID) + " "
 		s += crypto.AddressToHex(v.CreatorRoot) + " "
 		s += strconv.FormatBool(v.SendTran) + " "
@@ -162,6 +167,7 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 	if err := s.Decode(&ei); err != nil {
 		return err
 	}
+	//fmt.Println("ei load ",ei.String())
 
 	clts := make(map[common.Address]*ContractListTable)
 	for i, cert := range ei.ContractPermi {
@@ -280,6 +286,7 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 		UserBasisPermi:    bps,
 		UBPArray:          bpOrders,
 	}
+	//fmt.Println("ei save ",ei.String())
 	return rlp.Encode(w, ei)
 }
 

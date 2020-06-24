@@ -109,6 +109,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 
 	params.MinTimeGap = big.NewInt(0)
 	params.SnailRewardInterval = big.NewInt(3)
+	params.EnablePermission = 1
 
 	genesis := gspec.MustCommit(db)
 	vm.SetConfig(true,true)
@@ -136,10 +137,10 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 }
 
 //neo test
-func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to,group common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
-		input := packInput(abiStaking, "grantPermission", "grantPermission", from, to, common.Address{}, permission, false)
+		input := packInput(abiStaking, "grantPermission", "grantPermission", common.Address{}, to, group, permission, false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }

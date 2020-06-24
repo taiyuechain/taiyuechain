@@ -129,6 +129,11 @@ func TestContractPermissionTable(t *testing.T) {
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelContractMemberPerm")
 	checkAccessContractPermission(member2,contractAddr,t,false)
 
+	//ModifyPerminType_AddContractMemberPerm
+	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractMemberPerm,"a",true)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddContractMemberPerm")
+	checkAccessContractPermission(member2,contractAddr,t,true)
+
 	//ModifyPerminType_AddContractManagerPerm
 	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_AddContractManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddContractManagerPerm")
@@ -410,9 +415,56 @@ func printResError(res bool,err error,t *testing.T,str string) {
 	}
 }
 
+func checkBothTxGroupPermission(from,gropAddr common.Address,t *testing.T,has bool) {
+	checkBaseManagerSendTxPermission(from,t,true)
+	checkBaseGroupManagerPermission(from,gropAddr,t,true)
+}
+
+func checkNoBothTxGroupPermission(from common.Address,t *testing.T,has bool) {
+	checkNoBaseSendTxPermission(from,t,false)
+	checkNoBaseGroupPermission(from,common.Address{},t,false)
+
+}
+
+func checkNoBaseSendTxPermission(from common.Address,t *testing.T,has bool) {
+	checkSendTxPermission(from,t,false)
+	checkAddSendTxPermission(from,t,false)
+	checkDelSendTxPermission(from,t,false)
+	checkSendTxManagerPermission(from,t,false)
+	checkDelSendTxManagerPermission(from,t,false)
+}
+
+func checkBaseSendTxPermission(from common.Address,t *testing.T,has bool) {
+	checkSendTxPermission(from,t,true)
+	checkAddSendTxPermission(from,t,false)
+	checkDelSendTxPermission(from,t,false)
+	checkSendTxManagerPermission(from,t,false)
+	checkDelSendTxManagerPermission(from,t,false)
+}
+
+func checkBaseManagerSendTxPermission(from common.Address,t *testing.T,has bool) {
+	checkSendTxPermission(from,t,true)
+	checkAddSendTxPermission(from,t,true)
+	checkDelSendTxPermission(from,t,true)
+	checkSendTxManagerPermission(from,t,true)
+	checkDelSendTxManagerPermission(from,t,true)
+}
+
 func checkSendTxPermission(from common.Address,t *testing.T,has bool) {
 	if ptable.CheckActionPerm(from,common.Address{},common.Address{},PerminType_SendTx) != has {
 		printStack("CheckActionPerm err PerminType_SendTx",t)
+	}
+}
+
+func checkAddSendTxPermission(from common.Address,t *testing.T,has bool) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},ModifyPerminType_AddSendTxPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm",t)
+	}
+}
+
+func checkDelSendTxPermission(from common.Address,t *testing.T,has bool) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},ModifyPerminType_DelSendTxPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm",t)
 	}
 }
 
@@ -428,6 +480,33 @@ func checkDelSendTxManagerPermission(from common.Address,t *testing.T,has bool) 
 	}
 }
 
+func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool) {
+	checkGroupSendTxPermission(from,gropAddr,t,false)
+	checkAddGroupMemberPermission(from,gropAddr,t,false)
+	checkDelGroupMemberPermission(from,gropAddr,t,false)
+	checkAddGroupManagerPermission(from,gropAddr,t,false)
+	checkDelGroupManagerPermission(from,gropAddr,t,false)
+	checkDelGropPermission(from,gropAddr,t,false)
+}
+
+func checkBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool) {
+	checkGroupSendTxPermission(from,gropAddr,t,true)
+	checkAddGroupMemberPermission(from,gropAddr,t,false)
+	checkDelGroupMemberPermission(from,gropAddr,t,false)
+	checkAddGroupManagerPermission(from,gropAddr,t,false)
+	checkDelGroupManagerPermission(from,gropAddr,t,false)
+	checkDelGropPermission(from,gropAddr,t,false)
+}
+
+func checkBaseGroupManagerPermission(from, gropAddr common.Address,t *testing.T,has bool) {
+	checkGroupSendTxPermission(from,gropAddr,t,true)
+	checkAddGroupMemberPermission(from,gropAddr,t,true)
+	checkDelGroupMemberPermission(from,gropAddr,t,true)
+	checkAddGroupManagerPermission(from,gropAddr,t,true)
+	checkDelGroupManagerPermission(from,gropAddr,t,true)
+	checkDelGropPermission(from,gropAddr,t,true)
+}
+
 func checkGroupSendTxPermission(from,group common.Address,t *testing.T,has bool) {
 	if ptable.CheckActionPerm(from,group,common.Address{},PerminType_SendTx) != has {
 		printStack("CheckActionPerm err PerminType_SendTx",t)
@@ -440,8 +519,20 @@ func checkAddGroupMemberPermission(member,gropAddr common.Address,t *testing.T,h
 	}
 }
 
+func checkDelGroupMemberPermission(member,gropAddr common.Address,t *testing.T,has bool) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},ModifyPerminType_DelGropMemberPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
 func checkAddGroupManagerPermission(member,gropAddr common.Address,t *testing.T,has bool) {
 	if ptable.CheckActionPerm(member,gropAddr,common.Address{},ModifyPerminType_AddGropManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
+func checkDelGroupManagerPermission(member,gropAddr common.Address,t *testing.T,has bool) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},ModifyPerminType_DelGropManagerPerm) != has {
 		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
 	}
 }
