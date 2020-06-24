@@ -101,7 +101,7 @@ config.toml文件配置了链的一些基础参数,下面是一些主要参数�
 + `Node.P2P.BootstrapNodes`： 节点初始网络发现的地址。
 
 ```
-[taiyue]
+[Taiyue]
 NetworkId = 2812913
 SyncMode = "full"
 MinervaMode = 0
@@ -114,7 +114,7 @@ GasPrice = 10000
 EnablePreimageRecording = false
 NodeType = false
 
-[taiyue.TxPool]
+[Taiyue.TxPool]
 NoLocals = false
 Journal = "transactions.rlp"
 Rejournal = 3600000000000
@@ -126,7 +126,7 @@ AccountQueue = 100
 GlobalQueue = 100
 Lifetime = 10800000000000
 
-[taiyue.GPO]
+[Taiyue.GPO]
 Blocks = 20
 Percentile = 60
 
