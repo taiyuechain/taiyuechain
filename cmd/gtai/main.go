@@ -1,4 +1,4 @@
-// gtai is the official command-line client for Taiyuechain.
+// taiyue is the official command-line client for Taiyuechain.
 package main
 
 import (
@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	clientIdentifier = "gtai" // Client identifier to advertise over the network
+	clientIdentifier = "taiyue" // Client identifier to advertise over the network
 )
 
 var (
@@ -131,10 +131,10 @@ var (
 )
 
 func init() {
-	// Initialize the CLI app and start Gtai
-	app.Action = gtai
+	// Initialize the CLI app and start taiyue
+	app.Action = taiyue
 	app.HideVersion = true // we have a command to print the version
-	app.Copyright = "Copyright 2018-2019 The gtai Authors"
+	app.Copyright = "Copyright 2018-2019 The taiyue Authors"
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
@@ -220,10 +220,10 @@ func main() {
 	}
 }
 
-// gtai is the main entry point into the system if no special subcommand is ran.
+// taiyue is the main entry point into the system if no special subcommand is ran.
 // It creates a default node based on the command line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
-func gtai(ctx *cli.Context) error {
+func taiyue(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
 	node.Wait()

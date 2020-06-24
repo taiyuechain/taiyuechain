@@ -6,12 +6,12 @@ RUN \
   apt-get update && apt-get upgrade -q -y && \
   apt-get install -y --no-install-recommends golang-1.9 git make gcc libc-dev ca-certificates && \
   git clone --depth 1 https://github.com/taiyuechain/taiyuechain && \
-  (cd taiyuechain && make gtai) && \
-  cp taiyuechain/build/bin/gtai /gtai && \
+  (cd taiyuechain && make taiyue) && \
+  cp taiyuechain/build/bin/taiyue /taiyue && \
   apt-get remove -y golang-1.9 git make gcc libc-dev && apt autoremove -y && apt-get clean && \
   rm -rf /taiyuechain
 
 EXPOSE 8545
 EXPOSE 30303
 
-ENTRYPOINT ["/gtai"]
+ENTRYPOINT ["/taiyue"]

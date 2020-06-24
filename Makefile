@@ -2,20 +2,20 @@
 # with Go source code. If you know what GOPATH is then you probably
 # don't need to bother with make.
 
-.PHONY: gtai deps android ios gtai-cross swarm evm all test clean
-.PHONY: gtai-linux gtai-linux-386 gtai-linux-amd64 gtai-linux-mips64 gtai-linux-mips64le
-.PHONY: gtai-linux-arm gtai-linux-arm-5 gtai-linux-arm-6 gtai-linux-arm-7 gtai-linux-arm64
-.PHONY: gtai-darwin gtai-darwin-386 gtai-darwin-amd64
-.PHONY: gtai-windows gtai-windows-386 gtai-windows-amd64
+.PHONY: taiyue deps android ios taiyue-cross swarm evm all test clean
+.PHONY: taiyue-linux taiyue-linux-386 taiyue-linux-amd64 taiyue-linux-mips64 taiyue-linux-mips64le
+.PHONY: taiyue-linux-arm taiyue-linux-arm-5 taiyue-linux-arm-6 taiyue-linux-arm-7 taiyue-linux-arm64
+.PHONY: taiyue-darwin taiyue-darwin-386 taiyue-darwin-amd64
+.PHONY: taiyue-windows taiyue-windows-386 taiyue-windows-amd64
 
 GOBIN = $(shell pwd)/build/bin
 GO ?= latest
 DEPS = $(shell pwd)/internal/jsre/deps
 
-gtai:
-	build/env.sh go run build/ci.go install ./cmd/gtai
+taiyue:
+	build/env.sh go run build/ci.go install ./cmd/taiyue
 	@echo "Done building."
-	@echo "Run \"$(GOBIN)/gtai\" to launch gtai."
+	@echo "Run \"$(GOBIN)/taiyue\" to launch taiyue."
 
 deps:
 	cd $(DEPS) &&	go-bindata -nometadata -pkg deps -o bindata.go bignumber.js web3.js
@@ -33,12 +33,12 @@ all:
 # android:
 #	build/env.sh go run build/ci.go aar --local
 #	@echo "Done building."
-#	@echo "Import \"$(GOBIN)/gtai.aar\" to use the library."
+#	@echo "Import \"$(GOBIN)/taiyue.aar\" to use the library."
 
 # ios:
 #	build/env.sh go run build/ci.go xcode --local
 #	@echo "Done building."
-#	@echo "Import \"$(GOBIN)/Gtai.framework\" to use the library."
+#	@echo "Import \"$(GOBIN)/taiyue.framework\" to use the library."
 
 test: all
 	build/env.sh go run build/ci.go test
@@ -64,92 +64,92 @@ devtools:
 
 # Cross Compilation Targets (xgo)
 
-gtai-cross: gtai-linux gtai-darwin gtai-windows gtai-android gtai-ios
+taiyue-cross: taiyue-linux taiyue-darwin taiyue-windows taiyue-android taiyue-ios
 	@echo "Full cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-*
+	@ls -ld $(GOBIN)/taiyue-*
 
-gtai-linux: gtai-linux-386 gtai-linux-amd64 gtai-linux-arm gtai-linux-mips64 gtai-linux-mips64le
+taiyue-linux: taiyue-linux-386 taiyue-linux-amd64 taiyue-linux-arm taiyue-linux-mips64 taiyue-linux-mips64le
 	@echo "Linux cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-*
+	@ls -ld $(GOBIN)/taiyue-linux-*
 
-gtai-linux-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/gtai
+taiyue-linux-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/386 -v ./cmd/taiyue
 	@echo "Linux 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep 386
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep 386
 
-gtai-linux-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/gtai
+taiyue-linux-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/amd64 -v ./cmd/taiyue
 	@echo "Linux amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep amd64
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep amd64
 
-gtai-linux-arm: gtai-linux-arm-5 gtai-linux-arm-6 gtai-linux-arm-7 gtai-linux-arm64
+taiyue-linux-arm: taiyue-linux-arm-5 taiyue-linux-arm-6 taiyue-linux-arm-7 taiyue-linux-arm64
 	@echo "Linux ARM cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep arm
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep arm
 
-gtai-linux-arm-5:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/gtai
+taiyue-linux-arm-5:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-5 -v ./cmd/taiyue
 	@echo "Linux ARMv5 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep arm-5
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep arm-5
 
-gtai-linux-arm-6:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/gtai
+taiyue-linux-arm-6:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-6 -v ./cmd/taiyue
 	@echo "Linux ARMv6 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep arm-6
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep arm-6
 
-gtai-linux-arm-7:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/gtai
+taiyue-linux-arm-7:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm-7 -v ./cmd/taiyue
 	@echo "Linux ARMv7 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep arm-7
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep arm-7
 
-gtai-linux-arm64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/gtai
+taiyue-linux-arm64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/arm64 -v ./cmd/taiyue
 	@echo "Linux ARM64 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep arm64
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep arm64
 
-gtai-linux-mips:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/gtai
+taiyue-linux-mips:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips --ldflags '-extldflags "-static"' -v ./cmd/taiyue
 	@echo "Linux MIPS cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep mips
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep mips
 
-gtai-linux-mipsle:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/gtai
+taiyue-linux-mipsle:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mipsle --ldflags '-extldflags "-static"' -v ./cmd/taiyue
 	@echo "Linux MIPSle cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep mipsle
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep mipsle
 
-gtai-linux-mips64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/gtai
+taiyue-linux-mips64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64 --ldflags '-extldflags "-static"' -v ./cmd/taiyue
 	@echo "Linux MIPS64 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep mips64
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep mips64
 
-gtai-linux-mips64le:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/gtai
+taiyue-linux-mips64le:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=linux/mips64le --ldflags '-extldflags "-static"' -v ./cmd/taiyue
 	@echo "Linux MIPS64le cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-linux-* | grep mips64le
+	@ls -ld $(GOBIN)/taiyue-linux-* | grep mips64le
 
-gtai-darwin: gtai-darwin-386 gtai-darwin-amd64
+taiyue-darwin: taiyue-darwin-386 taiyue-darwin-amd64
 	@echo "Darwin cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-darwin-*
+	@ls -ld $(GOBIN)/taiyue-darwin-*
 
-gtai-darwin-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/gtai
+taiyue-darwin-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/386 -v ./cmd/taiyue
 	@echo "Darwin 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-darwin-* | grep 386
+	@ls -ld $(GOBIN)/taiyue-darwin-* | grep 386
 
-gtai-darwin-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/gtai
+taiyue-darwin-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=darwin/amd64 -v ./cmd/taiyue
 	@echo "Darwin amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-darwin-* | grep amd64
+	@ls -ld $(GOBIN)/taiyue-darwin-* | grep amd64
 
-gtai-windows: gtai-windows-386 gtai-windows-amd64
+taiyue-windows: taiyue-windows-386 taiyue-windows-amd64
 	@echo "Windows cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-windows-*
+	@ls -ld $(GOBIN)/taiyue-windows-*
 
-gtai-windows-386:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/gtai
+taiyue-windows-386:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/386 -v ./cmd/taiyue
 	@echo "Windows 386 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-windows-* | grep 386
+	@ls -ld $(GOBIN)/taiyue-windows-* | grep 386
 
-gtai-windows-amd64:
-	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/gtai
+taiyue-windows-amd64:
+	build/env.sh go run build/ci.go xgo -- --go=$(GO) --targets=windows/amd64 -v ./cmd/taiyue
 	@echo "Windows amd64 cross compilation done:"
-	@ls -ld $(GOBIN)/gtai-windows-* | grep amd64
+	@ls -ld $(GOBIN)/taiyue-windows-* | grep amd64

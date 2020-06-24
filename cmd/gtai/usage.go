@@ -1,4 +1,4 @@
-// Contains the gtai command usage template and generator.
+// Contains the taiyue command usage template and generator.
 
 package main
 

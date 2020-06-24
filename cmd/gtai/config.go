@@ -63,7 +63,7 @@ type etruestatsConfig struct {
 }
 
 type gethConfig struct {
-	GTai      yue.Config
+	taiyue      yue.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
 	//Dashboard  dashboard.Config
@@ -90,14 +90,14 @@ func defaultNodeConfig() node.Config {
 	cfg.Version = params.VersionWithCommit(gitCommit)
 	cfg.HTTPModules = append(cfg.HTTPModules, "yue", "shh", "etrue")
 	cfg.WSModules = append(cfg.WSModules, "yue")
-	cfg.IPCPath = "gtai.ipc"
+	cfg.IPCPath = "taiyue.ipc"
 	return cfg
 }
 
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		GTai: yue.DefaultConfig,
+		taiyue: yue.DefaultConfig,
 		Node:  defaultNodeConfig(),
 	}
 
@@ -105,8 +105,8 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		//prikey, _ := crypto.HexToECDSA("c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc")  // gj
 		prikey, _ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75") // gm
 
-		cfg.GTai.CommitteeKey = crypto.FromECDSA(prikey)
-		cfg.GTai.NetworkId = 400
+		cfg.taiyue.CommitteeKey = crypto.FromECDSA(prikey)
+		cfg.taiyue.NetworkId = 400
 
 		//set node config
 		cfg.Node.HTTPPort = 8888
@@ -116,7 +116,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 
 		strcert1 := "3082028e3082023aa0030201020201ff300a06082a811ccf55018375303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d301e170d3230303630313034313133385a170d3233303830323133353831385a303031133011060355040a0c0acea32041636d6520436f3119301706035504031310746573742e6578616d706c652e636f6d3059301306072a8648ce3d020106082a811ccf5501822d03420004bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bda38201433082013f300e0603551d0f0101ff04040302020430260603551d25041f301d06082b0601050507030206082b0601050507030106022a030603810b01300f0603551d130101ff040530030101ff300d0603551d0e0406040401020304305f06082b0601050507010104533051302306082b060105050730018617687474703a2f2f6f6373702e6578616d706c652e636f6d302a06082b06010505073002861e687474703a2f2f6372742e6578616d706c652e636f6d2f6361312e637274301a0603551d1104133011820f666f6f2e6578616d706c652e636f6d300f0603551d2004083006300406022a0330570603551d1f0450304e3025a023a021861f687474703a2f2f63726c312e6578616d706c652e636f6d2f6361312e63726c3025a023a021861f687474703a2f2f63726c322e6578616d706c652e636f6d2f6361312e63726c300a06082a811ccf550183750342008851ca997c3b35b6de11fa5e43d04dfb76cd4177c4517e60f72db9373fec1a3731c46b70b562240a1cbd98e22dec6e1fd857e6b88fee893897c39e61e9bb502c01"
 		cert1, _ := hex.DecodeString(strcert1)
-		cfg.GTai.NodeCert = cert1
+		cfg.taiyue.NodeCert = cert1
 		cfg.Node.P2P.P2PNodeCert = cert1
 		ctx.GlobalSet("datadir", "./data")
 	}
@@ -134,7 +134,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetTaichainConfig(ctx, stack, &cfg.GTai)
+	utils.SetTaichainConfig(ctx, stack, &cfg.taiyue)
 	if ctx.GlobalIsSet(utils.EtrueStatsURLFlag.Name) {
 		cfg.Etruestats.URL = ctx.GlobalString(utils.EtrueStatsURLFlag.Name)
 	}
@@ -147,7 +147,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
-	utils.RegisterYueService(stack, &cfg.GTai)
+	utils.RegisterYueService(stack, &cfg.taiyue)
 
 	/*if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
@@ -165,8 +165,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.GTai.Genesis != nil {
-		cfg.GTai.Genesis = nil
+	if cfg.taiyue.Genesis != nil {
+		cfg.taiyue.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

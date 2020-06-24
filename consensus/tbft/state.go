@@ -1311,7 +1311,7 @@ func (cs *ConsensusState) finalizeCommit(height uint64) {
 	cs.swithResult(block)
 	err = cs.state.ConsensusCommit(block)
 	if err != nil {
-		log.Debug("Error on ApplyBlock. Did the application crash? Please restart gtai", "err", err)
+		log.Debug("Error on ApplyBlock. Did the application crash? Please restart taiyue", "err", err)
 		return
 	}
 	// Save to blockStore.
