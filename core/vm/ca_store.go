@@ -201,7 +201,7 @@ func (ca *CACertList) addCertToList(caCert []byte, epoch uint64, isInit bool,pub
 
 	}
 
-	cac := &CACert{}
+	cac := &CACert{Pubky: make(map[common.Hash][]byte)}
 	if ca.caCertMap[epoch] == nil {
 		cac.CACert = append(cac.CACert, caCert)
 		cac.Pubky[types.RlpHash(caCert)] = pubk

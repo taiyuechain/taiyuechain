@@ -27,8 +27,6 @@ import (
 
 	//"crypto/ecdsa"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/cert"
-
 	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
@@ -654,11 +652,12 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 	for i, caCert := range caCertMap.CACert {
 		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", caCert)
 
-		pub, err := cert.GetPubByteFromCert(caCert)
-		if err != nil {
-			log.Warn("assignmentCommitteeMember", "GetPubByteFromCert err", err)
+		pub,ok := caCertMap.Pubky[types.RlpHash(caCert)]
+		if !ok {
+			log.Warn("assignmentCommitteeMember pub not exist")
 			continue
 		}
+
 		pubkey, err := crypto.UnmarshalPubkey(pub)
 		if err != nil {
 			log.Warn("assignmentCommitteeMember", "UnmarshalPubkey err", err)

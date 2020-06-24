@@ -16,7 +16,7 @@ func TestConfigTomlFile(t *testing.T) {
 		fmt.Println(err)
 		t.Fatalf("load config fale")
 	}
-	pubk, err := cert.GetPubByteFromCert(cfg.taiyue.CommitteeKey)
+	pubk, err := cert.GetPubByteFromCert(cfg.Taiyue.CommitteeKey)
 	if err != nil {
 		fmt.Println(err)
 		t.Fatalf("cer1")
@@ -24,9 +24,9 @@ func TestConfigTomlFile(t *testing.T) {
 	fmt.Println(hex.EncodeToString(pubk))
 
 	fmt.Println("---the commite")
-	fmt.Println(hex.EncodeToString(cfg.taiyue.CommitteeKey))
-	fmt.Println(hex.EncodeToString(cfg.taiyue.CommitteeBase[:]))
-	//fmt.Println(cfg.taiyue.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
+	fmt.Println(hex.EncodeToString(cfg.Taiyue.CommitteeKey))
+	fmt.Println(hex.EncodeToString(cfg.Taiyue.CommitteeBase[:]))
+	//fmt.Println(cfg.Taiyue.Genesis.Alloc["0xbD1edee3bdD812BB5058Df1F1392dDdd99dE58cc"])
 }
 func Test_01(t *testing.T) {
 	privStr := "c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc"

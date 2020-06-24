@@ -214,8 +214,6 @@ func (agent *PbftAgent) initNodeInfo(yue Backend) {
 		agent.committeeNode.Coinbase = committees[0].Coinbase
 		agent.committeeNode.Publickey = committees[0].Publickey
 		agent.isCurrentCommitteeMember = true
-	} else if agent.isCommitteeMemberByCert() {
-		checkBftIp(config.Host)
 	}
 	log.Info("InitNodeInfo", "singleNode", agent.singleNode,
 		", port", config.Port, ", standByPort", config.StandbyPort, ", Host", config.Host,
@@ -385,8 +383,7 @@ func (agent *PbftAgent) loop() {
 					continue
 				}
 				agent.setCommitteeInfo(currentCommittee, types.CopyCommitteeInfo(agent.nextCommitteeInfo))
-				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
-				if agent.isCommitteeMemberByCert() && checkBftIp(agent.committeeNode.IP) {
+				if agent.isCommitteeMember(agent.currentCommitteeInfo) && checkBftIp(agent.committeeNode.IP) {
 					agent.isCurrentCommitteeMember = true
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				} else {
@@ -398,8 +395,7 @@ func (agent *PbftAgent) loop() {
 				if !agent.verifyCommitteeID(ch.Option, committeeID) {
 					continue
 				}
-				//if agent.isCommitteeMember(agent.currentCommitteeInfo) {
-				if agent.isCommitteeMemberByCert() && checkBftIp(agent.committeeNode.IP) {
+				if agent.isCommitteeMember(agent.currentCommitteeInfo) && checkBftIp(agent.committeeNode.IP) {
 					go help.CheckAndPrintError(agent.server.Notify(committeeID, int(ch.Option)))
 				}
 				agent.stopSend()
@@ -512,11 +508,6 @@ func (agent *PbftAgent) loop() {
 			go agent.putCacheInsertChain(ch.Block)
 		}
 	}
-}
-func (agent *PbftAgent) isCommitteeMemberByCert() bool {
-	// err := agent.cIMList.VerifyRootCert(agent.committeeNode.LocalCert)
-	// return err == nil
-	return false
 }
 
 func copyCommitteeID(CommitteeID *big.Int) *big.Int {
@@ -1132,6 +1123,12 @@ func (agent *PbftAgent) IsUsedOrUnusedMember(committeeInfo *types.CommitteeInfo,
 //IsCommitteeMember  whether agent in  committee member
 func (agent *PbftAgent) getMemberFlagFromCommittee(committeeInfo *types.CommitteeInfo) uint32 {
 	return agent.election.GetMemberFlag(committeeInfo.GetAllMembers(), agent.committeeNode.Publickey)
+}
+
+//IsCommitteeMember  whether agent in  committee member
+func (agent *PbftAgent) isCommitteeMember(committeeInfo *types.CommitteeInfo) bool {
+	flag := agent.getMemberFlagFromCommittee(committeeInfo)
+	return flag == types.StateUsedFlag
 }
 
 // VerifyCommitteeSign verify sign of node is in committee

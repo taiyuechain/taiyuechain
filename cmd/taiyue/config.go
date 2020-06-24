@@ -63,7 +63,7 @@ type etruestatsConfig struct {
 }
 
 type gethConfig struct {
-	taiyue      yue.Config
+	Taiyue     yue.Config
 	Node       node.Config
 	Etruestats etruestatsConfig
 	//Dashboard  dashboard.Config
@@ -97,16 +97,16 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
-		taiyue: yue.DefaultConfig,
-		Node:  defaultNodeConfig(),
+		Taiyue: yue.DefaultConfig,
+		Node:   defaultNodeConfig(),
 	}
 
 	if ctx.GlobalBool(utils.SingleNodeFlag.Name) {
 		//prikey, _ := crypto.HexToECDSA("c1581e25937d9ab91421a3e1a2667c85b0397c75a195e643109938e987acecfc")  // gj
 		prikey, _ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75") // gm
 
-		cfg.taiyue.CommitteeKey = crypto.FromECDSA(prikey)
-		cfg.taiyue.NetworkId = 400
+		cfg.Taiyue.CommitteeKey = crypto.FromECDSA(prikey)
+		cfg.Taiyue.NetworkId = 400
 
 		//set node config
 		cfg.Node.HTTPPort = 8888
@@ -133,7 +133,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetTaichainConfig(ctx, stack, &cfg.taiyue)
+	utils.SetTaichainConfig(ctx, stack, &cfg.Taiyue)
 	if ctx.GlobalIsSet(utils.EtrueStatsURLFlag.Name) {
 		cfg.Etruestats.URL = ctx.GlobalString(utils.EtrueStatsURLFlag.Name)
 	}
@@ -146,7 +146,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 
-	utils.RegisterYueService(stack, &cfg.taiyue)
+	utils.RegisterYueService(stack, &cfg.Taiyue)
 
 	/*if ctx.GlobalBool(utils.DashboardEnabledFlag.Name) {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
@@ -164,8 +164,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.taiyue.Genesis != nil {
-		cfg.taiyue.Genesis = nil
+	if cfg.Taiyue.Genesis != nil {
+		cfg.Taiyue.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

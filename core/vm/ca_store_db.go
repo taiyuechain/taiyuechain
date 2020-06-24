@@ -199,6 +199,53 @@ func (i *ProposalState) EncodeRLP(w io.Writer) error {
 	})
 }
 
+type extCACert struct {
+	CACert  []Cert   `json:"cacert"`
+	Pubky   [][]byte // cacert hash=> publick key
+	PbArr   []common.Hash
+	IsStore []bool `json:"isstore"`
+}
+
+func (i *CACert) DecodeRLP(s *rlp.Stream) error {
+	var ei extCACert
+	if err := s.Decode(&ei); err != nil {
+		return err
+	}
+	proposals := make(map[common.Hash][]byte)
+	for i, proposal := range ei.Pubky {
+		proposals[ei.PbArr[i]] = proposal
+	}
+
+	i.CACert, i.Pubky, i.IsStore = ei.CACert, proposals, ei.IsStore
+	return nil
+}
+
+// EncodeRLP serializes b into the truechain RLP ImpawnImpl format.
+func (i *CACert) EncodeRLP(w io.Writer) error {
+	var proposals [][]byte
+	var proposalOrders []common.Hash
+	for i, _ := range i.Pubky {
+		proposalOrders = append(proposalOrders, i)
+	}
+	for m := 0; m < len(proposalOrders)-1; m++ {
+		for n := 0; n < len(proposalOrders)-1-m; n++ {
+			if proposalOrders[n].Big().Cmp(proposalOrders[n+1].Big()) > 0 {
+				proposalOrders[n], proposalOrders[n+1] = proposalOrders[n+1], proposalOrders[n]
+			}
+		}
+	}
+	for _, index := range proposalOrders {
+		proposals = append(proposals, i.Pubky[index])
+	}
+
+	return rlp.Encode(w, extCACert{
+		CACert:  i.CACert,
+		Pubky:   proposals,
+		PbArr:   proposalOrders,
+		IsStore: i.IsStore,
+	})
+}
+
 func (c *CACertList) GetCACertList() *CACertList {
 	return c
 }
