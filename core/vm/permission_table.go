@@ -1363,6 +1363,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}
 
 	case PerminType_AccessContract:
+
 		if pt.ContractPermi[contractAddr] == nil{
 			return false
 		}
@@ -1378,6 +1379,10 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 				return false
 			}
 		}
+
+		 if pt.ContractPermi[contractAddr].Creator == from{
+		 	return true
+		 }
 
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{

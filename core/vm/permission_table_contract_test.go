@@ -315,7 +315,7 @@ func checkBaseCrtContractPermission(from common.Address,t *testing.T,has bool) {
 }
 
 func checkBaseCrtManagerContractPermission(from common.Address,t *testing.T,has bool) {
-	checkCreateContractTxPermission(from,t,has)
+	//checkCreateContractTxPermission(from,t,has)
 	checkAddContractPermission(from,t,has)
 	checkDelContractPermission(from,t,has)
 	checkAddCrtContractManagerPermission(from,t,has)
@@ -325,19 +325,19 @@ func checkBaseCrtManagerContractPermission(from common.Address,t *testing.T,has 
 func checkBaseContractPermission(from,contract common.Address,t *testing.T,has bool) {
 	checkAccessContractPermission(from,contract,t,has)
 
-	checkAddContractMemberPermission(member1,contract,t,false)
-	checkDelContractMemberPermission(member1,contract,t,false)
-	checkAddContractManagerPermission(member1,contract,t,false)
-	checkDelContractManagerPermission(member1,contract,t,false)
+	checkAddContractMemberPermission(from,contract,t,false)
+	checkDelContractMemberPermission(from,contract,t,false)
+	checkAddContractManagerPermission(from,contract,t,false)
+	checkDelContractManagerPermission(from,contract,t,false)
 }
 
 func checkBaseManagerContractPermission(from,contract common.Address,t *testing.T,has bool) {
-	checkAccessContractPermission(from,contract,t,has)
+	//checkAccessContractPermission(from,contract,t,has)
 
-	checkAddContractMemberPermission(member1,contract,t,has)
-	checkDelContractMemberPermission(member1,contract,t,has)
-	checkAddContractManagerPermission(member1,contract,t,has)
-	checkDelContractManagerPermission(member1,contract,t,has)
+	checkAddContractMemberPermission(from,contract,t,has)
+	checkDelContractMemberPermission(from,contract,t,has)
+	checkAddContractManagerPermission(from,contract,t,has)
+	checkDelContractManagerPermission(from,contract,t,has)
 }
 
 func checkCreateContractTxPermission(from common.Address,t *testing.T,has bool) {
@@ -485,7 +485,7 @@ func checkDelSendTxManagerPermission(from common.Address,t *testing.T,has bool) 
 }
 
 func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool) {
-	checkGroupSendTxPermission(from,gropAddr,t,false)
+	//checkGroupSendTxPermission(from,gropAddr,t,false)
 	checkAddGroupMemberPermission(from,gropAddr,t,false)
 	checkDelGroupMemberPermission(from,gropAddr,t,false)
 	checkAddGroupManagerPermission(from,gropAddr,t,false)

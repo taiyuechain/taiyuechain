@@ -108,7 +108,7 @@ func TestGroupPermission(t *testing.T) {
 	printResError(res,err,t,"Grent err,ModifyPerminType_CrtGrop")
 
 	gropAddr := crypto.CreateGroupkey(member1,3)
-	res, err =ptable.GrantPermission(member1,root1,member2,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
+	res, err =ptable.GrantPermission(member1,member1,member2,gropAddr,ModifyPerminType_AddGropMemberPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_AddGropMemberPerm")
 	checkNoBaseSendTxPermission(member2,t,false)
 
