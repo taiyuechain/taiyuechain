@@ -834,7 +834,7 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].WhiteMembers.Manager = append(pt.CrtContracetPermi[key].WhiteMembers.Manager,mber )
 
-			pt.UserBasisPermi[member].CrtContract = true
+			//pt.UserBasisPermi[member].CrtContract = true
 
 	}else{
 
@@ -1480,14 +1480,14 @@ func (pt *PerminTable)checkCrtContract(from,creator common.Address) bool{
 
 
 	}else{
-		if pt.CrtContracetPermi[key].WhiteMembers.Manager == nil{
+		if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil{
 
 			for _ ,m := range pt.CrtContracetPermi[key].WhiteMembers.Manager{
 				//need check MemberID is grop id or not
 				if pt.GropPermi[m.MemberID] != nil{
 					return pt.findMember(m.MemberID,from,false)
 				}else{
-					if m.MemberID == from{return false}
+					if m.MemberID == from{return true}
 				}
 
 			}
@@ -1500,7 +1500,7 @@ func (pt *PerminTable)checkCrtContract(from,creator common.Address) bool{
 				if pt.GropPermi[m.MemberID] != nil{
 					return pt.findMember(m.MemberID,from,false)
 				}else{
-					if m.MemberID == from{return false}
+					if m.MemberID == from{return true}
 				}
 
 			}
