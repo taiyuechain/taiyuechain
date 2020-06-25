@@ -132,7 +132,7 @@ Percentile = 60
 
 [Node]
 DataDir = "data"
-IPCPath = "geth.ipc"
+IPCPath = "taiyue.ipc"
 HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
@@ -158,7 +158,9 @@ BootstrapNodes = ["enode://a979fb575495b8d6db44f750317d0f4622bf4c2aa3365d6af7c28
 
 下载代码并编译：
 > git clone https://github.com/taiyuechain/taiyuechain.git
+
 > cd taiyuechain
+
 > make taiyue
 	
 配置创世区块信息：

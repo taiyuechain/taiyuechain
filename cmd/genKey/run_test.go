@@ -14,7 +14,7 @@ type testGenkey struct {
 }
 
 // spawns ethkey with the given command line args.
-func runEthkey(t *testing.T, args ...string) *testGenkey {
+func runGenkey(t *testing.T, args ...string) *testGenkey {
 	tt := new(testGenkey)
 	tt.TestCmd = cmdtest.NewTestCmd(t, tt)
 	tt.Run("genkey-test", args...)
@@ -22,7 +22,7 @@ func runEthkey(t *testing.T, args ...string) *testGenkey {
 }
 
 func TestMain(m *testing.M) {
-	// Run the app if we've been exec'd as "genkey-test" in runEthkey.
+	// Run the app if we've been exec'd as "genkey-test" in runGenkey.
 	reexec.Register("genkey-test", func() {
 		if err := app.Run(os.Args); err != nil {
 			fmt.Fprintln(os.Stderr, err)
