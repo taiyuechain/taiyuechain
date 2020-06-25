@@ -98,10 +98,10 @@ func (b *BlockGen) AddTx(tx *types.Transaction) {
 func (b *BlockGen) AddTxWithChain(bc *BlockChain, tx *types.Transaction) {
 	if b.gasPool == nil {
 		b.SetCoinbase(common.Address{})
+		b.feeAmout = big.NewInt(0)
 	}
 	b.statedb.Prepare(tx.Hash(), common.Hash{}, len(b.txs))
 
-	feeAmount := big.NewInt(0)
 	debug := false
 	var (
 		vmConf    vm.Config
@@ -124,7 +124,7 @@ func (b *BlockGen) AddTxWithChain(bc *BlockChain, tx *types.Transaction) {
 		}
 	}
 
-	receipt, _, err := ApplyTransaction(b.config, bc, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, feeAmount, vmConf)
+	receipt, _, err := ApplyTransaction(b.config, bc, b.gasPool, b.statedb, b.header, tx, &b.header.GasUsed, b.feeAmout, vmConf)
 	if debug {
 		if writer != nil {
 			writer.Flush()
@@ -139,7 +139,6 @@ func (b *BlockGen) AddTxWithChain(bc *BlockChain, tx *types.Transaction) {
 	}
 	b.txs = append(b.txs, tx)
 	b.receipts = append(b.receipts, receipt)
-	b.feeAmout = feeAmount
 }
 
 // Number returns the block number of the block being generated.

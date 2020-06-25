@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"runtime/debug"
+	"testing"
 
 	"github.com/taiyuechain/taiyuechain/cim"
 
@@ -146,10 +148,10 @@ func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to,
 }
 
 //neo test
-func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
-		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelSendTxPerm)), false)
+		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, permission, false)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }
@@ -255,5 +257,253 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 		} else {
 			txPool.AddRemotes([]*types.Transaction{tx})
 		}
+	}
+}
+
+func loadPermissionTable(state *state.StateDB) *vm.PerminTable {
+	ptable := vm.NewPerminTable()
+	ptable.Load(state)
+	return ptable
+}
+
+func checkBaseCrtContractPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkCreateContractTxPermission(from,t,has,ptable)
+
+	checkAddContractPermission(from,t,false,ptable)
+	checkDelContractPermission(from,t,false,ptable)
+	checkAddCrtContractManagerPermission(from,t,false,ptable)
+	checkDelCrtContractManagerPermission(from,t,false,ptable)
+}
+
+func checkBaseCrtManagerContractPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkCreateContractTxPermission(from,t,has,ptable)
+	checkAddContractPermission(from,t,has,ptable)
+	checkDelContractPermission(from,t,has,ptable)
+	checkAddCrtContractManagerPermission(from,t,has,ptable)
+	checkDelCrtContractManagerPermission(from,t,has,ptable)
+}
+
+func checkBaseContractPermission(from,contract common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkAccessContractPermission(from,contract,t,has,ptable)
+
+	checkAddContractMemberPermission(from,contract,t,false,ptable)
+	checkDelContractMemberPermission(from,contract,t,false,ptable)
+	checkAddContractManagerPermission(from,contract,t,false,ptable)
+	checkDelContractManagerPermission(from,contract,t,false,ptable)
+}
+
+func checkBaseManagerContractPermission(from,contract common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkAccessContractPermission(from,contract,t,has,ptable)
+
+	checkAddContractMemberPermission(from,contract,t,has,ptable)
+	checkDelContractMemberPermission(from,contract,t,has,ptable)
+	checkAddContractManagerPermission(from,contract,t,has,ptable)
+	checkDelContractManagerPermission(from,contract,t,has,ptable)
+}
+
+func checkCreateContractTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	//if has {
+	//	checkSendTxPermission(from,t,true)
+	//}
+
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_CreateContract) != has {
+		printStack("CheckActionPerm err PerminType_CreateContract",t)
+	}
+}
+
+func checkAddContractPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_AddCrtContractPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddCrtContractPerm",t)
+	}
+}
+
+func checkDelContractPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_DelCrtContractPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelCrtContractPerm",t)
+	}
+}
+
+func checkAddCrtContractManagerPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_AddCrtContractManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddCrtContractManagerPerm",t)
+	}
+}
+
+func checkDelCrtContractManagerPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_DelCrtContractManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelCrtContractManagerPerm",t)
+	}
+}
+
+func checkAddContractMemberPermission(from, contractAddr common.Address, t *testing.T, has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from, common.Address{}, contractAddr, vm.ModifyPerminType_AddContractMemberPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddContractMemberPerm",t)
+	}
+}
+
+func checkDelContractMemberPermission(from, contractAddr common.Address, t *testing.T, has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from, common.Address{}, contractAddr, vm.ModifyPerminType_DelContractMemberPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelContractMemberPerm",t)
+	}
+}
+
+func checkAddContractManagerPermission(from,contract common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},contract,vm.ModifyPerminType_AddContractManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddCrtContractManagerPerm",t)
+	}
+}
+
+func checkDelContractManagerPermission(from,contract common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},contract,vm.ModifyPerminType_DelContractManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelCrtContractManagerPerm",t)
+	}
+}
+
+func checkAccessContractPermission(from,contract common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	//if has {
+	//	checkSendTxPermission(from,t,true)
+	//}
+	if ptable.CheckActionPerm(from,common.Address{},contract,vm.PerminType_AccessContract) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelCrtContractManagerPerm",t)
+	}
+}
+
+func printStack(err string,t *testing.T) {
+	debug.PrintStack()
+	t.FailNow()
+}
+
+func printResError(res bool,err error,t *testing.T,str string) {
+	if !res{
+		fmt.Println(err)
+		printStack(str,t)
+	}
+}
+
+func checkBothTxGroupPermission(from,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkBaseManagerSendTxPermission(from,t,true,ptable)
+	checkBaseGroupManagerPermission(from,gropAddr,t,true,ptable)
+}
+
+func checkNoBothTxGroupPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkNoBaseSendTxPermission(from,t,false,ptable)
+	checkNoBaseGroupPermission(from,common.Address{},t,false,ptable)
+
+}
+
+func checkNoBaseSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkSendTxPermission(from,t,false,ptable)
+	checkAddSendTxPermission(from,t,false,ptable)
+	checkDelSendTxPermission(from,t,false,ptable)
+	checkSendTxManagerPermission(from,t,false,ptable)
+	checkDelSendTxManagerPermission(from,t,false,ptable)
+}
+
+func checkBaseSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkSendTxPermission(from,t,has,ptable)
+	checkAddSendTxPermission(from,t,false,ptable)
+	checkDelSendTxPermission(from,t,false,ptable)
+	checkSendTxManagerPermission(from,t,false,ptable)
+	checkDelSendTxManagerPermission(from,t,false,ptable)
+}
+
+func checkBaseManagerSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkSendTxPermission(from,t,true,ptable)
+	checkAddSendTxPermission(from,t,true,ptable)
+	checkDelSendTxPermission(from,t,true,ptable)
+	checkSendTxManagerPermission(from,t,true,ptable)
+	checkDelSendTxManagerPermission(from,t,true,ptable)
+}
+
+func checkSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.PerminType_SendTx) != has {
+		printStack("CheckActionPerm err PerminType_SendTx",t)
+	}
+}
+
+func checkAddSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_AddSendTxPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm",t)
+	}
+}
+
+func checkDelSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_DelSendTxPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm",t)
+	}
+}
+
+func checkSendTxManagerPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_AddSendTxManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddSendTxManagerPerm",t)
+	}
+}
+
+func checkDelSendTxManagerPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,common.Address{},common.Address{},vm.ModifyPerminType_DelSendTxManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelSendTxManagerPerm",t)
+	}
+}
+
+func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkGroupSendTxPermission(from,gropAddr,t,false,ptable)
+	checkAddGroupMemberPermission(from,gropAddr,t,false,ptable)
+	checkDelGroupMemberPermission(from,gropAddr,t,false,ptable)
+	checkAddGroupManagerPermission(from,gropAddr,t,false,ptable)
+	checkDelGroupManagerPermission(from,gropAddr,t,false,ptable)
+	checkDelGropPermission(from,gropAddr,t,false,ptable)
+}
+
+func checkBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkGroupSendTxPermission(from,gropAddr,t,true,ptable)
+	checkAddGroupMemberPermission(from,gropAddr,t,false,ptable)
+	checkDelGroupMemberPermission(from,gropAddr,t,false,ptable)
+	checkAddGroupManagerPermission(from,gropAddr,t,false,ptable)
+	checkDelGroupManagerPermission(from,gropAddr,t,false,ptable)
+	checkDelGropPermission(from,gropAddr,t,false,ptable)
+}
+
+func checkBaseGroupManagerPermission(from, gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	checkGroupSendTxPermission(from,gropAddr,t,true,ptable)
+	checkAddGroupMemberPermission(from,gropAddr,t,true,ptable)
+	checkDelGroupMemberPermission(from,gropAddr,t,true,ptable)
+	checkAddGroupManagerPermission(from,gropAddr,t,true,ptable)
+	checkDelGroupManagerPermission(from,gropAddr,t,true,ptable)
+	checkDelGropPermission(from,gropAddr,t,true,ptable)
+}
+
+func checkGroupSendTxPermission(from,group common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(from,group,common.Address{},vm.PerminType_SendTx) != has {
+		printStack("CheckActionPerm err PerminType_SendTx",t)
+	}
+}
+
+func checkAddGroupMemberPermission(member,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},vm.ModifyPerminType_AddGropMemberPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
+func checkDelGroupMemberPermission(member,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},vm.ModifyPerminType_DelGropMemberPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
+func checkAddGroupManagerPermission(member,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},vm.ModifyPerminType_AddGropManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
+func checkDelGroupManagerPermission(member,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},vm.ModifyPerminType_DelGropManagerPerm) != has {
+		printStack("CheckActionPerm err ModifyPerminType_AddGropManagerPerm",t)
+	}
+}
+
+func checkDelGropPermission(member,gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
+	if ptable.CheckActionPerm(member,gropAddr,common.Address{},vm.ModifyPerminType_DelGrop) != has {
+		printStack("CheckActionPerm err ModifyPerminType_DelGrop",t)
 	}
 }
