@@ -42,7 +42,7 @@ func TestContractManagerPermissionTable(t *testing.T) {
 
 	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelCrtContractManagerPerm")
-	checkBaseCrtContractPermission(member1,t,false)
+	checkBaseCrtContractPermission(member1,t,false) // true
 	checkBaseCrtContractPermission(member2,t,true)
 
 	res, err =ptable.GrantPermission(root1,root1,member2,common.Address{},ModifyPerminType_DelCrtContractPerm,"a",true)
@@ -135,7 +135,7 @@ func TestContractPermissionTable(t *testing.T) {
 	//ModifyPerminType_DelContractManagerPerm
 	res, err =ptable.GrantPermission(member1,member1,member2,contractAddr,ModifyPerminType_DelContractManagerPerm,"a",true)
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelContractManagerPerm")
-	checkBaseManagerContractPermission(member2,contractAddr,t,false)
+	checkBaseContractPermission(member2,contractAddr,t,true)
 	checkBaseContractPermission(member3,contractAddr,t,true)
 }
 
@@ -153,7 +153,6 @@ func TestContractSimplePermissionTable(t *testing.T) {
 	checkBaseCrtContractPermission(member1,t,true)
 
 	//ModifyPerminType_CrtContractPerm
-	//contractAddr := common.HexToAddress("0x0e09094f7BF1f268c45730aCB3ed48504A1FbbbB")
 	contractAddr := crypto.CreateAddress(member1,2)
 	ptable.CreateContractPem(contractAddr ,member1, uint64(2),false)
 	res, err =ptable.GrantPermission(member1,root1,member1,contractAddr,ModifyPerminType_CrtContractPerm,"a",true)
@@ -192,7 +191,6 @@ func TestContractSimplePermissionTable(t *testing.T) {
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelCrtContractManagerPerm")
 
 	checkBaseCrtManagerContractPermission(member1,t,false)
-	checkBaseCrtContractPermission(member1,t,false)
 }
 
 func TestContractNormalPermissionTable(t *testing.T) {
@@ -212,7 +210,6 @@ func TestContractNormalPermissionTable(t *testing.T) {
 
 
 	//ModifyPerminType_CrtContractPerm
-	//contractAddr := common.HexToAddress("0x0e09094f7BF1f268c45730aCB3ed48504A1FbbbB")
 	contractAddr := crypto.CreateAddress(member1,2)
 	ptable.CreateContractPem(contractAddr ,member1, uint64(2),false)
 	res, err =ptable.GrantPermission(member1,root1,member1,contractAddr,ModifyPerminType_CrtContractPerm,"a",true)
@@ -316,7 +313,7 @@ func checkBaseCrtContractPermission(from common.Address,t *testing.T,has bool) {
 }
 
 func checkBaseCrtManagerContractPermission(from common.Address,t *testing.T,has bool) {
-	//checkCreateContractTxPermission(from,t,has)
+	checkCreateContractTxPermission(from,t,has)
 	checkAddContractPermission(from,t,has)
 	checkDelContractPermission(from,t,has)
 	checkAddCrtContractManagerPermission(from,t,has)
@@ -333,7 +330,7 @@ func checkBaseContractPermission(from,contract common.Address,t *testing.T,has b
 }
 
 func checkBaseManagerContractPermission(from,contract common.Address,t *testing.T,has bool) {
-	//checkAccessContractPermission(from,contract,t,has)
+	checkAccessContractPermission(from,contract,t,has)
 
 	checkAddContractMemberPermission(from,contract,t,has)
 	checkDelContractMemberPermission(from,contract,t,has)
@@ -486,7 +483,7 @@ func checkDelSendTxManagerPermission(from common.Address,t *testing.T,has bool) 
 }
 
 func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool) {
-	//checkGroupSendTxPermission(from,gropAddr,t,false)
+	checkGroupSendTxPermission(from,gropAddr,t,false)
 	checkAddGroupMemberPermission(from,gropAddr,t,false)
 	checkDelGroupMemberPermission(from,gropAddr,t,false)
 	checkAddGroupManagerPermission(from,gropAddr,t,false)
