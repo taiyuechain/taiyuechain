@@ -21,9 +21,6 @@ import (
 	"math/big"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
-	"github.com/taiyuechain/taiyuechain/log"
-
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -137,13 +134,9 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 	if len(objpt) == 0 {
 		i := vm.NewPerminTable()
 		var addrs []common.Address
-		for _, cert := range certList {
-			pub, err := taicert.FromCertBytesToPubKey(cert)
-			if err != nil {
-				log.Error("makeCAContractInitState permission error")
-				return false
-			}
-			addrs = append(addrs, crypto.PubkeyToAddress(*pub))
+		for _, pk := range pubk {
+			pkecsda,_ := crypto.UnmarshalPubkey(pk)
+			addrs = append(addrs, crypto.PubkeyToAddress(*pkecsda))
 		}
 		i.InitPBFTRootGrop(addrs)
 		i.Save(state)
