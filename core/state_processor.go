@@ -140,6 +140,9 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, gp *GasPool,
 
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())
+		if _,err :=vm.CreateContractPemimission(receipt.ContractAddress,vmenv.Context.Origin,tx.Nonce(),statedb); err !=nil{
+			return nil, 0, err
+		}
 
 	}
 	// Set the receipt logs and create a bloom for filtering

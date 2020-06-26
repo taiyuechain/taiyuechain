@@ -1103,6 +1103,21 @@ func (pt *PerminTable) setGropManagerPerm(gropAddr ,manager common.Address,isAdd
 	return true,nil
 }
 
+func CreateContractPemimission(contractAddr ,creator common.Address,nonce uint64,statedb StateDB )(bool,error) {
+	permTable := NewPerminTable()
+	err := permTable.Load(statedb)
+	if err != nil {
+		return false,errors.New("load permiTable fail")
+	}
+	if _,err :=permTable.CreateContractPem(contractAddr,creator,nonce,false); err != nil{
+		return false ,err
+	}
+
+	permTable.Save(statedb)
+
+	return  true,nil
+}
+
 func (pt *PerminTable) CreateContractPem(contractAddr ,creator common.Address,nonce uint64 ,isAdd bool) (bool,error) {
 	if contractAddr != crypto.CreateAddress(creator,nonce){
 		return false, errors.New("CreateContractPem fail gropAddr not equl contract Addr")
