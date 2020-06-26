@@ -358,9 +358,7 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 
 		groplist :=[]common.Address{}
 		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
-
 		}
-
 }
 
 func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
@@ -370,6 +368,7 @@ func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
 		return common.Address{}
 	}
 }
+
 
 //Grant Perminission
 func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
@@ -905,6 +904,15 @@ func (pt *PerminTable) createGropPerm(creator common.Address, gropName string) (
 
 	return true,nil
 
+}
+
+func (pt *PerminTable)GetLastGroupAddr(from common.Address) common.Address  {
+	if pt.UserBasisPermi[from] == nil{
+		return common.Address{}
+	}
+
+	id := pt.UserBasisPermi[from].GropId
+	return crypto.CreateGroupkey(from,id)
 }
 
 func (pt *PerminTable) delGropPerm(from,gropAddr common.Address) (bool,error){

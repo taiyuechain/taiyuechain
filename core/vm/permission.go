@@ -186,8 +186,12 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 		return nil, err
 	}
 
+
 	pTable.Save(evm.StateDB)
-	return []byte{}, nil
+
+	groupAddr :=pTable.GetLastGroupAddr(from)
+	ret, err = method.Outputs.Pack(groupAddr)
+	return ret, err
 }
 func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	args := struct {
@@ -294,7 +298,12 @@ const PermissionABIJSON = `
    	},
 	{
     	"name": "createGroupPermission",
-    	"outputs": [],
+    	"outputs": [
+			{
+        	"type": "address",
+        	"name": "GropAddr"
+      		}
+		],
     	"inputs": [
 	  	{
         	"type": "string",
