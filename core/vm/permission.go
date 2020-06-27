@@ -102,11 +102,22 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, ErrPermissionInvalidFrom
 	}
 
-	if !pTable.CheckActionPerm(from, args.GropAddr, args.ContractAddr, ModifyPerminType(args.MPermType.Int64())) {
+	group_Contract_Addr := args.ContractAddr
+
+	if ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_AddGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm {
+		group_Contract_Addr = args.GropAddr
+	}
+	if !pTable.CheckActionPerm(from, args.GropAddr, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64())) {
 		return nil, err
 	}
 
-	res, err := pTable.GrantPermission(creator, from, args.Member, args.GropAddr, ModifyPerminType(args.MPermType.Int64()), "", args.WhitelistisWork)
+
+
+
+	res, err := pTable.GrantPermission(creator, from, args.Member, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64()), "", args.WhitelistisWork)
 	if !res {
 		return nil, err
 	}
@@ -147,11 +158,20 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		return nil, ErrPermissionInvalidFrom
 	}
 
-	if !pTable.CheckActionPerm(from, args.GropAddr, args.ContractAddr, ModifyPerminType(args.MPermType.Int64())) {
+	group_Contract_Addr := args.ContractAddr
+
+	if ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_AddGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm {
+		group_Contract_Addr = args.GropAddr
+	}
+
+	if !pTable.CheckActionPerm(from, args.GropAddr, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64())) {
 		return nil, err
 	}
 
-	res, err := pTable.GrantPermission(creator, from, args.Member, args.GropAddr, ModifyPerminType(args.MPermType.Int64()), "", args.WhitelistisWork)
+	res, err := pTable.GrantPermission(creator, from, args.Member, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64()), "", args.WhitelistisWork)
 	if !res {
 		return nil, err
 	}
