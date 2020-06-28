@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/enr"
 	"github.com/taiyuechain/taiyuechain/rlp"
@@ -503,14 +502,14 @@ func (srv *Server) setupLocalNode() error {
 		list, cert := p.CimList()
 		if list != nil {
 			srv.localnode.CM = &enode.CertManager{List: list, Cert: cert}
-			pub, err := taicert.FromCertBytesToPubKey(cert)
-			if err != nil {
-				return err
-			}
-			if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
-				log.Info("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
-				return errors.New("local cert not match private nodekey")
-			}
+			//pub, err := taicert.FromCertBytesToPubKey(cert)
+			//if err != nil {
+			//	return err
+			//}
+			//if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(pubkey) {
+			//	log.Info("setupLocalNode", "cert pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), "nodekey pub", hex.EncodeToString(pubkey))
+			//	return errors.New("local cert not match private nodekey")
+			//}
 		}
 		for _, e := range p.Attributes {
 			srv.localnode.Set(e)

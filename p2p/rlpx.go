@@ -331,15 +331,15 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
-		pub, err := taicert.FromCertBytesToPubKey(buf)
-		if err != nil {
-			return s, err
-		}
-
-		if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(crypto.FromECDSAPub(h.remote)) {
-			fmt.Println("pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), " remote ", hex.EncodeToString(crypto.FromECDSAPub(h.remote)))
-			return s, errors.New("cert not match private key")
-		}
+		//pub, err := taicert.FromCertBytesToPubKey(buf)
+		//if err != nil {
+		//	return s, err
+		//}
+		//
+		//if hex.EncodeToString(crypto.FromECDSAPub(pub)) != hex.EncodeToString(crypto.FromECDSAPub(h.remote)) {
+		//	fmt.Println("pub", hex.EncodeToString(crypto.FromECDSAPub(pub)), " remote ", hex.EncodeToString(crypto.FromECDSAPub(h.remote)))
+		//	return s, errors.New("cert not match private key")
+		//}
 	}
 
 	return h.secrets(authPacket, authRespPacket)
