@@ -60,8 +60,10 @@ type Genesis struct {
 	ExtraData    []byte                   `json:"extraData"`
 	GasLimit     uint64                   `json:"gasLimit"   gencodec:"required"`
 	UseGas       uint8                    `json:"useGas" 		gencodec:"required"`
-	IsCoin   uint8                    `json:"isCoin" 		gencodec:"required"`
+	IsCoin   uint8                    	  `json:"isCoin" 		gencodec:"required"`
 	KindOfCrypto uint8                    `json:"kindOfCrypto" 		gencodec:"required"`
+	Permision1   uint8                    `json:"permision1" 		gencodec:"required"`
+	Permision2  uint8                    `json:"permision2" 		gencodec:"required"`
 	Coinbase     common.Address           `json:"coinbase"`
 	Alloc        types.GenesisAlloc       `json:"alloc"`
 	Committee    []*types.CommitteeMember `json:"committee"      gencodec:"required"`
@@ -260,7 +262,7 @@ func (g *Genesis) Commit(db yuedb.Database) (*types.Block, error) {
 	return block, nil
 }
 func (g *Genesis) makeExtraData() []byte {
-	h := []byte{g.UseGas, g.IsCoin, g.KindOfCrypto}
+	h := []byte{g.UseGas, g.IsCoin, g.KindOfCrypto,g.Permision1,g.Permision2}
 	g.ExtraData = h
 	return g.ExtraData
 }
@@ -363,6 +365,8 @@ func DefaultGenesisBlock() *Genesis {
 		UseGas:       1,
 		IsCoin:   1,
 		KindOfCrypto: 2,
+		Permision1:		1,
+		Permision2:		1,
 		//Timestamp:  1553918400,
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
@@ -435,6 +439,8 @@ func DefaultDevGenesisBlock() *Genesis {
 		UseGas:       1,
 		IsCoin:   1,
 		KindOfCrypto: 2,
+		Permision1:		1,
+		Permision2:		1,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x3f9061bf173d8f096c94db95c40f3658b4c7eaad"): {Balance: i},
@@ -467,6 +473,8 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 		UseGas:       1,
 		IsCoin:   1,
 		KindOfCrypto: 2,
+		Permision1:		1,
+		Permision2:		1,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
 			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: i},
@@ -506,6 +514,8 @@ func DefaultTestnetGenesisBlock() *Genesis {
 		UseGas:       1,
 		IsCoin:   1,
 		KindOfCrypto: 2,
+		Permision1:		1,
+		Permision2:		1,
 		Timestamp:    1537891200,
 		Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		ParentHash:   common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
