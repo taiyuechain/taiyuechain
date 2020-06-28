@@ -76,7 +76,7 @@ type Backend interface {
 func GetAPIs(apiBackend Backend) []rpc.API {
 	nonceLock := new(AddrLocker)
 	var apis []rpc.API
-	namespaces := []string{"etrue", "yue", "eth"}
+	namespaces := []string{"etrue", "yue"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{

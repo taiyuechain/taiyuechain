@@ -121,7 +121,7 @@ func (c *Console) init(preload []string) error {
 	if err != nil {
 		return fmt.Errorf("api modules: %v", err)
 	}
-	flatten := "var etrue = web3.etrue; var personal = web3.personal; "
+	flatten := "var yue = web3.yue; var personal = web3.personal; "
 	for api := range apis {
 		if api == "web3" {
 			continue // manually mapped or ignore
@@ -262,8 +262,8 @@ func (c *Console) Welcome() {
 	fmt.Fprintf(c.printer, "Welcome to the taiyue JavaScript console!\n\n")
 	c.jsre.Run(`
 		console.log("instance: " + web3.version.node);
-		console.log("coinbase: " + etrue.coinbase);
-		console.log("at block: " + etrue.blockNumber + " (" + new Date(1000 * etrue.getBlock(etrue.blockNumber).timestamp) + ")");
+		console.log("coinbase: " + yue.coinbase);
+		console.log("at block: " + yue.blockNumber + " (" + new Date(1000 * yue.getBlock(yue.blockNumber).timestamp) + ")");
 		console.log(" datadir: " + admin.datadir);
 	`)
 	// List all the supported modules for the user to call

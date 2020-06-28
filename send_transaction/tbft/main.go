@@ -119,9 +119,9 @@ start:
 		return
 	}
 
-	err = client.Call(&account, "etrue_accounts")
+	err = client.Call(&account, "yue_accounts")
 	if err != nil {
-		fmt.Println(getTime(), "etrue_accounts Error", err.Error())
+		fmt.Println(getTime(), "yue_accounts Error", err.Error())
 		return
 	}
 	if len(account) == 0 {
@@ -132,14 +132,14 @@ start:
 
 	// get balance
 	var result string = ""
-	err = client.Call(&result, "etrue_getBalance", account[from], "latest")
+	err = client.Call(&result, "yue_getBalance", account[from], "latest")
 	if err != nil {
-		fmt.Println(getTime(), "etrue_getBalance Error:", err)
+		fmt.Println(getTime(), "yue_getBalance Error:", err)
 		return
 	} else {
 
 		bl, _ := new(big.Int).SetString(result, 10)
-		fmt.Println(getTime(), "etrue_getBalance Ok:", bl, result)
+		fmt.Println(getTime(), "yue_getBalance Ok:", bl, result)
 	}
 
 	//unlock account
@@ -169,13 +169,13 @@ start:
 		}
 		time.Sleep(interval)
 		// get balance
-		err = client.Call(&result, "etrue_getBalance", account[from], "latest")
+		err = client.Call(&result, "yue_getBalance", account[from], "latest")
 		if err != nil {
-			fmt.Println(getTime(), "etrue_getBalance Error:", err)
+			fmt.Println(getTime(), "yue_getBalance Error:", err)
 			//return
 		} else {
 			bl, _ := new(big.Int).SetString(result, 10)
-			fmt.Println(getTime(), "etrue_getBalance Ok:", bl, result)
+			fmt.Println(getTime(), "yue_getBalance Ok:", bl, result)
 
 			preAccount = result
 		}
@@ -214,7 +214,7 @@ func sendTransaction(client *rpc.Client, account []string, wait *sync.WaitGroup)
 	map_data["gasPrice"] = "0x5000"
 	map_data["cert"] = hexutil.Encode(cert)
 	var result string
-	err := client.Call(&result, "etrue_sendTransaction", map_data)
+	err := client.Call(&result, "yue_sendTransaction", map_data)
 	if err != nil {
 		fmt.Println("sendTransaction ", result, " err ", err)
 	}

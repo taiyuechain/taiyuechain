@@ -36,9 +36,9 @@ func send(ip string) {
 		fmt.Println("Dail:", ip, err.Error())
 		return
 	}
-	err = client.Call(&account, "etrue_accounts")
+	err = client.Call(&account, "yue_accounts")
 	if err != nil {
-		fmt.Println("etrue_accounts Error", err.Error())
+		fmt.Println("yue_accounts Error", err.Error())
 		return
 	}
 	if len(account) == 0 {
@@ -70,7 +70,7 @@ func getBalance(client *rpc.Client, index int) {
 	time.Sleep(time.Second * 1)
 	var result string
 	for i := 0; i < index; i++ {
-		err := client.Call(&result, "etrue_getBalance", account[i], "latest")
+		err := client.Call(&result, "yue_getBalance", account[i], "latest")
 		if err != nil {
 			log.Error("getBalance", "i", i, "error", err)
 		}
@@ -97,9 +97,9 @@ func sendTrueRawTransaction(client *rpc.Client, from string, to string, payment 
 		log.Error("personal_unlockAccount", "err", err)
 	}
 	var result string
-	err = client.Call(&result, "etrue_sendTransaction", mapData)
+	err = client.Call(&result, "yue_sendTransaction", mapData)
 	if err != nil {
-		log.Error("etrue_sendTransaction", "err", err)
+		log.Error("yue_sendTransaction", "err", err)
 	}
 	return result, err
 }
@@ -110,6 +110,6 @@ func getBalanceValue(hex string) *big.Int {
 	}
 	value, _ := new(big.Int).SetString(hex, 16)
 	//balance := new(big.Int).Set(value)
-	//fmt.Println("etrue_getBalance Ok:", balance.Div(balance, big.NewInt(ether)), " value ", value, " hex ", hex)
+	//fmt.Println("yue_getBalance Ok:", balance.Div(balance, big.NewInt(ether)), " value ", value, " hex ", hex)
 	return value
 }

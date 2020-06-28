@@ -115,9 +115,9 @@ func send(count int, ip string) {
 		return
 	}
 
-	err = client.Call(&account, "etrue_accounts")
+	err = client.Call(&account, "yue_accounts")
 	if err != nil {
-		fmt.Println("etrue_accounts Error", err.Error())
+		fmt.Println("yue_accounts Error", err.Error())
 		msg <- false
 		return
 	}
@@ -233,7 +233,7 @@ func sendRawTransaction(client *rpc.Client, from string, to string, value string
 	mapData["value"] = value
 
 	var result string
-	err := client.Call(&result, "etrue_sendTransaction", mapData)
+	err := client.Call(&result, "yue_sendTransaction", mapData)
 	return result, err
 }
 
@@ -260,7 +260,7 @@ func getBalanceValue(hex string, print bool) *big.Int {
 	value, _ := new(big.Int).SetString(hex, 16)
 	balance := new(big.Int).Set(value)
 	if print {
-		fmt.Println("etrue_getBalance Ok:", " true ", balance.Div(balance, big.NewInt(1000000000000000000)), " value ", value, " hex ", hex)
+		fmt.Println("yue_getBalance Ok:", " true ", balance.Div(balance, big.NewInt(1000000000000000000)), " value ", value, " hex ", hex)
 	}
 	return value
 }
@@ -268,9 +268,9 @@ func getBalanceValue(hex string, print bool) *big.Int {
 func getAccountBalance(client *rpc.Client, account string) string {
 	var result string
 	// get balance
-	err := client.Call(&result, "etrue_getBalance", account, "latest")
+	err := client.Call(&result, "yue_getBalance", account, "latest")
 	if err != nil {
-		fmt.Println("etrue_getBalance Error:", err)
+		fmt.Println("yue_getBalance Error:", err)
 		msg <- false
 		return ""
 	}
@@ -357,7 +357,7 @@ func checkSonAccountBalance(client *rpc.Client, count int, main *big.Int) bool {
 				}
 				balance := getBalanceValue(result, true)
 				balanceTrue := new(big.Int).Set(balance)
-				fmt.Println("etrue_getBalance son address ", account[i], " result ", balance, " i ", i, " true ", balanceTrue.Div(balanceTrue, big.NewInt(1000000000000000000)))
+				fmt.Println("yue_getBalance son address ", account[i], " result ", balance, " i ", i, " true ", balanceTrue.Div(balanceTrue, big.NewInt(1000000000000000000)))
 				if balance.Cmp(average) >= 0 {
 					if i == count-1 && len(noBalance) == 0 {
 						find = true

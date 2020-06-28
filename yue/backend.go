@@ -303,7 +303,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
 
 	// Append etrue	APIs and  Eth APIs
-	namespaces := []string{"etrue", "yue", "eth"}
+	namespaces := []string{"etrue", "yue"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{
 			{
