@@ -104,9 +104,11 @@ func newImpawnCache() *PerminssionCache {
 /////cache
 
 type PerminTable struct {
+	LastRootID  int64
 	WhiteList  []common.Address
 	BlackList  []common.Address
 	RootList 	[]common.Address
+	PBFT2Root	  map[common.Address]common.Address
 	ContractPermi map[common.Address]*ContractListTable  //contract Addr=> Memberlist
 	GropPermi	map[common.Address]*GropListTable //group addr => GropListTable
 	SendTranPermi map[common.Address]*MemberListTable //Group Addr=> MemberList
@@ -164,9 +166,11 @@ type BasisPermin struct {
 
 func NewPerminTable() *PerminTable {
 	return &PerminTable{
+		LastRootID:        0,
 		WhiteList:         []common.Address{},
 		BlackList:         []common.Address{},
-		RootList:			[]common.Address{},
+		RootList:		    []common.Address{},
+		PBFT2Root:		   make(map[common.Address]common.Address),
 		ContractPermi:     make(map[common.Address]*ContractListTable),
 		GropPermi:         make(map[common.Address]*GropListTable),
 		SendTranPermi:     make(map[common.Address]*MemberListTable),
@@ -181,9 +185,11 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 	}
 
 	tempPT := &PerminTable{
+		LastRootID: 		pt.LastRootID,
 		WhiteList:         make([]common.Address, len(pt.WhiteList)),
 		BlackList:         make([]common.Address, len(pt.BlackList)),
 		RootList:			make([]common.Address, len(pt.RootList)),
+		PBFT2Root:		   make(map[common.Address]common.Address),
 		ContractPermi:     make(map[common.Address]*ContractListTable),
 		GropPermi:         make(map[common.Address]*GropListTable),
 		SendTranPermi:     make(map[common.Address]*MemberListTable),
@@ -193,6 +199,10 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 	copy(tempPT.WhiteList, pt.WhiteList)
 	copy(tempPT.BlackList, pt.BlackList)
 	copy(tempPT.RootList, pt.RootList)
+
+	for k, v := range pt.PBFT2Root {
+		tempPT.PBFT2Root[k] = v
+	}
 
 	for k, v := range pt.ContractPermi {
 		wm := &MemberTable{}
@@ -340,40 +350,97 @@ func ClonePerminCaCache(pt *PerminTable) *PerminTable {
 
 func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 
+	var rootImage []common.Address
+	lenRoot := len(rootAddr)
+	for i:=1;i<=lenRoot;i++{
+		rootImgaddr := crypto.CreatePermiRootKey(int64(i))
+		rootImage = append(rootImage,rootImgaddr)
+		pt.PBFT2Root[rootAddr[i-1]] = rootImgaddr;
+	}
+
 	for _, root := range rootAddr {
 		//send tx
-
 		key := crypto.CreateGroupkey(root, 1)
 		if pt.UserBasisPermi[root] != nil{
 			continue
 		}
-		pt.RootList = append(pt.RootList,root)
-		stp := &MemberListTable{Id: 1, GroupKey: key, Creator: root, IsWhitListWork: whitelistIsWork_SendTx, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
-		pt.SendTranPermi[key] = stp
+			pt.RootList = append(pt.RootList,root)
+			stp := &MemberListTable{Id: 1, GroupKey: key, Creator: root, IsWhitListWork: whitelistIsWork_SendTx, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
+			pt.SendTranPermi[key] = stp
 
-		//send contract
-		key2 := crypto.CreateGroupkey(root, 2)
-		stp2 := &MemberListTable{Id: 2, GroupKey: key2, Creator: root, IsWhitListWork: whitelistIsWork_CrtContract, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
-		pt.CrtContracetPermi[key2] = stp2
+			//send contract
+			key2 := crypto.CreateGroupkey(root, 2)
+			stp2 := &MemberListTable{Id: 2, GroupKey: key2, Creator: root, IsWhitListWork: whitelistIsWork_CrtContract, WhiteMembers: &MemberTable{}, BlackMembers: &MemberTable{}}
+			pt.CrtContracetPermi[key2] = stp2
 
-		groplist :=[]common.Address{}
-		pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
+			groplist :=[]common.Address{}
+			pt.UserBasisPermi[root] = &BasisPermin{MemberID:root,CreatorRoot:root,SendTran:true,CrtContract:true,GropId:0,GropList:groplist}
 		}
 }
 
-func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
-	if pt.UserBasisPermi[from]!=nil{
-		return pt.UserBasisPermi[from].CreatorRoot
-	}else{
-		return common.Address{}
+func (pt *PerminTable)UpdataRootInElection(rootAddr, curRootAddr []common.Address) {
+
+	lenRoot := len(rootAddr)
+	lenCurRoot := len(curRootAddr)
+
+
+
+	for i:=0;i<lenRoot;i++ {
+		find := false
+
+		for j := 0; j < lenCurRoot; j++ {
+			//find
+			if curRootAddr[j] == rootAddr[i] {
+				find = true
+				break;
+			}
+		}
+		if !find {
+			for idex, v := range pt.RootList {
+				if v == pt.PBFT2Root[rootAddr[i]] {
+					pt.RootList = append(pt.RootList[:idex], pt.RootList[idex:]...)
+					delete(pt.PBFT2Root, pt.PBFT2Root[rootAddr[i]])
+				}
+
+			}
+		}
 	}
+
+	for j := 0; j < lenCurRoot; j++ {
+		rootImage :=pt.PBFT2Root[curRootAddr[j]]
+		if len(rootImage) == 0{
+			pt.LastRootID++;
+			rootImage = crypto.CreatePermiRootKey(pt.LastRootID)
+			pt.RootList = append(pt.RootList,rootImage)
+			pt.PBFT2Root[curRootAddr[j]] = rootImage
+		}
+	}
+
+}
+
+func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
+
+	var crt common.Address
+
+	if pt.UserBasisPermi[from]!=nil{
+		crt = pt.UserBasisPermi[from].CreatorRoot
+		itotal :=0
+		for _,v:= range pt.RootList{
+			itotal++
+			if crt == pt.PBFT2Root[from] && crt == v{
+				return crt
+			}
+		}
+	}
+
+	return crt
 }
 
 
 //Grant Perminission
 func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
 
-	//creator := pt.UserBasisPermi[from].CreatorRoot
+
 	switch mPermType {
 	case ModifyPerminType_AddSendTxPerm:
 		return pt.setSendTxPerm(creator,from,member,true)
@@ -1284,6 +1351,10 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 	}
 
 	creator := pt.GetCreator(from)
+	if len(creator) == 0 {
+		return false
+	}
+
 	switch mPermType {
 	case ModifyPerminType_AddSendTxPerm ,
 	ModifyPerminType_DelSendTxPerm ,
