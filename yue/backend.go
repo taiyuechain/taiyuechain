@@ -141,6 +141,16 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 
 	NewCIMList := cim.NewCIMList(uint8(crypto.CryptoType))
 
+	pmSt := false
+	pmcC := false
+	if config.Genesis.PermisionWlSendTx >0 {
+		pmSt = true
+	}
+	if config.Genesis.PermisionWlCreateTx > 0{
+		pmcC = true
+	}
+	vm.SetPermConfig(pmSt,pmcC)
+
 	etrue := &Taiyuechain{
 		config:         config,
 		chainDb:        chainDb,
@@ -174,6 +184,8 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 	if err != nil {
 		return nil, err
 	}
+
+
 
 	//init cert list to
 	// need init cert list to statedb
