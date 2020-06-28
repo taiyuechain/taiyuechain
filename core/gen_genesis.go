@@ -25,8 +25,8 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 		UseGas       uint8                                             `json:"useGas" 		gencodec:"required"`
 		IsCoin   uint8                                             `json:"isCoin" 		gencodec:"required"`
 		KindOfCrypto uint8                                             `json:"kindOfCrypto" 		gencodec:"required"`
-		Permision1	 uint8												 `json:"permision1" 		gencodec:"required"`
-		Permision2   uint8												 `json:"permision2" 		gencodec:"required"`
+		PermisionWlSendTx	 uint8												 `json:"permisionWlSendTx" 		gencodec:"required"`
+		PermisionWlCreateTx   uint8												 `json:"permisionWlCreateTx" 		gencodec:"required"`
 		Coinbase     common.Address                                    `json:"coinbase"`
 		Alloc        map[common.UnprefixedAddress]types.GenesisAccount `json:"alloc"`
 		Committee    []*types.CommitteeMember                          `json:"committee"      gencodec:"required"`
@@ -42,8 +42,8 @@ func (g Genesis) MarshalJSON() ([]byte, error) {
 	enc.GasLimit = math.HexOrDecimal64(g.GasLimit)
 	enc.UseGas = g.UseGas
 	enc.IsCoin = g.IsCoin
-	enc.Permision1 = g.Permision1
-	enc.Permision2 = g.Permision2
+	enc.PermisionWlSendTx = g.PermisionWlSendTx
+	enc.PermisionWlCreateTx = g.PermisionWlCreateTx
 	enc.KindOfCrypto = g.KindOfCrypto
 	enc.Coinbase = g.Coinbase
 	if g.Alloc != nil {
@@ -75,8 +75,8 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 		UseGas       *uint8                                            `json:"useGas" 		gencodec:"required"`
 		IsCoin   *uint8                                            `json:"isCoin" 		gencodec:"required"`
 		KindOfCrypto *uint8                                            `json:"kindOfCrypto" 		gencodec:"required"`
-		Permision1	 *uint8												 `json:"permision1" 		gencodec:"required"`
-		Permision2   *uint8												 `json:"permision2" 		gencodec:"required"`
+		PermisionWlSendTx	 *uint8												 `json:"permisionWlSendTx" 		gencodec:"required"`
+		PermisionWlCreateTx   *uint8												 `json:"permisionWlCreateTx" 		gencodec:"required"`
 		Coinbase     *common.Address                                   `json:"coinbase"`
 		Alloc        map[common.UnprefixedAddress]types.GenesisAccount `json:"alloc"`
 		Committee    []*types.CommitteeMember                          `json:"committee"      gencodec:"required"`
@@ -108,11 +108,11 @@ func (g *Genesis) UnmarshalJSON(input []byte) error {
 	if dec.IsCoin != nil {
 		g.IsCoin = *dec.IsCoin
 	}
-	if dec.Permision1 != nil {
-		g.Permision1 = *dec.Permision1
+	if dec.PermisionWlSendTx != nil {
+		g.PermisionWlSendTx = *dec.PermisionWlSendTx
 	}
-	if dec.Permision2 != nil {
-		g.Permision2 = *dec.Permision2
+	if dec.PermisionWlCreateTx != nil {
+		g.PermisionWlCreateTx = *dec.PermisionWlCreateTx
 	}
 	if dec.KindOfCrypto != nil {
 		g.KindOfCrypto = *dec.KindOfCrypto
