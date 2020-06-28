@@ -84,7 +84,7 @@ func init() {
 	PerminCache = newImpawnCache()
 }
 
-func SetConfig(sendTxFlag, crtContractFlag bool) {
+func SetPermConfig(sendTxFlag, crtContractFlag bool) {
 	whitelistIsWork_SendTx = sendTxFlag
 	whitelistIsWork_CrtContract = crtContractFlag
 }
@@ -408,7 +408,7 @@ func (pt *PerminTable)UpdataRootInElection(rootAddr, curRootAddr []common.Addres
 
 	for j := 0; j < lenCurRoot; j++ {
 		rootImage :=pt.PBFT2Root[curRootAddr[j]]
-		if len(rootImage) == 0{
+		if (common.Address{}) == rootImage {
 			pt.LastRootID++;
 			rootImage = crypto.CreatePermiRootKey(pt.LastRootID)
 			pt.RootList = append(pt.RootList,rootImage)
@@ -1351,7 +1351,7 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 	}
 
 	creator := pt.GetCreator(from)
-	if len(creator) == 0 {
+	if creator == (common.Address{}) {
 		return false
 	}
 
