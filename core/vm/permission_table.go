@@ -404,7 +404,7 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 	case ModifyPerminType_DelGropMemberPerm:
 		return pt.setGropMemberPerm(gropAddr,member,false)
 	case ModifyPerminType_CrtContractPerm:
-		return pt.setContractPem(gropAddr,creator,whitelistisWork)
+		return pt.setContractPem(gropAddr,from,whitelistisWork)
 	case ModifyPerminType_AddContractMemberPerm:
 		return pt.setContractMember(gropAddr,member,true)
 	case ModifyPerminType_DelContractMemberPerm:

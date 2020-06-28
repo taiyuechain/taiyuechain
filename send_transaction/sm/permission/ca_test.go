@@ -99,36 +99,61 @@ func TestContractPermission(t *testing.T) {
 }
 
 func TestAccessContractPermission(t *testing.T) {
+	var ContractAddress common.Address
+	fmt.Println("saddr2", crypto.AddressToHex(saddr2), "paddr4", crypto.AddressToHex(paddr4), "\n paddr3", crypto.AddressToHex(paddr3))
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(number uint64, gen *core.BlockGen, fastChain *core.BlockChain, header *types.Header, statedb *state.StateDB, cimList *cim.CimList) {
 		sendTranction(number, gen, statedb, saddr1, saddr2, new(big.Int).SetUint64(16000000000000000000), priKey, signer, nil, header, pbft1Byte, cimList)
-		sendTranction(number-1, gen, statedb, saddr2, paddr4, new(big.Int).SetUint64(10000000000000000000), prikey2, signer, nil, header, pbft2Byte, cimList)
+		sendTranction(number, gen, statedb, saddr1, paddr4, new(big.Int).SetUint64(10000000000000000000), priKey, signer, nil, header, pbft1Byte, cimList)
+		sendTranction(number, gen, statedb, saddr1, paddr3, new(big.Int).SetUint64(16000000000000000000), priKey, signer, nil, header, pbft1Byte, cimList)
+		sendTranction(number, gen, statedb, saddr1, paddr2, new(big.Int).SetUint64(16000000000000000000), priKey, signer, nil, header, pbft1Byte, cimList)
 		sendGrantPermissionTranscation(number, gen, saddr2, paddr4, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
+		sendGrantPermissionTranscation(number, gen, saddr2, paddr3, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
 		sendGrantPermissionTranscation(number, gen, saddr2, paddr4, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddCrtContractPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
 		if number == 26 {
 			checkBaseCrtContractPermission(paddr4, t, true, loadPermissionTable(statedb))
 		}
 
-		sendGrantPermissionTranscation(number-1, gen, saddr2, paddr4, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddCrtContractManagerPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
-		if number == 27 {
-			checkBaseCrtManagerContractPermission(paddr4, t, true, loadPermissionTable(statedb))
+		if number ==26 {
+			ContractAddress = crypto.CreateAddress(paddr4, gen.TxNonce(paddr4))
+			sendContractTranction(number-16, gen, statedb, paddr4, new(big.Int).SetUint64(1000000000000000000), pkey4, signer, nil, header, p2p4Byte, cimList)
+			fmt.Println("ContractAddress ",crypto.AddressToHex(ContractAddress))
 		}
-		sendGrantPermissionTranscation(number-2, gen, paddr4, paddr3, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddCrtContractPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
-		if number == 28 {
-			checkBaseCrtContractPermission(paddr3, t, true, loadPermissionTable(statedb))
+		sendGrantContractPermissionTranscation(number-1, gen, paddr4, paddr4, ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_CrtContractPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
+		if number == 27 {
+			checkBaseManagerContractPermission(paddr4,ContractAddress, t, true, loadPermissionTable(statedb))
 		}
 
-		sendRevokePermissionTranscation(number, gen, paddr4, paddr3, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelCrtContractPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
-		if number == 41 {
-			checkBaseCrtContractPermission(paddr3, t, false, loadPermissionTable(statedb))
+		// new 2
+		sendGrantContractPermissionTranscation(number-2, gen, paddr4, paddr3, ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddContractMemberPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
+		if number == 28 {
+			checkBaseContractPermission(paddr3,ContractAddress,t,true, loadPermissionTable(statedb))
 		}
-		sendRevokePermissionTranscation(number-1, gen, saddr2, paddr4, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelCrtContractManagerPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
-		if number == 42 {
-			checkBaseCrtContractPermission(paddr4, t, true, loadPermissionTable(statedb))
+
+		sendRevokeContractPermissionTranscation(number-3, gen, paddr4, paddr3,ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelContractMemberPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
+		if number == 29 {
+			// can't delete
+			checkBaseContractPermission(paddr3,ContractAddress, t, false, loadPermissionTable(statedb))
 		}
-		sendRevokePermissionTranscation(number-1-1, gen, saddr2, paddr4, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelCrtContractPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
-		if number == 43 {
-			checkBaseCrtContractPermission(paddr4, t, false, loadPermissionTable(statedb))
+		sendGrantContractPermissionTranscation(number-4, gen, paddr4, paddr3,ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddContractManagerPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
+		if number == 30 {
+			checkBaseManagerContractPermission(paddr3,ContractAddress, t, true, loadPermissionTable(statedb))
+		}
+
+		sendGrantContractPermissionTranscation(number-5, gen, paddr3, paddr2,ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddContractMemberPerm)), pkey3, signer, statedb, fastChain, abiCA, nil, p2p3Byte)
+		if number == 31 {
+			checkBaseContractPermission(paddr2,ContractAddress, t, false, loadPermissionTable(statedb))
+		}
+
+		sendGrantPermissionTranscation(number-6, gen, saddr2, paddr2,common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), prikey2, signer, statedb, fastChain, abiCA, nil, pbft2Byte)
+		if number == 32 {
+			checkBaseContractPermission(paddr2,ContractAddress, t, true, loadPermissionTable(statedb))
+		}
+
+		sendRevokeContractPermissionTranscation(number-7, gen, paddr4, paddr3,ContractAddress, new(big.Int).SetInt64(int64(vm.ModifyPerminType_DelContractManagerPerm)), pkey4, signer, statedb, fastChain, abiCA, nil, p2p4Byte)
+		if number == 33 {
+			checkBaseContractPermission(paddr3,ContractAddress,t,false, loadPermissionTable(statedb))
+			checkBaseContractPermission(paddr2,ContractAddress,t,true, loadPermissionTable(statedb))
 		}
 	}
 	newTestPOSManager(2, executable)

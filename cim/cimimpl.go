@@ -160,7 +160,6 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 	}
 
 	to := tx.To()
-	toAddr := common.BytesToAddress(to.Bytes())
 	if to == nil{
 		//create contract
 		//PerminType_CreateContract
@@ -171,6 +170,7 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 			return false,errors.New("check PerminType_CreateContract fail")
 		}
 	}else{
+		toAddr := common.BytesToAddress(to.Bytes())
 
 		// to set permisTable
 		if bytes.Equal(to.Bytes(),types.PermiTableAddress.Bytes()) && len(tx.Data()) >0{

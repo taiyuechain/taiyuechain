@@ -98,16 +98,14 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 	from := contract.caller.Address()
 	creator := pTable.GetCreator(from)
 
-	if len(creator) == 0 {
+	if creator == (common.Address{}) {
 		return nil, ErrPermissionInvalidFrom
 	}
 
-	group_Contract_Addr := args.ContractAddr
+ 	group_Contract_Addr := args.ContractAddr
 
 	if ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_AddGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm {
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_AddGropMemberPerm {
 		group_Contract_Addr = args.GropAddr
 	}
 	if !pTable.CheckActionPerm(from, args.GropAddr, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64())) {
@@ -124,6 +122,7 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 
 	pTable.Save(evm.StateDB)
 
+	log.Info("grantPermission","number",evm.BlockNumber.Uint64(),"permission",args.MPermType)
 	return []byte{}, nil
 }
 func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
@@ -160,10 +159,9 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 
 	group_Contract_Addr := args.ContractAddr
 
-	if ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_AddGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
-		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm {
+	if ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropManagerPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGropMemberPerm ||
+		ModifyPerminType(args.MPermType.Int64()) == ModifyPerminType_DelGrop {
 		group_Contract_Addr = args.GropAddr
 	}
 
@@ -178,6 +176,7 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 
 	pTable.Save(evm.StateDB)
 
+	log.Info("revokePermission","number",evm.BlockNumber.Uint64(),"permission",args.MPermType)
 	return []byte{}, nil
 }
 func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
