@@ -18,6 +18,7 @@ package vm
 import (
 	"github.com/taiyuechain/taiyuechain/accounts/abi"
 	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"strings"
@@ -210,6 +211,7 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 
 	groupAddr :=pTable.GetLastGroupAddr(from)
 	ret, err = method.Outputs.Pack(groupAddr)
+	log.Info("createGroupPermission","number",evm.BlockNumber.Uint64(),"groupName",args.GroupName)
 	return ret, err
 }
 func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
@@ -239,6 +241,7 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 	}
 
 	pTable.Save(evm.StateDB)
+	log.Info("delGroupPermission","number",evm.BlockNumber.Uint64(),"GroupAddr",crypto.AddressToHex(args.GroupAddr))
 	return []byte{}, nil
 }
 

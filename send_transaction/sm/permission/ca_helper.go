@@ -451,11 +451,11 @@ func checkBaseSendTxPermission(from common.Address,t *testing.T,has bool,ptable 
 }
 
 func checkBaseManagerSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
-	checkSendTxPermission(from,t,true,ptable)
-	checkAddSendTxPermission(from,t,true,ptable)
-	checkDelSendTxPermission(from,t,true,ptable)
-	checkSendTxManagerPermission(from,t,true,ptable)
-	checkDelSendTxManagerPermission(from,t,true,ptable)
+	checkSendTxPermission(from,t,has,ptable)
+	checkAddSendTxPermission(from,t,has,ptable)
+	checkDelSendTxPermission(from,t,has,ptable)
+	checkSendTxManagerPermission(from,t,has,ptable)
+	checkDelSendTxManagerPermission(from,t,has,ptable)
 }
 
 func checkSendTxPermission(from common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
@@ -498,7 +498,7 @@ func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has b
 }
 
 func checkBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool,ptable *vm.PerminTable) {
-	checkGroupSendTxPermission(from,gropAddr,t,true,ptable)
+	checkGroupSendTxPermission(from,gropAddr,t,has,ptable)
 	checkAddGroupMemberPermission(from,gropAddr,t,false,ptable)
 	checkDelGroupMemberPermission(from,gropAddr,t,false,ptable)
 	checkAddGroupManagerPermission(from,gropAddr,t,false,ptable)

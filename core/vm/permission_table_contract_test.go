@@ -424,7 +424,7 @@ func checkBothTxGroupPermission(from,gropAddr common.Address,t *testing.T,has bo
 
 func checkNoBothTxGroupPermission(from common.Address,t *testing.T,has bool) {
 	checkNoBaseSendTxPermission(from,t,false)
-	checkNoBaseGroupPermission(from,common.Address{},t,false)
+	checkBaseGroupPermission(from,common.Address{},t,false)
 
 }
 
@@ -492,7 +492,7 @@ func checkNoBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has b
 }
 
 func checkBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has bool) {
-	checkGroupSendTxPermission(from,gropAddr,t,true)
+	checkGroupSendTxPermission(from,gropAddr,t,has)
 	checkAddGroupMemberPermission(from,gropAddr,t,false)
 	checkDelGroupMemberPermission(from,gropAddr,t,false)
 	checkAddGroupManagerPermission(from,gropAddr,t,false)
@@ -501,12 +501,12 @@ func checkBaseGroupPermission(from, gropAddr common.Address,t *testing.T,has boo
 }
 
 func checkBaseGroupManagerPermission(from, gropAddr common.Address,t *testing.T,has bool) {
-	checkGroupSendTxPermission(from,gropAddr,t,true)
-	checkAddGroupMemberPermission(from,gropAddr,t,true)
-	checkDelGroupMemberPermission(from,gropAddr,t,true)
-	checkAddGroupManagerPermission(from,gropAddr,t,true)
-	checkDelGroupManagerPermission(from,gropAddr,t,true)
-	checkDelGropPermission(from,gropAddr,t,true)
+	checkGroupSendTxPermission(from,gropAddr,t,has)
+	checkAddGroupMemberPermission(from,gropAddr,t,has)
+	checkDelGroupMemberPermission(from,gropAddr,t,has)
+	checkAddGroupManagerPermission(from,gropAddr,t,has)
+	checkDelGroupManagerPermission(from,gropAddr,t,has)
+	checkDelGropPermission(from,gropAddr,t,has)
 }
 
 func checkGroupSendTxPermission(from,group common.Address,t *testing.T,has bool) {

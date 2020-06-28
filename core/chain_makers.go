@@ -19,7 +19,6 @@ package core
 import (
 	"bufio"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/log"
 	"io/ioutil"
 	"math"
 	"math/big"
@@ -265,9 +264,6 @@ func GenerateChain(config *params.ChainConfig, parent *types.Block, engine conse
 				panic(fmt.Sprintf("state write error: %v", err))
 			}
 
-			if len(b.txs) > 0 {
-				log.Info("GenerateChain", "number", b.header.Number,"txs",len(b.txs),"root",root.String(),"block",block.Header().Root.String())
-			}
 			if err := statedb.Database().TrieDB().Commit(root, false); err != nil {
 				panic(fmt.Sprintf("trie write error: %v", err))
 			}
