@@ -16,6 +16,7 @@ func init() {
 	app.Commands = []cli.Command{
 		commandGenerate,
 	}
+	app.Flags = append(app.Flags, commandGenerate.Flags...)
 }
 
 func main() {
