@@ -5301,6 +5301,12 @@ var methods = function () {
         outputFormatter: formatters.outputBigNumberFormatter
     });
 
+    var getChainBaseParams = new Method({
+        name: 'getChainBaseParams',
+        call: 'yue_getChainBaseParams',
+        params: 3
+    });
+
     var getStorageAt = new Method({
         name: 'getStorageAt',
         call: 'yue_getStorageAt',
@@ -5492,6 +5498,7 @@ var methods = function () {
     return [
         getBalance,
         getStorageAt,
+        getChainBaseParams,
         getCode,
         getCa,
         getBlock,
