@@ -79,6 +79,8 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
   "useGas" 	   		: 1,
   "isCoin"  	: 1,
   "kindOfCrypto" 	: 2,
+  "permisionWlSendTx": 1,
+  "permisionWlCreateTx": 1,
   "gasLimit"   		: "0x5400000",
   "parentHash" 		: "0x0000000000000000000000000000000000000000000000000000000000000000",
   "timestamp"  		: "0x00"
