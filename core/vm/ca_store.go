@@ -243,7 +243,7 @@ func (ca *CACertList) delCertToList(caCert []byte, epoch uint64) (bool, error) {
 func (ca *CACertList) copyCertToList(epoch uint64) {
 
 	if ca.caCertMap[epoch+1] == nil {
-		calist := &CACert{}
+		calist := &CACert{Pubky: make(map[common.Hash][]byte)}
 		for i, val := range ca.caCertMap[epoch].CACert {
 			hash_val := types.RlpHash(val)
 			calist.CACert = append(calist.CACert, val)

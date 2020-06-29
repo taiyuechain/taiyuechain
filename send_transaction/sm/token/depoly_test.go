@@ -72,9 +72,9 @@ func TestDeployContract(t *testing.T) {
 	chain, _ := core.GenerateChain(gspec.Config, genesis, pow, db, 10, func(i int, gen *core.BlockGen) {
 		switch i {
 		case 1:
-			tx, _ := types.SignTx(types.NewContractCreation(gen.TxNonce(mAccount), big.NewInt(30), 1000000, new(big.Int).SetUint64(1), bytecode, nil), signer, priKey)
+			tx, _ := types.SignTx(types.NewContractCreation(gen.TxNonce(pAccount1), big.NewInt(30), 1000000, new(big.Int).SetUint64(1), bytecode, nil), signer, pKey1)
 			gen.AddTx(tx)
-			contractAddress = crypto.CreateAddress(mAccount, tx.Nonce())
+			contractAddress = crypto.CreateAddress(pAccount1, tx.Nonce())
 			fmt.Println("contractAddress", crypto.AddressToHex(contractAddress))
 		case 2:
 			// In block 2, addr1 sends some more ether to addr2.
@@ -83,7 +83,7 @@ func TestDeployContract(t *testing.T) {
 			args := struct {
 				common.Address
 			}{}
-			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(mAccount), contractAddress, big.NewInt(1000), 500000, nil, input, nil), signer, priKey)
+			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(pAccount1), contractAddress, big.NewInt(1000), 500000, nil, input, nil), signer, pKey1)
 			gen.AddTx(tx1)
 			output, gas := gen.ReadTxWithChain(blockchain, tx1)
 			UnpackOutput(contractABI, "minter", output, &args)
@@ -101,7 +101,7 @@ func TestDeployContract(t *testing.T) {
 
 	state, _ := blockchain.State()
 	fmt.Printf("last block: #%d\n", blockchain.CurrentBlock().Number())
-	fmt.Println("balance of addr1:", state.GetBalance(mAccount))
+	fmt.Println("balance of addr1:", state.GetBalance(pAccount1))
 }
 
 func UnpackOutput(abiStaking abi.ABI, abiMethod string, output []byte, result interface{}) {

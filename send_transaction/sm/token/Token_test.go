@@ -12,7 +12,7 @@ import (
 
 func TestENS(t *testing.T) {
 	contractBackend := backends.NewSimulatedBackend(gspec, 10000000)
-	transactOpts := bind.NewKeyedTransactor(priKey, p2p1Byte, gspec.Config.ChainID)
+	transactOpts := bind.NewKeyedTransactor(pKey1, p2p1Byte, gspec.Config.ChainID)
 
 	// Deploy the ENS registry
 	ensAddr, _, _, err := DeployToken(transactOpts, contractBackend)
@@ -41,7 +41,7 @@ func TestENS(t *testing.T) {
 	}
 	fmt.Println("totalSupply ", totalSupply)
 
-	//tx, err := ens.Transfer(transactOpts, saddr1, big.NewInt(50000))
+	//tx, err := ens.Transfer(transactOpts, pAccount2, big.NewInt(50000))
 	//fmt.Println("tx ",tx)
 	//if err != nil {
 	//	log.Error("Failed to request token transfer", ": %v", err)

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
+	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"os"
@@ -23,33 +24,42 @@ func init() {
 func TestAllCaCert(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(number uint64, gen *core.BlockGen, fastChain *core.BlockChain, header *types.Header, statedb *state.StateDB, cimList *cim.CimList) {
-		sendTranction(number, gen, statedb, mAccount, saddr1, big.NewInt(6000000000000000000), priKey, signer, nil, header, p2p1Byte)
+		sendTranction(number, gen, statedb, pAccount1, pAccount2, big.NewInt(6000000000000000000), pKey1, signer, nil, header, p2p1Byte)
 		cert44 := pbft5Byte
-		sendGetCaCertAmountTranscation(number, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendIsApproveCACertTranscation(number, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-
-		sendMultiProposalTranscation(number, gen, saddr1, cert44, pbft1Byte, true, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number, gen, saddr1, cert44, pbft2Byte, true, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendGetCaCertAmountTranscation(number-25, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		if number-25 == 25 {
-			if err := cimList.VerifyRootCert(cert44); err != nil {
-				fmt.Println("TestAllCaCert err", err," header ",header.Number)
-			}
+		if number == 30 {
+			fmt.Println("amount",getCaAmount(statedb,header.Number))
 		}
 
-		sendGetCaCertAmountTranscation(number-25-1000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		if number-1025 == 25 {
-			if err := cimList.VerifyRootCert(cert44); err != nil {
-				fmt.Println("TestAllCaCert err", err," header ",header.Number)
-			}
+		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft1Byte,pub1, true, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft2Byte,pub2, true, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+
+		if number == 1050 {
+			fmt.Println("amount",getCaAmount(statedb,header.Number),"number",header.Number)
+			//if err := cimList.VerifyRootCert(cert44); err != nil {
+			//	fmt.Println("TestAllCaCert err", err," header ",header.Number)
+			//}
 		}
-		sendMultiProposalTranscation(number-26-1000, gen, saddr1, cert44, pbft1Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number-27-1000, gen, saddr1, cert44, pbft2Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number-28-1000, gen, saddr1, cert44, pbft3Byte, false, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendGetCaCertAmountTranscation(number-25-2000, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+
+		sendMultiProposalTranscation(number-26-1000, gen, pAccount2, cert44, pbft1Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-27-1000, gen, pAccount2, cert44, pbft2Byte,pub2, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-28-1000, gen, pAccount2, cert44, pbft3Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		if number == 2050 {
+			fmt.Println("amount",getCaAmount(statedb,header.Number),"number",header.Number)
+		}
 	}
-	newTestPOSManager(60, executable)
+	newTestPOSManager(50, executable)
 	fmt.Println("staking addr", types.CACertListAddress)
+}
+
+func getCaAmount(state *state.StateDB, number *big.Int) uint64  {
+	caCertList := vm.NewCACertList()
+	err := caCertList.LoadCACertList(state, types.CACertListAddress)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+	}
+
+	return caCertList.GetCaCertAmount(types.GetEpochIDFromHeight(number).Uint64())
 }
 
 func TestGetAddress(t *testing.T) {

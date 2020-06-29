@@ -44,14 +44,23 @@ var (
 	signer   = types.NewSigner(gspec.Config.ChainID)
 
 	//p2p 1
-	priKey, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+	pKey1, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
 	// p2p 2
-	skey1, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+	pKey2, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
 	// pbft 1
-	dkey1, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
-	mAccount = crypto.PubkeyToAddress(priKey.PublicKey)
-	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
-	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
+	prikey1, _ = crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+	prikey2, _ = crypto.HexToECDSA("f7f9ffe124547d3375765539aa3ccb4533057903e18f034045d233e547506d4e")
+	prikey3, _ = crypto.HexToECDSA("acac261a29d3abdff1a96859cebaacdf73744279986349a3f8bc98884fccb641")
+	prikey4, _ = crypto.HexToECDSA("7decea0bad634a9cfcaf5442321a2668b791c064f48c1f7a2112624d022fc5eb")
+
+	pAccount1 = crypto.PubkeyToAddress(pKey1.PublicKey)
+	pAccount2 = crypto.PubkeyToAddress(pKey2.PublicKey)
+	daddr1    = crypto.PubkeyToAddress(prikey1.PublicKey)
+
+	pub1 = crypto.FromECDSAPub(&prikey1.PublicKey)
+	pub2 = crypto.FromECDSAPub(&prikey2.PublicKey)
+	pub3 = crypto.FromECDSAPub(&prikey3.PublicKey)
+
 
 	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
 	p2p2Byte, _  = taicert.ReadPemFileByPath(p2p2path)
@@ -70,12 +79,9 @@ var (
 
 func DefaulGenesisBlock() *core.Genesis {
 	i, _ := new(big.Int).SetString("10000000000000000000000", 10)
-	key1 := crypto.FromECDSAPub(&dkey1.PublicKey)
-	prikey2, _ := crypto.HexToECDSA("f7f9ffe124547d3375765539aa3ccb4533057903e18f034045d233e547506d4e")
+	key1 := crypto.FromECDSAPub(&prikey1.PublicKey)
 	key2 := crypto.FromECDSAPub(&prikey2.PublicKey)
-	prikey3, _ := crypto.HexToECDSA("acac261a29d3abdff1a96859cebaacdf73744279986349a3f8bc98884fccb641")
 	key3 := crypto.FromECDSAPub(&prikey3.PublicKey)
-	prikey4, _ := crypto.HexToECDSA("7decea0bad634a9cfcaf5442321a2668b791c064f48c1f7a2112624d022fc5eb")
 	key4 := crypto.FromECDSAPub(&prikey4.PublicKey)
 
 	var certList = [][]byte{pbft1Byte, pbft2Byte, pbft3Byte, pbft4Byte}
@@ -85,12 +91,14 @@ func DefaulGenesisBlock() *core.Genesis {
 		Config:       params.DevnetChainConfig,
 		ExtraData:    nil,
 		GasLimit:     88080384,
-		UseGas:       0,
-		IsCoin:   0,
+		UseGas:       1,
+		IsCoin:   1,
 		KindOfCrypto: 2,
+		PermisionWlSendTx:		1,
+		PermisionWlCreateTx:		1,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
-			mAccount: {Balance: i},
+			pAccount1: {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
 			&types.CommitteeMember{Coinbase: coinbase, Publickey: key1},
@@ -169,11 +177,11 @@ func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from comm
 }
 
 //neo test
-func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar []byte, isAdd bool, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, certPar, pub []byte, isAdd bool, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
 		fmt.Println("multiProposal ", hex.EncodeToString(cert), " ", hex.EncodeToString(certPar))
-		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar, cert, isAdd)
+		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar, cert,pub, isAdd)
 		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
 	}
 }
