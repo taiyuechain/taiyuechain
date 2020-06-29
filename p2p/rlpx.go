@@ -20,20 +20,17 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/hex"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
-	"reflect"
-
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -448,13 +445,13 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 		if err = t.cm.List.VerifyCert(buf); err != nil {
 			return s, err
 		}
-		pub, err := taicert.FromCertBytesToPubKey(buf)
-		if err != nil {
-			return s, err
-		}
-		if !reflect.DeepEqual(pub, h.remote) {
-			return s, errors.New("cert not match private key")
-		}
+		//pub, err := taicert.FromCertBytesToPubKey(buf)
+		//if err != nil {
+		//	return s, err
+		//}
+		//if !reflect.DeepEqual(pub, h.remote) {
+		//	return s, errors.New("cert not match private key")
+		//}
 
 		if _, err = conn.Write(t.cm.Cert); err != nil {
 			return s, err
