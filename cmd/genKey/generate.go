@@ -41,7 +41,8 @@ Generate a new key item.
 			} else {
 				fmt.Println("privkey:",hex.EncodeToString(crypto.FromECDSA(priv)))
 				fmt.Println("pubkey:",hex.EncodeToString(crypto.FromECDSAPub(&priv.PublicKey)))
-				fmt.Println("address:",crypto.PubkeyToAddress(priv.PublicKey))
+				addr := crypto.PubkeyToAddress(priv.PublicKey)
+				fmt.Println("address:",crypto.AddressToHex(addr))
 				fmt.Println("-------------------------------------------------------")
 			}
 			
