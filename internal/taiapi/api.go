@@ -615,6 +615,14 @@ func (s *PublicBlockChainAPI) GetStorageAt(ctx context.Context, address common.A
 	return res[:], state.Error()
 }
 
+func (s *PublicBlockChainAPI) GetChainBaseParams() hexutil.Bytes {
+	b := s.b.GetChainBaseParams()
+	if b == nil {
+		return nil
+	}
+	return b
+}
+
 // CallArgs represents the arguments for a call.
 type CallArgs struct {
 	From     common.Address  `json:"from"`

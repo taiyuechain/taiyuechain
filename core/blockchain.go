@@ -720,7 +720,14 @@ func (bc *BlockChain) GetBlockByNumber(number uint64) *types.Block {
 	}
 	return bc.GetBlock(hash, number)
 }
-
+func (bc *BlockChain) GetChainBaseParams() []byte {
+	g := bc.genesisBlock
+	if g == nil {
+		return nil
+	}
+	b := g.Extra()
+	return b[0:3]
+}
 // GetReceiptsByHash retrieves the receipts for all transactions in a given block.
 func (bc *BlockChain) GetReceiptsByHash(hash common.Hash) types.Receipts {
 	if receipts, ok := bc.receiptsCache.Get(hash); ok {

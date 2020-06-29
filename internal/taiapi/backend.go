@@ -58,6 +58,7 @@ type Backend interface {
 	SubscribeChainHeadEvent(ch chan<- types.FastChainHeadEvent) event.Subscription
 	SubscribeChainSideEvent(ch chan<- types.FastChainSideEvent) event.Subscription
 	GetCommittee(id rpc.BlockNumber) (map[string]interface{}, error)
+	GetChainBaseParams() []byte 
 
 	// TxPool API
 	SendTx(ctx context.Context, signedTx *types.Transaction) error
