@@ -76,7 +76,9 @@ func (b *TrueAPIBackend) HeaderByNumber(ctx context.Context, blockNr rpc.BlockNu
 func (b *TrueAPIBackend) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	return b.yue.blockchain.GetHeaderByHash(hash), nil
 }
-
+func (b *TrueAPIBackend) GetChainBaseParams() []byte {	
+	return b.yue.blockchain.GetChainBaseParams()
+}
 func (b *TrueAPIBackend) BlockByNumber(ctx context.Context, blockNr rpc.BlockNumber) (*types.Block, error) {
 	// Only snailchain has miner, also return current block here for fastchain
 	if blockNr == rpc.PendingBlockNumber {
