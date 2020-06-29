@@ -59,7 +59,6 @@ func (pt *PerminTable) Save(state StateDB) error {
 	}
 	state.SetCAState(preAddr, key, data)
 
-
 	//tmp := ClonePerminCaCache(pt)
 	//if tmp != nil {
 	//	hash := types.RlpHash(data)
@@ -93,7 +92,7 @@ func (h *extPerminTable) String() string {
 	}
 	s += "ContractPermi\n"
 	for k, v := range h.ContractPermi {
-		s += "key "+ crypto.AddressToHex(h.CPArray[k]) + " "
+		s += "key " + crypto.AddressToHex(h.CPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
 		s += strconv.FormatUint(uint64(v.CreateFlag), 10) + " "
@@ -103,7 +102,7 @@ func (h *extPerminTable) String() string {
 	}
 	s += "GropPermi\n"
 	for k, v := range h.GropPermi {
-		s += "key "+ crypto.AddressToHex(h.GPArray[k]) + " "
+		s += "key " + crypto.AddressToHex(h.GPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -113,7 +112,7 @@ func (h *extPerminTable) String() string {
 	}
 	s += "SendTranPermi\n"
 	for k, v := range h.SendTranPermi {
-		s += "key "+ crypto.AddressToHex(h.SPArray[k]) + " "
+		s += "key " + crypto.AddressToHex(h.SPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -123,7 +122,7 @@ func (h *extPerminTable) String() string {
 	}
 	s += "CrtContracetPermi\n"
 	for k, v := range h.CrtContracetPermi {
-		s += "key "+ crypto.AddressToHex(h.CCPArray[k]) + " "
+		s += "key " + crypto.AddressToHex(h.CCPArray[k]) + " "
 		s += crypto.AddressToHex(v.GroupKey) + " "
 		s += strconv.FormatUint(uint64(v.Id), 10) + " "
 		s += crypto.AddressToHex(v.Creator) + " "
@@ -133,7 +132,7 @@ func (h *extPerminTable) String() string {
 	}
 	s += "UserBasisPermi\n"
 	for k, v := range h.UserBasisPermi {
-		s += "key "+ crypto.AddressToHex(h.UBPArray[k]) + " "
+		s += "key " + crypto.AddressToHex(h.UBPArray[k]) + " "
 		s += crypto.AddressToHex(v.MemberID) + " "
 		s += crypto.AddressToHex(v.CreatorRoot) + " "
 		s += strconv.FormatBool(v.SendTran) + " "
@@ -148,8 +147,12 @@ func (h *extPerminTable) String() string {
 
 // "external" PerminTable encoding. used for pos staking.
 type extPerminTable struct {
+	LastRootID        uint64
 	WhiteList         []common.Address
 	BlackList         []common.Address
+	RootList          []common.Address
+	PBFT2Root         []common.Address
+	PRArray           []common.Address
 	ContractPermi     []*ContractListTable //contract Addr=> Memberlist
 	CPArray           []common.Address
 	GropPermi         []*GropListTable //group addr => GropListTable
@@ -169,6 +172,10 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 	}
 	//fmt.Println("ei load ",ei.String())
 
+	prs := make(map[common.Address]common.Address)
+	for i, cert := range ei.PBFT2Root {
+		prs[ei.PRArray[i]] = cert
+	}
 	clts := make(map[common.Address]*ContractListTable)
 	for i, cert := range ei.ContractPermi {
 		clts[ei.CPArray[i]] = cert
@@ -190,13 +197,28 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 		bps[ei.UBPArray[i]] = proposal
 	}
 
-	p.WhiteList, p.BlackList, p.ContractPermi = ei.WhiteList, ei.BlackList, clts
+	p.LastRootID, p.WhiteList, p.BlackList, p.RootList, p.ContractPermi, p.PBFT2Root = int64(ei.LastRootID), ei.WhiteList, ei.BlackList, ei.RootList, clts, prs
 	p.GropPermi, p.SendTranPermi, p.CrtContracetPermi, p.UserBasisPermi = gps, mlts, ctps, bps
 	return nil
 }
 
 // EncodeRLP serializes b into the truechain RLP ImpawnImpl format.
 func (i *PerminTable) EncodeRLP(w io.Writer) error {
+	var prs []common.Address
+	var prsOrder []common.Address
+	for i, _ := range i.PBFT2Root {
+		if prsOrder == nil {
+			prsOrder = append(prsOrder, i)
+		} else {
+			pos := find(i.Big(), prsOrder)
+			rear := append([]common.Address{}, prsOrder[pos:]...)
+			prsOrder = append(append(prsOrder[:pos], i), rear...)
+		}
+	}
+	for _, index := range prsOrder {
+		prs = append(prs, i.PBFT2Root[index])
+	}
+
 	var clts []*ContractListTable
 	var order []common.Address
 	for i, _ := range i.ContractPermi {
@@ -273,8 +295,12 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 		bps = append(bps, i.UserBasisPermi[index])
 	}
 	ei := extPerminTable{
+		LastRootID:        uint64(i.LastRootID),
 		WhiteList:         i.WhiteList,
 		BlackList:         i.BlackList,
+		RootList:          i.RootList,
+		PBFT2Root:         prs,
+		PRArray:           prsOrder,
 		ContractPermi:     clts,
 		CPArray:           order,
 		GropPermi:         glts,
