@@ -873,10 +873,6 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *yue.Config) {
-
-}
-
 // CheckExclusive verifies that only a single isntance of the provided flags was
 // set by the user. Each flag might optionally be followed by a string type to
 // specialize it further.
@@ -925,7 +921,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	// ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
-	setEthash(ctx, cfg)
 	if ctx.GlobalIsSet(SyncModeFlag.Name) {
 		cfg.SyncMode = *GlobalTextMarshaler(ctx, SyncModeFlag.Name).(*downloader.SyncMode)
 	}
