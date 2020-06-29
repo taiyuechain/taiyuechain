@@ -29,7 +29,7 @@ Percentile = 60
 
 [Node]
 DataDir = "data"
-IPCPath = "geth.ipc"
+IPCPath = "taiyue.ipc"
 HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
