@@ -554,7 +554,7 @@ func MakeDataDir(ctx *cli.Context) string {
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
-	if len(cfg.P2PKey) <= 0 || len(cfg.P2PNodeCertFile) <= 0 {
+	if len(cfg.P2PNodeCertFile) <= 0 {
 		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCertFile is nil")
 	} 
 	if data, err := taicert.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
@@ -562,11 +562,13 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	} else {
 		cfg.P2PNodeCert = data
 	}
-	if key, err := crypto.ToECDSA(cfg.P2PKey); err != nil {
-		Fatalf("Option %v: %v", cfg.P2PKey, err)
-	} else {
-		cfg.PrivateKey = key
-	}
+	if len(cfg.P2PKey) > 0 {
+		if key, err := crypto.ToECDSA(cfg.P2PKey); err != nil {
+			Fatalf("Option %v: %v", cfg.P2PKey, err)
+		} else {
+			cfg.PrivateKey = key
+		}
+	} 	
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {

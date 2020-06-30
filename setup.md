@@ -99,7 +99,7 @@ config.toml文件配置了链的一些基础参数,下面是一些主要参数�
 + `Node.DataDir`:  节点数据目录。
 + `Node.P2P.ListenAddr`： 节点网络通讯地址。
 + `Node.P2P.P2PNodeCertFile`： 节点网络通讯证书文件。
-+ `Node.P2P.P2PKey`：节点网络通讯的nodekey,用于标识节点的身份，在国密标准下，可以与P2PNodeCertFile公用相同的私钥。
++ `Node.P2P.P2PKey`：节点网络通讯的nodekey,用于标识节点的身份，也可以忽略改字段，系统会自动生成。
 + `Node.P2P.BootstrapNodes`： 节点初始网络发现的地址。
 
 ```
