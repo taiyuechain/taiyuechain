@@ -29,7 +29,7 @@ func main() {
 
 //send transaction init
 func send(ip string) {
-	//dial etrue
+	//dial yue
 	client, err := rpc.Dial("http://" + ip)
 	defer client.Close()
 	if err != nil {

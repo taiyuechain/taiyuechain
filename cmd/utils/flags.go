@@ -913,7 +913,7 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 	}
 }
 
-// SetTaichainConfig applies etrue-related command line flags to the config.
+// SetTaichainConfig applies yue-related command line flags to the config.
 func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, TestnetFlag, DevnetFlag)
@@ -1035,8 +1035,8 @@ func RegisterYueService(stack *node.Node, cfg *yue.Config) {
 // RegisterDashboardService adds a dashboard to the stack.
 func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both etrue and les services
-		var etrueServ *etrue.Taiyuechain
+		// Retrieve both yue and les services
+		var etrueServ *yue.Taiyuechain
 		ctx.Service(&etrueServ)
 		return dashboard.New(cfg, commit, ctx.ResolvePath("logs"), etrueServ), nil
 	}); err != nil {
@@ -1048,7 +1048,7 @@ func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit st
 // th egiven node.
 func RegisterEtrueStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
-		// Retrieve both etrue services
+		// Retrieve both yue services
 		var etrueServ *yue.Taiyuechain
 		ctx.Service(&etrueServ)
 		return yuestats.New(url, etrueServ)

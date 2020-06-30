@@ -44,9 +44,9 @@ func init() {
 	ptable.InitPBFTRootGrop(rootList)
 
 	root1 = rootList[1]
-	member1 = common.HexToAddress("0xf22142DbF24C324Eb021332c2D673d3B819B955a")
+	member1 = common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")
 	member2 = common.HexToAddress("0x1b3d007C0D5318D241F26374F379E882cDCbc371")
-	member3 = common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C")
+	member3 = common.HexToAddress("0x5A778953403352839Faf865C82309B63965f15F2")
 }
 
 //
@@ -224,6 +224,11 @@ func TestTxGroupNormalPermissionTable(t *testing.T) {
 	printResError(res,err,t,"Grent err,ModifyPerminType_DelSendTxManagerPerm")
 	checkNoBaseSendTxPermission(member1,t,false)
 	checkDelSendTxManagerPermission(member1,t,false)
+}
+
+func TestTxGroupPermissionTable(t *testing.T) {
+	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddSendTxPerm,"a",true)
+	printResError(res,err,t,"Grent err")
 }
 
 func Test1(t *testing.T) {

@@ -88,13 +88,13 @@ func (api *PublicTaichainAPI) ChainId() hexutil.Uint64 {
 // PrivateAdminAPI is the collection of Taiyuechain full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
-	etrue *Taiyuechain
+	yue *Taiyuechain
 }
 
 // NewPrivateAdminAPI creates a new API definition for the full node private
 // admin methods of the Taiyuechain service.
-func NewPrivateAdminAPI(etrue *Taiyuechain) *PrivateAdminAPI {
-	return &PrivateAdminAPI{etrue: etrue}
+func NewPrivateAdminAPI(yue *Taiyuechain) *PrivateAdminAPI {
+	return &PrivateAdminAPI{yue: yue}
 }
 
 // ExportChain exports the current blockchain into a local file.
@@ -113,7 +113,7 @@ func (api *PrivateAdminAPI) ExportChain(file string) (bool, error) {
 	}
 
 	// Export the blockchain
-	if err := api.etrue.BlockChain().Export(writer); err != nil {
+	if err := api.yue.BlockChain().Export(writer); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -165,12 +165,12 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 			break
 		}
 
-		if hasAllBlocks(api.etrue.BlockChain(), blocks) {
+		if hasAllBlocks(api.yue.BlockChain(), blocks) {
 			blocks = blocks[:0]
 			continue
 		}
 		// Import the batch and reset the buffer
-		if _, err := api.etrue.BlockChain().InsertChain(blocks); err != nil {
+		if _, err := api.yue.BlockChain().InsertChain(blocks); err != nil {
 			return false, fmt.Errorf("batch %d: failed to insert: %v", batch, err)
 		}
 		blocks = blocks[:0]
@@ -181,13 +181,13 @@ func (api *PrivateAdminAPI) ImportChain(file string) (bool, error) {
 // PublicDebugAPI is the collection of Taiyuechain full node APIs exposed
 // over the public debugging endpoint.
 type PublicDebugAPI struct {
-	etrue *Taiyuechain
+	yue *Taiyuechain
 }
 
 // NewPublicDebugAPI creates a new API definition for the full node-
 // related public debug methods of the Taiyuechain service.
-func NewPublicDebugAPI(etrue *Taiyuechain) *PublicDebugAPI {
-	return &PublicDebugAPI{etrue: etrue}
+func NewPublicDebugAPI(yue *Taiyuechain) *PublicDebugAPI {
+	return &PublicDebugAPI{yue: yue}
 }
 
 // DumpBlock retrieves the entire state of the database at a given block.
@@ -196,19 +196,19 @@ func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error
 		// If we're dumping the pending state, we need to request
 		// both the pending block as well as the pending state from
 		// the miner and operate on those
-		//_, stateDb := api.etrue.miner.Pending()
+		//_, stateDb := api.yue.miner.Pending()
 		return stateDb.RawDump(), nil
 	}*/
 	var block *types.Block
 	if blockNr == rpc.LatestBlockNumber {
-		block = api.etrue.blockchain.CurrentBlock()
+		block = api.yue.blockchain.CurrentBlock()
 	} else {
-		block = api.etrue.blockchain.GetBlockByNumber(uint64(blockNr))
+		block = api.yue.blockchain.GetBlockByNumber(uint64(blockNr))
 	}
 	if block == nil {
 		return state.Dump{}, fmt.Errorf("block #%d not found", blockNr)
 	}
-	stateDb, err := api.etrue.BlockChain().StateAt(block.Root())
+	stateDb, err := api.yue.BlockChain().StateAt(block.Root())
 	if err != nil {
 		return state.Dump{}, err
 	}
@@ -219,18 +219,18 @@ func (api *PublicDebugAPI) DumpBlock(blockNr rpc.BlockNumber) (state.Dump, error
 // the private debugging endpoint.
 type PrivateDebugAPI struct {
 	config *params.ChainConfig
-	etrue  *Taiyuechain
+	yue    *Taiyuechain
 }
 
 // NewPrivateDebugAPI creates a new API definition for the full node-related
 // private debug methods of the Taiyuechain service.
-func NewPrivateDebugAPI(config *params.ChainConfig, etrue *Taiyuechain) *PrivateDebugAPI {
-	return &PrivateDebugAPI{config: config, etrue: etrue}
+func NewPrivateDebugAPI(config *params.ChainConfig, yue *Taiyuechain) *PrivateDebugAPI {
+	return &PrivateDebugAPI{config: config, yue: yue}
 }
 
 // Preimage is a debug API function that returns the preimage for a sha3 hash, if known.
 func (api *PrivateDebugAPI) Preimage(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
-	if preimage := rawdb.ReadPreimage(api.etrue.ChainDb(), hash); preimage != nil {
+	if preimage := rawdb.ReadPreimage(api.yue.ChainDb(), hash); preimage != nil {
 		return preimage, nil
 	}
 	return nil, errors.New("unknown preimage")
@@ -246,7 +246,7 @@ type BadBlockArgs struct {
 // GetBadBlocks returns a list of the last 'bad blocks' that the client has seen on the network
 // and returns them as a JSON list of block-hashes
 func (api *PrivateDebugAPI) GetBadBlocks(ctx context.Context) ([]*BadBlockArgs, error) {
-	blocks := api.etrue.BlockChain().BadBlocks()
+	blocks := api.yue.BlockChain().BadBlocks()
 	results := make([]*BadBlockArgs, len(blocks))
 
 	var err error
@@ -323,19 +323,19 @@ func storageRangeAt(st state.Trie, start []byte, maxResult int) (StorageRangeRes
 func (api *PrivateDebugAPI) GetModifiedAccountsByNumber(startNum uint64, endNum *uint64) ([]common.Address, error) {
 	var startBlock, endBlock *types.Block
 
-	startBlock = api.etrue.blockchain.GetBlockByNumber(startNum)
+	startBlock = api.yue.blockchain.GetBlockByNumber(startNum)
 	if startBlock == nil {
 		return nil, fmt.Errorf("start block %x not found", startNum)
 	}
 
 	if endNum == nil {
 		endBlock = startBlock
-		startBlock = api.etrue.blockchain.GetBlockByHash(startBlock.ParentHash())
+		startBlock = api.yue.blockchain.GetBlockByHash(startBlock.ParentHash())
 		if startBlock == nil {
 			return nil, fmt.Errorf("block %x has no parent", endBlock.Number())
 		}
 	} else {
-		endBlock = api.etrue.blockchain.GetBlockByNumber(*endNum)
+		endBlock = api.yue.blockchain.GetBlockByNumber(*endNum)
 		if endBlock == nil {
 			return nil, fmt.Errorf("end block %d not found", *endNum)
 		}
@@ -350,19 +350,19 @@ func (api *PrivateDebugAPI) GetModifiedAccountsByNumber(startNum uint64, endNum 
 // With one parameter, returns the list of accounts modified in the specified block.
 func (api *PrivateDebugAPI) GetModifiedAccountsByHash(startHash common.Hash, endHash *common.Hash) ([]common.Address, error) {
 	var startBlock, endBlock *types.Block
-	startBlock = api.etrue.blockchain.GetBlockByHash(startHash)
+	startBlock = api.yue.blockchain.GetBlockByHash(startHash)
 	if startBlock == nil {
 		return nil, fmt.Errorf("start block %x not found", startHash)
 	}
 
 	if endHash == nil {
 		endBlock = startBlock
-		startBlock = api.etrue.blockchain.GetBlockByHash(startBlock.ParentHash())
+		startBlock = api.yue.blockchain.GetBlockByHash(startBlock.ParentHash())
 		if startBlock == nil {
 			return nil, fmt.Errorf("block %x has no parent", endBlock.Number())
 		}
 	} else {
-		endBlock = api.etrue.blockchain.GetBlockByHash(*endHash)
+		endBlock = api.yue.blockchain.GetBlockByHash(*endHash)
 		if endBlock == nil {
 			return nil, fmt.Errorf("end block %x not found", *endHash)
 		}
@@ -375,11 +375,11 @@ func (api *PrivateDebugAPI) getModifiedAccounts(startBlock, endBlock *types.Bloc
 		return nil, fmt.Errorf("start block height (%d) must be less than end block height (%d)", startBlock.Number().Uint64(), endBlock.Number().Uint64())
 	}
 
-	oldTrie, err := trie.NewSecure(startBlock.Root(), trie.NewDatabase(api.etrue.chainDb), 0)
+	oldTrie, err := trie.NewSecure(startBlock.Root(), trie.NewDatabase(api.yue.chainDb), 0)
 	if err != nil {
 		return nil, err
 	}
-	newTrie, err := trie.NewSecure(endBlock.Root(), trie.NewDatabase(api.etrue.chainDb), 0)
+	newTrie, err := trie.NewSecure(endBlock.Root(), trie.NewDatabase(api.yue.chainDb), 0)
 	if err != nil {
 		return nil, err
 	}

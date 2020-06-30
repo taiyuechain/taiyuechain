@@ -221,7 +221,7 @@ func sendErc20TokenTx(nonce uint64, fromcert []byte, chainID *big.Int) *types.Tr
 
 //send transaction init
 func send(count int, ip string) {
-	//dial etrue
+	//dial yue
 	client, err := rpc.Dial("http://" + ip)
 
 	defer client.Close()
@@ -367,7 +367,7 @@ func genAddress() string {
 	priKey, _ := crypto.GenerateKey()
 	address := crypto.PubkeyToAddress(priKey.PublicKey)
 
-	return address.Hex()
+	return crypto.AddressToHex(address)
 }
 
 func getBalanceValue(hex string, print bool) *big.Int {

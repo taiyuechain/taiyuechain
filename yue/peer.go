@@ -59,7 +59,7 @@ const (
 
 	// maxQueuedBlockAnns is the maximum number of block announcements to queue up before
 	// dropping broadcasts. Similarly to block propagations, there's no point to queue
-	// above some healthy uncle limit, so use that.
+	// above some healthy header limit, so use that.
 	maxQueuedBlockAnns = 4
 
 	handshakeTimeout = 5 * time.Second

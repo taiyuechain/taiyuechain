@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package etrue implements the Taiyuechain protocol.
+// Package yue implements the Taiyuechain protocol.
 package yue
 
 import (
@@ -120,7 +120,7 @@ func (s *Taiyuechain) AddLesServer(ls LesServer) {
 // initialisation of the common Taiyuechain object)
 func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain, error) {
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run etrue.Taiyuechain in light sync mode, use les.LightTaiYueChain")
+		return nil, errors.New("can't run yue.Taiyuechain in light sync mode, use les.LightTaiYueChain")
 	}
 
 	if !config.SyncMode.IsValid() {
@@ -151,7 +151,7 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 	}
 	vm.SetPermConfig(pmSt,pmcC)
 
-	etrue := &Taiyuechain{
+	yue := &Taiyuechain{
 		config:         config,
 		chainDb:        chainDb,
 		chainConfig:    chainConfig,
@@ -178,9 +178,9 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 		vmConfig    = vm.Config{EnablePreimageRecording: config.EnablePreimageRecording}
 		cacheConfig = &core.CacheConfig{Deleted: config.DeletedState, Disabled: config.NoPruning, TrieNodeLimit: config.TrieCache, TrieTimeLimit: config.TrieTimeout}
 	)
-	//NewCIMList := cim.NewCIMList(etrue.config.CryptoType)
+	//NewCIMList := cim.NewCIMList(yue.config.CryptoType)
 
-	etrue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, etrue.chainConfig, etrue.engine, vmConfig, NewCIMList)
+	yue.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, yue.chainConfig, yue.engine, vmConfig, NewCIMList)
 	if err != nil {
 		return nil, err
 	}
@@ -189,12 +189,12 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 
 	//init cert list to
 	// need init cert list to statedb
-	stateDB, err := etrue.blockchain.State()
+	stateDB, err := yue.blockchain.State()
 	if err != nil {
 		return nil, err
 	}
 
-	err = NewCIMList.InitCertAndPermission(etrue.blockchain.CurrentBlock().Number(), stateDB)
+	err = NewCIMList.InitCertAndPermission(yue.blockchain.CurrentBlock().Number(), stateDB)
 	if err != nil {
 		panic(err)
 	}
@@ -202,31 +202,31 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 	// Rewind the chain in case of an incompatible config upgrade.
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		etrue.blockchain.SetHead(compat.RewindTo)
+		yue.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}*/
 
 	//  rewind snail if case of incompatible config
 	/*if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding snail chain to upgrade configuration", "err", compat)
-		etrue.snailblockchain.SetHead(compat.RewindTo)
+		yue.snailblockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}*/
 
-	etrue.bloomIndexer.Start(etrue.blockchain)
+	yue.bloomIndexer.Start(yue.blockchain)
 
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = ctx.ResolvePath(config.TxPool.Journal)
 	}
 	config.TxPool.CimList = NewCIMList
 
-	etrue.txPool = core.NewTxPool(config.TxPool, etrue.chainConfig, etrue.blockchain)
+	yue.txPool = core.NewTxPool(config.TxPool, yue.chainConfig, yue.blockchain)
 
-	etrue.election = elect.NewElection(etrue.blockchain, etrue.config)
+	yue.election = elect.NewElection(yue.blockchain, yue.config)
 
-	etrue.engine.SetElection(etrue.election)
+	yue.engine.SetElection(yue.election)
 
-	//coinbase, _ := etrue.Etherbase()
+	//coinbase, _ := yue.Etherbase()
 
 	cacheLimit := cacheConfig.TrieCleanLimit //+ cacheConfig.TrieDirtyLimit
 	checkpoint := config.Checkpoint
@@ -234,24 +234,24 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 	/*if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}*/
-	etrue.agent = NewPbftAgent(etrue, etrue.chainConfig, etrue.engine, etrue.election,
+	yue.agent = NewPbftAgent(yue, yue.chainConfig, yue.engine, yue.election,
 		NewCIMList, config.MinerGasFloor, config.MinerGasCeil)
-	if etrue.protocolManager, err = NewProtocolManager(etrue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, etrue.eventMux, etrue.txPool, etrue.engine, etrue.blockchain, chainDb, etrue.agent, cacheLimit, config.Whitelist, NewCIMList, p2pCert); err != nil {
+	if yue.protocolManager, err = NewProtocolManager(yue.chainConfig, checkpoint, config.SyncMode, config.NetworkId, yue.eventMux, yue.txPool, yue.engine, yue.blockchain, chainDb, yue.agent, cacheLimit, config.Whitelist, NewCIMList, p2pCert); err != nil {
 		return nil, err
 	}
 
-	//committeeKey, err := crypto.ToECDSA(etrue.config.CommitteeKey)
+	//committeeKey, err := crypto.ToECDSA(yue.config.CommitteeKey)
 	//if err == nil {
-	//	etrue.miner.SetElection(etrue.config.EnableElection, crypto.FromECDSAPub(&committeeKey.PublicKey))
+	//	yue.miner.SetElection(yue.config.EnableElection, crypto.FromECDSAPub(&committeeKey.PublicKey))
 	//}
 
-	etrue.APIBackend = &TrueAPIBackend{etrue, nil}
+	yue.APIBackend = &TrueAPIBackend{yue, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.GasPrice
 	}
-	etrue.APIBackend.gpo = gasprice.NewOracle(etrue.APIBackend, gpoParams)
-	return etrue, nil
+	yue.APIBackend.gpo = gasprice.NewOracle(yue.APIBackend, gpoParams)
+	return yue, nil
 }
 
 func makeExtraData(extra []byte) []byte {
@@ -278,7 +278,7 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (yuedb.Data
 		return nil, err
 	}
 	if db, ok := db.(*yuedb.LDBDatabase); ok {
-		db.Meter("etrue/db/chaindata/")
+		db.Meter("yue/db/chaindata/")
 	}
 	return db, nil
 }
@@ -306,7 +306,7 @@ func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config,cimLi
 	}
 }
 
-// APIs return the collection of RPC services the etrue package offers.
+// APIs return the collection of RPC services the yue package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *Taiyuechain) APIs() []rpc.API {
 	apis := taiapi.GetAPIs(s.APIBackend)
@@ -314,7 +314,7 @@ func (s *Taiyuechain) APIs() []rpc.API {
 	// Append any APIs exposed explicitly by the consensus engine
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
 
-	// Append etrue	APIs and  Eth APIs
+	// Append yue	APIs and  Eth APIs
 	namespaces := []string{"etrue", "yue"}
 	for _, name := range namespaces {
 		apis = append(apis, []rpc.API{

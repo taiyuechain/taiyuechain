@@ -396,13 +396,13 @@ func (pm *ProtocolManager) handle(p *peer) error {
 	)
 
 	if err := p.Handshake(pm.networkID, number, hash, genesis.Hash(), forkid.NewID(pm.blockchain), pm.forkFilter); err != nil {
-		p.Log().Debug("etrue handshake failed", "err", err)
+		p.Log().Debug("yue handshake failed", "err", err)
 		return err
 	}
 
 	// Register the peer locally
 	if err := pm.peers.Register(p); err != nil {
-		p.Log().Error("etrue peer registration failed", "err", err)
+		p.Log().Error("yue peer registration failed", "err", err)
 		return err
 	}
 	defer pm.removePeer(p.id)

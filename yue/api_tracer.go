@@ -98,19 +98,19 @@ func (api *PrivateDebugAPI) TraceChain(ctx context.Context, start, end rpc.Block
 
 	switch start {
 	/*case rpc.PendingBlockNumber:
-	from = api.etrue.miner.PendingBlock()*/
+	from = api.yue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
-		from = api.etrue.blockchain.CurrentBlock()
+		from = api.yue.blockchain.CurrentBlock()
 	default:
-		from = api.etrue.blockchain.GetBlockByNumber(uint64(start))
+		from = api.yue.blockchain.GetBlockByNumber(uint64(start))
 	}
 	switch end {
 	/*case rpc.PendingBlockNumber:
-	to = api.etrue.miner.PendingBlock()*/
+	to = api.yue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
-		to = api.etrue.blockchain.CurrentBlock()
+		to = api.yue.blockchain.CurrentBlock()
 	default:
-		to = api.etrue.blockchain.GetBlockByNumber(uint64(end))
+		to = api.yue.blockchain.GetBlockByNumber(uint64(end))
 	}
 	// Trace the chain if we've found all our blocks
 	if from == nil {
@@ -135,10 +135,10 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 
 	// Ensure we have a valid starting state before doing any work
 	origin := start.NumberU64()
-	database := state.NewDatabase(api.etrue.ChainDb())
+	database := state.NewDatabase(api.yue.ChainDb())
 
 	if number := start.NumberU64(); number > 0 {
-		start = api.etrue.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
+		start = api.yue.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
 		if start == nil {
 			return nil, fmt.Errorf("parent block #%d not found", number-1)
 		}
@@ -152,7 +152,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 		}
 		// Find the most recent block that has the state available
 		for i := uint64(0); i < reexec; i++ {
-			start = api.etrue.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
+			start = api.yue.blockchain.GetBlock(start.ParentHash(), start.NumberU64()-1)
 			if start == nil {
 				break
 			}
@@ -194,7 +194,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				// Trace all the transactions contained within
 				for i, tx := range task.block.Transactions() {
 					msg, _ := tx.AsMessage(signer)
-					vmctx := core.NewEVMContext(msg, task.block.Header(), api.etrue.blockchain, nil, nil)
+					vmctx := core.NewEVMContext(msg, task.block.Header(), api.yue.blockchain, nil, nil)
 
 					res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 					if err != nil {
@@ -259,7 +259,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				logged = time.Now()
 			}
 			// Retrieve the next block to trace
-			block := api.etrue.blockchain.GetBlockByNumber(number)
+			block := api.yue.blockchain.GetBlockByNumber(number)
 			if block == nil {
 				failed = fmt.Errorf("block #%d not found", number)
 				break
@@ -276,7 +276,7 @@ func (api *PrivateDebugAPI) traceChain(ctx context.Context, start, end *types.Bl
 				traced += uint64(len(txs))
 			}
 			// Generate the next state snapshot fast without tracing
-			_, _, _, err := api.etrue.blockchain.Processor().Process(block, statedb, vm.Config{})
+			_, _, _, err := api.yue.blockchain.Processor().Process(block, statedb, vm.Config{})
 			if err != nil {
 				failed = err
 				break
@@ -343,11 +343,11 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.B
 
 	switch number {
 	/*case rpc.PendingBlockNumber:
-	block = api.etrue.miner.PendingBlock()*/
+	block = api.yue.miner.PendingBlock()*/
 	case rpc.LatestBlockNumber:
-		block = api.etrue.blockchain.CurrentBlock()
+		block = api.yue.blockchain.CurrentBlock()
 	default:
-		block = api.etrue.blockchain.GetBlockByNumber(uint64(number))
+		block = api.yue.blockchain.GetBlockByNumber(uint64(number))
 	}
 	// Trace the block if it was found
 	if block == nil {
@@ -359,7 +359,7 @@ func (api *PrivateDebugAPI) TraceBlockByNumber(ctx context.Context, number rpc.B
 // TraceBlockByHash returns the structured logs created during the execution of
 // EVM and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceBlockByHash(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
-	block := api.etrue.blockchain.GetBlockByHash(hash)
+	block := api.yue.blockchain.GetBlockByHash(hash)
 	if block == nil {
 		return nil, fmt.Errorf("block #%x not found", hash)
 	}
@@ -391,10 +391,10 @@ func (api *PrivateDebugAPI) TraceBlockFromFile(ctx context.Context, file string,
 // per transaction, dependent on the requestd tracer.
 func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, config *TraceConfig) ([]*txTraceResult, error) {
 	// Create the parent state database
-	if err := api.etrue.engine.VerifyHeader(api.etrue.blockchain, block.Header()); err != nil {
+	if err := api.yue.engine.VerifyHeader(api.yue.blockchain, block.Header()); err != nil {
 		return nil, err
 	}
-	parent := api.etrue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+	parent := api.yue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
 		return nil, fmt.Errorf("parent %x not found", block.ParentHash())
 	}
@@ -428,7 +428,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 			// Fetch and execute the next transaction trace tasks
 			for task := range jobs {
 				msg, _ := txs[task.index].AsMessage(signer)
-				vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
+				vmctx := core.NewEVMContext(msg, block.Header(), api.yue.blockchain, nil, nil)
 
 				res, err := api.traceTx(ctx, msg, vmctx, task.statedb, config)
 				if err != nil {
@@ -447,7 +447,7 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 
 		// Generate the next state snapshot fast without tracing
 		msg, _ := tx.AsMessage(signer)
-		vmctx := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
+		vmctx := core.NewEVMContext(msg, block.Header(), api.yue.blockchain, nil, nil)
 
 		vmenv := vm.NewEVM(vmctx, statedb, api.config, vm.Config{})
 		if _, _, _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(msg.Gas())); err != nil {
@@ -472,16 +472,16 @@ func (api *PrivateDebugAPI) traceBlock(ctx context.Context, block *types.Block, 
 // attempted to be reexecuted to generate the desired state.
 func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*state.StateDB, error) {
 	// If we have the state fully available, use that
-	statedb, err := api.etrue.blockchain.StateAt(block.Root())
+	statedb, err := api.yue.blockchain.StateAt(block.Root())
 	if err == nil {
 		return statedb, nil
 	}
 	// Otherwise try to reexec blocks until we find a state or reach our limit
 	origin := block.NumberU64()
-	database := state.NewDatabase(api.etrue.ChainDb())
+	database := state.NewDatabase(api.yue.ChainDb())
 
 	for i := uint64(0); i < reexec; i++ {
-		block = api.etrue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+		block = api.yue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 		if block == nil {
 			break
 		}
@@ -510,10 +510,10 @@ func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*
 			logged = time.Now()
 		}
 		// Retrieve the next block to regenerate and process it
-		if block = api.etrue.blockchain.GetBlockByNumber(block.NumberU64() + 1); block == nil {
+		if block = api.yue.blockchain.GetBlockByNumber(block.NumberU64() + 1); block == nil {
 			return nil, fmt.Errorf("block #%d not found", block.NumberU64()+1)
 		}
-		_, _, _, err := api.etrue.blockchain.Processor().Process(block, statedb, vm.Config{})
+		_, _, _, err := api.yue.blockchain.Processor().Process(block, statedb, vm.Config{})
 		if err != nil {
 			return nil, err
 		}
@@ -538,7 +538,7 @@ func (api *PrivateDebugAPI) computeStateDB(block *types.Block, reexec uint64) (*
 // and returns them as a JSON object.
 func (api *PrivateDebugAPI) TraceTransaction(ctx context.Context, hash common.Hash, config *TraceConfig) (interface{}, error) {
 	// Retrieve the transaction and assemble its EVM context
-	tx, blockHash, _, index := rawdb.ReadTransaction(api.etrue.ChainDb(), hash)
+	tx, blockHash, _, index := rawdb.ReadTransaction(api.yue.ChainDb(), hash)
 	if tx == nil {
 		return nil, fmt.Errorf("transaction %x not found", hash)
 	}
@@ -618,11 +618,11 @@ func (api *PrivateDebugAPI) traceTx(ctx context.Context, message core.Message, v
 // computeTxEnv returns the execution environment of a certain transaction.
 func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, reexec uint64) (core.Message, vm.Context, *state.StateDB, error) {
 	// Create the parent state database
-	block := api.etrue.blockchain.GetBlockByHash(blockHash)
+	block := api.yue.blockchain.GetBlockByHash(blockHash)
 	if block == nil {
 		return nil, vm.Context{}, nil, fmt.Errorf("block %x not found", blockHash)
 	}
-	parent := api.etrue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+	parent := api.yue.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
 		return nil, vm.Context{}, nil, fmt.Errorf("parent %x not found", block.ParentHash())
 	}
@@ -636,7 +636,7 @@ func (api *PrivateDebugAPI) computeTxEnv(blockHash common.Hash, txIndex int, ree
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
-		context := core.NewEVMContext(msg, block.Header(), api.etrue.blockchain, nil, nil)
+		context := core.NewEVMContext(msg, block.Header(), api.yue.blockchain, nil, nil)
 		if idx == txIndex {
 			return msg, context, statedb, nil
 		}

@@ -25,7 +25,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/yue/downloader"
-	//dtype "github.com/taiyuechain/taiyuechain/etrue/types"
+	//dtype "github.com/taiyuechain/taiyuechain/yue/types"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 )
 

@@ -61,10 +61,9 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, sBlocks int, g
 		gspec = &core.Genesis{
 			Config:     params.TestChainConfig,
 			Alloc:      types.GenesisAlloc{testBank: {Balance: big.NewInt(1000000000)}},
-			Difficulty: big.NewInt(20000),
 		}
 		genesis       = gspec.MustCommit(db)
-		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{})
+		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{},nil)
 
 		priKey, _     = crypto.GenerateKey()
 		coinbase      = crypto.PubkeyToAddress(priKey.PublicKey) //coinbase
@@ -87,7 +86,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, sBlocks int, g
 		panic(err)
 	}
 
-	//snailPool	etrue.snailblockchain
+	//snailPool	yue.snailblockchain
 	pm, err := NewProtocolManager(gspec.Config, nil, mode, DefaultConfig.NetworkId, evmux, new(testTxPool), engine, blockchain, db, pbftAgent, 1, nil, nil, nil)
 	if err != nil {
 		return nil, nil, err
