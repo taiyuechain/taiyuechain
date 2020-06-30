@@ -615,6 +615,20 @@ func TestIsuseP2PCert(t *testing.T) {
 	pbft5Byte, _ := taicert.ReadPemFileByPath(pbft5path)
 	pbft5Cert, _ := taicert.ParseCertificate(pbft5Byte)
 	IssueCert(pbft5Cert, pbft5priv, &p2p5priv.PublicKey, p2p5Name)
+
+	p2pnodecert1   := "p2pnodecert1.pem"
+	p2pnodecert2   := "p2pnodecert2.pem"
+	p2pnodecert3   := "p2pnodecert3.pem"
+	p2pnodecert4   := "p2pnodecert4.pem"
+	priv, _ := crypto.HexToECDSA("0825ab2c54ab00e07dd6d0eb86782a5eea2d6395f9ad31a2d067b30b2c76e2ff")
+	IssueCert(pbft1Cert, pbft1priv, &priv.PublicKey, p2pnodecert1)
+	priv, _ = crypto.HexToECDSA("4d02e3c58bfb145a7839789bf58bffe470abafed364e678a4bec3613166b156c")
+	IssueCert(pbft2Cert, pbft2priv, &priv.PublicKey, p2pnodecert2)
+	priv,_= crypto.GenerateKey()
+	priv, _ = crypto.HexToECDSA("448145c56a2680d91b0c92bdba7f68ce34d008158351b5e5421491d2f1ea9f84")
+	IssueCert(pbft3Cert, pbft3priv, &priv.PublicKey, p2pnodecert3)
+	priv, _ = crypto.HexToECDSA("41ed7f8d7dc9c085eb99f0a4450c1d170fd6489a16bfe655f95f534c116a988d")
+	IssueCert(pbft4Cert, pbft4priv, &priv.PublicKey, p2pnodecert4)
 }
 
 func TestGetPBFTCertBytes(t *testing.T) {
