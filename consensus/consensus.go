@@ -188,10 +188,7 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 		permTable.Load(state)
 		permTable.UpdataRootInElection(oldRootAddr,curRootAddr)
 		permTable.Save(state)
-
-
-		nextEpoch := epoch.Uint64()+1
-		rootCimList.UpdataCert(i.GetCertList(nextEpoch))
+		
 	}
 
 	if state.PermissionChange() {
