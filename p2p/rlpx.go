@@ -314,9 +314,9 @@ func (t *rlpx) initiatorEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey, 
 		if authRespMsg.CertSize == 0 {
 			return s, errors.New("initiator remote cert size  equal 0")
 		}
-		if uint16(len(t.cm.Cert)) != authRespMsg.CertSize {
-			return s, errors.New("remote cert size error")
-		}
+		//if uint16(len(t.cm.Cert)) != authRespMsg.CertSize {
+		//	return s, errors.New("remote cert size error")
+		//}
 		if _, err = conn.Write(t.cm.Cert); err != nil {
 			return s, err
 		}
@@ -415,9 +415,9 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 		if authMsg.CertSize == 0 {
 			return s, errors.New("receiver remote cert size  equal 0")
 		}
-		if uint16(len(t.cm.Cert)) != authMsg.CertSize {
-			return s, errors.New("remote cert size error")
-		}
+		//if uint16(len(t.cm.Cert)) != authMsg.CertSize {
+		//	return s, errors.New("remote cert size error")
+		//}
 		find = true
 	}
 

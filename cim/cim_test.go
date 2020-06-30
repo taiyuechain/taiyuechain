@@ -616,10 +616,10 @@ func TestIsuseP2PCert(t *testing.T) {
 	pbft5Cert, _ := taicert.ParseCertificate(pbft5Byte)
 	IssueCert(pbft5Cert, pbft5priv, &p2p5priv.PublicKey, p2p5Name)
 
-	p2pnodecert1   := "p2pnodecert1.pem"
-	p2pnodecert2   := "p2pnodecert2.pem"
-	p2pnodecert3   := "p2pnodecert3.pem"
-	p2pnodecert4   := "p2pnodecert4.pem"
+	p2pnodecert1   := "p2pnodecert1"
+	p2pnodecert2   := "p2pnodecert2"
+	p2pnodecert3   := "p2pnodecert3"
+	p2pnodecert4   := "p2pnodecert4"
 	priv, _ := crypto.HexToECDSA("0825ab2c54ab00e07dd6d0eb86782a5eea2d6395f9ad31a2d067b30b2c76e2ff")
 	IssueCert(pbft1Cert, pbft1priv, &priv.PublicKey, p2pnodecert1)
 	priv, _ = crypto.HexToECDSA("4d02e3c58bfb145a7839789bf58bffe470abafed364e678a4bec3613166b156c")

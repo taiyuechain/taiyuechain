@@ -146,11 +146,12 @@ func testEncHandshake(token []byte) error {
 
 func TestProtocolHandshake(t *testing.T) {
 	var (
-		prv0, _ = crypto.HexToECDSA("d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c")
+		//0825ab2c54ab00e07dd6d0eb86782a5eea2d6395f9ad31a2d067b30b2c76e2ff
+		prv0, _ = crypto.HexToECDSA("0825ab2c54ab00e07dd6d0eb86782a5eea2d6395f9ad31a2d067b30b2c76e2ff")
 		pub0    = crypto.FromECDSAPub(&prv0.PublicKey)[1:]
 		hs0     = &protoHandshake{Version: 3, ID: pub0, Caps: []Cap{{"a", 0}, {"b", 2}}}
-
-		prv1, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
+		//4d02e3c58bfb145a7839789bf58bffe470abafed364e678a4bec3613166b156c
+		prv1, _ = crypto.HexToECDSA("4d02e3c58bfb145a7839789bf58bffe470abafed364e678a4bec3613166b156c")
 		pub1    = crypto.FromECDSAPub(&prv1.PublicKey)[1:]
 		hs1     = &protoHandshake{Version: 3, ID: pub1, Caps: []Cap{{"c", 1}, {"d", 3}}}
 
@@ -158,8 +159,10 @@ func TestProtocolHandshake(t *testing.T) {
 
 		pbft1Name = "pbft1priv"
 		pbft2Name = "pbft2priv"
-		p2p1Name  = "p2p1cert"
-		p2p2Name  = "p2p2cert"
+		//p2p1Name  = "p2p1cert"
+		//p2p2Name  = "p2p2cert"
+		p2p1Name  = "p2pnodecert1"
+		p2p2Name  = "p2pnodecert2"
 
 		pbft1path = "../cim/testdata/testcert/" + pbft1Name + ".pem"
 		pbft2path = "../cim/testdata/testcert/" + pbft2Name + ".pem"
@@ -178,6 +181,9 @@ func TestProtocolHandshake(t *testing.T) {
 	cimList := cim.NewCIMList(CryptoSM2)
 	cimList.AddCim(cim.CreateCim(pbft1Byte))
 	cimList.AddCim(cim.CreateCim(pbft2Byte))
+	fmt.Println("p2p1Byte",len(p2p1Byte)," ",len(p2p2Byte))
+	fmt.Println("pbft1Byte",len(pbft1Byte)," ",len(pbft1Byte))
+
 	cm1 := &enode.CertManager{List: cimList, Cert: p2p1Byte}
 	cm2 := &enode.CertManager{List: cimList, Cert: p2p2Byte}
 
