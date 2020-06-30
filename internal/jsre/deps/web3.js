@@ -926,7 +926,7 @@ var SolidityParam = require('./param');
  * @returns {SolidityParam}
  */
 var formatInputInt = function (value) {
-    BigNumber.config(c.ETRUE_BIGNUMBER_ROUNDING_MODE);
+    BigNumber.config(c.YUE_BIGNUMBER_ROUNDING_MODE);
     var result = utils.padLeft(utils.toTwosComplement(value).toString(16), 64);
     return new SolidityParam(result);
 };
@@ -1758,45 +1758,45 @@ if (typeof XMLHttpRequest === 'undefined') {
  */
 
 
-/// required to define ETRUE_BIGNUMBER_ROUNDING_MODE
+/// required to define YUE_BIGNUMBER_ROUNDING_MODE
 var BigNumber = require('bignumber.js');
 
-var ETRUE_UNITS = [
+var YUE_UNITS = [
     'wei',
     'kwei',
     'Mwei',
     'Gwei',
     'szabo',
     'finney',
-    'femtotrue',
-    'picotrue',
-    'nanotrue',
-    'microtrue',
-    'millitrue',
+    'femtoyue',
+    'picoyue',
+    'nanoyue',
+    'microyue',
+    'milliyue',
     'nano',
     'micro',
     'milli',
     'yue',
     'grand',
-    'Metrue',
-    'Gtrue',
-    'Ttrue',
-    'Ptrue',
-    'Etrue',
-    'Ztrue',
-    'Ytrue',
-    'Ntrue',
-    'Dtrue',
-    'Vtrue',
-    'Utrue'
+    'Myue',
+    'Gyue',
+    'Tyue',
+    'Pyue',
+    'Yue',
+    'Zyue',
+    'Yyue',
+    'Nyue',
+    'Dyue',
+    'Vyue',
+    'Uyue'
 ];
 
 module.exports = {
-    ETRUE_PADDING: 32,
-    ETRUE_SIGNATURE_LENGTH: 4,
-    ETRUE_UNITS: ETRUE_UNITS,
-    ETRUE_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
-    ETRUE_POLLING_TIMEOUT: 1000/2,
+    YUE_PADDING: 32,
+    YUE_SIGNATURE_LENGTH: 4,
+    YUE_UNITS: YUE_UNITS,
+    YUE_BIGNUMBER_ROUNDING_MODE: { ROUNDING_MODE: BigNumber.ROUND_DOWN },
+    YUE_POLLING_TIMEOUT: 1000/2,
     defaultBlock: 'latest',
     defaultAccount: undefined
 };
@@ -5240,19 +5240,11 @@ var fruitFromBlockCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'yue_getFruitByBlockHashAndIndex' : 'yue_getFruitByBlockNumberAndIndex';
 };
 
-var uncleCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'yue_getUncleByBlockHashAndIndex' : 'yue_getUncleByBlockNumberAndIndex';
-};
-
 var getBlockTransactionCountCall = function (args) {
     return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'yue_getBlockTransactionCountByHash' : 'yue_getBlockTransactionCountByNumber';
 };
 
-var uncleCountCall = function (args) {
-    return (utils.isString(args[0]) && args[0].indexOf('0x') === 0) ? 'yue_getUncleCountByBlockHash' : 'yue_getUncleCountByBlockNumber';
-};
-
-function Etrue(web3) {
+function Yue(web3) {
     this._requestManager = web3._requestManager;
 
     var self = this;
@@ -5272,7 +5264,7 @@ function Etrue(web3) {
     this.sendIBANTransaction = transfer.bind(null, this);
 }
 
-Object.defineProperty(Etrue.prototype, 'defaultBlock', {
+Object.defineProperty(Yue.prototype, 'defaultBlock', {
     get: function () {
         return c.defaultBlock;
     },
@@ -5282,7 +5274,7 @@ Object.defineProperty(Etrue.prototype, 'defaultBlock', {
     }
 });
 
-Object.defineProperty(Etrue.prototype, 'defaultAccount', {
+Object.defineProperty(Yue.prototype, 'defaultAccount', {
     get: function () {
         return c.defaultAccount;
     },
@@ -5343,15 +5335,6 @@ var methods = function () {
         inputFormatter: [formatters.inputDefaultBlockNumberFormatter]
     });
 
-    var getUncle = new Method({
-        name: 'getUncle',
-        call: uncleCall,
-        params: 2,
-        inputFormatter: [formatters.inputBlockNumberFormatter, utils.toHex],
-        outputFormatter: formatters.outputBlockFormatter,
-
-    });
-
     var getCompilers = new Method({
         name: 'getCompilers',
         call: 'yue_getCompilers',
@@ -5361,14 +5344,6 @@ var methods = function () {
     var getBlockTransactionCount = new Method({
         name: 'getBlockTransactionCount',
         call: getBlockTransactionCountCall,
-        params: 1,
-        inputFormatter: [formatters.inputBlockNumberFormatter],
-        outputFormatter: utils.toDecimal
-    });
-
-    var getBlockUncleCount = new Method({
-        name: 'getBlockUncleCount',
-        call: uncleCountCall,
         params: 1,
         inputFormatter: [formatters.inputBlockNumberFormatter],
         outputFormatter: utils.toDecimal
@@ -5503,10 +5478,8 @@ var methods = function () {
         getCa,
         getBlock,
         getRewardBlock,
-        getUncle,
         getCompilers,
         getBlockTransactionCount,
-        getBlockUncleCount,
         getTransaction,
         getTransactionFromBlock,
         getFruitFromBlock,
@@ -5573,28 +5546,28 @@ var properties = function () {
     ];
 };
 
-Etrue.prototype.contract = function (abi) {
+Yue.prototype.contract = function (abi) {
     var factory = new Contract(this, abi);
     return factory;
 };
 
-Etrue.prototype.filter = function (options, callback, filterCreationErrorCallback) {
+Yue.prototype.filter = function (options, callback, filterCreationErrorCallback) {
     return new Filter(options, 'yue', this._requestManager, watches.yue(), formatters.outputLogFormatter, callback, filterCreationErrorCallback);
 };
 
-Etrue.prototype.namereg = function () {
+Yue.prototype.namereg = function () {
     return this.contract(namereg.global.abi).at(namereg.global.address);
 };
 
-Etrue.prototype.icapNamereg = function () {
+Yue.prototype.icapNamereg = function () {
     return this.contract(namereg.icap.abi).at(namereg.icap.address);
 };
 
-Etrue.prototype.isSyncing = function (callback) {
+Yue.prototype.isSyncing = function (callback) {
     return new IsSyncing(this._requestManager, callback);
 };
 
-module.exports = Etrue;
+module.exports = Yue;
 
 },{"../../utils/config":18,"../../utils/utils":20,"../contract":25,"../filter":29,"../formatters":30,"../iban":33,"../method":36,"../namereg":44,"../property":45,"../syncing":48,"../transfer":49,"./watches":43}],39:[function(require,module,exports){
 /*
@@ -6554,7 +6527,7 @@ RequestManager.prototype.reset = function (keepIsSyncing) {
  */
 RequestManager.prototype.poll = function () {
     /*jshint maxcomplexity: 6 */
-    this.timeout = setTimeout(this.poll.bind(this), c.ETRUE_POLLING_TIMEOUT);
+    this.timeout = setTimeout(this.poll.bind(this), c.YUE_POLLING_TIMEOUT);
 
     if (Object.keys(this.polls).length === 0) {
         return;

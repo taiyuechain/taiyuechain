@@ -54,7 +54,7 @@ const (
 
 	// maxQueuedBlocks is the maximum number of block propagations to queue up before
 	// dropping broadcasts. There's not much point in queueing stale blocks, so a few
-	// that might cover uncles should be enough.
+	// that might cover fork blocks should be enough.
 	maxQueuedBlocks = 4
 
 	// maxQueuedBlockAnns is the maximum number of block announcements to queue up before
@@ -68,7 +68,7 @@ const (
 
 	// maxQueuedNodeInfo is the maximum number of node info propagations to queue up before
 	// dropping broadcasts. There's not much point in queueing stale blocks, so a few
-	// that might cover uncles should be enough.
+	// that might cover fork blocks should be enough.
 	maxQueuedNodeInfo = 128
 
 	maxQueuedNodeInfoHash = 256

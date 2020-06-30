@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package etruestats implements the network stats reporting service.
+// Package yuestats implements the network stats reporting service.
 package yuestats
 
 import (
@@ -336,7 +336,7 @@ func handleHistCh(msg map[string][]interface{}, s *Service, command string) stri
 		} else {
 			s.snailHistCh <- nil
 		}
-		return "continue" // Etruestats sometime sends invalid history requests, ignore those
+		return "continue" // Yuestats sometime sends invalid history requests, ignore those
 	}
 	list, ok := request["list"].([]interface{})
 	if !ok {
@@ -458,7 +458,7 @@ func (s *Service) report(conn *websocket.Conn) error {
 // reportLatency sends a ping request to the server, measures the RTT time and
 // finally sends a latency update.
 func (s *Service) reportLatency(conn *websocket.Conn) error {
-	// Send the current time to the etruestats server
+	// Send the current time to the yuestats server
 	start := time.Now()
 
 	ping := map[string][]interface{}{
@@ -481,7 +481,7 @@ func (s *Service) reportLatency(conn *websocket.Conn) error {
 	latency := strconv.Itoa(int((time.Since(start) / time.Duration(2)).Nanoseconds() / 1000000))
 
 	// Send back the measured latency
-	log.Trace("Sending measured latency to etruestats", "latency", latency)
+	log.Trace("Sending measured latency to yuestats", "latency", latency)
 
 	stats := map[string][]interface{}{
 		"emit": {"latency", map[string]string{
@@ -514,7 +514,6 @@ type snailBlockStats struct {
 	Miner      common.Address  `json:"miner"`
 	Diff       string          `json:"difficulty"`
 	TotalDiff  string          `json:"totalDifficulty"`
-	Uncles     snailUncleStats `json:"uncles"`
 	LastFruit  *big.Int        `json:"lastFruit"`
 	//Specific properties of fruit
 }
@@ -524,22 +523,13 @@ type txStats struct {
 	Hash common.Hash `json:"hash"`
 }
 
-// uncleStats is a custom wrapper around an uncle array to force serializing
-// empty arrays instead of returning null for them.
-
-type snailUncleStats struct{}
-
-func (s snailUncleStats) MarshalJSON() ([]byte, error) {
-	return []byte("[]"), nil
-}
-
 // reportBlock retrieves the current chain head and reports it to the stats server.
 func (s *Service) reportBlock(conn *websocket.Conn, block *types.Block) error {
 	// Gather the block details from the header or block chain
 	details := s.assembleBlockStats(block)
 
 	// Assemble the block report and send it to the server
-	log.Trace("Sending new block to etruestats", "number", details.Number, "hash", details.Hash)
+	log.Trace("Sending new block to yuestats", "number", details.Number, "hash", details.Hash)
 
 	stats := map[string]interface{}{
 		"id":    s.node,
@@ -566,7 +556,7 @@ func (s *Service) reportSnailBlock(conn *websocket.Conn) error {
 	}
 
 	// Assemble the block report and send it to the server
-	log.Trace("Sending new snailBlock to etruestats", "number", details.Number, "hash", details.Hash)
+	log.Trace("Sending new snailBlock to yuestats", "number", details.Number, "hash", details.Hash)
 
 	stats := map[string]interface{}{
 		"id":    s.node,
@@ -651,7 +641,7 @@ func (s *Service) reportHistory(conn *websocket.Conn, list []uint64) error {
 	}
 	// Assemble the history report and send it to the server
 	if len(history) > 0 {
-		log.Trace("Sending historical blocks to etruestats", "first", history[0].Number, "last", history[len(history)-1].Number)
+		log.Trace("Sending historical blocks to yuestats", "first", history[0].Number, "last", history[len(history)-1].Number)
 	} else {
 		log.Trace("No history to send to stats server")
 	}
@@ -687,7 +677,7 @@ func (s *Service) reportPending(conn *websocket.Conn) error {
 	// Retrieve the pending count from the local blockchain
 	pending, _ := s.yue.TxPool().Stats()
 	// Assemble the transaction stats and send it to the server
-	log.Trace("Sending pending transactions to etruestats", "count", pending)
+	log.Trace("Sending pending transactions to yuestats", "count", pending)
 
 	stats := map[string]interface{}{
 		"id": s.node,

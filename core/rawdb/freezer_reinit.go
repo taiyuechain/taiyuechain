@@ -20,7 +20,7 @@ package rawdb
 // of frozen ancient blocks. The method iterates over all the frozen blocks and
 // injects into the database the block hash->number mappings and the transaction
 // lookup entries.
-/*func InitDatabaseFromFreezer(db etruedb.Database) error {
+/*func InitDatabaseFromFreezer(db yuedb.Database) error {
 	// If we can't access the freezer or it's empty, abort
 	frozen, err := db.Ancients()
 	if err != nil || frozen == 0 {
@@ -92,7 +92,7 @@ package rawdb
 			WriteTxLookupEntries(batch, block)
 
 			// If enough data was accumulated in memory or we're at the last block, dump to disk
-			if batch.ValueSize() > etruedb.IdealBatchSize || uint64(next) == frozen {
+			if batch.ValueSize() > yuedb.IdealBatchSize || uint64(next) == frozen {
 				if err := batch.Write(); err != nil {
 					return err
 				}

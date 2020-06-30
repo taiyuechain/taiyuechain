@@ -102,7 +102,7 @@ func TestSetupGenesis(t *testing.T) {
 		},
 		// {
 		// 	name: "compatible config in DB",
-		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
+		// 	fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		oldcustomg.MustCommit(db)
 		// 		oldcustomg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, &customg)
@@ -112,7 +112,7 @@ func TestSetupGenesis(t *testing.T) {
 		// },
 		// {
 		// 	name: "incompatible config in DB",
-		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
+		// 	fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		// Commit the 'old' genesis block with Homestead transition at #2.
 		// 		// Advance to block #4, past the homestead transition block of customg.
 		// 		genesis := oldcustomg.MustCommit(db)
@@ -205,7 +205,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		},
 		// {
 		// 	name: "custom block in DB, genesis == testnet",
-		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
+		// 	fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, common.Hash, error) {
 		// 		//customg.MustCommit(db)
 		// 		customg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, DefaultTestnetGenesisBlock())
@@ -216,7 +216,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		// },
 		// {
 		// 	name: "compatible config in DB",
-		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
+		// 	fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		oldcustomg.MustCommit(db)
 		// 		oldcustomg.MustSnailCommit(db)
 		// 		return SetupGenesisBlock(db, &customg)
@@ -226,7 +226,7 @@ func TestSetupSnailGenesis(t *testing.T) {
 		// },
 		// {
 		// 	name: "incompatible config in DB",
-		// 	fn: func(db etruedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
+		// 	fn: func(db yuedb.Database) (*params.ChainConfig, common.Hash, error, *params.ChainConfig, common.Hash, error) {
 		// 		// Commit the 'old' genesis block with Homestead transition at #2.
 		// 		// Advance to block #4, past the homestead transition block of customg.
 		// 		genesis := oldcustomg.MustCommit(db)

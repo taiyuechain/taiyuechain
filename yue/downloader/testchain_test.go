@@ -97,8 +97,7 @@ func (tc *testChain) copy(newlen int) *testChain {
 
 // generate creates a chain of n blocks starting at and including parent.
 // the returned hash chain is ordered head->parent. In addition, every 22th block
-// contains a transaction and every 5th an uncle to allow testing correct block
-// reassembly.
+// contains a transaction.
 func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool) {
 	// start := time.Now()
 	// defer func() { fmt.Printf("test chain generated in %v\n", time.Since(start)) }()
@@ -117,13 +116,6 @@ func (tc *testChain) generate(n int, seed byte, parent *types.Block, heavy bool)
 				panic(err)
 			}
 			block.AddTx(tx)
-		}
-		// if the block number is a multiple of 5, add a bonus uncle to the block
-		if i > 0 && i%5 == 0 {
-			block.AddUncle(&types.Header{
-				ParentHash: block.PrevBlock(i - 1).Hash(),
-				Number:     big.NewInt(block.Number().Int64() - 1),
-			})
 		}
 	})
 
@@ -186,13 +178,13 @@ func (tc *testChain) receipts(hashes []common.Hash) [][]*types.Receipt {
 // bodies returns the block bodies of the given block hashes.
 func (tc *testChain) bodies(hashes []common.Hash) ([][]*types.Transaction, [][]*types.Header) {
 	transactions := make([][]*types.Transaction, 0, len(hashes))
-	uncles := make([][]*types.Header, 0, len(hashes))
+	forks := make([][]*types.Header, 0, len(hashes))
 	for _, hash := range hashes {
 		if block, ok := tc.blockm[hash]; ok {
 			transactions = append(transactions, block.Transactions())
 		}
 	}
-	return transactions, uncles
+	return transactions, forks
 }
 
 func (tc *testChain) hashToNumber(target common.Hash) (uint64, bool) {

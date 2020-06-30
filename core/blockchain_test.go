@@ -339,7 +339,7 @@ func TestLightVsFastVsFullChainHeads(t *testing.T) {
 
 	log.Info("fast", "state", archive.CurrentBlock().Root())
 	// Import the chain as a light node and ensure all pointers are updated
-	//lightDb := etruedb.NewMemDatabase()
+	//lightDb := yuedb.NewMemDatabase()
 	//gspec.MustCommit(lightDb)
 	//
 	//light, _ := NewBlockChain(lightDb, nil, gspec.Config, ethash.NewFaker(nil), vm.Config{})

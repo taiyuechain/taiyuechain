@@ -27,7 +27,6 @@ func TestFastBlockchain(t *testing.T) {
 	// General state tests are 'exported' as blockchain tests, but we can run them natively.
 	//bt.skipLoad(`GeneralStateTests/stCollCodes/`)
 	// Skip random failures due to selfish mining test.
-	//bt.skipLoad(`^bcForgedTest/bcForkUncle\.json`)
 	//bt.skipLoad(`^bcMultiChainTest/(ChainAtoChainB_blockorder|CallContractFromNotBestBlock)`)
 	//bt.skipLoad(`^bcTotalDifficultyTest/(lotsOfLeafs|lotsOfBranches|sideChainWithMoreTransactions)`)
 	//// Slow tests

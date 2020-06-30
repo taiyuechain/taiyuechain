@@ -348,9 +348,9 @@ var (
 		Usage: "Record information useful for VM and contract debugging",
 	}
 	// Logging and debug settings
-	EtrueStatsURLFlag = cli.StringFlag{
-		Name:  "etruestats",
-		Usage: "Reporting URL of a etruestats service (nodename:secret@host:port)",
+	YueStatsURLFlag = cli.StringFlag{
+		Name:  "yuestats",
+		Usage: "Reporting URL of a yuestats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -1036,22 +1036,22 @@ func RegisterYueService(stack *node.Node, cfg *yue.Config) {
 func RegisterDashboardService(stack *node.Node, cfg *dashboard.Config, commit string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both yue and les services
-		var etrueServ *yue.Taiyuechain
-		ctx.Service(&etrueServ)
-		return dashboard.New(cfg, commit, ctx.ResolvePath("logs"), etrueServ), nil
+		var yueServ *yue.Taiyuechain
+		ctx.Service(&yueServ)
+		return dashboard.New(cfg, commit, ctx.ResolvePath("logs"), yueServ), nil
 	}); err != nil {
 		Fatalf("Failed to register the Taiyuechain Stats service: %v", err)
 	}
 }*/
 
-// RegisterEtrueStatsService configures the Taiyuechain Stats daemon and adds it to
+// RegisterYueStatsService configures the Taiyuechain Stats daemon and adds it to
 // th egiven node.
-func RegisterEtrueStatsService(stack *node.Node, url string) {
+func RegisterYueStatsService(stack *node.Node, url string) {
 	if err := stack.Register(func(ctx *node.ServiceContext) (node.Service, error) {
 		// Retrieve both yue services
-		var etrueServ *yue.Taiyuechain
-		ctx.Service(&etrueServ)
-		return yuestats.New(url, etrueServ)
+		var yueServ *yue.Taiyuechain
+		ctx.Service(&yueServ)
+		return yuestats.New(url, yueServ)
 	}); err != nil {
 		Fatalf("Failed to register the Taiyuechain Stats service: %v", err)
 	}

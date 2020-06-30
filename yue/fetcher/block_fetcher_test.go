@@ -42,7 +42,7 @@ var (
 
 // makeChain creates a chain of n blocks starting at and including parent.
 // the returned hash chain is ordered head->parent. In addition, every 3rd block
-// contains a transaction and every 5th an uncle to allow testing correct block
+// contains a transaction and every 5th an fork to allow testing correct block
 // reassembly.
 func makeChain(n int, seed byte, parent *types.Block) ([]common.Hash, map[common.Hash]*types.Block) {
 	blocks, _ := core.GenerateChain(params.TestChainConfig, parent, ethash.NewFaker(nil), testdb, n, func(i int, block *core.BlockGen) {
@@ -56,10 +56,6 @@ func makeChain(n int, seed byte, parent *types.Block) ([]common.Hash, map[common
 				panic(err)
 			}
 			block.AddTx(tx)
-		}
-		// If the block number is a multiple of 5, add a bonus uncle to the block
-		if i%5 == 0 {
-			block.AddUncle(&types.Header{ParentHash: block.PrevBlock(i - 1).Hash(), Number: big.NewInt(int64(i - 1))})
 		}
 	})
 	hashes := make([]common.Hash, n+1)
@@ -531,7 +527,7 @@ func TestDistantPropagationDiscarding(t *testing.T) {
 	hashes, blocks := makeChain(3*maxQueueDist, 0, genesis)
 	head := hashes[len(hashes)/2]
 
-	low, high := len(hashes)/2+maxUncleDist+1, len(hashes)/2-maxQueueDist-1
+	low, high := len(hashes)/2+maxForkDist+1, len(hashes)/2-maxQueueDist-1
 
 	// Create a tester and simulate a head block being the middle of the above chain
 	tester := newTester()
@@ -567,7 +563,7 @@ func testDistantAnnouncementDiscarding(t *testing.T, protocol int) {
 	hashes, blocks := makeChain(3*maxQueueDist, 0, genesis)
 	head := hashes[len(hashes)/2]
 
-	low, high := len(hashes)/2+maxUncleDist+1, len(hashes)/2-maxQueueDist-1
+	low, high := len(hashes)/2+maxForkDist+1, len(hashes)/2-maxQueueDist-1
 
 	// Create a tester and simulate a head block being the middle of the above chain
 	tester := newTester()

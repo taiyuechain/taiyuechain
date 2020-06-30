@@ -58,14 +58,14 @@ var tomlSettings = toml.Config{
 	},
 }
 
-type etruestatsConfig struct {
+type yuestatsConfig struct {
 	URL string `toml:",omitempty"`
 }
 
 type gethConfig struct {
-	Taiyue     yue.Config
-	Node       node.Config
-	Etruestats etruestatsConfig
+	Taiyue   yue.Config
+	Node     node.Config
+	Yuestats yuestatsConfig
 	//Dashboard  dashboard.Config
 }
 
@@ -134,8 +134,8 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
 	utils.SetTaichainConfig(ctx, stack, &cfg.Taiyue)
-	if ctx.GlobalIsSet(utils.EtrueStatsURLFlag.Name) {
-		cfg.Etruestats.URL = ctx.GlobalString(utils.EtrueStatsURLFlag.Name)
+	if ctx.GlobalIsSet(utils.YueStatsURLFlag.Name) {
+		cfg.Yuestats.URL = ctx.GlobalString(utils.YueStatsURLFlag.Name)
 	}
 
 	//utils.SetDashboardConfig(ctx, &cfg.Dashboard)
@@ -153,8 +153,8 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}*/
 
 	// Add the Taiyuechain Stats daemon if requested.
-	if cfg.Etruestats.URL != "" {
-		utils.RegisterEtrueStatsService(stack, cfg.Etruestats.URL)
+	if cfg.Yuestats.URL != "" {
+		utils.RegisterYueStatsService(stack, cfg.Yuestats.URL)
 	}
 	return stack
 }

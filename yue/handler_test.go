@@ -329,7 +329,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 			block.SetCoinbase(acc2Addr)
 			block.SetExtra([]byte("yeehaw"))
 		case 3:
-			// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
+			// Block 4 includes blocks 2 and 3 as fork block headers (with modified extra data).
 			b2 := block.PrevBlock(1).Header()
 			b2.Extra = []byte("foo")
 			b3 := block.PrevBlock(2).Header()
@@ -419,7 +419,7 @@ func testGetReceipt(t *testing.T, protocol int) {
 			block.SetCoinbase(acc2Addr)
 			block.SetExtra([]byte("yeehaw"))
 		case 3:
-			// Block 4 includes blocks 2 and 3 as uncle headers (with modified extra data).
+			// Block 4 includes blocks 2 and 3 as fork block headers (with modified extra data).
 			b2 := block.PrevBlock(1).Header()
 			b2.Extra = []byte("foo")
 			b3 := block.PrevBlock(2).Header()

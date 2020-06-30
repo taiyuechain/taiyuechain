@@ -248,7 +248,7 @@ func (f *freezer) Sync() error {
 //
 // This functionality is deliberately broken off from block importing to avoid
 // incurring additional data shuffling delays on block propagation.
-/*func (f *freezer) freeze(db etruedb.KeyValueStore) {
+/*func (f *freezer) freeze(db yuedb.KeyValueStore) {
 	nfdb := &nofreezedb{KeyValueStore: db}
 
 	for {

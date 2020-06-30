@@ -297,7 +297,7 @@ func (m *Minerva) Prepare(chain consensus.ChainReader, header *types.Header) err
 	return nil
 }
 
-// Finalize implements consensus.Engine, accumulating the block fruit and uncle rewards,
+// Finalize implements consensus.Engine, accumulating the block gas rewards,
 // setting the final state and assembling the block.
 func (m *Minerva) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB,
 	txs []*types.Transaction, receipts []*types.Receipt, feeAmount *big.Int) (*types.Block, error) {

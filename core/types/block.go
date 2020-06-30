@@ -168,7 +168,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 }
 
 // Body is a simple (mutable, non-safe) data container for storing and moving
-// a block's data contents (transactions and uncles) together.
+// a block's data contents (transactions and signs) together.
 type Body struct {
 	Transactions []*Transaction
 	Signs        []*PbftSign
@@ -338,7 +338,6 @@ func (b *Block) Root() common.Hash               { return b.header.Root }
 func (b *Block) ParentHash() common.Hash         { return b.header.ParentHash }
 func (b *Block) TxHash() common.Hash             { return b.header.TxHash }
 func (b *Block) ReceiptHash() common.Hash        { return b.header.ReceiptHash }
-func (b *Block) UncleHash() common.Hash          { return common.Hash{} }
 func (b *Block) Extra() []byte                   { return common.CopyBytes(b.header.Extra) }
 func (b *Block) Signs() []*PbftSign              { return b.signs }
 func (b *Block) Header() *Header                 { return CopyHeader(b.header) }
