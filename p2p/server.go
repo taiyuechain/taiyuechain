@@ -437,7 +437,9 @@ func (srv *Server) Start() (err error) {
 	if srv.NoDial && srv.ListenAddr == "" {
 		srv.log.Warn("P2P server will be useless, neither dialing nor listening")
 	}
-
+	if len(srv.P2PNodeCert) <= 0 || len(srv.P2PNodeCertFile) <= 0 {
+		return errors.New("Server.P2PNodeCertFile must be set to validate ca cert")
+	}
 	// static fields
 	if srv.PrivateKey == nil {
 		return errors.New("Server.PrivateKey must be set to a non-nil key")
