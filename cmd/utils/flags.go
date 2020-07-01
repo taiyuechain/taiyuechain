@@ -555,7 +555,7 @@ func MakeDataDir(ctx *cli.Context) string {
 // method returns nil and an emphemeral key is to be generated.
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	if len(cfg.P2PNodeCertFile) <= 0 {
-		Fatalf("setNodeKey failed,P2PKey is nil or P2PNodeCertFile is nil")
+		Fatalf("setNodeKey failed,P2PNodeCertFile is nil")
 	} 
 	if data, err := taicert.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
 		Fatalf("setNodeKey failed,the wrong P2PNodeCertFile")
