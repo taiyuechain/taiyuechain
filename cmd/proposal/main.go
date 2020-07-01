@@ -53,6 +53,26 @@ var (
 		Usage: "Obtain cert for proposal validator",
 		Value: "",
 	}
+	GroupFlag = cli.StringFlag{
+		Name:  "group",
+		Usage: "Group address",
+		Value: "",
+	}
+	ContractFlag = cli.StringFlag{
+		Name:  "contract",
+		Usage: "Group address",
+		Value: "",
+	}
+	MemberFlag = cli.StringFlag{
+		Name:  "member",
+		Usage: "Member address",
+		Value: "",
+	}
+	PermissionFlag = cli.Uint64Flag{
+		Name:  "permission",
+		Usage: "Permission value",
+		Value: 0,
+	}
 	ProposalFlags = []cli.Flag{
 		KeyFlag,
 		KeyStoreFlag,
@@ -61,6 +81,10 @@ var (
 		TrueValueFlag,
 		BftCertFlag,
 		ProposalCertFlag,
+		GroupFlag,
+		MemberFlag,
+		PermissionFlag,
+		ContractFlag,
 	}
 )
 
@@ -89,7 +113,11 @@ func init() {
 	}
 	// Add subcommands.
 	app.Commands = []cli.Command{
-		queryAmountCommand,
+		queryCAAmountCommand,
+		grantTxPermissionCommand,
+		revokeTxPermissionCommand,
+		grantContractPermissionCommand,
+		revokeContractPermissionCommand,
 		sendCommand,
 		deleteCommand,
 		queryTxCommand,

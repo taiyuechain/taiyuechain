@@ -13,6 +13,8 @@ import (
 	"github.com/taiyuechain/taiyuechain/console"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
+	"github.com/taiyuechain/taiyuechain/crypto"
+
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/yueclient"
@@ -35,12 +37,13 @@ var (
 )
 
 var (
-	abiStaking, _ = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
-	priKey        *ecdsa.PrivateKey
-	from          common.Address
-	trueValue     uint64
-	holder        common.Address
-	cert          []byte
+	abiStaking, _        = abi.JSON(strings.NewReader(vm.CACertStoreABIJSON))
+	permissionStaking, _ = abi.JSON(strings.NewReader(vm.PermissionABIJSON))
+	priKey               *ecdsa.PrivateKey
+	from                 common.Address
+	trueValue            uint64
+	holder               common.Address
+	cert                 []byte
 )
 
 const (
@@ -237,6 +240,14 @@ func packInput(abiMethod string, params ...interface{}) []byte {
 	return input
 }
 
+func packPermissionInput(abiMethod string, params ...interface{}) []byte {
+	input, err := permissionStaking.Pack(abiMethod, params...)
+	if err != nil {
+		printError(abiMethod, " error ", err)
+	}
+	return input
+}
+
 func PrintBalance(conn *yueclient.Client, from common.Address) {
 	balance, err := conn.BalanceAt(context.Background(), from, nil)
 	if err != nil {
@@ -338,7 +349,7 @@ func loadSigningKey(keyfile string) common.Address {
 	return from
 }
 
-func queryStakingInfo(conn *yueclient.Client, query bool) {
+func queryCertAmount(conn *yueclient.Client, query bool) {
 	header, err := conn.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)

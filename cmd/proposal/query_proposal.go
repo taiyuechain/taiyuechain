@@ -4,23 +4,196 @@ import (
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
+	"github.com/taiyuechain/taiyuechain/core/vm"
 	"gopkg.in/urfave/cli.v1"
 	"math/big"
 )
 
-var queryAmountCommand = cli.Command{
+var queryCAAmountCommand = cli.Command{
 	Name:   "queryamount",
 	Usage:  "Query staking info, can cancel info and can withdraw info",
-	Action: utils.MigrateFlags(queryStakingImpawn),
+	Action: utils.MigrateFlags(queryCAAmount),
 	Flags:  append(ProposalFlags, AddressFlag),
 }
 
-func queryStakingImpawn(ctx *cli.Context) error {
+func queryCAAmount(ctx *cli.Context) error {
 	loadPrivate(ctx)
 	conn, url := dialConn(ctx)
 	printBaseInfo(conn, url)
 
-	queryStakingInfo(conn, true)
+	queryCertAmount(conn, true)
+	return nil
+}
+
+var grantTxPermissionCommand = cli.Command{
+	Name:   "granttx",
+	Usage:  "grant address tx permission",
+	Action: utils.MigrateFlags(grantTxPermission),
+	Flags:  append(ProposalFlags, AddressFlag),
+}
+
+func grantTxPermission(ctx *cli.Context) error {
+	loadPrivate(ctx)
+	conn, url := dialConn(ctx)
+	printBaseInfo(conn, url)
+
+	PrintBalance(conn, from)
+
+	var group common.Address
+	if ctx.GlobalIsSet(GroupFlag.Name) {
+		groupstr := ctx.GlobalString(GroupFlag.Name)
+		if !common.IsHexAddress(groupstr) {
+			printError("Must input correct member address")
+		}
+		group = common.HexToAddress(groupstr)
+	}
+	member := ctx.GlobalString(MemberFlag.Name)
+	if !common.IsHexAddress(member) {
+		printError("Must input correct member address")
+	}
+	to := common.HexToAddress(member)
+
+	if !ctx.GlobalIsSet(PermissionFlag.Name) {
+		printError("Must input correct member address")
+	}
+	permission := ctx.GlobalUint64(PermissionFlag.Name)
+	if trueValue > uint64(vm.PerminType_AccessContract) && trueValue < uint64(vm.ModifyPerminType_AddSendTxPerm) {
+		printError("Permission must bigger than 0")
+	}
+
+	input := packPermissionInput("grantPermission", common.Address{}, to, group, permission, true)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+
+	getResult(conn, txHash, true, true)
+	return nil
+}
+
+var revokeTxPermissionCommand = cli.Command{
+	Name:   "revoketx",
+	Usage:  "revoke address tx permission",
+	Action: utils.MigrateFlags(revokeTxPermission),
+	Flags:  append(ProposalFlags, AddressFlag),
+}
+
+func revokeTxPermission(ctx *cli.Context) error {
+	loadPrivate(ctx)
+	conn, url := dialConn(ctx)
+	printBaseInfo(conn, url)
+
+	PrintBalance(conn, from)
+
+	var group common.Address
+	if ctx.GlobalIsSet(GroupFlag.Name) {
+		groupstr := ctx.GlobalString(GroupFlag.Name)
+		if !common.IsHexAddress(groupstr) {
+			printError("Must input correct member address")
+		}
+		group = common.HexToAddress(groupstr)
+	}
+	member := ctx.GlobalString(MemberFlag.Name)
+	if !common.IsHexAddress(member) {
+		printError("Must input correct member address")
+	}
+	to := common.HexToAddress(member)
+
+	if !ctx.GlobalIsSet(PermissionFlag.Name) {
+		printError("Must input correct member address")
+	}
+	permission := ctx.GlobalUint64(PermissionFlag.Name)
+	if trueValue > uint64(vm.PerminType_AccessContract) && trueValue < uint64(vm.ModifyPerminType_AddSendTxPerm) {
+		printError("Permission must bigger than 0")
+	}
+
+	input := packPermissionInput("revokePermission", common.Address{}, to, group, permission, true)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+
+	getResult(conn, txHash, true, true)
+	return nil
+}
+
+var grantContractPermissionCommand = cli.Command{
+	Name:   "grantcontract",
+	Usage:  "grant address contract permission",
+	Action: utils.MigrateFlags(grantContractPermission),
+	Flags:  append(ProposalFlags, AddressFlag),
+}
+
+func grantContractPermission(ctx *cli.Context) error {
+	loadPrivate(ctx)
+	conn, url := dialConn(ctx)
+	printBaseInfo(conn, url)
+
+	PrintBalance(conn, from)
+
+	var contract common.Address
+	if ctx.GlobalIsSet(ContractFlag.Name) {
+		groupstr := ctx.GlobalString(ContractFlag.Name)
+		if !common.IsHexAddress(groupstr) {
+			printError("Must input correct member address")
+		}
+		contract = common.HexToAddress(groupstr)
+	}
+	member := ctx.GlobalString(MemberFlag.Name)
+	if !common.IsHexAddress(member) {
+		printError("Must input correct member address")
+	}
+	to := common.HexToAddress(member)
+
+	if !ctx.GlobalIsSet(PermissionFlag.Name) {
+		printError("Must input correct member address")
+	}
+	permission := ctx.GlobalUint64(PermissionFlag.Name)
+	if trueValue > uint64(vm.PerminType_AccessContract) && trueValue < uint64(vm.ModifyPerminType_AddSendTxPerm) {
+		printError("Permission must bigger than 0")
+	}
+
+	input := packPermissionInput("grantPermission", contract, to,  common.Address{}, permission, true)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+
+	getResult(conn, txHash, true, true)
+	return nil
+}
+
+var revokeContractPermissionCommand = cli.Command{
+	Name:   "revokecontract",
+	Usage:  "revoke address contract permission",
+	Action: utils.MigrateFlags(revokeContractPermission),
+	Flags:  append(ProposalFlags, AddressFlag),
+}
+
+func revokeContractPermission(ctx *cli.Context) error {
+	loadPrivate(ctx)
+	conn, url := dialConn(ctx)
+	printBaseInfo(conn, url)
+
+	PrintBalance(conn, from)
+
+	var contract common.Address
+	if ctx.GlobalIsSet(ContractFlag.Name) {
+		groupstr := ctx.GlobalString(ContractFlag.Name)
+ 		if !common.IsHexAddress(groupstr) {
+			printError("Must input correct member address")
+		}
+		contract = common.HexToAddress(groupstr)
+	}
+	member := ctx.GlobalString(MemberFlag.Name)
+	if !common.IsHexAddress(member) {
+		printError("Must input correct member address")
+	}
+	to := common.HexToAddress(member)
+
+	if !ctx.GlobalIsSet(PermissionFlag.Name) {
+		printError("Must input correct member address")
+	}
+	permission := ctx.GlobalUint64(PermissionFlag.Name)
+	if trueValue > uint64(vm.PerminType_AccessContract) && trueValue < uint64(vm.ModifyPerminType_AddSendTxPerm) {
+		printError("Permission must bigger than 0")
+	}
+
+	input := packPermissionInput("revokePermission", contract, to,  common.Address{}, permission, true)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+
+	getResult(conn, txHash, true, true)
 	return nil
 }
 
