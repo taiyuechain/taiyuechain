@@ -726,7 +726,7 @@ func (bc *BlockChain) GetChainBaseParams() []byte {
 		return nil
 	}
 	b := g.Extra()
-	return b[0:3]
+	return b
 }
 // GetReceiptsByHash retrieves the receipts for all transactions in a given block.
 func (bc *BlockChain) GetReceiptsByHash(hash common.Hash) types.Receipts {
