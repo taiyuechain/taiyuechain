@@ -29,7 +29,7 @@ var Modules = map[string]string{
 	"shh":        Shh_JS,
 	"swarmfs":    SWARMFS_JS,
 	"txpool":     TxPool_JS,
-	"cpm": CPM_JS,
+	"cpm":        CPM_JS,
 }
 
 const Chequebook_JS = `
@@ -436,12 +436,6 @@ web3._extend({
 			params: 2,
 			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter, web3._extend.utils.toHex]
 		}),
-		new web3._extend.Method({
-			name: 'getCACertList',
-			call: 'yue_getCACertList',
-			params: 1,
-			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
-		}),
 	],
 	properties: [
 		new web3._extend.Property({
@@ -605,19 +599,55 @@ web3._extend({
 
 const CPM_JS = `
 web3._extend({
-	property: 'cert',
+	property: 'cpm',
 	methods: [
 		new web3._extend.Method({
 			name: 'getCACertList',
-			call: 'cert_getCACertList',
+			call: 'cpm_getCACertList',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
-			name: 'signTransaction',
-			call: 'cert_signTransaction',
+			name: 'listPermission',
+			call: 'cpm_listPermission',
+			params: 1,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'showWhiteList',
+			call: 'cpm_showWhiteList',
+			params: 1,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'showWhiteList',
+			call: 'cpm_showWhiteList',
+			params: 1,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'showBlackList',
+			call: 'cpm_showBlackList',
+			params: 1,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'showGroup',
+			call: 'cpm_showGroup',
 			params: 2,
-			inputFormatter: [web3._extend.formatters.inputTransactionFormatter, null]
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'showMyGroup',
+			call: 'cpm_showMyGroup',
+			params: 2,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
+		}),
+		new web3._extend.Method({
+			name: 'listBasePermission',
+			call: 'cpm_listBasePermission',
+			params: 2,c
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
 		}),
 	]
 });
