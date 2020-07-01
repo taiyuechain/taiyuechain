@@ -278,7 +278,9 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 	params.ParseExtraDataFromGenesis(g.ExtraData)
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db))
 	for addr, account := range g.Alloc {
-		statedb.AddBalance(addr, account.Balance)
+		if g.IsCoin > 0 {
+			statedb.AddBalance(addr, account.Balance)
+		}
 		statedb.SetCode(addr, account.Code)
 		statedb.SetNonce(addr, account.Nonce)
 		for key, value := range account.Storage {
