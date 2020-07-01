@@ -115,14 +115,14 @@ type PoW interface {
 	Hashrate() float64
 }
 
-func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber *big.Int,pubk [][]byte) bool {
+func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber *big.Int,pubk [][]byte,coinAddr []common.Address) bool {
 
 	CaCertAddress := types.CACertListAddress
 	key := common.BytesToHash(CaCertAddress[:])
 	obj := state.GetCAState(CaCertAddress, key)
 	if len(obj) == 0 {
 		i := vm.NewCACertList()
-		i.InitCACertList(certList, fastNumber,pubk)
+		i.InitCACertList(certList, fastNumber,pubk,coinAddr)
 		i.SaveCACertList(state, CaCertAddress)
 		state.SetNonce(CaCertAddress, 1)
 		state.SetCode(CaCertAddress, CaCertAddress[:])
@@ -133,20 +133,16 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 	objpt := state.GetCAState(pTAddress, ptKey)
 	if len(objpt) == 0 {
 		i := vm.NewPerminTable()
-		var addrs []common.Address
-		for _, pk := range pubk {
-			pkecsda,_ := crypto.UnmarshalPubkey(pk)
-			addrs = append(addrs, crypto.PubkeyToAddress(*pkecsda))
-		}
-		i.InitPBFTRootGrop(addrs)
+
+		i.InitPBFTRootGrop(coinAddr)
 		i.Save(state)
 		state.SetNonce(pTAddress, 1)
 		state.SetCode(pTAddress, pTAddress[:])
 	}
 	return false
 }
-func OnceInitCAState(state *state.StateDB, fastNumber *big.Int, certList [][]byte,pubk [][]byte) bool {
-	return makeCAContractInitState(state, certList, fastNumber,pubk)
+func OnceInitCAState(state *state.StateDB, fastNumber *big.Int, certList [][]byte,pubk [][]byte,coinAddr []common.Address) bool {
+	return makeCAContractInitState(state, certList, fastNumber,pubk,coinAddr)
 }
 
 func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim.CimList) {
@@ -188,7 +184,7 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 		permTable.Load(state)
 		permTable.UpdataRootInElection(oldRootAddr,curRootAddr)
 		permTable.Save(state)
-		
+
 	}
 
 	if state.PermissionChange() {

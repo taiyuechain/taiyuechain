@@ -288,10 +288,12 @@ func (g *Genesis) ToBlock(db yuedb.Database) *types.Block {
 		}
 	}
 	pubk := [][]byte{}
+	coinAddr := []common.Address{}
 	for _,v:= range  g.Committee{
 		pubk = append(pubk,v.Publickey)
+		coinAddr = append(coinAddr,v.Coinbase)
 	}
-	consensus.OnceInitCAState(statedb, new(big.Int).SetUint64(g.Number), g.CertList,pubk)
+	consensus.OnceInitCAState(statedb, new(big.Int).SetUint64(g.Number), g.CertList,pubk,coinAddr)
 	root := statedb.IntermediateRoot(false)
 
 	head := &types.Header{
