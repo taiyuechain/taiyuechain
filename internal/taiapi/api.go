@@ -1681,103 +1681,273 @@ func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumb
 }
 
 // GetCACertList returns the all cert list.
-func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNumber,group_contract_Addr common.Address,permType uint8) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+	fields := map[string]interface{}{}
+	var  wmember []common.Address
+	var  wManager []common.Address
+	var  bMember  []common.Address
+	var  bmanager []common.Address
+	// sendtx
+	if permType == 1{
 
-	return caCertList.GetCACertList(), nil
+		for _,v := range pTable.RootList{
+			if pTable.SendTranPermi[v].WhiteMembers != nil{
+				if pTable.SendTranPermi[v].WhiteMembers.Member != nil{
+					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
+						wmember = append(wmember,m.MemberID)
+					}
+				}
+				if pTable.SendTranPermi[v].WhiteMembers.Manager !=nil{
+					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
+						wManager = append(wmember,m.MemberID)
+					}
+				}
+			}
+			if pTable.SendTranPermi[v].BlackMembers != nil{
+				if pTable.SendTranPermi[v].BlackMembers.Member != nil{
+					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
+						bMember = append(wmember,m.MemberID)
+					}
+				}
+				if pTable.SendTranPermi[v].BlackMembers.Manager !=nil{
+					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
+						bmanager = append(wmember,m.MemberID)
+					}
+				}
+			}
+		}
+
+	}else if permType == 2{
+		//createcontract
+		for _,v := range pTable.RootList{
+			if pTable.SendTranPermi[v].WhiteMembers != nil{
+				if pTable.SendTranPermi[v].WhiteMembers.Member != nil{
+					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
+						wmember = append(wmember,m.MemberID)
+					}
+				}
+				if pTable.SendTranPermi[v].WhiteMembers.Manager !=nil{
+					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
+						wManager = append(wmember,m.MemberID)
+					}
+				}
+			}
+			if pTable.SendTranPermi[v].BlackMembers != nil{
+				if pTable.SendTranPermi[v].BlackMembers.Member != nil{
+					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
+						bMember = append(wmember,m.MemberID)
+					}
+				}
+				if pTable.SendTranPermi[v].BlackMembers.Manager !=nil{
+					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
+						bmanager = append(wmember,m.MemberID)
+					}
+				}
+			}
+		}
+
+
+	}else if permType ==3{
+		//group
+		if pTable.GropPermi[group_contract_Addr].WhiteMembers != nil{
+			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Member != nil{
+				for _,m :=range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member{
+					wmember = append(wmember,m.MemberID)
+				}
+			}
+			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Manager !=nil{
+				for _,m :=range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member{
+					wManager = append(wmember,m.MemberID)
+				}
+			}
+		}
+		if pTable.GropPermi[group_contract_Addr].BlackMembers != nil{
+			if pTable.GropPermi[group_contract_Addr].BlackMembers.Member != nil{
+				for _,m :=range pTable.GropPermi[group_contract_Addr].BlackMembers.Member{
+					bMember = append(wmember,m.MemberID)
+				}
+			}
+			if pTable.GropPermi[group_contract_Addr].BlackMembers.Manager !=nil{
+				for _,m :=range pTable.GropPermi[group_contract_Addr].BlackMembers.Member{
+					bmanager = append(wmember,m.MemberID)
+				}
+			}
+		}
+	}else if permType == 4{
+		//contrct
+		if pTable.ContractPermi[group_contract_Addr].WhiteMembers != nil{
+			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member != nil{
+				for _,m :=range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member{
+					wmember = append(wmember,m.MemberID)
+				}
+			}
+			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Manager !=nil{
+				for _,m :=range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member{
+					wManager = append(wmember,m.MemberID)
+				}
+			}
+		}
+		if pTable.ContractPermi[group_contract_Addr].BlackMembers != nil{
+			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Member != nil{
+				for _,m :=range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member{
+					bMember = append(wmember,m.MemberID)
+				}
+			}
+			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Manager !=nil{
+				for _,m :=range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member{
+					bmanager = append(wmember,m.MemberID)
+				}
+			}
+		}
+
+	}
+
+	fields = map[string]interface{}{
+
+		"WhiteMembers":      wmember,
+		"WhiteManager":    wManager,
+		"BlackMembers":      bMember,
+		"BlackManager": bmanager,
+
+	}
+	return fields,nil
+
+
 }
 
 // GetCACertList returns the all cert list.
-func (s *PublicCertAPI) ShowWhiteList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ShowWhiteList(ctx context.Context, blockNr rpc.BlockNumber) ([]common.Address, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
-	return caCertList.GetCACertList(), nil
+	return pTable.WhiteList, nil
 }
 
 // GetCACertList returns the all cert list.
-func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumber) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumber) ([]common.Address, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.CACertListAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
-	return caCertList.GetCACertList(), nil
+	return pTable.BlackList, nil
 }
 
 // ShowGroup returns the all cert list.
-func (s *PublicCertAPI) ShowGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) ([]common.Address, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
-	return caCertList.GetCACertList(), nil
+	return pTable.UserBasisPermi[address].GropList, nil
 }
 
 // ShowMyGroup returns the all cert list.
-func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ShowGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
-	return caCertList.GetCACertList(), nil
+	var  wmember []common.Address
+	var  wManager []common.Address
+	var  bMember  []common.Address
+	var  bmanager []common.Address
+
+	if pTable.GropPermi[address].WhiteMembers != nil{
+		if pTable.GropPermi[address].WhiteMembers.Member != nil{
+			for _,m :=range pTable.GropPermi[address].WhiteMembers.Member{
+				wmember = append(wmember,m.MemberID)
+			}
+		}
+		if pTable.GropPermi[address].WhiteMembers.Manager !=nil{
+			for _,m :=range pTable.GropPermi[address].WhiteMembers.Member{
+				wManager = append(wmember,m.MemberID)
+			}
+		}
+	}
+	if pTable.GropPermi[address].BlackMembers != nil{
+		if pTable.GropPermi[address].BlackMembers.Member != nil{
+			for _,m :=range pTable.GropPermi[address].BlackMembers.Member{
+				bMember = append(wmember,m.MemberID)
+			}
+		}
+		if pTable.GropPermi[address].BlackMembers.Manager !=nil{
+			for _,m :=range pTable.GropPermi[address].BlackMembers.Member{
+				bmanager = append(wmember,m.MemberID)
+			}
+		}
+	}
+
+	fields := map[string]interface{}{
+		"GroupKey":     	pTable.GropPermi[address].GroupKey,
+		"Creator":       	pTable.GropPermi[address].Creator,
+		"Id": 				pTable.GropPermi[address].Id,
+		"name":				pTable.GropPermi[address].Name,
+		"WhiteMembers":      wmember,
+		"WhiteManager":    wManager,
+		"BlackMembers":      bMember,
+		"BlackManager": bmanager,
+
+	}
+	return fields, nil
 }
 
 // ListBasePermission returns the all cert list.
-func (s *PublicCertAPI) ListBasePermission(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (*vm.CACertList, error) {
+func (s *PublicCertAPI) ListBasePermission(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) ( bool, bool, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
-		return nil, err
+		return false,false, err
 	}
-	caCertList := vm.NewCACertList()
-	err = caCertList.LoadCACertList(state, types.PermiTableAddress)
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
-		return nil, err
+		return false,false, err
 	}
 
-	return caCertList.GetCACertList(), nil
+	return pTable.UserBasisPermi[address].SendTran,pTable.UserBasisPermi[address].CrtContract, nil
 }
