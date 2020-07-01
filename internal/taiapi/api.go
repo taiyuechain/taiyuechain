@@ -1948,6 +1948,10 @@ func (s *PublicCertAPI) ListBasePermission(ctx context.Context, blockNr rpc.Bloc
 		log.Error("Staking load error", "error", err)
 		return false,false, err
 	}
+	_,ok := pTable.UserBasisPermi[address]
+	if !ok {
+		return false,false, errors.New("address not exist")
+	}
 
 	return pTable.UserBasisPermi[address].SendTran,pTable.UserBasisPermi[address].CrtContract, nil
 }

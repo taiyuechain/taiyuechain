@@ -1000,6 +1000,8 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 			cfg.NetworkId = 100
 		}
 		cfg.Genesis = core.DefaultSingleNodeGenesisBlock()
+	default:
+		cfg.Genesis = core.DefaultGenesisBlock()
 	}
 	// TODO(fjl): move trie cache generations into config
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {

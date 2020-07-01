@@ -646,7 +646,7 @@ web3._extend({
 		new web3._extend.Method({
 			name: 'listBasePermission',
 			call: 'cpm_listBasePermission',
-			params: 2,c
+			params: 2,
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
 		}),
 	]
