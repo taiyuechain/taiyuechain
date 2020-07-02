@@ -141,15 +141,7 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 
 	NewCIMList := cim.NewCIMList(uint8(crypto.CryptoType))
 
-	pmSt := false
-	pmcC := false
-	if config.Genesis.PermisionWlSendTx >0 {
-		pmSt = true
-	}
-	if config.Genesis.PermisionWlCreateTx > 0{
-		pmcC = true
-	}
-	vm.SetPermConfig(pmSt,pmcC)
+
 
 	yue := &Taiyuechain{
 		config:         config,
@@ -185,6 +177,16 @@ func New(ctx *node.ServiceContext, config *Config, p2pCert []byte) (*Taiyuechain
 		return nil, err
 	}
 
+	gensysExra :=yue.blockchain.Genesis().Extra()
+	pmSt := false
+	pmcC := false
+	if uint8(gensysExra[3]) >0 {
+		pmSt = true
+	}
+	if uint8(gensysExra[4]) > 0{
+		pmcC = true
+	}
+	vm.SetPermConfig(pmSt,pmcC)
 
 
 	//init cert list to
