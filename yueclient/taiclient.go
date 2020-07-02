@@ -583,6 +583,16 @@ func (ec *Client) IsMining(ctx context.Context) (bool, error) {
 	return result, nil
 }
 
+//yue_mining
+func (ec *Client) GetChainBaseParams(ctx context.Context) ([]byte, error) {
+	var result hexutil.Bytes
+	err := ec.c.CallContext(ctx, &result, "yue_getChainBaseParams", nil)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
 //personal_listAccounts
 func (ec *Client) ListAccounts(ctx context.Context) ([]common.Address, error) {
 	var result []common.Address

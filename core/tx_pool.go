@@ -100,7 +100,7 @@ var (
 	// making the transaction invalid, rather a DOS protection.
 	ErrOversizedData = errors.New("oversized data")
 
-	ErrGasPriceGtZero = errors.New("no gasusage model,gasprice  greater than zero")
+	ErrGasPriceGtZero = errors.New("no gas usage model,gasPrice  greater than zero")
 )
 
 var (
@@ -691,13 +691,16 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 			return ErrInsufficientFunds
 		}
 	}
-	intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
-	if err != nil {
-		return err
+	if !pool.IsNoGasUsageModel() {
+		intrGas, err := IntrinsicGas(tx.Data(), tx.To() == nil, true)
+		if err != nil {
+			return err
+		}
+		if tx.Gas() < intrGas {
+			return ErrIntrinsicGas
+		}
 	}
-	if tx.Gas() < intrGas {
-		return ErrIntrinsicGas
-	}
+
 	return nil
 }
 

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"github.com/taiyuechain/taiyuechain/cmd/utils"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"gopkg.in/urfave/cli.v1"
+	"log"
 	"math/big"
 )
 
@@ -147,7 +149,7 @@ func grantContractPermission(ctx *cli.Context) error {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("grantPermission", contract, to,  common.Address{}, permission, true)
+	input := packPermissionInput("grantPermission", contract, to, common.Address{}, permission, true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
 
 	getResult(conn, txHash, true, true)
@@ -171,7 +173,7 @@ func revokeContractPermission(ctx *cli.Context) error {
 	var contract common.Address
 	if ctx.GlobalIsSet(ContractFlag.Name) {
 		groupstr := ctx.GlobalString(ContractFlag.Name)
- 		if !common.IsHexAddress(groupstr) {
+		if !common.IsHexAddress(groupstr) {
 			printError("Must input correct member address")
 		}
 		contract = common.HexToAddress(groupstr)
@@ -190,7 +192,7 @@ func revokeContractPermission(ctx *cli.Context) error {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("revokePermission", contract, to,  common.Address{}, permission, true)
+	input := packPermissionInput("revokePermission", contract, to, common.Address{}, permission, true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
 
 	getResult(conn, txHash, true, true)
@@ -214,11 +216,27 @@ func sendTX(ctx *cli.Context) error {
 	if !common.IsHexAddress(address) {
 		printError("Must input correct address")
 	}
+	value := new(big.Int).SetUint64(0)
+	data,err  :=conn.GetChainBaseParams(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if checkUseCoin(data) {
+		value = trueToWei(ctx, true)
+	} else {
+		useCoin = false
+	}
 
-	value := trueToWei(ctx, false)
 	txHash := sendContractTransaction(conn, from, common.HexToAddress(address), value, priKey, nil, cert)
 	getResult(conn, txHash, false, false)
 	return nil
+}
+
+func checkUseCoin(data []byte) bool {
+	if len(data) == 5 && data[1] == 0 {
+		return false
+	}
+	return true
 }
 
 var deleteCommand = cli.Command{

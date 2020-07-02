@@ -44,6 +44,7 @@ var (
 	trueValue            uint64
 	holder               common.Address
 	cert                 []byte
+	useCoin 		     bool
 )
 
 const (
@@ -85,20 +86,24 @@ func sendContractTransaction(client *yueclient.Client, from, toAddress common.Ad
 		log.Fatal(err)
 	}
 
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
+	gasLimit := uint64(0) // in units
+	gasPrice := new(big.Int).SetInt64(0)
+	if useCoin {
+		gasPrice, err = client.SuggestGasPrice(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	gasLimit := uint64(2100000) // in units
-	// If the contract surely has code (or code is not needed), estimate the transaction
-	msg := taiyuechain.CallMsg{From: from, To: &toAddress, GasPrice: gasPrice, Value: value, Data: input}
-	gasLimit, err = client.EstimateGas(context.Background(), msg)
-	if err != nil {
-		fmt.Println("Contract exec failed", err)
-	}
-	if gasLimit < 1 {
-		gasLimit = 866328
+		gasLimit := uint64(2100000) // in units
+		// If the contract surely has code (or code is not needed), estimate the transaction
+		msg := taiyuechain.CallMsg{From: from, To: &toAddress, GasPrice: gasPrice, Value: value, Data: input}
+		gasLimit, err = client.EstimateGas(context.Background(), msg)
+		if err != nil {
+			fmt.Println("Contract exec failed", err)
+		}
+		if gasLimit < 1 {
+			gasLimit = 866328
+		}
 	}
 
 	// Create the transaction, sign it and schedule it for execution
@@ -285,6 +290,7 @@ func loadPrivate(ctx *cli.Context) {
 		printError("The certificate  not match account")
 	}
 	cert = certByte
+	useCoin = true
 }
 
 func getPubFromFile(certfile string) ([]byte, *ecdsa.PublicKey) {
