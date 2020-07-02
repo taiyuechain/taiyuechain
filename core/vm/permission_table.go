@@ -588,7 +588,7 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 	}else{
 		if !pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID != member {
 			//data base is nill
-			return false,MemberNotInGropError
+			//return false,MemberNotInGropError
 		}
 
 		pt.UserBasisPermi[member].SendTran = false
@@ -675,19 +675,32 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 			pt.UserBasisPermi[member].SendTran = true;*/
 		}
 
+		if iswhitelistWork{
+			if pt.SendTranPermi[key].WhiteMembers.Manager != nil{
 
-		if pt.SendTranPermi[key].WhiteMembers.Manager != nil{
-
-
-			for _,m := range pt.SendTranPermi[key].WhiteMembers.Manager{
-				if m.MemberID == member{
-					return false,MemberAreadInGropError
+				for _,m := range pt.SendTranPermi[key].WhiteMembers.Manager{
+					if m.MemberID == member{
+						return false,MemberAreadInGropError
+					}
 				}
 			}
-		}
 
 			mber := &MemberInfo{member,0}
 			pt.SendTranPermi[key].WhiteMembers.Manager = append(pt.SendTranPermi[key].WhiteMembers.Manager,mber )
+		}else{
+			if pt.SendTranPermi[key].BlackMembers.Manager != nil{
+
+				for _,m := range pt.SendTranPermi[key].BlackMembers.Manager{
+					if m.MemberID == member{
+						return false,MemberAreadInGropError
+					}
+				}
+			}
+
+			mber := &MemberInfo{member,0}
+			pt.SendTranPermi[key].BlackMembers.Manager = append(pt.SendTranPermi[key].BlackMembers.Manager,mber )
+
+		}
 
 
 	}else{
@@ -696,6 +709,7 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 			//return false,MemberNotInGropError
 		}
 
+		if iswhitelistWork{
 
 			totalM :=0;
 			for i,m := range pt.SendTranPermi[key].WhiteMembers.Manager{
@@ -709,6 +723,22 @@ func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,i
 			if totalM == len(pt.SendTranPermi[key].WhiteMembers.Manager){
 				return false,MemberNotInGropError
 			}
+
+
+		}else{
+			totalM :=0;
+			for i,m := range pt.SendTranPermi[key].BlackMembers.Manager{
+				if m.MemberID == member{
+					pt.SendTranPermi[key].BlackMembers.Manager = append(pt.SendTranPermi[key].BlackMembers.Manager[:i],pt.SendTranPermi[key].BlackMembers.Manager[i+1:]...)
+					return  true,nil
+				}
+				totalM++
+			}
+
+			if totalM == len(pt.SendTranPermi[key].BlackMembers.Manager){
+				return false,MemberNotInGropError
+			}
+		}
 
 	}
 
@@ -848,9 +878,7 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 		return false,MemberInBlackListError
 	}
 
-	/*if pt.ContractPermi[contractAddr] == nil{
-		return false,ContractNotCreatePremError
-	}*/
+
 	//creator := pt.ContractPermi[contractAddr].Creator
 
 	//frist time create and sendTx only one grop
@@ -887,6 +915,9 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 			pt.UserBasisPermi[member].CreatorRoot = creator
 
 		}
+		if iswhitelistWork{
+
+
 			if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil{
 
 			for _,m := range pt.CrtContracetPermi[key].WhiteMembers.Manager{
@@ -901,12 +932,25 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 			pt.CrtContracetPermi[key].WhiteMembers.Manager = append(pt.CrtContracetPermi[key].WhiteMembers.Manager,mber )
 
 			//pt.UserBasisPermi[member].CrtContract = true
+		}else{
+			if pt.CrtContracetPermi[key].BlackMembers.Manager != nil{
 
+				for _,m := range pt.CrtContracetPermi[key].BlackMembers.Manager{
+					if m.MemberID == member{
+						return false,MemberAreadInGropError
+					}
+				}
+
+			}
+
+			mber := &MemberInfo{member,0}
+			pt.CrtContracetPermi[key].BlackMembers.Manager = append(pt.CrtContracetPermi[key].BlackMembers.Manager,mber )
+		}
 	}else{
 
 
-
-			totalM :=0;
+		if iswhitelistWork {
+			totalM := 0;
 			if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil {
 				for i, m := range pt.CrtContracetPermi[key].WhiteMembers.Manager {
 					if m.MemberID == member {
@@ -917,9 +961,25 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 				}
 			}
 
-			if totalM == len(pt.CrtContracetPermi[key].WhiteMembers.Manager){
-				return false,MemberNotInGropError
+			if totalM == len(pt.CrtContracetPermi[key].WhiteMembers.Manager) {
+				return false, MemberNotInGropError
 			}
+		}else{
+			totalM := 0;
+			if pt.CrtContracetPermi[key].BlackMembers.Manager != nil {
+				for i, m := range pt.CrtContracetPermi[key].BlackMembers.Manager {
+					if m.MemberID == member {
+						pt.CrtContracetPermi[key].BlackMembers.Manager = append(pt.CrtContracetPermi[key].BlackMembers.Manager[:i], pt.CrtContracetPermi[key].BlackMembers.Manager[i+1:]...)
+						return true, nil
+					}
+					totalM++
+				}
+			}
+
+			if totalM == len(pt.CrtContracetPermi[key].BlackMembers.Manager) {
+				return false, MemberNotInGropError
+			}
+		}
 
 	}
 
@@ -1198,7 +1258,7 @@ func (pt *PerminTable) CreateContractPem(contractAddr ,creator common.Address,no
 		return false, errors.New("CreateContractPem fail gropAddr not equl contract Addr")
 	}
 
-	pt.ContractPermi[contractAddr] = &ContractListTable{contractAddr,creator,1,false,&MemberTable{},&MemberTable{}}
+	pt.ContractPermi[contractAddr] = &ContractListTable{contractAddr,creator,1,whitelistIsWork_SendTx,&MemberTable{},&MemberTable{}}
 
 	return true,nil
 }
@@ -1302,6 +1362,20 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 
 			mem :=&MemberInfo{manager,0}
 			pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager,mem)
+		}else{
+			if pt.ContractPermi[contractAddr].BlackMembers.Manager != nil{
+
+
+				for _,m := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
+					if m.MemberID == manager{
+						return false,MemberAreadInGropError
+					}
+				}
+			}
+
+			mem :=&MemberInfo{manager,0}
+			pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager,mem)
+
 		}
 	}else{
 		if pt.ContractPermi[contractAddr].IsWhitListWork{
@@ -1324,14 +1398,22 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 			}
 
 		}else{
-			for _,m := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-				if m.MemberID == manager{
-					return false,MemberAreadInGropError
+			totalM :=0;
+			if pt.ContractPermi[contractAddr].BlackMembers.Manager != nil{
+
+
+				for i,m := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
+					if m.MemberID == manager{
+						pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager[:i],pt.ContractPermi[contractAddr].BlackMembers.Manager[i+1:]...)
+						return true,nil
+					}
+					totalM ++;
 				}
 			}
 
-			mem :=&MemberInfo{manager,0}
-			pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager,mem)
+			if totalM == len(pt.ContractPermi[contractAddr].BlackMembers.Manager){
+				return false,MemberNotInGropError
+			}
 		}
 	}
 	return true,nil
@@ -1479,13 +1561,12 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		 }
 
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
-			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-				if c.MemberID == from{return false}
-			}
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Member{
 				if c.MemberID == from{return false}
 			}
-			return true
+			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
+				if c.MemberID == from{return true}
+			}
 		}else{
 			for _ ,c := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
 				if c.MemberID == from{return true}
@@ -1625,7 +1706,7 @@ func (pt *PerminTable)checkSendTxManager(from,creator common.Address) bool{
 				if pt.GropPermi[m.MemberID] != nil{
 					return pt.findMember(m.MemberID,from,false)
 				}else{
-					if m.MemberID == from{return false}
+					if m.MemberID == from{return true}
 				}
 
 			}
@@ -1667,19 +1748,6 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 		return true
 	}
 	if !pt.SendTranPermi[key].IsWhitListWork{
-		if pt.SendTranPermi[key].BlackMembers.Manager != nil{
-
-
-		for _ ,m := range pt.SendTranPermi[key].BlackMembers.Manager{
-			//need check MemberID is grop id or not
-			if pt.GropPermi[m.MemberID] != nil{
-				return pt.findMember(m.MemberID,from,false)
-			}else{
-				if m.MemberID == from{return false}
-			}
-
-		}
-		}
 
 		if pt.SendTranPermi[key].BlackMembers.Member != nil{
 
@@ -1694,6 +1762,22 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 
 			}
 		}
+
+		if pt.SendTranPermi[key].BlackMembers.Manager != nil{
+
+
+		for _ ,m := range pt.SendTranPermi[key].BlackMembers.Manager{
+			//need check MemberID is grop id or not
+			if pt.GropPermi[m.MemberID] != nil{
+				return pt.findMember(m.MemberID,from,false)
+			}else{
+				if m.MemberID == from{return true}
+			}
+
+		}
+		}
+
+
 
 
 		//return false
@@ -1727,13 +1811,7 @@ func (pt *PerminTable)checkSendTx(from,creator common.Address) bool{
 	return false
 }
 
-/*func (pt *PerminTable)findAllSendTx(member common.Address) (res bool) {
-	key := crypto.CreateGroupkey(creator,1)
 
-	if pt.SendTranPermi[key] == nil{
-
-	}
-}*/
 
 
 func (pt *PerminTable)findGroupSendTxPerm(member common.Address) (res bool)   {
