@@ -961,3 +961,13 @@ func TestGMSSL(t *testing.T){
 		t.Fatalf("verfiy error")
 	}
 }
+
+func TestRoot(t *testing.T)  {
+	rootPath := "./testdata/testcert/" + "CA_2.pem"
+	rootByte, _ := taicert.ReadPemFileByPath(rootPath)
+	//new cimList
+	cimList := NewCIMList(CryptoSM2)
+	cimList.AddCim(CreateCim(rootByte))
+
+	cimList.VerifyRootCert(rootByte)
+}
