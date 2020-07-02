@@ -1599,12 +1599,10 @@ func (pt *PerminTable)checkCrtContractManager(from,creator common.Address) bool{
 			if pt.GropPermi[m.MemberID] != nil{
 				return pt.findMember(m.MemberID,from,false)
 			}else{
-				if m.MemberID == from{return false}
+				if m.MemberID == from{return true}
 			}
 
 		}
-
-		return true
 	}else{
 		if pt.CrtContracetPermi[key].WhiteMembers.Manager == nil{
 			return false
