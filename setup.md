@@ -10,11 +10,15 @@ linux下获取源码地址后进行如下操作，将在build目录下生成可�
 
 > 使用`SM2`使用`国密`算法.
 
+### openssl的安装
+[openssl的安装](https://github.com/taiyuechain/openssl-1.1.1b/blob/master/setup.md)
+
 证书生成流程为:
 > 生成CA私钥（.key）-->生成CA证书请求（.req）-->自签名得到CA根证书（.pem)
 ```
 # openssl ecparam -out CA.key -name SM2 -genkey
 # openssl req -config taiyue.cnf -key CA.key -new -out CA.req
+> 可自己设置相应参数，也可回车按默认设置
 # openssl x509 -req -in CA.req -signkey CA.key -out CA.pem
 ```
 签发证书：
@@ -31,7 +35,10 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 + `committee`: 创世委员会的公钥和奖励地址，委员会的数量与根证书的数量必须保持一致。
 + `useGas`: 0--不使用gas即gasprice=0,1--表示使用gas.
 + `isCoin`: 表示链是否有奖励(有币)，0--无，1--有。当isCoin=0时，useGas不能为 1.
-+ `kindOfCrypto`: 表示加密系统类型1-ECC国际标准(p256曲线)，2--ECC国家标准(SM2)，3--ECC国际标准(s256曲线)
++ `kindOfCrypto`: 表示加密系统类型1
+  + ECC国际标准(p256曲线)2
+  + ECC国家标准(SM2)
+  + ECC国际标准(s256曲线)
 
 
 ```
@@ -148,10 +155,15 @@ BootstrapNodes = ["enode://a979fb575495b8d6db44f750317d0f4622bf4c2aa3365d6af7c28
 
 `taiyue --datadir "./data" init genesis.json "./certlist" ` 
 
-使用指定的创世区块配置json文件和初始的根证书列表目录，初始化创世块后，就可以启动泰岳节点了。
+使用指定的创世区块配置json文件和初始的根证书列表目录。
+
+在这里查看[certlist创建](#CA创建),[查看Genesis参数](#genesis参数)
+
+初始化创世块后，就可以启动泰岳节点了。
 
 `taiyue` 或者 `taiyue --config "./config.toml"`
 
+[Toml文件配置](#参数配置)
 > 注：确保初始化创世时的--datadir指定的目录与config.toml中指定的目录一致，同时根证书的数量与委员会的数量必须保持一致，在国密系统中证书的私钥和委员会的公钥所对应的私钥可以保持一致。
 > 详细可以参见配置部署样例
 
