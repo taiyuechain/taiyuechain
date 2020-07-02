@@ -1237,12 +1237,12 @@ func (agent *PbftAgent) singleloop() {
 			block, err = agent.FetchFastBlock(nil, nil)
 			if err != nil {
 				log.Error("singleloop FetchFastBlock error", "err", err)
-				time.Sleep(time.Second)
+				time.Sleep(time.Second*3)
 				continue
 			}
 			if len(block.Transactions()) == 0 && cnt < fetchBlockTime {
 				cnt++
-				time.Sleep(time.Second)
+				time.Sleep(time.Second*3)
 				continue
 			} else {
 				break

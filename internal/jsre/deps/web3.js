@@ -5296,7 +5296,7 @@ var methods = function () {
     var getChainBaseParams = new Method({
         name: 'getChainBaseParams',
         call: 'yue_getChainBaseParams',
-        params: 3
+        params: 0
     });
 
     var getStorageAt = new Method({
