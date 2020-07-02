@@ -5,18 +5,6 @@ linux下获取源码地址后进行如下操作，将在build目录下生成可�
  + cd taiyuechain
  + make taiyue
  
-## 运行
-程序首次运行需要初始化创世区块。
-
-`taiyue --datadir "./data" init genesis.json "./certlist" ` 
-
-使用指定的创世区块配置json文件和初始的根证书列表目录，初始化创世块后，就可以启动泰岳节点了。
-
-`taiyue` 或者 `taiyue --config "./config.toml"`
-
-> 注：确保初始化创世时的--datadir指定的目录与config.toml中指定的目录一致，同时根证书的数量与委员会的数量必须保持一致，在国密系统中证书的私钥和委员会的公钥所对应的私钥可以保持一致。
-> 详细可以参见配置部署样例
-
 ### CA创建
 证书的创建可以使用openssl，openssl的1.1.1之后的版本加上了sm1, sm2, sm3, sm4算法的支持。首先安装openssl v1.1.1之后的版本(可以自己编译一个发行版)。
 
@@ -26,13 +14,13 @@ linux下获取源码地址后进行如下操作，将在build目录下生成可�
 > 生成CA私钥（.key）-->生成CA证书请求（.req）-->自签名得到CA根证书（.pem)
 ```
 # openssl ecparam -out CA.key -name SM2 -genkey
-# openssl req -config openssl.cnf -key CA.key -new -out CA.req
+# openssl req -config taiyue.cnf -key CA.key -new -out CA.req
 # openssl x509 -req -in CA.req -signkey CA.key -out CA.pem
 ```
 签发证书：
 ```
 # openssl ecparam -out site.key -name SM2 -genkey
-# openssl req -config openssl.cnf -key site.key -new -out site.req
+# openssl req -config taiyue.cnf -key site.key -new -out site.req
 # openssl x509 -req -in site.req -CA CA.pem -CAkey CA.key  -out site.pem -CAcreateserial
 ```
 
@@ -154,6 +142,18 @@ P2PKey = "0xd5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
 BootstrapNodes = ["enode://a979fb575495b8d6db44f750317d0f4622bf4c2aa3365d6af7c284339968eef29b69ad0dce72a4d8db5ebb4968de0e3bec910127f134779fbcb0cb6d3331163c@52.16.188.185:30303", "enode://3f1d12044546b76342d59d4a05532c14b85aa669704bfe1f864fe079415aa2c02d743e03218e57a33fb94523adb54032871a6c51b2cc5514cb7c7e35b3ed0a99@13.93.211.84:30303"]
 
 ```
+
+## 运行
+程序首次运行需要初始化创世区块。
+
+`taiyue --datadir "./data" init genesis.json "./certlist" ` 
+
+使用指定的创世区块配置json文件和初始的根证书列表目录，初始化创世块后，就可以启动泰岳节点了。
+
+`taiyue` 或者 `taiyue --config "./config.toml"`
+
+> 注：确保初始化创世时的--datadir指定的目录与config.toml中指定的目录一致，同时根证书的数量与委员会的数量必须保持一致，在国密系统中证书的私钥和委员会的公钥所对应的私钥可以保持一致。
+> 详细可以参见配置部署样例
 
 ### 4节点泰岳链配置部署样例
 搭建4节点的泰岳联盟链，首先需要4个根证书，同时这4个节点都将被选入委员会中。
