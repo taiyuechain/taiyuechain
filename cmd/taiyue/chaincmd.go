@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
+	"bytes"
 	"io/ioutil"
 	"runtime"
 	"strconv"
@@ -228,6 +230,7 @@ func setCertForGenesis(certPath string,genesis *core.Genesis) error {
 	if len(certs) == 0 {
 		return errors.New("wrong CA files")
 	}
+	sort.Slice(certs, func(i, j int) bool { return bytes.Compare(certs[i], certs[j]) < 0 })
 	genesis.CertList = certs
 	return nil
 }
