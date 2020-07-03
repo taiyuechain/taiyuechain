@@ -72,6 +72,9 @@ func NewPublicTrueAPI(b Backend) *PublicTrueAPI {
 
 // GasPrice returns a suggestion for a gas price.
 func (s *PublicTrueAPI) GasPrice(ctx context.Context) (*hexutil.Big, error) {
+	if !params.IsGasUsed() {
+		return (*hexutil.Big)(new(big.Int).SetInt64(0)), nil
+	}
 	price, err := s.b.SuggestPrice(ctx)
 	return (*hexutil.Big)(price), err
 }
@@ -677,6 +680,9 @@ func (s *PublicBlockChainAPI) Call(ctx context.Context, args CallArgs, blockNr r
 // EstimateGas returns an estimate of the amount of gas needed to execute the
 // given transaction against the current pending block.
 func (s *PublicBlockChainAPI) EstimateGas(ctx context.Context, args CallArgs) (hexutil.Uint64, error) {
+	if !params.IsGasUsed() {
+		return hexutil.Uint64(0), nil
+	}
 	// Binary search the gas requirement, as it may be higher than the amount used
 	var (
 		lo  uint64 = params.TxGas - 1

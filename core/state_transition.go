@@ -192,6 +192,9 @@ func (st *StateTransition) preCheck() error {
 			return ErrNonceTooLow
 		}
 	}
+	if !params.IsGasUsed() {
+		return nil
+	}
 	//if transaction contains payer,payer address sub gas
 	if st.msg.Payment() != params.EmptyAddress {
 		return st.buyGasForPayment()

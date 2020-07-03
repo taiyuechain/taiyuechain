@@ -382,7 +382,10 @@ func (b *SimulatedBackend) PendingNonceAt(ctx context.Context, account common.Ad
 // SuggestGasPrice implements ContractTransactor.SuggestGasPrice. Since the simulated
 // chain doesn't have miners, we just return a gas price of 1 for any call.
 func (b *SimulatedBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
-	return big.NewInt(1), nil
+	if params.IsGasUsed() {
+		return big.NewInt(1), nil
+	}
+	return big.NewInt(0), nil
 }
 
 // EstimateGas executes the requested code against the currently pending block/state and
@@ -390,7 +393,9 @@ func (b *SimulatedBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error
 func (b *SimulatedBackend) EstimateGas(ctx context.Context, call taiyue.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-
+	if !params.IsGasUsed() {
+		return 0,nil
+	}
 	// Determine the lowest and highest possible gas limits to binary search in between
 	var (
 		lo  uint64 = params.TxGas - 1

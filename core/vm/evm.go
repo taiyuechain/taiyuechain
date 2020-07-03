@@ -436,11 +436,16 @@ func (evm *EVM) create(caller ContractRef, codeAndHash *codeAndHash, gas uint64,
 	// by the error checking condition below.
 	if err == nil && !maxCodeSizeExceeded {
 		createDataGas := uint64(len(ret)) * params.CreateDataGas
-		if contract.UseGas(createDataGas) {
-			evm.StateDB.SetCode(address, ret)
+		if params.IsGasUsed() {
+			if contract.UseGas(createDataGas) {
+				evm.StateDB.SetCode(address, ret)
+			} else {
+				err = ErrCodeStoreOutOfGas
+			}
 		} else {
-			err = ErrCodeStoreOutOfGas
+			evm.StateDB.SetCode(address, ret)
 		}
+
 	}
 
 	// When an error was returned by the EVM or when setting the creation code

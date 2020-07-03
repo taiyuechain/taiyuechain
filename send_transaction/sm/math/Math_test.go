@@ -53,10 +53,12 @@ func DefaulGenesisBlock() *core.Genesis {
 
 	return &core.Genesis{
 		Config:     params.DevnetChainConfig,
-		Nonce:      928,
-		ExtraData:  nil,
-		GasLimit:   88080384,
-		Difficulty: big.NewInt(20000),
+		GasLimit:     22020096,
+		UseGas:       0,
+		IsCoin:   0,
+		KindOfCrypto: 2,
+		PermisionWlSendTx:		1,
+		PermisionWlCreateTx:		1,
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},
 		},

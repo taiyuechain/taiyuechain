@@ -75,6 +75,9 @@ func NewOracle(backend taiapi.Backend, params Config) *Oracle {
 
 // SuggestPrice returns the recommended gas price.
 func (gpo *Oracle) SuggestPrice(ctx context.Context) (*big.Int, error) {
+	if !params.IsGasUsed() {
+		return new(big.Int).SetInt64(0),nil
+	}
 	gpo.cacheLock.RLock()
 	lastHead := gpo.lastHead
 	lastPrice := gpo.lastPrice
