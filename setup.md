@@ -13,6 +13,7 @@ cd GmSSL
 ./config
 make
 sudo make install
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ```
 
 > 使用`SM2`使用`国密`算法生成证书。taiyue.cnf : https://github.com/taiyuechain/GmSSL/blob/master/taiyue.cnf
