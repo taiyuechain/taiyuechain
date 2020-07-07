@@ -1,4 +1,4 @@
-# Build Geth in a stock Go builder container
+# Build Taiyue in a stock Go builder container
 FROM golang:1.10-alpine as construction
 
 RUN apk add --no-cache make gcc musl-dev linux-headers
@@ -6,7 +6,7 @@ RUN apk add --no-cache make gcc musl-dev linux-headers
 ADD . /taiyuechain
 RUN cd /taiyuechain && make taiyue
 
-# Pull Geth into a second stage deploy alpine container
+# Pull Taiyue into a second stage deploy alpine container
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
