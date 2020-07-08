@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const loopCount = 10
+const loopCount = 500000
 
 var loopTestSignData = []testSm2SignData{
 	{

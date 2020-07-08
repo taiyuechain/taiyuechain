@@ -253,3 +253,11 @@ func TestVerify(t *testing.T) {
 		}
 	}
 }
+
+func Test_01(t *testing.T) {
+	tt := []byte{1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,9,9,9}
+	i := new(big.Int).SetBytes(tt)
+	b := toSignData(i)
+	fmt.Println(b)
+	fmt.Println("finish")
+}

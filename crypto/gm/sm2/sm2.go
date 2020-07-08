@@ -525,7 +525,19 @@ func calculateE(digest hash.Hash, curve *P256V1Curve, pubX *big.Int, pubY *big.I
 	eHash := digest.Sum(nil)
 	return new(big.Int).SetBytes(eHash)
 }
-
+func toSignData(i *big.Int) []byte {
+	b := i.Bytes()
+	if len(b) > 32 {
+		return nil
+	}
+	if len(b) < 32 {
+		data := make([]byte,32)
+		copy(data[32-len(b):],b)
+		return data
+	} else {
+		return b
+	}
+}
 // sign algorithm.
 func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err error) {
 	digest := sm3.New()
@@ -575,52 +587,20 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 // gm sign with privatekey, r and s covert to byte array ,According to
 // byte array length to implementation method.
 func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
-	signrmark := 1
+	signrmark := 1   // unused
 	r, s, err := SignToRS(priv, userId, in)
 	if err != nil {
 		return nil, err
 	}
-	//return MarshalSign(r, s, priv.PublicKey.X, priv.PublicKey.Y)
-	sign := make([]byte, 65)
-	sign = BytesCombine(r.Bytes())
-	sign = BytesCombine(sign, s.Bytes())
-	if len(r.Bytes()) < 32 {
-		for i := 0; i < 32-len(r.Bytes()); i++ {
-			sign = append(sign, (byte)(len(r.Bytes())))
-			signrmark = signrmark * 3
-		}
-		if len(s.Bytes()) < 32 {
-			signsmark := 1
-			for i := 0; i < 32-len(r.Bytes()); i++ {
-				sign = append(sign, (byte)(len(s.Bytes())))
-				signsmark = signsmark * 7
-				signrmark = signrmark + signsmark
-			}
-			goto SIGN
-		}
-
+	err0 := errors.New("more than 32 size of r/s")
+	r1,s1 := toSignData(r),toSignData(s)
+	if r1 == nil || s1 == nil {
+		return nil,err0
 	}
-	if len(s.Bytes()) < 32 {
-		for i := 0; i < 32-len(s.Bytes()); i++ {
-			sign = append(sign, (byte)(len(s.Bytes())))
-			signrmark = signrmark * 7
-		}
-	}
-SIGN:
-	if signrmark == 1 {
-		sign = append(sign, 1)
-	}
-	if signrmark != 1 {
-		sign = append(sign, (byte)(signrmark))
-
-	}
+	sign := append([]byte{},r1...)
+	sign = append(sign,s1...)
+	sign = append(sign, (byte)(signrmark))
 	return sign, nil
-
-}
-
-// Combine byte array
-func BytesCombine(pBytes ...[]byte) []byte {
-	return bytes.Join(pBytes, []byte(""))
 }
 
 // verify sign algorithm.
@@ -660,19 +640,6 @@ func VerifyByRS(pub *PublicKey, userId []byte, src []byte, r, s *big.Int) bool {
 
 // Verift sign with publickey.
 func Verify(pub *PublicKey, userId []byte, src []byte, sign []byte) bool {
-	if sign[64] != 1 {
-		if (int)(sign[64])%3 == 0 {
-			return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32-(int)(sign[64])/3]), new(big.Int).SetBytes(sign[32-(int)(sign[64])/3:64-(int)(sign[64])/3]))
-		}
-		if (int)(sign[64])%7 == 0 {
-			return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64-(int)(sign[64])/7]))
-		}
-		rlen := ((int)(sign[64]) - (32-(int)(sign[63]))*7) / 3
-		if rlen > 64 || (rlen+(int)(sign[63])) > 64 {
-			return false
-		}
-		return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:rlen]), new(big.Int).SetBytes(sign[rlen:(rlen+(int)(sign[63]))]))
-	}
 	return VerifyByRS(pub, userId, src, new(big.Int).SetBytes(sign[:32]), new(big.Int).SetBytes(sign[32:64]))
 }
 
