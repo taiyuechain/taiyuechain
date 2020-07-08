@@ -174,17 +174,17 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 			pkecsda,_ := crypto.UnmarshalPubkey(pk)
 			curRootAddr = append(curRootAddr, crypto.PubkeyToAddress(*pkecsda))
 		}
-		for _,pk:=range oldRootListCert.Pubky{
-			pkecsda,_ := crypto.UnmarshalPubkey(pk)
-			oldRootAddr = append(oldRootAddr, crypto.PubkeyToAddress(*pkecsda))
+		if oldRootListCert != nil {
+			for _,pk:=range oldRootListCert.Pubky{
+				pkecsda,_ := crypto.UnmarshalPubkey(pk)
+				oldRootAddr = append(oldRootAddr, crypto.PubkeyToAddress(*pkecsda))
+			}
 		}
-
 
 		permTable := vm.NewPerminTable()
 		permTable.Load(state)
 		permTable.UpdataRootInElection(oldRootAddr,curRootAddr)
 		permTable.Save(state)
-
 	}
 
 	if state.PermissionChange() {
