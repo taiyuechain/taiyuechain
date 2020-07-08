@@ -13,7 +13,7 @@ RUN apk add --no-cache ca-certificates
 COPY --from=construction /taiyuechain/build/bin/taiyue /usr/local/bin/
 CMD ["taiyue"]
 
-EXPOSE 8545 8545 9215 9215 30310 30310 30311 30311 30313 30313
+EXPOSE 8545 8545 30310 30310 30311 30311 30313 30313
 ENTRYPOINT ["taiyue"]
 
 
