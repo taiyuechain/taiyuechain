@@ -327,9 +327,6 @@ func (e *Election) GetCommitteeById(id *big.Int) map[string]interface{} {
 	if id.Sign() <= 0 {
 		id = big.NewInt(0)
 	}
-	if id.Cmp(e.committee.id) > 0 {
-		return nil
-	}
 
 	info := make(map[string]interface{})
 	m, b := e.getValidators(id)
@@ -386,6 +383,10 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 	} else {
 		//reset committee and nextCommittee
 		currentCommittee = e.getCommitteeInfoByCommitteeId(eid)
+
+		if currentCommittee == nil {
+			return nil,nil
+		}
 
 		e.mu.Lock()
 		e.committee = currentCommittee
@@ -683,6 +684,9 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 		endFastNumber:   new(big.Int).Set(end),
 	}
 	caCertPubkeyList := e.getCACertList()
+	if committeeId.Int64() > int64(caCertPubkeyList.GetCACertEpochCount()) -1 {
+		return nil
+	}
 	committee.members = e.assignmentCommitteeMember(caCertPubkeyList, committeeId)
 	return committee
 }

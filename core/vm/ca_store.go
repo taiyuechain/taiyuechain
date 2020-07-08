@@ -63,10 +63,10 @@ func newCAStoreCache() *CAStoreCache {
 }
 
 type CACert struct {
-	CACert  []Cert `json:"cacert"`
-	Pubky	map[common.Hash][]byte  // cacert hash=> publick key
-	CoinAddress []common.Address
-	IsStore []bool `json:"isstore"`
+	CACert      []Cert                 `json:"cacert"`
+	Pubky       map[common.Hash][]byte `json:"pubkey"` // cacert hash=> publick key
+	CoinAddress []common.Address       `json:"coinaddress"`
+	IsStore     []bool                 `json:"isstore"`
 }
 
 func (cacert *CACert) GetByte(point int) []byte {
@@ -177,6 +177,10 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 
 func (ca *CACertList) GetCACertMapByEpoch(epoch uint64) *CACert {
 	return ca.caCertMap[epoch]
+}
+
+func (ca *CACertList) GetCACertEpochCount() int {
+	return len(ca.caCertMap)
 }
 
 func (ca *CACertList) IsInList(caCert []byte, epoch uint64,pubk []byte) (bool, error) {

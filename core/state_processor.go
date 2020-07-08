@@ -120,8 +120,10 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, gp *GasPool,
 		return nil, 0, err
 	}
 
-	if _,err :=vm.CreateContractPemimission(crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce()),vmenv.Context.Origin,tx.Nonce(),statedb); err !=nil{
-		return nil, 0, err
+	if msg.To() == nil {
+		if _, err := vm.CreateContractPemimission(crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce()), vmenv.Context.Origin, tx.Nonce(), statedb); err != nil {
+			return nil, 0, err
+		}
 	}
 
 	// Update the state with pending changes
@@ -145,8 +147,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, gp *GasPool,
 
 	if msg.To() == nil {
 		receipt.ContractAddress = crypto.CreateAddress(vmenv.Context.Origin, tx.Nonce())
-
-
 	}
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = statedb.GetLogs(tx.Hash())
