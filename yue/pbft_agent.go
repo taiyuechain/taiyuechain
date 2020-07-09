@@ -195,15 +195,19 @@ func (agent *PbftAgent) initNodeInfo(yue Backend) {
 	agent.singleNode = config.NodeType
 	agent.privateKey, _ = crypto.ToECDSA(config.CommitteeKey)
 	coinbase := yue.Config().CommitteeBase
-	if (coinbase == common.Address{}) {
+	if (coinbase == common.Address{} && agent.privateKey != nil) {
 		coinbase = crypto.PubkeyToAddress(agent.privateKey.PublicKey)
+	}
+	pk := []byte{0}
+	if agent.privateKey != nil {
+		pk = crypto.FromECDSAPub(&agent.privateKey.PublicKey)
 	}
 	agent.committeeNode = &types.CommitteeNode{
 		IP:        config.Host,
 		Port:      uint32(config.Port),
 		Port2:     uint32(config.StandbyPort),
 		Coinbase:  coinbase,
-		Publickey: crypto.FromECDSAPub(&agent.privateKey.PublicKey),
+		Publickey: pk,
 	}
 	//if singlenode start, self as committeeMember
 	if agent.singleNode {

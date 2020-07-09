@@ -105,6 +105,9 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	if len(digestHash) != 32 {
 		return nil, errors.New("sign digestHash is wrong")
 	}
+	if prv == nil {
+		return nil, errors.New("invalid private key")
+	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
 		p256sign, err := p256.Sign(prv, digestHash)
 		if err != nil {
