@@ -20,7 +20,6 @@ package consensus
 import (
 	"math/big"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/core/state"
@@ -170,16 +169,19 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 
 		var  curRootAddr []common.Address
 		var  oldRootAddr []common.Address
-		for _,pk:=range curRootListCert.Pubky{
-			pkecsda,_ := crypto.UnmarshalPubkey(pk)
-			curRootAddr = append(curRootAddr, crypto.PubkeyToAddress(*pkecsda))
+
+		for _,pk:=range curRootListCert.CoinAddress{
+			//pkecsda,_ := crypto.UnmarshalPubkey(pk)
+			curRootAddr = append(curRootAddr, pk)
 		}
 		if oldRootListCert != nil {
-			for _,pk:=range oldRootListCert.Pubky{
-				pkecsda,_ := crypto.UnmarshalPubkey(pk)
-				oldRootAddr = append(oldRootAddr, crypto.PubkeyToAddress(*pkecsda))
+			for _,pk:=range oldRootListCert.CoinAddress{
+				//pkecsda,_ := crypto.UnmarshalPubkey(pk)
+				oldRootAddr = append(oldRootAddr, pk)
 			}
 		}
+
+
 
 		permTable := vm.NewPerminTable()
 		permTable.Load(state)
