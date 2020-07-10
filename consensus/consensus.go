@@ -164,8 +164,8 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 		rootCimList.UpdataCert(i.GetCertList(nextEpoch))
 
 		//updata permisson
-		curRootListCert :=i.GetCACertMapByEpoch(epoch.Uint64())
-		oldRootListCert :=i.GetCACertMapByEpoch(epoch.Uint64()-1)
+		curRootListCert :=i.GetCACertMapByEpoch(nextEpoch)
+		oldRootListCert :=i.GetCACertMapByEpoch(epoch.Uint64())
 
 		var  curRootAddr []common.Address
 		var  oldRootAddr []common.Address
