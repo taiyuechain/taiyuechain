@@ -12,7 +12,7 @@ import (
 
 func TestENS(t *testing.T) {
 	contractBackend := backends.NewSimulatedBackend(gspec, 10000000)
-	transactOpts := bind.NewKeyedTransactor(pKey1, p2p1Byte, gspec.Config.ChainID)
+	transactOpts := bind.NewKeyedTransactor(pKey1, gspec.Config.ChainID)
 
 	// Deploy the ENS registry
 	ensAddr, _, _, err := DeployToken(transactOpts, contractBackend)

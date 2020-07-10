@@ -24,30 +24,27 @@ func init() {
 func TestAllCaCert(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(number uint64, gen *core.BlockGen, fastChain *core.BlockChain, header *types.Header, statedb *state.StateDB, cimList *cim.CimList) {
-		sendTranction(number, gen, statedb, pAccount1, pAccount2, big.NewInt(6000000000000000000), pKey1, signer, nil, header, p2p1Byte)
+		sendTranction(number, gen, statedb, pAccount1, pAccount2, big.NewInt(6000000000000000000), pKey1, signer, nil, header)
 		cert44 := pbft5Byte
 		if number == 30 {
 			fmt.Println("amount",getCaAmount(statedb,header.Number))
 		}
 
-		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft1Byte,pub1, true, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft2Byte,pub2, true, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft1Byte,pub1, true, pKey2, signer, statedb, fastChain, abiCA, nil)
+		sendMultiProposalTranscation(number, gen, pAccount2, cert44, pbft2Byte,pub2, true, pKey2, signer, statedb, fastChain, abiCA, nil)
 
 		if number == 1050 {
 			fmt.Println("amount",getCaAmount(statedb,header.Number),"number",header.Number)
-			//if err := cimList.VerifyRootCert(cert44); err != nil {
-			//	fmt.Println("TestAllCaCert err", err," header ",header.Number)
-			//}
 		}
 
-		sendMultiProposalTranscation(number-26-1000, gen, pAccount2, cert44, pbft1Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number-27-1000, gen, pAccount2, cert44, pbft2Byte,pub2, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
-		sendMultiProposalTranscation(number-28-1000, gen, pAccount2, cert44, pbft3Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
+		sendMultiProposalTranscation(number-26-1000, gen, pAccount2, cert44, pbft1Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil)
+		sendMultiProposalTranscation(number-27-1000, gen, pAccount2, cert44, pbft2Byte,pub2, false, pKey2, signer, statedb, fastChain, abiCA, nil)
+		sendMultiProposalTranscation(number-28-1000, gen, pAccount2, cert44, pbft3Byte,pub1, false, pKey2, signer, statedb, fastChain, abiCA, nil)
 		if number == 2050 {
 			fmt.Println("amount",getCaAmount(statedb,header.Number),"number",header.Number)
 		}
 	}
-	newTestPOSManager(50, executable)
+	newTestPOSManager(70, executable)
 	fmt.Println("staking addr", types.CACertListAddress)
 }
 

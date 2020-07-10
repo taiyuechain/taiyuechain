@@ -28,7 +28,7 @@ import (
 
 // NewKeyedTransactor is a utility method to easily create a transaction signer
 // from a single private key.
-func NewKeyedTransactor(key *ecdsa.PrivateKey, cert []byte, chainId *big.Int) *TransactOpts {
+func NewKeyedTransactor(key *ecdsa.PrivateKey, chainId *big.Int) *TransactOpts {
 	keyAddr := crypto.PubkeyToAddress(key.PublicKey)
 	return &TransactOpts{
 		From: keyAddr,
@@ -42,7 +42,6 @@ func NewKeyedTransactor(key *ecdsa.PrivateKey, cert []byte, chainId *big.Int) *T
 			}
 			return tx.WithSignature(signer, signature)
 		},
-		Cert:   cert,
 		signer: types.NewSigner(chainId),
 	}
 }
