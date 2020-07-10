@@ -33,7 +33,7 @@ var (
 )
 
 func init() {
-	SetConfig(true, true)
+	SetPermConfig(true, true)
 
 	rootList = append(rootList, common.HexToAddress("0x21C16f03bbF085D6908569d159Ad40BcafdB80C5"))
 	rootList = append(rootList, common.HexToAddress("0xa9A2CbA5d5d16DE370375B42662F3272279B2b89"))

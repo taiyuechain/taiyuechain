@@ -121,7 +121,7 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 	params.EnablePermission = 1
 
 	genesis := gspec.MustCommit(db)
-	vm.SetConfig(true,true)
+	vm.SetPermConfig(true,true)
 	blockchain, _ := core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, cimList)
 	//init cert list to
 	// need init cert list to statedb
@@ -146,74 +146,74 @@ func newTestPOSManager(sBlocks int, executableTx func(uint64, *core.BlockGen, *c
 }
 
 //neo test
-func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to,group common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendGrantPermissionTranscation(height uint64, gen *core.BlockGen, from, to,group common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
 		input := packInput(abiStaking, "grantPermission", "grantPermission", common.Address{}, to, group, permission, true)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendGrantContractPermissionTranscation(height uint64, gen *core.BlockGen, from, to,contract common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendGrantContractPermissionTranscation(height uint64, gen *core.BlockGen, from, to,contract common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "grantPermission", txPool)
 		input := packInput(abiStaking, "grantPermission", "grantPermission", contract, to, common.Address{}, permission, true)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendRevokePermissionTranscation(height uint64, gen *core.BlockGen, from, to common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 40 {
 		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
 		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", from, to, common.Address{}, permission, true)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendRevokeContractPermissionTranscation(height uint64, gen *core.BlockGen, from, to,contract common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendRevokeContractPermissionTranscation(height uint64, gen *core.BlockGen, from, to,contract common.Address, permission *big.Int, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "sendRevokePermissionTranscation", txPool)
 		input := packInput(abiStaking, "revokePermission", "sendRevokePermissionTranscation", contract, to, common.Address{}, permission, true)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendCreateGroupPermissionTranscation(height uint64, gen *core.BlockGen, from common.Address, gropName string, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendCreateGroupPermissionTranscation(height uint64, gen *core.BlockGen, from common.Address, gropName string, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 25 {
 		nonce, _ := getNonce(gen, from, state, "sendCreateGroupPermissionTranscation", txPool)
 		input := packInput(abiStaking, "createGroupPermission", "sendCreateGroupPermissionTranscation", gropName)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendDelGroupPermissionTranscation(height uint64, gen *core.BlockGen, from, GroupAddr common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendDelGroupPermissionTranscation(height uint64, gen *core.BlockGen, from, GroupAddr common.Address, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 70 {
 		nonce, _ := getNonce(gen, from, state, "sendDelGroupPermissionTranscation", txPool)
 		input := packInput(abiStaking, "delGroupPermission", "sendDelGroupPermissionTranscation", GroupAddr)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
 //neo test
-func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool, txCert []byte) {
+func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from common.Address, cert []byte, priKey *ecdsa.PrivateKey, signer types.Signer, state *state.StateDB, blockchain *core.BlockChain, abiStaking abi.ABI, txPool txPool) {
 	if height == 30 {
 		input := packInput(abiStaking, "isApproveCaCert", "sendIsApproveCACertTranscation", cert)
 		var args bool
-		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "isApproveCaCert", &args, txCert)
+		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "isApproveCaCert", &args)
 		printTest("get Cert Amount is ", args)
 	}
 }
 
-func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, cert []byte) {
+func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer) {
 	//2426392 1000000000
 	//866328  1000000
 	//2400000
-	tx, _ := types.SignTx(types.NewTransaction(nonce, types.PermiTableAddress, value, 2446392, big.NewInt(1000000000), input, cert), signer, priKey)
+	tx, _ := types.SignTx(types.NewTransaction(nonce, types.PermiTableAddress, value, 2446392, big.NewInt(1000000000), input), signer, priKey)
 
 	if gen != nil {
 		gen.AddTxWithChain(blockchain, tx)
@@ -222,8 +222,8 @@ func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value 
 	}
 }
 
-func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, abiMethod string, result interface{}, cert []byte) {
-	tx, _ := types.SignTx(types.NewTransaction(nonce, types.PermiTableAddress, value, 866328, big.NewInt(1000000), input, cert), signer, priKey)
+func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, abiMethod string, result interface{}) {
+	tx, _ := types.SignTx(types.NewTransaction(nonce, types.PermiTableAddress, value, 866328, big.NewInt(1000000), input), signer, priKey)
 
 	if gen != nil {
 		output, gas := gen.ReadTxWithChain(blockchain, tx)
@@ -267,12 +267,12 @@ func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, me
 	return nonce, stateDb
 }
 
-func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte, cimList *cim.CimList) {
+func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cimList *cim.CimList) {
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
 		printTest("sendTranction ", balance.Uint64(), " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
-		tx, _ := types.SignTx(types.NewTransaction(nonce, to, value, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
+		tx, _ := types.SignTx(types.NewTransaction(nonce, to, value, params.TxGas, new(big.Int).SetInt64(1000000), nil), signer, privateKey)
 		if gen != nil {
 			if check, err := cimList.VerifyPermission(tx, signer, *statedb); !check {
 				fmt.Println(header.Number.Uint64(), " --------------------------------- ", err, " ---------------------------------------")
@@ -285,12 +285,12 @@ func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from
 	}
 }
 
-func sendContractTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte, cimList *cim.CimList) {
+func sendContractTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cimList *cim.CimList) {
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		printTest("sendTranction ", " height ", height, " current ", header.Number.Uint64(), " from ", types.ToTai(state.GetBalance(from)))
 
-		tx, _ := types.SignTx(types.NewContractCreation(nonce, value, params.TxGasContractCreation, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
+		tx, _ := types.SignTx(types.NewContractCreation(nonce, value, params.TxGasContractCreation, new(big.Int).SetInt64(1000000), nil), signer, privateKey)
 		if gen != nil {
 			if check, err := cimList.VerifyPermission(tx, signer, *statedb); !check {
 				fmt.Println(header.Number.Uint64(), " --------------------------------- ", err, " ---------------------------------------")
