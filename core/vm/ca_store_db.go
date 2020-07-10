@@ -200,10 +200,11 @@ func (i *ProposalState) EncodeRLP(w io.Writer) error {
 }
 
 type extCACert struct {
-	CACert  []Cert   `json:"cacert"`
-	Pubky   [][]byte // cacert hash=> publick key
-	PbArr   []common.Hash
-	IsStore []bool `json:"isstore"`
+	CACert      []Cert   `json:"cacert"`
+	Pubky       [][]byte // cacert hash=> publick key
+	PbArr       []common.Hash
+	CoinAddress []common.Address
+	IsStore     []bool `json:"isstore"`
 }
 
 func (i *CACert) DecodeRLP(s *rlp.Stream) error {
@@ -216,7 +217,7 @@ func (i *CACert) DecodeRLP(s *rlp.Stream) error {
 		proposals[ei.PbArr[i]] = proposal
 	}
 
-	i.CACert, i.Pubky, i.IsStore = ei.CACert, proposals, ei.IsStore
+	i.CACert, i.Pubky, i.CoinAddress, i.IsStore = ei.CACert, proposals, ei.CoinAddress, ei.IsStore
 	return nil
 }
 
@@ -239,10 +240,11 @@ func (i *CACert) EncodeRLP(w io.Writer) error {
 	}
 
 	return rlp.Encode(w, extCACert{
-		CACert:  i.CACert,
-		Pubky:   proposals,
-		PbArr:   proposalOrders,
-		IsStore: i.IsStore,
+		CACert:      i.CACert,
+		Pubky:       proposals,
+		PbArr:       proposalOrders,
+		CoinAddress: i.CoinAddress,
+		IsStore:     i.IsStore,
 	})
 }
 
