@@ -135,7 +135,7 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 		items := &CACert{
 			make([]Cert, len(val.CACert)),
 			make(map[common.Hash][]byte),
-				make([]common.Address,len(val.CoinAddress)),
+			make([]common.Address,len(val.CoinAddress)),
 			make([]bool, len(val.IsStore)),
 		}
 
@@ -144,8 +144,10 @@ func CloneCaCache(cachaList *CACertList) *CACertList {
 			items.CACert[i] = append(items.CACert[i], val.CACert[i][:]...)
 			items.Pubky[hash_val] = val.Pubky[hash_val]
 			items.IsStore[i] = val.IsStore[i]
+			items.CoinAddress[i] = val.CoinAddress[i]
+
 		}
-		items.CoinAddress = append(items.CoinAddress,val.CoinAddress[:]...)
+
 
 		tmp.caCertMap[k] = items
 	}
