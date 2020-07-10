@@ -18,7 +18,6 @@ package types
 
 import (
 	"crypto/ecdsa"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -29,7 +28,6 @@ import (
 	"math/big"
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/params"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
 )
 
 var (
@@ -177,7 +175,7 @@ func (s CommonSigner) Sender(tx *Transaction) (common.Address, error) {
 	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
 	V.Sub(V, big8)
 
-	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, tx.data.Sig, tx.data.Cert)
+	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, tx.data.PK)
 }
 
 func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
@@ -186,17 +184,21 @@ func (s CommonSigner) Payer(tx *Transaction) (common.Address, error) {
 	}
 	PV := new(big.Int).Sub(tx.data.PV, s.chainIdMul)
 	PV.Sub(PV, big8)
-	return recoverPlain(s.Hash_Payment(tx), tx.data.PR, tx.data.PS, PV, tx.data.Sig, tx.data.Cert)
+	return recoverPlain(s.Hash_Payment(tx), tx.data.PR, tx.data.PS, PV, tx.data.PK)
 }
 
 // WithSignature returns a new transaction with the given signature. This signature
 // needs to be in the [R || S || V] format where V is 0 or 1.
 func (s CommonSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big.Int, err error) {
-	tx.data.Sig = sig
 	R, S, V, err = SignatureValues(tx, sig)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	pub, err := crypto.DecompressPubkey(sig[65:])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	tx.data.PK = crypto.FromECDSAPub(pub)
 	if s.chainId.Sign() != 0 {
 		V = big.NewInt(int64(sig[64] + 35))
 		V.Add(V, s.chainIdMul)
@@ -272,51 +274,38 @@ func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) 
 	return r, s, v, nil
 }
 
-func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, sig, cert []byte) (common.Address, error) {
+func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, pk []byte) (common.Address, error) {
 	if Vb.BitLen() > 8 {
 		return common.Address{}, ErrInvalidSig
 	}
-	x := byte(Vb.Uint64() - 27)
-	if !crypto.ValidateSignatureValues(x, R, S, true) {
+	V := byte(Vb.Uint64() - 27)
+	if !crypto.ValidateSignatureValues(V, R, S, true) {
 		return common.Address{}, ErrInvalidSig
 	}
 
-	if !crypto.VerifySignatureTransaction(sighash[:], sig) {
+	// encode the snature in uncompressed format
+	r, s := R.Bytes(), S.Bytes()
+	sig := make([]byte, 65)
+	copy(sig[32-len(r):32], r)
+	copy(sig[64-len(s):64], s)
+	sig[64] = V
+
+	if !crypto.VerifySignatureTransactionPk(sighash[:], sig, pk) {
 		return common.Address{}, errors.New("can't verify signature")
 	}
 
-	pub, err := taicert.GetPubByteFromCert(cert)
-	if err != nil {
-		return common.Address{}, errors.New("cert can't conversion to pub")
-	}
-
-	if len(sig[65:]) != 33 {
-		return common.Address{}, errors.New("transaction sig len not equal 33")
-	}
-
-	// encode the snature in uncompressed format
-	pk, err := crypto.DecompressPubkey(sig[65:])
-	if err != nil {
-		return common.Address{}, err
-	}
-
-	pubBytes := crypto.FromECDSAPub(pk)
-
-	if hex.EncodeToString(pub) != hex.EncodeToString(pubBytes) {
-		return common.Address{}, errors.New("cert not match pub key")
-	}
-	return common.BytesToAddress(crypto.Keccak256(pubBytes[1:])[12:]), nil
+	return common.BytesToAddress(crypto.Keccak256(pk[1:])[12:]), nil
 }
 
 // deriveChainId derives the chain id from the given v parameter
-func deriveChainId(v *big.Int, vv byte) *big.Int {
+func deriveChainId(v *big.Int) *big.Int {
 	if v.BitLen() <= 64 {
 		v := v.Uint64()
 		if v == 27 || v == 28 {
 			return new(big.Int)
 		}
-		return new(big.Int).SetUint64((v - uint64(vv) - 35) / 2)
+		return new(big.Int).SetUint64((v - 35) / 2)
 	}
-	v = new(big.Int).Sub(v, big.NewInt(35-int64(vv)))
+	v = new(big.Int).Sub(v, big.NewInt(35))
 	return v.Div(v, big.NewInt(2))
 }

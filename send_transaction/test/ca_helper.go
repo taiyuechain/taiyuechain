@@ -141,7 +141,7 @@ func sendAddCaCertTranscation(height uint64, gen *core.BlockGen, from common.Add
 		//input := packInput(abiCA, "deposit", "sendAddCaCertTranscation", pub, new(big.Int).SetInt64(5000), value)
 		input := packInput(abiStaking, "addCaCert", "sendAddCaCertTranscation", cert)
 
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
@@ -152,7 +152,7 @@ func sendDelCaCertTranscation(height uint64, gen *core.BlockGen, from common.Add
 		//input := packInput(abiCA, "deposit", "sendDelCaCertTranscation", pub, new(big.Int).SetInt64(5000), value)
 		input := packInput(abiStaking, "delCaCert", "sendDelCaCertTranscation", cert)
 
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
@@ -161,7 +161,7 @@ func sendGetCaCertAmountTranscation(height uint64, gen *core.BlockGen, from comm
 	if height == 25 {
 		input := packInput(abiStaking, "getCaAmount", "sendGetCaCertAmountTranscation")
 		var args uint64
-		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "getCaAmount", &args, txCert)
+		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "getCaAmount", &args)
 		printTest("---get Cert Amount is ", "arges = ", args)
 
 	}
@@ -173,7 +173,7 @@ func sendMultiProposalTranscation(height uint64, gen *core.BlockGen, from common
 		nonce, _ := getNonce(gen, from, state, "sendMultiProposalTranscation", txPool)
 		fmt.Println("multiProposal ", hex.EncodeToString(cert), " ", hex.EncodeToString(certPar))
 		input := packInput(abiStaking, "multiProposal", "sendMultiProposalTranscation", certPar, cert, isAdd)
-		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer, txCert)
+		addTx(gen, blockchain, nonce, nil, input, txPool, priKey, signer)
 	}
 }
 
@@ -182,16 +182,16 @@ func sendIsApproveCACertTranscation(height uint64, gen *core.BlockGen, from comm
 	if height == 30 {
 		input := packInput(abiStaking, "isApproveCaCert", "sendIsApproveCACertTranscation", cert)
 		var args bool
-		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "isApproveCaCert", &args, txCert)
+		readTx(gen, blockchain, 0, big.NewInt(0), input, txPool, priKey, signer, "isApproveCaCert", &args)
 		printTest("get Cert Amount is ", args)
 	}
 }
 
-func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, cert []byte) {
+func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer) {
 	//2426392 1000000000
 	//866328  1000000
 	//2400000
-	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 2446392, big.NewInt(1000000000), input, cert), signer, priKey)
+	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 2446392, big.NewInt(1000000000), input), signer, priKey)
 
 	if gen != nil {
 		gen.AddTxWithChain(blockchain, tx)
@@ -200,8 +200,8 @@ func addTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value 
 	}
 }
 
-func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, abiMethod string, result interface{}, cert []byte) {
-	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 866328, big.NewInt(1000000), input, cert), signer, priKey)
+func readTx(gen *core.BlockGen, blockchain *core.BlockChain, nonce uint64, value *big.Int, input []byte, txPool txPool, priKey *ecdsa.PrivateKey, signer types.Signer, abiMethod string, result interface{}) {
+	tx, _ := types.SignTx(types.NewTransaction(nonce, types.CACertListAddress, value, 866328, big.NewInt(1000000), input), signer, priKey)
 
 	if gen != nil {
 		output, gas := gen.ReadTxWithChain(blockchain, tx)
@@ -255,14 +255,14 @@ func getNonce(gen *core.BlockGen, from common.Address, state1 *state.StateDB, me
 	return nonce, stateDb
 }
 
-func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header, cert []byte) {
+func sendTranction(height uint64, gen *core.BlockGen, state *state.StateDB, from, to common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, signer types.Signer, txPool txPool, header *types.Header) {
 	if height == 10 {
 		nonce, statedb := getNonce(gen, from, state, "sendTranction", txPool)
 		balance := statedb.GetBalance(to)
 		remaining := new(big.Int).Sub(value, balance)
 		printTest("1----sendTranction ", balance.Uint64(), " remaining ", remaining.Uint64(), " height ", height, " current ", header.Number.Uint64())
 		if remaining.Sign() > 0 {
-			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil, cert), signer, privateKey)
+			tx, _ := types.SignTx(types.NewTransaction(nonce, to, remaining, params.TxGas, new(big.Int).SetInt64(1000000), nil), signer, privateKey)
 			if gen != nil {
 				gen.AddTx(tx)
 			} else {

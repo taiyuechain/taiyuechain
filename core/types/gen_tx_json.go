@@ -23,8 +23,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 		Payload      hexutil.Bytes   `json:"input"    gencodec:"required"`
 		Payer        *common.Address `json:"payer"    rlp:"nil"`
 		Fee          *hexutil.Big    `json:"fee" rlp:"nil"`
-		Cert         hexutil.Bytes   `json:"cert"   gencodec:"required"`
-		Sig          hexutil.Bytes   `json:"sig"   gencodec:"required"`
+		PK           hexutil.Bytes   `json:"pk"   gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
 		R            *hexutil.Big    `json:"r" gencodec:"required"`
 		S            *hexutil.Big    `json:"s" gencodec:"required"`
@@ -40,8 +39,7 @@ func (t txdata) MarshalJSON() ([]byte, error) {
 	enc.Recipient = t.Recipient
 	enc.Amount = (*hexutil.Big)(t.Amount)
 	enc.Payload = t.Payload
-	enc.Cert = t.Cert
-	enc.Sig = t.Sig
+	enc.PK = t.PK
 	enc.Payer = t.Payer
 	enc.Fee = (*hexutil.Big)(t.Fee)
 	enc.V = (*hexutil.Big)(t.V)
@@ -64,8 +62,7 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
 		Payer        *common.Address `json:"payer" rlp:"nil"`
 		Fee          *hexutil.Big    `json:"fee" rlp:"nil"`
-		Cert         *hexutil.Bytes  `json:"cert"   gencodec:"required"`
-		Sig          *hexutil.Bytes  `json:"sig"   gencodec:"required"`
+		PK           *hexutil.Bytes  `json:"pk"   gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
 		R            *hexutil.Big    `json:"r" gencodec:"required"`
 		S            *hexutil.Big    `json:"s" gencodec:"required"`
@@ -105,14 +102,10 @@ func (t *txdata) UnmarshalJSON(input []byte) error {
 	}
 	t.Payload = *dec.Payload
 
-	if dec.Cert == nil {
-		return errors.New("missing required field 'cert' for txdata")
+	if dec.PK == nil {
+		return errors.New("missing required field 'pk' for txdata")
 	}
-	t.Cert = *dec.Cert
-	if dec.Sig == nil {
-		return errors.New("missing required field 'sig' for txdata")
-	}
-	t.Sig = *dec.Sig
+	t.PK = *dec.PK
 
 	if dec.Payer != nil {
 		t.Payer = dec.Payer

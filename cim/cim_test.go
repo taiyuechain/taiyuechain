@@ -2,6 +2,11 @@ package cim
 
 import (
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cert/crypto/sm3"
+	"github.com/taiyuechain/taiyuechain/common"
+	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
+	"github.com/taiyuechain/taiyuechain/rlp"
+	"golang.org/x/crypto/sha3"
 
 	"testing"
 
@@ -898,7 +903,7 @@ func SendP256Transtion() {
 
 	//send true transfer
 	tx := types.NewP256Transaction(nonce, &to, nil, amount,
-		new(big.Int).SetInt64(0), params.TxGas, new(big.Int).SetInt64(0), nil, fromcert, chainID, nil)
+		new(big.Int).SetInt64(0), params.TxGas, new(big.Int).SetInt64(0), nil, fromcert)
 
 	signer := types.NewSigner(chainID)
 	signTx, _ := types.SignTx(tx, signer, fromPrive)
@@ -963,11 +968,51 @@ func TestGMSSL(t *testing.T){
 }
 
 func TestRoot(t *testing.T)  {
-	rootPath := "./testdata/testcert/" + "CA_2.pem"
-	rootByte, _ := taicert.ReadPemFileByPath(rootPath)
-	//new cimList
-	cimList := NewCIMList(CryptoSM2)
-	cimList.AddCim(CreateCim(rootByte))
+	data := []byte("1234")
+	hash := types.RlpHash(data)
+	var h common.Hash
+	hw := sha3.NewLegacyKeccak256()
+	rlp.Encode(hw, data)
+	h1 := hw.Sum(h[:0])
+	fmt.Println(" sha3 hash ",hexutil.Encode(h1[:]))
 
-	cimList.VerifyRootCert(rootByte)
+	hw1 := sm3.New()
+	rlp.Encode(hw1, data)
+	h1 = hw1.Sum(h[:0])
+
+	fmt.Println(" sha3 hash ",hexutil.Encode(hash[:])," sm hash ",hexutil.Encode(h1[:]))
+
+	key,_ := crypto.HexToECDSA(pbft1PrivString)
+	sig,err := crypto.Sign(hash[:],key)
+	fmt.Println("verify",crypto.VerifySignature(crypto.CompressPubkey(&key.PublicKey), hash[:], sig))
+
+	fmt.Println("err",err," 65 ",sig[64] ," data ",hexutil.Encode(sig))
+	fmt.Println("CompressPubkey ",hex.EncodeToString(crypto.CompressPubkey(&key.PublicKey)))
+	smsign, err := sm2.Sign(sm2.ToSm2privatekey(key), nil, hash[:])
+	fmt.Println("smsign",hex.EncodeToString(smsign))}
+
+func TestVerifyRS(t *testing.T) {
+	data := []byte("1234")
+	hash1,_ := crypto.Sum256(data)
+	fmt.Println(" sha3 hash ",hexutil.Encode(hash1[:]))
+
+
+	hash,_ := hex.DecodeString("530ee72e9ed0e80125f4a9c6ce2db1061502b9ce760da578b79566d8ae28816f")
+
+	fmt.Println(" sha3 hash ",hexutil.Encode(hash[:]))
+
+	key,_ := crypto.HexToECDSA(pbft1PrivString)
+
+	data,_ = hex.DecodeString("03b1f65cac9d0f801c5117afe4d29a11753e9e2cb7a60ec9d38ab09f6fdcc42c26ecae3711edb2f03899a539132102f00115ef804c24f966896ef50e0363fe33")
+	signature := append(data,byte(1))
+	fmt.Println(sm2.Verify(sm2.ToSm2Publickey(&key.PublicKey), nil, hash[:], signature))
+
+
+	//rr,err := hex.DecodeString("3b1f65cac9d0f801c5117afe4d29a11753e9e2cb7a60ec9d38ab09f6fdcc42c")
+	//fmt.Println("err",err)
+	//ss,err := hex.DecodeString("26ecae3711edb2f03899a539132102f00115ef804c24f966896ef50e0363fe33")
+	//fmt.Println("err",err)
+	////
+	//signature = sm2.RSToSign(new(big.Int).SetBytes(rr),new(big.Int).SetBytes(ss))
+	//fmt.Println(sm2.Verify(sm2.ToSm2Publickey(&key.PublicKey), nil, hash[:], signature))
 }

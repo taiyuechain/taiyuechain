@@ -592,15 +592,13 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	err0 := errors.New("more than 32 size of r/s")
-	r1,s1 := toSignData(r),toSignData(s)
-	if r1 == nil || s1 == nil {
-		return nil,err0
-	}
-	sign := append([]byte{},r1...)
-	sign = append(sign,s1...)
-	sign = append(sign, (byte)(signrmark))
-	return sign, nil
+
+	sig := make([]byte, 65)
+	copy(sig[32-len(r.Bytes()):], r.Bytes())
+	copy(sig[64-len(s.Bytes()):], s.Bytes())
+
+	sig[64] = byte(signrmark)
+	return sig, nil
 }
 
 // verify sign algorithm.

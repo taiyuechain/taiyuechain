@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/metrics"
 
 	"github.com/davecgh/go-spew/spew"
@@ -910,8 +909,7 @@ type RPCTransaction struct {
 	PV               *hexutil.Big    `json:"pv"`
 	PR               *hexutil.Big    `json:"pr"`
 	PS               *hexutil.Big    `json:"ps"`
-	Cert             hexutil.Bytes   `json:"cert"   gencodec:"required"`
-	Sig              hexutil.Bytes   `json:"sig"   gencodec:"required"`
+	Pk               hexutil.Bytes   `json:"pk"   gencodec:"required"`
 }
 
 // newRPCTransaction returns a transaction that will serialize to the RPC
@@ -927,8 +925,7 @@ func newRPCTransaction(tx *types.Transaction, blockHash common.Hash, blockNumber
 		GasPrice: (*hexutil.Big)(tx.GasPrice()),
 		Hash:     tx.Hash(),
 		Input:    hexutil.Bytes(tx.Data()),
-		Sig:      hexutil.Bytes(tx.Sig()),
-		Cert:     hexutil.Bytes(tx.Cert()),
+		Pk:       hexutil.Bytes(tx.Pk()),
 		Nonce:    hexutil.Uint64(tx.Nonce()),
 		To:       tx.To(),
 		Value:    (*hexutil.Big)(tx.Value()),
@@ -1174,7 +1171,6 @@ type SendTxArgs struct {
 	// newer name and should be preferred by clients.
 	Data  *hexutil.Bytes `json:"data"`
 	Input *hexutil.Bytes `json:"input"`
-	Cert  *hexutil.Bytes `json:"cert"`
 }
 
 // setDefaults is a helper function that fills in default values for unspecified tx fields.
@@ -1220,35 +1216,29 @@ func (args *SendTxArgs) setDefaults(ctx context.Context, b Backend) error {
 
 func (args *SendTxArgs) toTransaction() *types.Transaction {
 	var input []byte
-	var cert []byte
 	if args.Data != nil {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil {
-		cert = *args.Cert
 	}
 
 	if args.To == nil {
-		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment, cert)
+		return types.NewContractCreation_Payment(uint64(*args.Nonce), (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment)
 	}
-	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment, cert)
+	return types.NewTransaction_Payment(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), (*big.Int)(args.Fee), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, args.Payment)
 }
 
 func (args *SendTxArgs) toRawTransaction() *types.RawTransaction {
 	var input []byte
-	var cert []byte
 	if args.Data != nil {
 		input = *args.Data
 	} else if args.Input != nil {
 		input = *args.Input
-	} else if args.Cert != nil {
-		cert = *args.Cert
 	}
 	if args.To == nil {
-		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, cert)
+		return types.NewRawTransactionContract(uint64(*args.Nonce), (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
 	}
-	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input, cert)
+	return types.NewRawTransaction(uint64(*args.Nonce), *args.To, (*big.Int)(args.Value), uint64(*args.Gas), (*big.Int)(args.GasPrice), input)
 }
 
 // submitTransaction is a helper function that submits tx to txPool and logs a message.
@@ -1300,20 +1290,6 @@ func (s *PublicTransactionPoolAPI) signPayment(payment common.Address, tx *types
 // SendTransaction creates a transaction for the given argument, sign it and submit it to the
 // transaction pool.
 func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args SendTxArgs) (common.Hash, error) {
-
-	sendCert := args.Cert
-	if sendCert != nil && len(*sendCert) != 0 {
-		pub, err := taicert.FromCertBytesToPubKey(*sendCert)
-		if err != nil {
-			return common.Hash{}, errors.New("cert convert to pub")
-		}
-		address := crypto.PubkeyToAddress(*pub)
-		if args.From != address {
-			return common.Hash{}, errors.New("pub address not equal from address")
-		}
-	} else {
-		return common.Hash{}, errors.New("cert can't nil")
-	}
 
 	log.Debug("SendTransaction", "args",
 		fmt.Sprintf("API recieved  from=%v\n ,Payment=%v", crypto.AddressToHex(args.From), crypto.AddressToHex(args.Payment)))

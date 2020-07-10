@@ -154,11 +154,6 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 		return false,err
 	}
 
-	// need check cert
-	if err :=cl.VerifyCert(tx.Cert());err !=nil{
-		return false,errors.New("VerifyPermission the cert error")
-	}
-
 	to := tx.To()
 	if to == nil{
 		//create contract
