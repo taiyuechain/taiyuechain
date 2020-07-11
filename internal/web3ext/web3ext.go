@@ -610,8 +610,8 @@ web3._extend({
 		new web3._extend.Method({
 			name: 'listPermission',
 			call: 'cpm_listPermission',
-			params: 1,
-			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+			params: 3,
+			inputFormatter: [web3._extend.formatters.inputAddressFormatter, web3._extend.utils.toDecimal,web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
 			name: 'showWhiteList',
@@ -635,19 +635,19 @@ web3._extend({
 			name: 'showGroup',
 			call: 'cpm_showGroup',
 			params: 2,
-			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
+			inputFormatter: [web3._extend.formatters.inputAddressFormatter,web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
 			name: 'showMyGroup',
 			call: 'cpm_showMyGroup',
 			params: 2,
-			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
+			inputFormatter: [web3._extend.formatters.inputAddressFormatter,web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
 			name: 'listBasePermission',
 			call: 'cpm_listBasePermission',
 			params: 2,
-			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter,web3._extend.formatters.inputAddressFormatter],
+			inputFormatter: [web3._extend.formatters.inputAddressFormatter,web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 	]
 });

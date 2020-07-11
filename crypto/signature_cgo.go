@@ -54,7 +54,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 	}
 	//guoji S256
 	if CryptoType == CRYPTO_S256_SH3_AES {
-		return secp256k1.RecoverPubkey(hash, sig)
+		return secp256k1.RecoverPubkey(hash, sig[:65])
 	}
 	return nil, nil
 }
@@ -142,7 +142,13 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 		}
 		seckey := math.PaddedBigBytes(prv.D, prv.Params().BitSize/8)
 		defer zeroBytes(seckey)
-		return secp256k1.Sign(digestHash, seckey)
+		smsign, err := secp256k1.Sign(digestHash, seckey)
+		if err != nil {
+			return nil, err
+		}
+		pubtype := CompressPubkey(&prv.PublicKey)
+		smsign = append(smsign, pubtype...)
+		return smsign, nil
 	}
 	return nil, nil
 }
@@ -219,13 +225,13 @@ func VerifySignatureTransaction(digestHash, signature []byte) bool {
 		if err != nil {
 			return false
 		}
-		return secp256k1.VerifySignature(FromECDSAPub(s256pub), digestHash, signature)
+		return secp256k1.VerifySignature(FromECDSAPub(s256pub), digestHash, signature[:64])
 	}
 	return false
 }
 
 func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
-	if len(signature) != 65 || len(digestHash) != 32 {
+	if len(signature) != 98 || len(digestHash) != 32 {
 		return false
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
@@ -248,11 +254,7 @@ func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
 	}
 	//guoji S256
 	if CryptoType == CRYPTO_S256_SH3_AES {
-		s256pub, err := UnmarshalPubkey(pk)
-		if err != nil {
-			return false
-		}
-		return secp256k1.VerifySignature(FromECDSAPub(s256pub), digestHash, signature)
+		return secp256k1.VerifySignature(pk, digestHash, signature[:64])
 	}
 	return false
 }

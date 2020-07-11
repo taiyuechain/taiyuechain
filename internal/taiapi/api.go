@@ -1663,7 +1663,7 @@ func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumb
 }
 
 // GetCACertList returns the all cert list.
-func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNumber,group_contract_Addr common.Address,permType uint8) (map[string]interface{}, error) {
+func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr common.Address, permType uint8, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
@@ -1676,119 +1676,118 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNum
 		return nil, err
 	}
 	fields := map[string]interface{}{}
-	var  wmember []common.Address
-	var  wManager []common.Address
-	var  bMember  []common.Address
-	var  bmanager []common.Address
+	var wmember []common.Address
+	var wManager []common.Address
+	var bMember []common.Address
+	var bmanager []common.Address
 	// sendtx
-	if permType == 1{
+	if permType == 1 {
 
-		for _,v := range pTable.RootList{
-			if pTable.SendTranPermi[v].WhiteMembers != nil{
-				if pTable.SendTranPermi[v].WhiteMembers.Member != nil{
-					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
-						wmember = append(wmember,m.MemberID)
+		for _, v := range pTable.RootList {
+			if pTable.SendTranPermi[v].WhiteMembers != nil {
+				if pTable.SendTranPermi[v].WhiteMembers.Member != nil {
+					for _, m := range pTable.SendTranPermi[v].WhiteMembers.Member {
+						wmember = append(wmember, m.MemberID)
 					}
 				}
-				if pTable.SendTranPermi[v].WhiteMembers.Manager !=nil{
-					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
-						wManager = append(wmember,m.MemberID)
+				if pTable.SendTranPermi[v].WhiteMembers.Manager != nil {
+					for _, m := range pTable.SendTranPermi[v].WhiteMembers.Member {
+						wManager = append(wmember, m.MemberID)
 					}
 				}
 			}
-			if pTable.SendTranPermi[v].BlackMembers != nil{
-				if pTable.SendTranPermi[v].BlackMembers.Member != nil{
-					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
-						bMember = append(wmember,m.MemberID)
+			if pTable.SendTranPermi[v].BlackMembers != nil {
+				if pTable.SendTranPermi[v].BlackMembers.Member != nil {
+					for _, m := range pTable.SendTranPermi[v].BlackMembers.Member {
+						bMember = append(wmember, m.MemberID)
 					}
 				}
-				if pTable.SendTranPermi[v].BlackMembers.Manager !=nil{
-					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
-						bmanager = append(wmember,m.MemberID)
+				if pTable.SendTranPermi[v].BlackMembers.Manager != nil {
+					for _, m := range pTable.SendTranPermi[v].BlackMembers.Member {
+						bmanager = append(wmember, m.MemberID)
 					}
 				}
 			}
 		}
 
-	}else if permType == 2{
+	} else if permType == 2 {
 		//createcontract
-		for _,v := range pTable.RootList{
-			if pTable.SendTranPermi[v].WhiteMembers != nil{
-				if pTable.SendTranPermi[v].WhiteMembers.Member != nil{
-					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
-						wmember = append(wmember,m.MemberID)
+		for _, v := range pTable.RootList {
+			if pTable.SendTranPermi[v].WhiteMembers != nil {
+				if pTable.SendTranPermi[v].WhiteMembers.Member != nil {
+					for _, m := range pTable.SendTranPermi[v].WhiteMembers.Member {
+						wmember = append(wmember, m.MemberID)
 					}
 				}
-				if pTable.SendTranPermi[v].WhiteMembers.Manager !=nil{
-					for _,m :=range pTable.SendTranPermi[v].WhiteMembers.Member{
-						wManager = append(wmember,m.MemberID)
+				if pTable.SendTranPermi[v].WhiteMembers.Manager != nil {
+					for _, m := range pTable.SendTranPermi[v].WhiteMembers.Member {
+						wManager = append(wmember, m.MemberID)
 					}
 				}
 			}
-			if pTable.SendTranPermi[v].BlackMembers != nil{
-				if pTable.SendTranPermi[v].BlackMembers.Member != nil{
-					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
-						bMember = append(wmember,m.MemberID)
+			if pTable.SendTranPermi[v].BlackMembers != nil {
+				if pTable.SendTranPermi[v].BlackMembers.Member != nil {
+					for _, m := range pTable.SendTranPermi[v].BlackMembers.Member {
+						bMember = append(wmember, m.MemberID)
 					}
 				}
-				if pTable.SendTranPermi[v].BlackMembers.Manager !=nil{
-					for _,m :=range pTable.SendTranPermi[v].BlackMembers.Member{
-						bmanager = append(wmember,m.MemberID)
+				if pTable.SendTranPermi[v].BlackMembers.Manager != nil {
+					for _, m := range pTable.SendTranPermi[v].BlackMembers.Member {
+						bmanager = append(wmember, m.MemberID)
 					}
 				}
 			}
 		}
 
-
-	}else if permType ==3{
+	} else if permType == 3 {
 		//group
-		if pTable.GropPermi[group_contract_Addr].WhiteMembers != nil{
-			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Member != nil{
-				for _,m :=range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member{
-					wmember = append(wmember,m.MemberID)
+		if pTable.GropPermi[group_contract_Addr].WhiteMembers != nil {
+			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Member != nil {
+				for _, m := range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member {
+					wmember = append(wmember, m.MemberID)
 				}
 			}
-			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Manager !=nil{
-				for _,m :=range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member{
-					wManager = append(wmember,m.MemberID)
-				}
-			}
-		}
-		if pTable.GropPermi[group_contract_Addr].BlackMembers != nil{
-			if pTable.GropPermi[group_contract_Addr].BlackMembers.Member != nil{
-				for _,m :=range pTable.GropPermi[group_contract_Addr].BlackMembers.Member{
-					bMember = append(wmember,m.MemberID)
-				}
-			}
-			if pTable.GropPermi[group_contract_Addr].BlackMembers.Manager !=nil{
-				for _,m :=range pTable.GropPermi[group_contract_Addr].BlackMembers.Member{
-					bmanager = append(wmember,m.MemberID)
+			if pTable.GropPermi[group_contract_Addr].WhiteMembers.Manager != nil {
+				for _, m := range pTable.GropPermi[group_contract_Addr].WhiteMembers.Member {
+					wManager = append(wmember, m.MemberID)
 				}
 			}
 		}
-	}else if permType == 4{
+		if pTable.GropPermi[group_contract_Addr].BlackMembers != nil {
+			if pTable.GropPermi[group_contract_Addr].BlackMembers.Member != nil {
+				for _, m := range pTable.GropPermi[group_contract_Addr].BlackMembers.Member {
+					bMember = append(wmember, m.MemberID)
+				}
+			}
+			if pTable.GropPermi[group_contract_Addr].BlackMembers.Manager != nil {
+				for _, m := range pTable.GropPermi[group_contract_Addr].BlackMembers.Member {
+					bmanager = append(wmember, m.MemberID)
+				}
+			}
+		}
+	} else if permType == 4 {
 		//contrct
-		if pTable.ContractPermi[group_contract_Addr].WhiteMembers != nil{
-			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member != nil{
-				for _,m :=range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member{
-					wmember = append(wmember,m.MemberID)
+		if pTable.ContractPermi[group_contract_Addr].WhiteMembers != nil {
+			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member != nil {
+				for _, m := range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member {
+					wmember = append(wmember, m.MemberID)
 				}
 			}
-			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Manager !=nil{
-				for _,m :=range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member{
-					wManager = append(wmember,m.MemberID)
+			if pTable.ContractPermi[group_contract_Addr].WhiteMembers.Manager != nil {
+				for _, m := range pTable.ContractPermi[group_contract_Addr].WhiteMembers.Member {
+					wManager = append(wmember, m.MemberID)
 				}
 			}
 		}
-		if pTable.ContractPermi[group_contract_Addr].BlackMembers != nil{
-			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Member != nil{
-				for _,m :=range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member{
-					bMember = append(wmember,m.MemberID)
+		if pTable.ContractPermi[group_contract_Addr].BlackMembers != nil {
+			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Member != nil {
+				for _, m := range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member {
+					bMember = append(wmember, m.MemberID)
 				}
 			}
-			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Manager !=nil{
-				for _,m :=range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member{
-					bmanager = append(wmember,m.MemberID)
+			if pTable.ContractPermi[group_contract_Addr].BlackMembers.Manager != nil {
+				for _, m := range pTable.ContractPermi[group_contract_Addr].BlackMembers.Member {
+					bmanager = append(wmember, m.MemberID)
 				}
 			}
 		}
@@ -1797,14 +1796,12 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, blockNr rpc.BlockNum
 
 	fields = map[string]interface{}{
 
-		"WhiteMembers":      wmember,
-		"WhiteManager":    wManager,
-		"BlackMembers":      bMember,
+		"WhiteMembers": wmember,
+		"WhiteManager": wManager,
+		"BlackMembers": bMember,
 		"BlackManager": bmanager,
-
 	}
-	return fields,nil
-
+	return fields, nil
 
 }
 
@@ -1843,7 +1840,7 @@ func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumb
 }
 
 // ShowGroup returns the all cert list.
-func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) ([]common.Address, error) {
+func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) ([]common.Address, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
@@ -1855,12 +1852,16 @@ func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, blockNr rpc.BlockNumber
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+	v,ok := pTable.UserBasisPermi[address]
+	if !ok {
+		return nil, errors.New("address no exists")
+	}
 
-	return pTable.UserBasisPermi[address].GropList, nil
+	return v.GropList, nil
 }
 
 // ShowMyGroup returns the all cert list.
-func (s *PublicCertAPI) ShowGroup(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) (map[string]interface{}, error) {
+func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
@@ -1878,62 +1879,70 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, blockNr rpc.BlockNumber,a
 	var  bMember  []common.Address
 	var  bmanager []common.Address
 
-	if pTable.GropPermi[address].WhiteMembers != nil{
-		if pTable.GropPermi[address].WhiteMembers.Member != nil{
-			for _,m :=range pTable.GropPermi[address].WhiteMembers.Member{
-				wmember = append(wmember,m.MemberID)
+	find := false
+	if v, ok := pTable.GropPermi[address]; ok {
+		find = true
+		if v.WhiteMembers != nil {
+			if v.WhiteMembers.Member != nil{
+				for _,m :=range v.WhiteMembers.Member{
+					wmember = append(wmember,m.MemberID)
+				}
+			}
+			if v.WhiteMembers.Manager != nil {
+				for _, m := range v.WhiteMembers.Member {
+					wManager = append(wmember, m.MemberID)
+				}
 			}
 		}
-		if pTable.GropPermi[address].WhiteMembers.Manager !=nil{
-			for _,m :=range pTable.GropPermi[address].WhiteMembers.Member{
-				wManager = append(wmember,m.MemberID)
+
+		if v.BlackMembers != nil {
+			if v.BlackMembers.Member != nil {
+				for _, m := range v.BlackMembers.Member {
+					bMember = append(wmember, m.MemberID)
+				}
+			}
+			if v.BlackMembers.Manager != nil {
+				for _, m := range v.BlackMembers.Member {
+					bmanager = append(wmember, m.MemberID)
+				}
 			}
 		}
 	}
-	if pTable.GropPermi[address].BlackMembers != nil{
-		if pTable.GropPermi[address].BlackMembers.Member != nil{
-			for _,m :=range pTable.GropPermi[address].BlackMembers.Member{
-				bMember = append(wmember,m.MemberID)
-			}
-		}
-		if pTable.GropPermi[address].BlackMembers.Manager !=nil{
-			for _,m :=range pTable.GropPermi[address].BlackMembers.Member{
-				bmanager = append(wmember,m.MemberID)
-			}
-		}
+
+	if !find {
+		return nil, errors.New("address no exists")
 	}
 
 	fields := map[string]interface{}{
-		"GroupKey":     	pTable.GropPermi[address].GroupKey,
-		"Creator":       	pTable.GropPermi[address].Creator,
-		"Id": 				pTable.GropPermi[address].Id,
-		"name":				pTable.GropPermi[address].Name,
-		"WhiteMembers":      wmember,
-		"WhiteManager":    wManager,
-		"BlackMembers":      bMember,
+		"GroupKey":     pTable.GropPermi[address].GroupKey,
+		"Creator":      pTable.GropPermi[address].Creator,
+		"Id":           pTable.GropPermi[address].Id,
+		"name":         pTable.GropPermi[address].Name,
+		"WhiteMembers": wmember,
+		"WhiteManager": wManager,
+		"BlackMembers": bMember,
 		"BlackManager": bmanager,
-
 	}
 	return fields, nil
 }
 
 // ListBasePermission returns the all cert list.
-func (s *PublicCertAPI) ListBasePermission(ctx context.Context, blockNr rpc.BlockNumber,address common.Address) ( bool, bool, error) {
+func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (bool, bool, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
-		return false,false, err
+		return false, false, err
 	}
 	pTable := vm.NewPerminTable()
 	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
-		return false,false, err
+		return false, false, err
 	}
-	_,ok := pTable.UserBasisPermi[address]
+	_, ok := pTable.UserBasisPermi[address]
 	if !ok {
-		return false,false, errors.New("address not exist")
+		return false, false, errors.New("address not exist")
 	}
 
-	return pTable.UserBasisPermi[address].SendTran,pTable.UserBasisPermi[address].CrtContract, nil
+	return pTable.UserBasisPermi[address].SendTran, pTable.UserBasisPermi[address].CrtContract, nil
 }
