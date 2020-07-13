@@ -1927,22 +1927,26 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, b
 }
 
 // ListBasePermission returns the all cert list.
-func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (bool, bool, error) {
+func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
-		return false, false, err
+		return nil, err
 	}
 	pTable := vm.NewPerminTable()
 	err = pTable.Load(state)
 
 	if err != nil {
 		log.Error("Staking load error", "error", err)
-		return false, false, err
+		return nil, err
 	}
-	_, ok := pTable.UserBasisPermi[address]
+	v, ok := pTable.UserBasisPermi[address]
 	if !ok {
-		return false, false, errors.New("address not exist")
+		return nil, errors.New("address not exist")
 	}
 
-	return pTable.UserBasisPermi[address].SendTran, pTable.UserBasisPermi[address].CrtContract, nil
+	fields := map[string]interface{}{
+		"sendtransaction":     v.SendTran,
+		"createContract":      v.CrtContract,
+	}
+	return fields, nil
 }
