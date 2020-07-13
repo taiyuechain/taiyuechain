@@ -17,10 +17,10 @@ package vm
 
 import (
 	"errors"
+	"fmt"
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
-	"fmt"
 )
 
 ////cache
@@ -118,50 +118,49 @@ type PerminTable struct {
 }
 
 type MemberListTable struct {
-	GroupKey      common.Address
-	Id				uint64
-	Creator      common.Address
-	IsWhitListWork  bool
-	WhiteMembers *MemberTable
-	BlackMembers *MemberTable
+	GroupKey       common.Address `json:"group"`
+	Id             uint64         `json:"id"`
+	Creator        common.Address `json:"creator"`
+	IsWhitListWork bool           `json:"is_white_work"`
+	WhiteMembers   *MemberTable   `json:"white_members"`
+	BlackMembers   *MemberTable   `json:"black_members"`
 }
 
 type ContractListTable struct {
-	GroupKey      common.Address
-	Creator      common.Address
-	CreateFlag     uint8   //create  is 1, create contractpem is 2, only 2 we can set create flag
-	IsWhitListWork  bool
-	WhiteMembers *MemberTable
-	BlackMembers *MemberTable
+	GroupKey       common.Address `json:"group"`
+	Creator        common.Address `json:"creator"`
+	CreateFlag     uint8          `json:"creator_flag"` //create  is 1, create contractpem is 2, only 2 we can set create flag
+	IsWhitListWork bool           `json:"is_white_work"`
+	WhiteMembers   *MemberTable   `json:"white_members"`
+	BlackMembers   *MemberTable   `json:"black_members"`
 }
 
 type GropListTable struct {
-	GroupKey      common.Address
-	Id				uint64
-	Creator      common.Address
-	Name 			string
-	WhiteMembers *MemberTable
-	BlackMembers *MemberTable
-
+	GroupKey     common.Address `json:"group"`
+	Id           uint64         `json:"id"`
+	Creator      common.Address `json:"creator"`
+	Name         string         `json:"name"`
+	WhiteMembers *MemberTable   `json:"white_members"`
+	BlackMembers *MemberTable   `json:"black_members"`
 }
 
 type MemberTable struct {
-	Manager  []*MemberInfo
-	Member  []*MemberInfo
+	Manager []*MemberInfo `json:"manager"`
+	Member  []*MemberInfo `json:"member"`
 }
 
-type  MemberInfo struct {
-	MemberID common.Address
-	JoinTime       int64
+type MemberInfo struct {
+	MemberID common.Address `json:"member_id"`
+	JoinTime int64          `json:"join_time"`
 }
 
 type BasisPermin struct {
-	MemberID common.Address
-	CreatorRoot common.Address
-	SendTran    bool
-	CrtContract bool
-	GropId		 uint64
-	GropList    []common.Address
+	MemberID    common.Address   `json:"member_id"`
+	CreatorRoot common.Address   `json:"creator_root"`
+	SendTran    bool             `json:"send_tran"`
+	CrtContract bool             `json:"crt_contract"`
+	GropId      uint64           `json:"group_id"`
+	GropList    []common.Address `json:"group_list"`
 }
 
 func NewPerminTable() *PerminTable {

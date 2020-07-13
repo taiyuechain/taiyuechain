@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -351,5 +352,85 @@ func (m *MemberInfo) DecodeRLP(s *rlp.Stream) error {
 		return err
 	}
 	m.JoinTime, m.MemberID = int64(ei.JoinTime), ei.MemberID
+	return nil
+}
+
+func (l PerminTable) MarshalJSON() ([]byte, error) {
+	type CACertList struct {
+		LastRootID        int64                                 `json:"last_root_id"`
+		WhiteList         []common.Address                      `json:"white_list"`
+		BlackList         []common.Address                      `json:"black_list"`
+		RootList          []common.Address                      `json:"root_list"`
+		PBFT2Root         map[common.Address]common.Address     `json:"pbft_root"`
+		ContractPermi     map[common.Address]*ContractListTable `json:"contract_perm"`
+		GropPermi         map[common.Address]*GropListTable     `json:"group_perm"`
+		SendTranPermi     map[common.Address]*MemberListTable   `json:"send_tran_perm"`
+		CrtContracetPermi map[common.Address]*MemberListTable   `json:"crt_contract_perm"`
+		UserBasisPermi    map[common.Address]*BasisPermin       `json:"user_basis_perm"`
+	}
+	var enc CACertList
+	enc.LastRootID = l.LastRootID
+	enc.WhiteList = l.WhiteList
+	enc.BlackList = l.BlackList
+	enc.RootList = l.RootList
+	enc.PBFT2Root = l.PBFT2Root
+	enc.ContractPermi = l.ContractPermi
+	enc.GropPermi = l.GropPermi
+	enc.SendTranPermi = l.SendTranPermi
+	enc.CrtContracetPermi = l.CrtContracetPermi
+	enc.UserBasisPermi = l.UserBasisPermi
+	return json.Marshal(&enc)
+}
+
+// UnmarshalJSON unmarshals from JSON.
+func (l *PerminTable) UnmarshalJSON(input []byte) error {
+	type CACertList struct {
+		LastRootID        *int64                                `json:"last_root_id"`
+		WhiteList         []common.Address                      `json:"white_list"`
+		BlackList         []common.Address                      `json:"black_list"`
+		RootList          []common.Address                      `json:"root_list"`
+		PBFT2Root         map[common.Address]common.Address     `json:"pbft_root"`
+		ContractPermi     map[common.Address]*ContractListTable `json:"contract_perm"`
+		GropPermi         map[common.Address]*GropListTable     `json:"group_perm"`
+		SendTranPermi     map[common.Address]*MemberListTable   `json:"send_tran_perm"`
+		CrtContracetPermi map[common.Address]*MemberListTable   `json:"crt_contract_perm"`
+		UserBasisPermi    map[common.Address]*BasisPermin       `json:"user_basis_perm"`
+	}
+	var dec CACertList
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	if dec.LastRootID == nil {
+		return errors.New("missing required field 'last_root_id' for CACertList")
+	}
+	l.LastRootID = *dec.LastRootID
+
+	if dec.WhiteList != nil {
+		l.WhiteList = dec.WhiteList
+	}
+	if dec.BlackList != nil {
+		l.BlackList = dec.BlackList
+	}
+	if dec.RootList != nil {
+		l.RootList = dec.RootList
+	}
+	if dec.PBFT2Root != nil {
+		l.PBFT2Root = dec.PBFT2Root
+	}
+	if dec.ContractPermi != nil {
+		l.ContractPermi = dec.ContractPermi
+	}
+	if dec.GropPermi != nil {
+		l.GropPermi = dec.GropPermi
+	}
+	if dec.SendTranPermi != nil {
+		l.SendTranPermi = dec.SendTranPermi
+	}
+	if dec.CrtContracetPermi != nil {
+		l.CrtContracetPermi = dec.CrtContracetPermi
+	}
+	if dec.UserBasisPermi != nil {
+		l.UserBasisPermi = dec.UserBasisPermi
+	}
 	return nil
 }
