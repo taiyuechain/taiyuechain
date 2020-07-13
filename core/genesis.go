@@ -360,7 +360,6 @@ func DefaultGenesisBlock() *Genesis {
 	cert3, _ := hex.DecodeString(strcert3)
 	cert4, _ := hex.DecodeString(strcert4)
 	var certList = [][]byte{cert1, cert2, cert3, cert4}
-	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 
 	return &Genesis{
@@ -381,13 +380,19 @@ func DefaultGenesisBlock() *Genesis {
 			common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
-			{Coinbase: coinbase, Publickey: seedkey1},
-			{Coinbase: coinbase, Publickey: seedkey2},
-			{Coinbase: coinbase, Publickey: seedkey3},
-			{Coinbase: coinbase, Publickey: seedkey4},
+			{Coinbase: getAddressFromPub(seedkey1), Publickey: seedkey1},
+			{Coinbase: getAddressFromPub(seedkey2), Publickey: seedkey2},
+			{Coinbase: getAddressFromPub(seedkey3), Publickey: seedkey3},
+			{Coinbase: getAddressFromPub(seedkey4), Publickey: seedkey4},
 		},
 		CertList: certList,
 	}
+}
+
+func getAddressFromPub(pubByte []byte) common.Address  {
+	pub,_ := crypto.UnmarshalPubkey(pubByte)
+	addr4 := crypto.PubkeyToAddress(*pub)
+	return addr4
 }
 
 func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
@@ -492,7 +497,6 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	cert3, _ := hex.DecodeString(strcert3)
 	cert4, _ := hex.DecodeString(strcert4)
 	var certList = [][]byte{cert1, cert2, cert3, cert4}
-	coinbase := common.HexToAddress("0x9331cf34D0e3E43bce7de1bFd30a59d3EEc106B6")
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
 	return &Genesis{
 		Config:       params.TestnetChainConfig,
@@ -512,10 +516,10 @@ func DefaultTestnetGenesisBlock() *Genesis {
 			common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
-			{Coinbase: coinbase, Publickey: seedkey1},
-			{Coinbase: coinbase, Publickey: seedkey2},
-			{Coinbase: coinbase, Publickey: seedkey3},
-			{Coinbase: coinbase, Publickey: seedkey4},
+			{Coinbase: getAddressFromPub(seedkey1), Publickey: seedkey1},
+			{Coinbase: getAddressFromPub(seedkey2), Publickey: seedkey2},
+			{Coinbase: getAddressFromPub(seedkey3), Publickey: seedkey3},
+			{Coinbase: getAddressFromPub(seedkey4), Publickey: seedkey4},
 		},
 		CertList: certList,
 	}

@@ -61,23 +61,11 @@ var (
 	pkey2, _ = crypto.HexToECDSA("ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec")
 	paddr2   = crypto.PubkeyToAddress(pkey2.PublicKey)
 
-	p2p2Name    = "p2p2cert"
-	p2p2path    = "../testcert/" + p2p2Name + ".pem"
-	p2p2Byte, _ = taicert.ReadPemFileByPath(p2p2path)
-
 	pkey3, _ = crypto.HexToECDSA("86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc")
 	paddr3   = crypto.PubkeyToAddress(pkey3.PublicKey)
 
-	p2p3Name    = "p2p3cert"
-	p2p3path    = "../testcert/" + p2p3Name + ".pem"
-	p2p3Byte, _ = taicert.ReadPemFileByPath(p2p3path)
-
 	pkey4, _ = crypto.HexToECDSA("cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801")
 	paddr4   = crypto.PubkeyToAddress(pkey4.PublicKey)
-
-	p2p4Name    = "p2p4cert"
-	p2p4path    = "../testcert/" + p2p4Name + ".pem"
-	p2p4Byte, _ = taicert.ReadPemFileByPath(p2p4path)
 )
 
 func DefaulGenesisBlock() *core.Genesis {
@@ -88,7 +76,6 @@ func DefaulGenesisBlock() *core.Genesis {
 	key4 := crypto.FromECDSAPub(&prikey4.PublicKey)
 
 	var certList = [][]byte{pbft1Byte, pbft2Byte, pbft3Byte, pbft4Byte}
-	coinbase := saddr3
 
 	return &core.Genesis{
 		Config:       params.DevnetChainConfig,
@@ -101,10 +88,10 @@ func DefaulGenesisBlock() *core.Genesis {
 			saddr1: {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: key1},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: key2},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: key3},
-			&types.CommitteeMember{Coinbase: coinbase, Publickey: key4},
+			&types.CommitteeMember{Coinbase: saddr1, Publickey: key1},
+			&types.CommitteeMember{Coinbase: saddr2, Publickey: key2},
+			&types.CommitteeMember{Coinbase: saddr3, Publickey: key3},
+			&types.CommitteeMember{Coinbase: saddr4, Publickey: key4},
 		},
 		CertList: certList,
 	}
