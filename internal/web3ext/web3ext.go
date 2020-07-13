@@ -608,8 +608,8 @@ web3._extend({
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
-			name: 'GetPermissionTable',
-			call: 'cpm_GetPermissionTable',
+			name: 'getPermissionTable',
+			call: 'cpm_getPermissionTable',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
