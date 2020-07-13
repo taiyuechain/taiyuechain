@@ -53,7 +53,6 @@ func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		log.Error("No method found RunCaCertStore")
 		return nil, ErrPermissionInvalidInput
 	}
-	log.Info("--------------------- RunPermissionCtr  ", "name", method.Name, "height", evm.BlockNumber.Uint64())
 	data := input[4:]
 
 	switch method.Name {
@@ -211,7 +210,7 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 
 	groupAddr :=pTable.GetLastGroupAddr(from)
 	ret, err = method.Outputs.Pack(groupAddr)
-	log.Info("createGroupPermission","number",evm.BlockNumber.Uint64(),"groupName",args.GroupName)
+	log.Info("createGroupPermission","number",evm.BlockNumber.Uint64(),"groupName",args.GroupName,"groupAddr",crypto.AddressToHex(groupAddr))
 	return ret, err
 }
 func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {

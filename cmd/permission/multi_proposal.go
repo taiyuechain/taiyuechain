@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain"
@@ -43,7 +44,7 @@ var (
 	priKey               *ecdsa.PrivateKey
 	from                 common.Address
 	trueValue            uint64
-	useCoin 		     bool
+	useCoin              bool
 )
 
 const (
@@ -65,12 +66,28 @@ func proposal(ctx *cli.Context) error {
 	if !ctx.GlobalIsSet(ProposalCertFlag.Name) {
 		printError("Must specify --proposalcert for proposal validator")
 	}
+	if !ctx.GlobalIsSet(AddressFlag.Name) {
+		printError("Must specify --address for multi delete group")
+	}
+	address := ctx.GlobalString(AddressFlag.Name)
+	if !common.IsHexAddress(address) {
+		printError("Must input correct address")
+	}
+	if !ctx.GlobalIsSet(PKFlag.Name) {
+		printError("Must specify --pk for proposal validator")
+	}
+	pkStr := ctx.GlobalString(PKFlag.Name)
+	pk, err := hex.DecodeString(pkStr)
+	if err != nil {
+		printError(err)
+	}
+
 	bftfile := ctx.GlobalString(BftCertFlag.Name)
 	bftByte, _ := getPubFromFile(bftfile)
 	proposalfile := ctx.GlobalString(ProposalCertFlag.Name)
 	proposalByte, _ := getPubFromFile(proposalfile)
 
-	input := packInput("multiProposal", bftByte, proposalByte, true)
+	input := packInput("multiProposal", bftByte, proposalByte, pk, common.HexToAddress(address), true)
 	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, false)
@@ -94,7 +111,7 @@ func sendContractTransaction(client *yueclient.Client, from, toAddress common.Ad
 		}
 
 		if len(input) != 0 {
-			gasLimit := uint64(2100000) // in units
+			gasLimit = uint64(2100000) // in units
 			// If the contract surely has code (or code is not needed), estimate the transaction
 			msg := taiyuechain.CallMsg{From: from, To: &toAddress, GasPrice: gasPrice, Value: value, Data: input}
 			gasLimit, err = client.EstimateGas(context.Background(), msg)

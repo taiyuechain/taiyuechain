@@ -188,5 +188,7 @@ func TestAccessContractPermission(t *testing.T) {
 func TestGetAddress(t *testing.T) {
 	fmt.Println("saddr1", crypto.AddressToHex(saddr1), "saddr2", crypto.AddressToHex(saddr2), "\n saddr3", crypto.AddressToHex(saddr3), "saddr4 ", crypto.AddressToHex(saddr4))
 	fmt.Println("paddr2", crypto.AddressToHex(paddr2),"paddr3", crypto.AddressToHex(paddr3), "paddr4", crypto.AddressToHex(paddr4))
-	fmt.Println("pub",hex.EncodeToString(crypto.FromECDSAPub(&priKey.PublicKey)))
+	fmt.Println("saddr5", crypto.AddressToHex(saddr5),"pub",hex.EncodeToString(crypto.FromECDSAPub(&prikey5.PublicKey)))
+	priv,_ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+	fmt.Println(crypto.AddressToHex(crypto.PubkeyToAddress(priv.PublicKey)))
 }

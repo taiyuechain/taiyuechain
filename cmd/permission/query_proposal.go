@@ -59,11 +59,11 @@ func grantTxPermission(ctx *cli.Context) error {
 		printError("Must input correct member address")
 	}
 	permission := ctx.GlobalUint64(PermissionFlag.Name)
-	if trueValue > uint64(vm.PerminType_AccessContract) && trueValue < uint64(vm.ModifyPerminType_AddSendTxPerm) {
+	if trueValue <= uint64(vm.PerminType_AccessContract) && trueValue >= uint64(vm.ModifyPerminType_AddSendTxPerm) {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("grantPermission", common.Address{}, to, group, permission, true)
+	input := packPermissionInput("grantPermission", common.Address{}, to, group, new(big.Int).SetUint64(permission), true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
@@ -106,7 +106,7 @@ func revokeTxPermission(ctx *cli.Context) error {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("revokePermission", common.Address{}, to, group, permission, true)
+	input := packPermissionInput("revokePermission", common.Address{}, to, group, new(big.Int).SetUint64(permission), true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
@@ -149,7 +149,7 @@ func grantContractPermission(ctx *cli.Context) error {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("grantPermission", contract, to, common.Address{}, permission, true)
+	input := packPermissionInput("grantPermission", contract, to, common.Address{}, new(big.Int).SetUint64(permission), true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
@@ -192,7 +192,7 @@ func revokeContractPermission(ctx *cli.Context) error {
 		printError("Permission must bigger than 0")
 	}
 
-	input := packPermissionInput("revokePermission", contract, to, common.Address{}, permission, true)
+	input := packPermissionInput("revokePermission", contract, to, common.Address{}, new(big.Int).SetUint64(permission), true)
 	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
@@ -258,8 +258,8 @@ func createGroup(ctx *cli.Context) error {
 	}
 	groupName := ctx.GlobalString(GroupNameFlag.Name)
 
-	input := packInput("createGroupPermission", groupName)
-	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
+	input := packPermissionInput("createGroupPermission", groupName)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
@@ -287,8 +287,8 @@ func deleteGroup(ctx *cli.Context) error {
 		printError("Must input correct address")
 	}
 
-	input := packInput("delGroupPermission", address)
-	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
+	input := packPermissionInput("delGroupPermission", common.HexToAddress(address))
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil

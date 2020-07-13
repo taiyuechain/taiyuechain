@@ -73,6 +73,11 @@ var (
 		Usage: "Permission value",
 		Value: 0,
 	}
+	PKFlag = cli.StringFlag{
+		Name:  "pk",
+		Usage: "Cert pub",
+		Value: "",
+	}
 	ProposalFlags = []cli.Flag{
 		KeyFlag,
 		KeyStoreFlag,
@@ -86,6 +91,7 @@ var (
 		PermissionFlag,
 		ContractFlag,
 		GroupNameFlag,
+		PKFlag,
 	}
 )
 
@@ -105,6 +111,12 @@ func init() {
 		TxHashFlag,
 		BftCertFlag,
 		ProposalCertFlag,
+		GroupFlag,
+		MemberFlag,
+		PermissionFlag,
+		ContractFlag,
+		GroupNameFlag,
+		PKFlag,
 	}
 	app.Action = utils.MigrateFlags(proposal)
 	app.CommandNotFound = func(ctx *cli.Context, cmd string) {

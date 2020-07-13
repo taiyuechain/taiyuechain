@@ -47,11 +47,13 @@ var (
 	// pbft 3
 	prikey3, _ = crypto.HexToECDSA("122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab")
 	prikey4, _ = crypto.HexToECDSA("fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f")
+	prikey5, _ = crypto.HexToECDSA("77b4e6383502fd145cae5c2f8db28a9b750394bd70c0c138b915bb1327225489")
 
 	saddr1 = crypto.PubkeyToAddress(priKey.PublicKey)
 	saddr2 = crypto.PubkeyToAddress(prikey2.PublicKey)
 	saddr3 = crypto.PubkeyToAddress(prikey3.PublicKey)
 	saddr4 = crypto.PubkeyToAddress(prikey4.PublicKey)
+	saddr5 = crypto.PubkeyToAddress(prikey5.PublicKey)
 
 	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = taicert.ReadPemFileByPath(pbft2path)
