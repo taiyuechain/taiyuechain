@@ -14,6 +14,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/core/types"
 	"github.com/taiyuechain/taiyuechain/core/vm"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/params"
 
 	//"github.com/taiyuechain/taiyuechain/crypto"
 	taicert "github.com/taiyuechain/taiyuechain/cert"
@@ -42,8 +43,6 @@ var (
 	priKey               *ecdsa.PrivateKey
 	from                 common.Address
 	trueValue            uint64
-	holder               common.Address
-	cert                 []byte
 	useCoin 		     bool
 )
 
@@ -94,15 +93,19 @@ func sendContractTransaction(client *yueclient.Client, from, toAddress common.Ad
 			log.Fatal(err)
 		}
 
-		gasLimit := uint64(2100000) // in units
-		// If the contract surely has code (or code is not needed), estimate the transaction
-		msg := taiyuechain.CallMsg{From: from, To: &toAddress, GasPrice: gasPrice, Value: value, Data: input}
-		gasLimit, err = client.EstimateGas(context.Background(), msg)
-		if err != nil {
-			fmt.Println("Contract exec failed", err)
-		}
-		if gasLimit < 1 {
-			gasLimit = 866328
+		if len(input) != 0 {
+			gasLimit := uint64(2100000) // in units
+			// If the contract surely has code (or code is not needed), estimate the transaction
+			msg := taiyuechain.CallMsg{From: from, To: &toAddress, GasPrice: gasPrice, Value: value, Data: input}
+			gasLimit, err = client.EstimateGas(context.Background(), msg)
+			if err != nil {
+				fmt.Println("Contract exec failed", err)
+			}
+			if gasLimit < 1 {
+				gasLimit = 866328
+			}
+		} else {
+			gasLimit = params.TxGas
 		}
 	}
 
