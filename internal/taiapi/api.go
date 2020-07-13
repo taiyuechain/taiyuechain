@@ -1662,6 +1662,22 @@ func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumb
 	return caCertList.GetCACertList(), nil
 }
 
+func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.BlockNumber) (*vm.PerminTable, error) {
+	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	pTable := vm.NewPerminTable()
+	err = pTable.Load(state)
+
+	if err != nil {
+		log.Error("Staking load error", "error", err)
+		return nil, err
+	}
+
+	return pTable, nil
+}
+
 // GetCACertList returns the all cert list.
 func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr common.Address, permType uint8, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
@@ -1852,7 +1868,7 @@ func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address,
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
-	v,ok := pTable.UserBasisPermi[address]
+	v, ok := pTable.UserBasisPermi[address]
 	if !ok {
 		return nil, errors.New("address no exists")
 	}
@@ -1874,18 +1890,18 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, b
 		return nil, err
 	}
 
-	var  wmember []common.Address
-	var  wManager []common.Address
-	var  bMember  []common.Address
-	var  bmanager []common.Address
+	var wmember []common.Address
+	var wManager []common.Address
+	var bMember []common.Address
+	var bmanager []common.Address
 
 	find := false
 	if v, ok := pTable.GropPermi[address]; ok {
 		find = true
 		if v.WhiteMembers != nil {
-			if v.WhiteMembers.Member != nil{
-				for _,m :=range v.WhiteMembers.Member{
-					wmember = append(wmember,m.MemberID)
+			if v.WhiteMembers.Member != nil {
+				for _, m := range v.WhiteMembers.Member {
+					wmember = append(wmember, m.MemberID)
 				}
 			}
 			if v.WhiteMembers.Manager != nil {
@@ -1945,8 +1961,8 @@ func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.A
 	}
 
 	fields := map[string]interface{}{
-		"sendtransaction":     v.SendTran,
-		"createContract":      v.CrtContract,
+		"sendtransaction": v.SendTran,
+		"createContract":  v.CrtContract,
 	}
 	return fields, nil
 }

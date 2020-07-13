@@ -608,6 +608,12 @@ web3._extend({
 			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
 		}),
 		new web3._extend.Method({
+			name: 'GetPermissionTable',
+			call: 'cpm_GetPermissionTable',
+			params: 1,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter],
+		}),
+		new web3._extend.Method({
 			name: 'listPermission',
 			call: 'cpm_listPermission',
 			params: 3,
