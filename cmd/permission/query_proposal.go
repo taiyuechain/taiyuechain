@@ -64,7 +64,7 @@ func grantTxPermission(ctx *cli.Context) error {
 	}
 
 	input := packPermissionInput("grantPermission", common.Address{}, to, group, permission, true)
-	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
@@ -107,7 +107,7 @@ func revokeTxPermission(ctx *cli.Context) error {
 	}
 
 	input := packPermissionInput("revokePermission", common.Address{}, to, group, permission, true)
-	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
@@ -150,7 +150,7 @@ func grantContractPermission(ctx *cli.Context) error {
 	}
 
 	input := packPermissionInput("grantPermission", contract, to, common.Address{}, permission, true)
-	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
@@ -193,7 +193,7 @@ func revokeContractPermission(ctx *cli.Context) error {
 	}
 
 	input := packPermissionInput("revokePermission", contract, to, common.Address{}, permission, true)
-	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input, cert)
+	txHash := sendContractTransaction(conn, from, types.PermiTableAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
@@ -227,7 +227,7 @@ func sendTX(ctx *cli.Context) error {
 		useCoin = false
 	}
 
-	txHash := sendContractTransaction(conn, from, common.HexToAddress(address), value, priKey, nil, cert)
+	txHash := sendContractTransaction(conn, from, common.HexToAddress(address), value, priKey, nil)
 	getResult(conn, txHash, false, false)
 	return nil
 }
@@ -239,72 +239,58 @@ func checkUseCoin(data []byte) bool {
 	return true
 }
 
-var deleteCommand = cli.Command{
-	Name:   "delete",
-	Usage:  "Delete a validator",
-	Action: utils.MigrateFlags(deleteCert),
+var createCommand = cli.Command{
+	Name:   "creategroup",
+	Usage:  "Create group",
+	Action: utils.MigrateFlags(createGroup),
 	Flags:  append(ProposalFlags, AddressFlag),
 }
 
-var withdrawDCommand = cli.Command{
-	Name:   "withdraw",
-	Usage:  "Call this will instant receive your deposit money",
-	Action: utils.MigrateFlags(withdrawDImpawn),
-	Flags:  append(ProposalFlags, AddressFlag),
-}
-
-var delegateCommand = cli.Command{
-	Name:  "delegate",
-	Usage: "Delegate staking on a validator address",
-	Subcommands: []cli.Command{
-		withdrawDCommand,
-	},
-}
-
-func deleteCert(ctx *cli.Context) error {
+func createGroup(ctx *cli.Context) error {
 	loadPrivate(ctx)
 	conn, url := dialConn(ctx)
 	printBaseInfo(conn, url)
 
 	PrintBalance(conn, from)
 
-	if !ctx.GlobalIsSet(BftCertFlag.Name) {
-		printError("Must specify --bftcert for multi proposal")
+	if !ctx.GlobalIsSet(GroupNameFlag.Name) {
+		printError("Must specify --groupname for multi create group")
 	}
-	if !ctx.GlobalIsSet(ProposalCertFlag.Name) {
-		printError("Must specify --proposalcert for proposal validator")
-	}
-	bftfile := ctx.GlobalString(BftCertFlag.Name)
-	bftByte, _ := getPubFromFile(bftfile)
-	proposalfile := ctx.GlobalString(ProposalCertFlag.Name)
-	proposalByte, _ := getPubFromFile(proposalfile)
+	groupName := ctx.GlobalString(GroupNameFlag.Name)
 
-	input := packInput("multiProposal", bftByte, proposalByte, false)
-	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input, cert)
+	input := packInput("createGroupPermission", groupName)
+	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
 	return nil
 }
 
-func withdrawDImpawn(ctx *cli.Context) error {
+var deleteCommand = cli.Command{
+	Name:   "deletegroup",
+	Usage:  "Delete a group",
+	Action: utils.MigrateFlags(deleteGroup),
+	Flags:  append(ProposalFlags, AddressFlag),
+}
+
+func deleteGroup(ctx *cli.Context) error {
 	loadPrivate(ctx)
 	conn, url := dialConn(ctx)
 	printBaseInfo(conn, url)
+
 	PrintBalance(conn, from)
 
-	value := trueToWei(ctx, false)
-
+	if !ctx.GlobalIsSet(AddressFlag.Name) {
+		printError("Must specify --address for multi delete group")
+	}
 	address := ctx.GlobalString(AddressFlag.Name)
 	if !common.IsHexAddress(address) {
 		printError("Must input correct address")
 	}
-	holder = common.HexToAddress(address)
-	input := packInput("withdrawDelegate", holder, value)
 
-	txHash := sendContractTransaction(conn, from, types.CACertListAddress, new(big.Int).SetInt64(0), priKey, input, cert)
+	input := packInput("delGroupPermission", address)
+	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, true)
-	PrintBalance(conn, from)
 	return nil
 }
 

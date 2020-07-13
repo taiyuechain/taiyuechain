@@ -72,14 +72,14 @@ func proposal(ctx *cli.Context) error {
 	proposalByte, _ := getPubFromFile(proposalfile)
 
 	input := packInput("multiProposal", bftByte, proposalByte, true)
-	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input, cert)
+	txHash := sendContractTransaction(conn, from, types.CACertListAddress, nil, priKey, input)
 
 	getResult(conn, txHash, true, false)
 
 	return nil
 }
 
-func sendContractTransaction(client *yueclient.Client, from, toAddress common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, input []byte, cert []byte) common.Hash {
+func sendContractTransaction(client *yueclient.Client, from, toAddress common.Address, value *big.Int, privateKey *ecdsa.PrivateKey, input []byte) common.Hash {
 	// Ensure a valid value field and resolve the account nonce
 	nonce, err := client.PendingNonceAt(context.Background(), from)
 	if err != nil {
@@ -107,7 +107,7 @@ func sendContractTransaction(client *yueclient.Client, from, toAddress common.Ad
 	}
 
 	// Create the transaction, sign it and schedule it for execution
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, input, cert)
+	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, input)
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
@@ -280,16 +280,6 @@ func loadPrivate(ctx *cli.Context) {
 	if priKey == nil {
 		printError("load privateKey failed")
 	}
-	if !ctx.GlobalIsSet(CertKeyFlag.Name) {
-		printError("Must specify --certpath for send transaction")
-	}
-	certfile := ctx.GlobalString(CertKeyFlag.Name)
-	certByte, pub := getPubFromFile(certfile)
-	address := crypto.PubkeyToAddress(*pub)
-	if from != address {
-		printError("The certificate  not match account")
-	}
-	cert = certByte
 	useCoin = true
 }
 

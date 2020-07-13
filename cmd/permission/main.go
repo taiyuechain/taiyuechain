@@ -23,11 +23,6 @@ var (
 		Name:  "keystore",
 		Usage: "Keystore file path",
 	}
-	CertKeyFlag = cli.StringFlag{
-		Name:  "certpath",
-		Usage: "Obtain cert for send tx",
-		Value: "",
-	}
 	TrueValueFlag = cli.Uint64Flag{
 		Name:  "value",
 		Usage: "Staking value units one true",
@@ -58,6 +53,11 @@ var (
 		Usage: "Group address",
 		Value: "",
 	}
+	GroupNameFlag = cli.StringFlag{
+		Name:  "groupname",
+		Usage: "Group name",
+		Value: "",
+	}
 	ContractFlag = cli.StringFlag{
 		Name:  "contract",
 		Usage: "Group address",
@@ -85,6 +85,7 @@ var (
 		MemberFlag,
 		PermissionFlag,
 		ContractFlag,
+		GroupNameFlag,
 	}
 )
 
@@ -102,7 +103,6 @@ func init() {
 		TrueValueFlag,
 		AddressFlag,
 		TxHashFlag,
-		CertKeyFlag,
 		BftCertFlag,
 		ProposalCertFlag,
 	}
@@ -118,8 +118,9 @@ func init() {
 		revokeTxPermissionCommand,
 		grantContractPermissionCommand,
 		revokeContractPermissionCommand,
-		sendCommand,
+		createCommand,
 		deleteCommand,
+		sendCommand,
 		queryTxCommand,
 	}
 	cli.CommandHelpTemplate = utils.CommandHelpTemplate
