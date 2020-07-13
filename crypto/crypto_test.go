@@ -5,16 +5,17 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"math/big"
-	"os"
-	// "reflect"
-	"testing"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto/ecies"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"golang.org/x/crypto/sha3"
+	"io/ioutil"
+	"log"
+	"math/big"
+	"time"
+
+	// "reflect"
+	"testing"
 )
 
 func TestDecrypt(t *testing.T) {
@@ -117,11 +118,8 @@ func TestSm2(t *testing.T) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = ioutil.WriteFile("ofile", sign, os.FileMode(0644))
-		if err != nil {
-			log.Fatal(err)
-		}
-		signdata, _ := ioutil.ReadFile("ofile")
+
+		signdata := sign
 		ok1 := VerifySignatureTransaction(Keccak256(msg), signdata)
 		if ok1 != true {
 			fmt.Printf("VerifyTransaction error\n")
@@ -153,14 +151,14 @@ func TestString(t *testing.T) {
 	fmt.Println(hex.EncodeToString(FromECDSA(priv)), " pub ", hex.EncodeToString(FromECDSAPub(&priv.PublicKey)))
 }
 func Test_01(t *testing.T) {
-	priv,_ := GenerateKey()
-	hash := RlpHash([]byte{1,2,3,4,5,6,7,8})
-	for i := 0;i< 10; i++ {
-		sign, err := Sign(hash[:],priv)
+	priv, _ := GenerateKey()
+	hash := RlpHash([]byte{1, 2, 3, 4, 5, 6, 7, 8})
+	for i := 0; i < 10; i++ {
+		sign, err := Sign(hash[:], priv)
 		if err == nil {
-			fmt.Println("sign:",sign)
+			fmt.Println("sign:", sign)
 		}
-	} 
+	}
 }
 
 const BloomByteLength = 256
@@ -239,4 +237,84 @@ func TestNewHashObject(t *testing.T) {
 	/*	tt:=h.makeHashNode(data)
 		fmt.Println(tt)*/
 
+}
+
+func TestSm2Time(t *testing.T) {
+	CryptoType = CRYPTO_SM2_SM3_SM4
+	priv, err := GenerateKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+	msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+	hash := Keccak256(msg)
+	signdata, err := Sign(hash, priv)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t0 := time.Now()
+	for i := 0; i < 5000; i++ {
+		ok1 := VerifySignatureTransaction(hash, signdata)
+		if ok1 != true {
+			fmt.Printf("VerifyTransaction 0 error\n")
+		}
+	}
+	t11 := time.Since(t0)
+	fmt.Println("t", t11, " ", t11/5000)
+
+	t0 = time.Now()
+	pk := FromECDSAPub(&priv.PublicKey)
+	for i := 0; i < 5000; i++ {
+		ok1 := VerifySignatureTransactionPk(hash, signdata, pk)
+		if ok1 != true {
+			fmt.Printf("VerifyTransaction 1 error\n")
+		}
+	}
+	t11 = time.Since(t0)
+	fmt.Println("t", t11, " ", t11/5000)
+}
+
+func TestS256Time(t *testing.T) {
+	CryptoType = CRYPTO_S256_SH3_AES
+	priv, err := GenerateKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+	msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+	hash := Keccak256(msg)
+	signdata, err := Sign(hash, priv)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	t0 := time.Now()
+	for i := 0; i < 5000; i++ {
+		ok1 := VerifySignatureTransaction(hash, signdata)
+		if ok1 != true {
+			fmt.Printf("VerifyTransaction 0 error\n")
+		}
+	}
+	t11 := time.Since(t0)
+	fmt.Println("t", t11, " ", t11/5000)
+
+	t0 = time.Now()
+	pk := FromECDSAPub(&priv.PublicKey)
+	for i := 0; i < 5000; i++ {
+		ok1 := VerifySignatureTransactionPk(hash, signdata, pk)
+		if ok1 != true {
+			fmt.Printf("VerifyTransaction 1 error\n")
+		}
+	}
+	t11 = time.Since(t0)
+	fmt.Println("t", t11, " ", t11/5000)
+
+	t0 = time.Now()
+	for i := 0; i < 5000; i++ {
+		_,err := Ecrecover(hash, signdata)
+		if err != nil {
+			fmt.Println("VerifyTransaction 1 error ",err)
+		}
+	}
+	t11 = time.Since(t0)
+	fmt.Println("t", t11, " ", t11/5000)
 }

@@ -74,7 +74,7 @@ func transaction(nonce uint64, gaslimit uint64, key *ecdsa.PrivateKey) *types.Tr
 }
 
 func pricedTransaction(nonce uint64, gaslimit uint64, gasprice *big.Int, key *ecdsa.PrivateKey) *types.Transaction {
-	rawTx := types.NewTransaction(nonce, common.Address{}, big.NewInt(100), gaslimit, gasprice, nil, nil)
+	rawTx := types.NewTransaction(nonce, common.Address{}, big.NewInt(100), gaslimit, gasprice, nil)
 	tx, _ := types.SignTx(rawTx, types.NewSigner(rawTx.ChainId()), key)
 	return tx
 }
@@ -320,7 +320,7 @@ func TestTransactionNegativeValue(t *testing.T) {
 
 	pool, key := setupTxPool()
 	defer pool.Stop()
-	rawTx := types.NewTransaction(0, common.Address{}, big.NewInt(-1), 100, big.NewInt(1), nil, nil)
+	rawTx := types.NewTransaction(0, common.Address{}, big.NewInt(-1), 100, big.NewInt(1), nil)
 	tx, _ := types.SignTx(rawTx, types.NewSigner(rawTx.ChainId()), key)
 
 	from, _ := deriveSender(tx)
@@ -375,9 +375,9 @@ func TestTransactionDoubleNonce(t *testing.T) {
 	}
 	resetState()
 	signer := types.NewSigner(params.AllMinervaProtocolChanges.ChainID)
-	tx1, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 100000, big.NewInt(1000000), nil, nil), signer, key)
-	tx2, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(2000000), nil, nil), signer, key)
-	tx3, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(1000000), nil, nil), signer, key)
+	tx1, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 100000, big.NewInt(1000000), nil), signer, key)
+	tx2, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(2000000), nil), signer, key)
+	tx3, _ := types.SignTx(types.NewTransaction(0, common.Address{}, big.NewInt(100), 1000000, big.NewInt(1000000), nil), signer, key)
 
 	// Add the first two transaction, ensure higher priced stays only
 	if replace, err := pool.add(tx1, false); err != nil || replace {

@@ -44,12 +44,8 @@ func ExampleGenerateChain() {
 	var (
 		pbft1Name = "pbft1priv"
 		pbft2Name = "pbft2priv"
-		p2p1Name  = "p2p1cert"
-		p2p2Name  = "p2p2cert"
 		pbft1path = "../cim/testdata/testcert/" + pbft1Name + ".pem"
 		pbft2path = "../cim/testdata/testcert/" + pbft2Name + ".pem"
-		p2p1path  = "../cim/testdata/testcert/" + p2p1Name + ".pem"
-		p2p2path  = "../cim/testdata/testcert/" + p2p2Name + ".pem"
 		CryptoSM2 = uint8(2)
 
 		chainId = big.NewInt(3)
@@ -64,6 +60,12 @@ func ExampleGenerateChain() {
 		gspec   = &Genesis{
 			Config: &params.ChainConfig{ChainID: chainId},
 			Alloc:  types.GenesisAlloc{addr1: {Balance: big.NewInt(3000000)}},
+			GasLimit:     16777216,
+			UseGas:       1,
+			IsCoin:   1,
+			KindOfCrypto: 2,
+			PermisionWlSendTx:		1,
+			PermisionWlCreateTx:		1,
 		}
 		genesis = gspec.MustCommit(db)
 		signer  = types.NewSigner(gspec.Config.ChainID)
@@ -72,8 +74,6 @@ func ExampleGenerateChain() {
 	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
 
-	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
-	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)
@@ -88,13 +88,13 @@ func ExampleGenerateChain() {
 		switch i {
 		case 0:
 			// In block 1, addr1 sends addr2 some ether.
-			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil, p2p1Byte), signer, key1)
+			tx, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(30000), params.TxGas, nil, nil), signer, key1)
 			gen.AddTx(tx)
 		case 1:
 			// In block 2, addr1 sends some more ether to addr2.
 			// addr2 passes it on to addr3.
-			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil, p2p1Byte), signer, key1)
-			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil, p2p2Byte), signer, key2)
+			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr1), addr2, big.NewInt(1000), params.TxGas, nil, nil), signer, key1)
+			tx2, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addr2), addr3, big.NewInt(1000), params.TxGas, nil, nil), signer, key2)
 			gen.AddTx(tx1)
 			gen.AddTx(tx2)
 		case 2:
@@ -167,7 +167,7 @@ func TestTransactionCost(t *testing.T) {
 	defer blockchain.Stop()
 
 	fastBlocks, _ := GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
-		tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addresses[0]), addresses[1], tx_amount, params.TxGas, tx_price, nil, nil), signer, privateKeys[0])
+		tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(addresses[0]), addresses[1], tx_amount, params.TxGas, tx_price, nil), signer, privateKeys[0])
 		gen.AddTx(tx1)
 	})
 	if i, err := blockchain.InsertChain(fastBlocks); err != nil {
@@ -195,7 +195,7 @@ func TestTransactionCost(t *testing.T) {
 	}
 	//test transaction2  payment
 	fastBlocks, _ = GenerateChain(gspec.Config, fastParent, pow, db, params.MinimumFruits, func(i int, gen *BlockGen) {
-		signTx_sender, _ := types.SignTx(types.NewTransaction_Payment(gen.TxNonce(addresses[0]), addresses[1], tx_amount, tx_fee, params.TxGas, tx_price, nil, addresses[2], nil), signer, privateKeys[0])
+		signTx_sender, _ := types.SignTx(types.NewTransaction_Payment(gen.TxNonce(addresses[0]), addresses[1], tx_amount, tx_fee, params.TxGas, tx_price, nil, addresses[2]), signer, privateKeys[0])
 		tx2, _ := types.SignTx_Payment(signTx_sender, signer, privateKeys[2])
 		gen.AddTx(tx2)
 	})

@@ -231,7 +231,7 @@ func VerifySignatureTransaction(digestHash, signature []byte) bool {
 }
 
 func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
-	if len(signature) != 98 || len(digestHash) != 32 {
+	if len(signature) != 65 || len(digestHash) != 32 {
 		return false
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
