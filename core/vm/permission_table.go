@@ -357,8 +357,9 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 		pt.PBFT2Root[rootAddr[i-1]] = rootImgaddr;
 	}
 
-	for _, root := range rootAddr {
+	for _, value := range rootAddr {
 		//send tx
+		root := pt.PBFT2Root[value]
 		key := crypto.CreateGroupkey(root, 1)
 		if pt.UserBasisPermi[root] != nil{
 			continue
