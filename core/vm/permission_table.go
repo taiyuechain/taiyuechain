@@ -1421,19 +1421,49 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 
 func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address, mPermType ModifyPerminType) bool{
 
+	checkAddr :=  from
 	//check black list
 	for _,b := range pt.BlackList {
-		if b == from{ return false}
+		if b == checkAddr{ return false}
 	}
 
 	//check whitlist
 	for _,b := range pt.WhiteList {
-		if b == from{ return true}
+		if b == checkAddr{ return true}
 	}
 
 	creator := pt.GetCreator(from)
 	if creator == (common.Address{}) {
-		return false
+		if gropAddr == (common.Address{}) {
+			return false
+		} else {
+			find := false
+			v,ok := pt.GropPermi[gropAddr]
+			if !ok {
+				return ok
+			}
+			if v.WhiteMembers.Manager != nil {
+				for _, manager := range v.WhiteMembers.Manager {
+					if manager.MemberID == from  {
+						find = true
+					}
+				}
+			}
+			if v.WhiteMembers.Member != nil && !find {
+				for _, member := range v.WhiteMembers.Member {
+					if member.MemberID == from  {
+						find = true
+					}
+				}
+			}
+
+			if !find {
+				return false
+			} else {
+				creator = pt.GetCreator(gropAddr)
+				checkAddr = gropAddr
+			}
+		}
 	}
 
 	switch mPermType {
@@ -1441,12 +1471,12 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 	ModifyPerminType_DelSendTxPerm ,
 	ModifyPerminType_AddSendTxManagerPerm ,
 	ModifyPerminType_DelSendTxManagerPerm:
-		return pt.checkSendTxManager(from,creator)
+		return pt.checkSendTxManager(checkAddr,creator)
 	case ModifyPerminType_AddCrtContractPerm,
 	ModifyPerminType_DelCrtContractPerm,
 	ModifyPerminType_AddCrtContractManagerPerm,
 	ModifyPerminType_DelCrtContractManagerPerm:
-		return pt.checkCrtContractManager(from,creator)
+		return pt.checkCrtContractManager(checkAddr,creator)
 	case ModifyPerminType_AddGropManagerPerm,
 	ModifyPerminType_DelGropManagerPerm,
 	ModifyPerminType_AddGropMemberPerm,
@@ -1454,16 +1484,16 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		if pt.GropPermi[gropAddr] == nil{
 			return false
 		}
-		if from == pt.GropPermi[gropAddr].Creator{return true}
+		if checkAddr == pt.GropPermi[gropAddr].Creator{return true}
 		for _,g := range pt.GropPermi[gropAddr].WhiteMembers.Manager{
-			if g.MemberID == from{return true}
+			if g.MemberID == checkAddr{return true}
 		}
 		break
 	case ModifyPerminType_CrtContractPerm:
 		if pt.ContractPermi[contractAddr] == nil{
 			return false
 		}
-		if from == pt.ContractPermi[contractAddr].Creator{return true}
+		if checkAddr == pt.ContractPermi[contractAddr].Creator{return true}
 		break
 	case ModifyPerminType_AddContractMemberPerm,
 	ModifyPerminType_DelContractMemberPerm,
@@ -1472,25 +1502,25 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		if pt.ContractPermi[contractAddr] == nil{
 			return false
 		}
-		if from == pt.ContractPermi[contractAddr].Creator{return true}
+		if checkAddr == pt.ContractPermi[contractAddr].Creator{return true}
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
 			for _,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-				if c.MemberID == from{return false}
+				if c.MemberID == checkAddr{return false}
 			}
 			return true
 		}else{
 			for _,c := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
-				if c.MemberID == from{return true}
+				if c.MemberID == checkAddr{return true}
 			}
 		}
 		break
 	case PerminType_SendTx,ModifyPerminType_CrtGrop:
 
-		v,ok := pt.UserBasisPermi[from]
+		v,ok := pt.UserBasisPermi[checkAddr]
 		if ok && v.SendTran {
 			return true
 		}else{
-			return pt.checkSendTx(from,creator)
+			return pt.checkSendTx(checkAddr,creator)
 		}
 		break
 	case ModifyPerminType_DelGrop:
@@ -1498,10 +1528,10 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		if pt.GropPermi[gropAddr] == nil{
 			return false
 		}
-		/*if pt.UserBasisPermi[from] != nil {
+		/*if pt.UserBasisPermi[checkAddr] != nil {
 
-			if pt.UserBasisPermi[from].GropList != nil {
-				for _, g := range pt.UserBasisPermi[from].GropList {
+			if pt.UserBasisPermi[checkAddr].GropList != nil {
+				for _, g := range pt.UserBasisPermi[checkAddr].GropList {
 					if g == gropAddr {
 						return true
 					}
@@ -1510,13 +1540,13 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		}*/
 
 
-			if pt.GropPermi[gropAddr].Creator == from{
+			if pt.GropPermi[gropAddr].Creator == checkAddr{
 				return true
 			}
 
 			if pt.GropPermi[gropAddr].WhiteMembers.Manager != nil{
 				for _,g := range pt.GropPermi[gropAddr].WhiteMembers.Manager {
-					if g.MemberID == from{
+					if g.MemberID == checkAddr{
 						return true
 					}
 				}
@@ -1527,14 +1557,14 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 		break
 	case PerminType_CreateContract:
 
-		if pt.UserBasisPermi[from] == nil{
+		if pt.UserBasisPermi[checkAddr] == nil{
 			return false
 		}
 
-		if pt.UserBasisPermi[from].CrtContract  {
+		if pt.UserBasisPermi[checkAddr].CrtContract  {
 			return true
 		}else{
-			return pt.checkCrtContract(from,creator)
+			return pt.checkCrtContract(checkAddr,creator)
 		}
 
 	case PerminType_AccessContract:
@@ -1543,35 +1573,35 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 			return false
 		}
 
-		if pt.UserBasisPermi[from] == nil{
+		if pt.UserBasisPermi[checkAddr] == nil{
 			return false
 		}
 
-		if pt.UserBasisPermi[from].SendTran != true {
+		if pt.UserBasisPermi[checkAddr].SendTran != true {
 			return false
 		}else{
-			if !pt.checkSendTx(from,creator){
+			if !pt.checkSendTx(checkAddr,creator){
 				return false
 			}
 		}
 
-		 if pt.ContractPermi[contractAddr].Creator == from{
+		 if pt.ContractPermi[contractAddr].Creator == checkAddr{
 		 	return true
 		 }
 
 		if !pt.ContractPermi[contractAddr].IsWhitListWork{
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Member{
-				if c.MemberID == from{return false}
+				if c.MemberID == checkAddr{return false}
 			}
 			for _ ,c := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-				if c.MemberID == from{return true}
+				if c.MemberID == checkAddr{return true}
 			}
 		}else{
 			for _ ,c := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
-				if c.MemberID == from{return true}
+				if c.MemberID == checkAddr{return true}
 			}
 			for _ ,c := range pt.ContractPermi[contractAddr].WhiteMembers.Member{
-				if c.MemberID == from{return true}
+				if c.MemberID == checkAddr{return true}
 			}
 		}
 
