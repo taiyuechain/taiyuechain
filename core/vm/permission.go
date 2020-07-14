@@ -112,9 +112,6 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, err
 	}
 
-
-
-
 	res, err := pTable.GrantPermission(creator, from, args.Member, group_Contract_Addr, ModifyPerminType(args.MPermType.Int64()), "", args.WhitelistisWork)
 	if !res {
 		return nil, err

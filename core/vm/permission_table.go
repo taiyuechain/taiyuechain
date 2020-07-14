@@ -418,6 +418,11 @@ func (pt *PerminTable)UpdataRootInElection(rootAddr, curRootAddr []common.Addres
 
 }
 
+func  (pt *PerminTable)ChangeRootTOImage(from common.Address) common.Address  {
+	return pt.PBFT2Root[from]
+
+}
+
 func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
 
 	var crt common.Address
@@ -439,6 +444,8 @@ func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
 
 //Grant Perminission
 func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
+
+
 
 
 	switch mPermType {
@@ -520,6 +527,12 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 
 func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bool) (bool,error)  {
 
+
+	creator = pt.PBFT2Root[creator]
+	if creator == (common.Address{}){
+		return false,NotRootSendTxError
+	}
+
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
@@ -545,18 +558,21 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 	}
 
 	if isAdd {
-		if pt.GropPermi[member] == nil{
 
-			if pt.UserBasisPermi[member] == nil{
-				pt.UserBasisPermi[member] = &BasisPermin{}
-				pt.UserBasisPermi[member].MemberID = member
-				pt.UserBasisPermi[member].CreatorRoot = creator
-			}
+		if pt.UserBasisPermi[member] == nil{
+			pt.UserBasisPermi[member] = &BasisPermin{}
+			pt.UserBasisPermi[member].MemberID = member
+			pt.UserBasisPermi[member].CreatorRoot = creator
+		}
 
-			pt.UserBasisPermi[member].SendTran = true
+		pt.UserBasisPermi[member].SendTran = true
+
+		if pt.GropPermi[member] != nil{
 
 
-		}else{
+
+
+		//}else{
 			if !pt.SetGropMemberRoot(member,creator){
 				return false,MemberAreadInGropError
 			}
@@ -639,6 +655,12 @@ func (pt *PerminTable)isInBlackList(from common.Address)(bool)  {
 }
 
 func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,isAdd bool) (bool,error)  {
+
+
+	creator = pt.PBFT2Root[creator]
+	if creator == (common.Address{}){
+		return false,NotRootSendTxError
+	}
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
@@ -772,6 +794,11 @@ func (pt *PerminTable)SetGropMemberRoot(gropAddr,creator common.Address) bool{
 
 func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
 
+	creator = pt.PBFT2Root[creator]
+	if creator == (common.Address{}){
+		return false,NotRootSendTxError
+	}
+
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
 	}
@@ -873,6 +900,12 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 }
 
 func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
+
+
+	creator = pt.PBFT2Root[creator]
+	if creator == (common.Address{}){
+		return false,NotRootSendTxError
+	}
 
 	if pt.isInBlackList(from){
 		return false,MemberInBlackListError
