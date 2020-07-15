@@ -259,12 +259,6 @@ func (m *Minerva) GetElection() consensus.CommitteeElection {
 
 }
 
-// GetElection return election
-func (m *Minerva) SetCimList(clist *cim.CimList) {
-	m.certList = clist
-
-}
-
 // NewTester creates a small sized minerva scheme useful only for testing
 // purposes.
 func NewTester(cimList *cim.CimList) *Minerva {

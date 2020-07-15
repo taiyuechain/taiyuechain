@@ -424,7 +424,9 @@ func  (pt *PerminTable)ChangeRootTOImage(from common.Address) common.Address  {
 }
 
 func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
-
+	if v,ok := pt.PBFT2Root[from]; ok {
+		return v
+	}
 	var crt common.Address
 
 	if pt.UserBasisPermi[from]!=nil{
@@ -445,8 +447,12 @@ func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
 //Grant Perminission
 func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Address, mPermType ModifyPerminType,gropName string ,whitelistisWork bool) (bool ,error)  {
 
-
-
+	if v,ok := pt.PBFT2Root[from]; ok {
+		from = v
+	}
+	if v,ok := pt.PBFT2Root[creator]; ok {
+		creator = v
+	}
 
 	switch mPermType {
 	case ModifyPerminType_AddSendTxPerm:
@@ -527,8 +533,6 @@ func (pt *PerminTable)GrantPermission(creator,from,member,gropAddr common.Addres
 
 func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bool) (bool,error)  {
 
-
-	creator = pt.PBFT2Root[creator]
 	if creator == (common.Address{}){
 		return false,NotRootSendTxError
 	}
@@ -656,8 +660,6 @@ func (pt *PerminTable)isInBlackList(from common.Address)(bool)  {
 
 func (pt *PerminTable)setSendTxManagerPerm(creator,from ,member common.Address,isAdd bool) (bool,error)  {
 
-
-	creator = pt.PBFT2Root[creator]
 	if creator == (common.Address{}){
 		return false,NotRootSendTxError
 	}
@@ -794,7 +796,6 @@ func (pt *PerminTable)SetGropMemberRoot(gropAddr,creator common.Address) bool{
 
 func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
 
-	creator = pt.PBFT2Root[creator]
 	if creator == (common.Address{}){
 		return false,NotRootSendTxError
 	}
@@ -901,8 +902,6 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 
 func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Address,isAdd bool) (bool,error){
 
-
-	creator = pt.PBFT2Root[creator]
 	if creator == (common.Address{}){
 		return false,NotRootSendTxError
 	}
@@ -1456,6 +1455,10 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address, mPermType ModifyPerminType) bool{
 
 	checkAddr :=  from
+	if v,ok := pt.PBFT2Root[from]; ok {
+		checkAddr = v
+	}
+
 	//check black list
 	for _,b := range pt.BlackList {
 		if b == checkAddr{ return false}

@@ -55,8 +55,6 @@ type ChainReader interface {
 type Engine interface {
 	SetElection(e CommitteeElection)
 
-	SetCimList(clist *cim.CimList)
-
 	GetElection() CommitteeElection
 
 	// Author retrieves the Ethereum address of the account that minted the given
@@ -132,11 +130,10 @@ func makeCAContractInitState(state *state.StateDB, certList [][]byte, fastNumber
 	objpt := state.GetCAState(pTAddress, ptKey)
 	if len(objpt) == 0 {
 		i := vm.NewPerminTable()
-
 		i.InitPBFTRootGrop(coinAddr)
-		i.Save(state)
 		state.SetNonce(pTAddress, 1)
 		state.SetCode(pTAddress, pTAddress[:])
+		i.Save(state)
 	}
 	return false
 }
@@ -153,7 +150,6 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 		i := vm.NewCACertList()
 		i.LoadCACertList(state, CaCertAddress)
 		i.ChangeElectionCaList(fastNumber, state)
-
 	}
 
 	//updata cim
@@ -180,8 +176,6 @@ func CheckCAElection(state *state.StateDB, fastNumber *big.Int, rootCimList *cim
 				oldRootAddr = append(oldRootAddr, pk)
 			}
 		}
-
-
 
 		permTable := vm.NewPerminTable()
 		permTable.Load(state)
