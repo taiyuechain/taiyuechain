@@ -142,7 +142,7 @@ type Signer interface {
 	//SenderP256(tx *Transaction) (common.Address, error)
 }
 
-func NewSigner(chainId *big.Int) Signer {
+func NewSigner(chainId *big.Int) CommonSigner {
 	if chainId == nil {
 		chainId = new(big.Int)
 	}
@@ -157,7 +157,7 @@ type CommonSigner struct {
 	chainId, chainIdMul *big.Int
 }
 
-func NewCommonSigner(chainId *big.Int) Signer {
+func NewCommonSigner(chainId *big.Int) CommonSigner {
 	return NewSigner(chainId)
 }
 
@@ -289,6 +289,14 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, pk []byte) (common.Add
 	copy(sig[32-len(r):32], r)
 	copy(sig[64-len(s):64], s)
 	sig[64] = V
+
+	if len(pk) == 33 {
+		smpub, err := crypto.DecompressPubkey(pk)
+		if err != nil {
+			return common.Address{}, ErrInvalidPK
+		}
+		pk = crypto.FromECDSAPub(smpub)
+	}
 
 	if !crypto.VerifySignatureTransactionPk(sighash[:], sig, pk) {
 		return common.Address{}, errors.New("can't verify signature")

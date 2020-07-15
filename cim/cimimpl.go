@@ -173,7 +173,7 @@ func (cl *CimList) VerifyPermission(tx *types.Transaction,sender types.Signer,db
 			return true,nil
 		}
 		//contract
-		if len(db.GetCode(toAddr))>0 && len(tx.Data()) >0{
+		if len(tx.Data()) >0 && len(db.GetCode(toAddr))>0 {
 		//contract
 			if cl.PTable.CheckActionPerm(from,common.Address{},toAddr,vm.PerminType_AccessContract){
 				return true,nil

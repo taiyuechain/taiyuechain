@@ -75,6 +75,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 		smpub, err := DecompressPubkey(sig[65:])
+		//smpub, err := sm2.SigToPub(hash,sig[:65])
 		if err != nil {
 			return nil, err
 		}
@@ -230,13 +231,30 @@ func VerifySignatureTransaction(digestHash, signature []byte) bool {
 	return false
 }
 
+func getPubFromBytes(pk []byte) (*ecdsa.PublicKey, error) {
+	if len(pk) == 33 {
+		smpub, err := DecompressPubkey(pk)
+		if err != nil {
+			return nil, err
+		}
+		return smpub, nil
+	}
+	if len(pk) != 65 {
+		return nil,errors.New("len not equal 65")
+	}
+	p256pub, err := UnmarshalPubkey(pk)
+	if err != nil {
+		return nil, err
+	}
+	return p256pub, nil
+}
+
 func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
 	if len(signature) != 65 || len(digestHash) != 32 {
 		return false
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
-
-		p256pub, err := UnmarshalPubkey(pk)
+		p256pub, err := getPubFromBytes(pk)
 		if err != nil {
 			return false
 		}
@@ -246,7 +264,7 @@ func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 
-		smpub, err := UnmarshalPubkey(pk)
+		smpub, err := getPubFromBytes(pk)
 		if err != nil {
 			return false
 		}

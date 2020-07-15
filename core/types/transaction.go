@@ -36,6 +36,7 @@ import (
 
 var (
 	ErrInvalidSig = errors.New("invalid transaction v, r, s values")
+	ErrInvalidPK = errors.New("invalid transaction pk")
 )
 
 type Transaction struct {
@@ -63,7 +64,7 @@ type txdata struct {
 	Amount       *big.Int        `json:"value"    gencodec:"required"`
 	Payload      []byte          `json:"input"    gencodec:"required"`
 	Payer        *common.Address `json:"payer"    rlp:"nil"`
-	Fee          *big.Int        `json:"fee"   rlp:"nil"`
+	Fee          *big.Int        `json:"fee"      rlp:"nil"`
 	PK           []byte          `json:"pk"   gencodec:"required"`
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -108,6 +109,7 @@ func (rawTransaction *RawTransaction) ConvertTransaction() *Transaction {
 	} else {
 		tx = NewTransaction(cpy_data.AccountNonce, *cpy_data.Recipient, cpy_data.Amount, cpy_data.GasLimit, cpy_data.Price, cpy_data.Payload)
 	}
+	tx.data.PK = cpy_data.PK
 	tx.data.V = cpy_data.V
 	tx.data.R = cpy_data.R
 	tx.data.S = cpy_data.S
@@ -127,6 +129,7 @@ func (tx *Transaction) ConvertRawTransaction() *RawTransaction {
 	raw_tx.data.V = cpy_data.V
 	raw_tx.data.R = cpy_data.R
 	raw_tx.data.S = cpy_data.S
+	raw_tx.data.PK = cpy_data.PK
 	return raw_tx
 }
 
