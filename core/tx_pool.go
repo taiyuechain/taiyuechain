@@ -657,7 +657,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	from, err := types.Sender(pool.signer, tx) //todo
 	//from, err := types.SenderP256(pool.signer, tx)
 	if err != nil {
-		return ErrInvalidSender
+		return errors.New(fmt.Sprintf("%s %v", ErrInvalidSender, err))
 	}
 	// Make sure the transaction is psigned properly
 	payer, err := types.Payer(pool.signer, tx)
