@@ -39,6 +39,9 @@ func (pt *PerminTable) Load(state StateDB) error {
 		//}
 	}
 
+	pt.LastRootID = temp.LastRootID
+	pt.RootList = temp.RootList
+	pt.PBFT2Root = temp.PBFT2Root
 	pt.WhiteList = temp.WhiteList
 	pt.BlackList = temp.BlackList
 	pt.ContractPermi = temp.ContractPermi
