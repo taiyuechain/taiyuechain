@@ -89,7 +89,7 @@ func TestReader(t *testing.T) {
 	var tr []*types.Transaction
 
 	for i := 0; i < 1000; i++ {
-		t := types.NewTransaction(1, RandHexBytes20(), big.NewInt(1), 8888, big.NewInt(1), nil, nil)
+		t := types.NewTransaction(1, RandHexBytes20(), big.NewInt(1), 8888, big.NewInt(1), nil)
 		tr = append(tr, t)
 	}
 

@@ -145,7 +145,7 @@ func (t *BlockTest) Run() error {
 	if t.json.SealEngine == "NoProof" {
 		engine = minerva.NewFaker(nil)
 	} else {
-		engine = minerva.NewShared()
+		engine = minerva.NewShared(nil)
 	}
 
 	fastChain, err := core.NewBlockChain(db, nil, config, engine, vm.Config{}, nil)
