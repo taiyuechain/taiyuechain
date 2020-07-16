@@ -76,8 +76,12 @@ func TestCreateGroupPermission(t *testing.T) {
 			checkBaseGroupPermission(paddr3,gropAddr,t, false, loadPermissionTable(statedb))
 		}
 		sendGrantPermissionTranscation(number-2, gen, saddr2, gropAddr, common.Address{}, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddSendTxPerm)), prikey2, signer, statedb, fastChain, abiCA, nil)
+		if number == 27 {
+			checkBaseSendTxPermission(gropAddr,t, true, loadPermissionTable(statedb))
+		}
 		sendGrantPermissionTranscation(number-3, gen, paddr4, paddr3, gropAddr, new(big.Int).SetInt64(int64(vm.ModifyPerminType_AddGropMemberPerm)), pkey4, signer, statedb, fastChain, abiCA, nil)
 		if number == 28 {
+			checkBaseSendTxPermission(paddr3,t, true, loadPermissionTable(statedb))
 			checkBaseGroupPermission(paddr3,gropAddr,t, true, loadPermissionTable(statedb))
 		}
 		sendTranction(number-19, gen, statedb, paddr3, paddr4, big.NewInt(1000000000000000000), pkey3, signer, nil, header, cimList)
@@ -190,5 +194,6 @@ func TestGetAddress(t *testing.T) {
 	fmt.Println("paddr2", crypto.AddressToHex(paddr2),"paddr3", crypto.AddressToHex(paddr3), "paddr4", crypto.AddressToHex(paddr4))
 	fmt.Println("saddr5", crypto.AddressToHex(saddr5),"pub",hex.EncodeToString(crypto.FromECDSAPub(&prikey5.PublicKey)))
 	priv,_ := crypto.HexToECDSA("7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75")
+	fmt.Println("pub",hex.EncodeToString(crypto.FromECDSAPub(&priv.PublicKey)))
 	fmt.Println(crypto.AddressToHex(crypto.PubkeyToAddress(priv.PublicKey)))
 }

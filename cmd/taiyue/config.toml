@@ -33,9 +33,9 @@ IPCPath = "taiyue.ipc"
 HTTPHost = "127.0.0.1"
 HTTPPort = 8545
 HTTPVirtualHosts = ["localhost"]
-HTTPModules = ["net", "web3", "yue", "shh"]
+HTTPModules = ["net", "web3", "yue", "shh","cpm"]
 WSPort = 8546
-WSModules = ["net", "web3", "yue", "shh"]
+WSModules = ["net", "web3", "yue", "shh","cpm"]
 
 [Node.P2P]
 MaxPeers = 25

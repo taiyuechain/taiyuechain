@@ -1451,6 +1451,28 @@ func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,is
 	return true,nil
 }
 
+func (pt *PerminTable) findGroupAddr(groupAddr,from common.Address) bool {
+	find := false
+	v,ok := pt.GropPermi[groupAddr]
+	if !ok {
+		return false
+	}
+	if v.WhiteMembers.Manager != nil {
+		for _, manager := range v.WhiteMembers.Manager {
+			if manager.MemberID == from  {
+				find = true
+			}
+		}
+	}
+	if v.WhiteMembers.Member != nil && !find {
+		for _, member := range v.WhiteMembers.Member {
+			if member.MemberID == from  {
+				find = true
+			}
+		}
+	}
+	return find
+}
 
 func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address, mPermType ModifyPerminType) bool{
 
@@ -1471,25 +1493,18 @@ func (pt *PerminTable)CheckActionPerm(from,gropAddr,contractAddr common.Address,
 
 	creator := pt.GetCreator(from)
 	if creator == (common.Address{}) {
-		if gropAddr == (common.Address{}) {
+		if gropAddr == (common.Address{}) && mPermType != PerminType_SendTx {
 			return false
 		} else {
 			find := false
-			v,ok := pt.GropPermi[gropAddr]
-			if !ok {
-				return ok
-			}
-			if v.WhiteMembers.Manager != nil {
-				for _, manager := range v.WhiteMembers.Manager {
-					if manager.MemberID == from  {
-						find = true
-					}
-				}
-			}
-			if v.WhiteMembers.Member != nil && !find {
-				for _, member := range v.WhiteMembers.Member {
-					if member.MemberID == from  {
-						find = true
+			if gropAddr != (common.Address{}) {
+				find = pt.findGroupAddr(gropAddr,from)
+			} else {
+				for i, _ := range pt.GropPermi {
+					find = pt.findGroupAddr(i,from)
+					if find {
+						gropAddr = i
+						break
 					}
 				}
 			}

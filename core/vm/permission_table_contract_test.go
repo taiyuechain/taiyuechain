@@ -537,6 +537,7 @@ func checkBaseGroupManagerPermission(from, gropAddr common.Address, t *testing.T
 }
 
 func checkGroupSendTxPermission(ptable *PerminTable, from, group common.Address, t *testing.T, has bool) {
+	group = common.Address{}
 	if ptable.CheckActionPerm(from, group, common.Address{}, PerminType_SendTx) != has {
 		printStack("CheckActionPerm err PerminType_SendTx", t)
 	}
