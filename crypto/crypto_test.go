@@ -318,3 +318,23 @@ func TestS256Time(t *testing.T) {
 	t11 = time.Since(t0)
 	fmt.Println("t", t11, " ", t11/5000)
 }
+
+func TestSm2Recover(t *testing.T) {
+	CryptoType = CRYPTO_SM2_SM3_SM4
+	priv, err := GenerateKey()
+	if err != nil {
+		log.Fatal(err)
+	}
+	msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+	hash := Keccak256(msg)
+	signdata, err := Sign(hash, priv)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pk,err := SigToPub(hash,signdata)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("t", hex.EncodeToString(FromECDSAPub(pk)))
+}
