@@ -1662,7 +1662,7 @@ func (s *PublicCertAPI) GetCACertList(ctx context.Context, blockNr rpc.BlockNumb
 	return caCertList.GetCACertList(), nil
 }
 
-func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.BlockNumber) (*vm.PerminTable, error) {
+func (s *PublicCertAPI) getPermissionState(ctx context.Context, blockNr rpc.BlockNumber) (*vm.PerminTable, error) {
 	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
 	if state == nil || err != nil {
 		return nil, err
@@ -1671,7 +1671,15 @@ func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.Bloc
 	err = pTable.Load(state)
 
 	if err != nil {
-		log.Error("Staking load error", "error", err)
+		log.Error("Permission load error", "error", err)
+		return nil, err
+	}
+	return pTable,nil
+}
+
+func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.BlockNumber) (*vm.PerminTable, error) {
+	pTable, err := s.getPermissionState(ctx, blockNr)
+	if err != nil {
 		return nil, err
 	}
 
@@ -1680,17 +1688,11 @@ func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.Bloc
 
 // GetCACertList returns the all cert list.
 func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr common.Address, permType uint8, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+
 	fields := map[string]interface{}{}
 	var wmember []common.Address
 	var wManager []common.Address
@@ -1823,15 +1825,8 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 
 // GetCACertList returns the all cert list.
 func (s *PublicCertAPI) ShowWhiteList(ctx context.Context, blockNr rpc.BlockNumber) ([]common.Address, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
@@ -1840,15 +1835,8 @@ func (s *PublicCertAPI) ShowWhiteList(ctx context.Context, blockNr rpc.BlockNumb
 
 // GetCACertList returns the all cert list.
 func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumber) ([]common.Address, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
 
@@ -1857,17 +1845,12 @@ func (s *PublicCertAPI) ShowBlackList(ctx context.Context, blockNr rpc.BlockNumb
 
 // ShowGroup returns the all cert list.
 func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) ([]common.Address, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+	address = pTable.ChangeRootTOImage(address)
+
 	v, ok := pTable.UserBasisPermi[address]
 	if !ok {
 		return nil, errors.New("address no exists")
@@ -1878,17 +1861,11 @@ func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address,
 
 // ShowMyGroup returns the all cert list.
 func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+	address = pTable.ChangeRootTOImage(address)
 
 	var wmember []common.Address
 	var wManager []common.Address
@@ -1944,17 +1921,13 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, b
 
 // ListBasePermission returns the all cert list.
 func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.Address, blockNr rpc.BlockNumber) (map[string]interface{}, error) {
-	state, _, err := s.b.StateAndHeaderByNumber(ctx, blockNr)
-	if state == nil || err != nil {
-		return nil, err
-	}
-	pTable := vm.NewPerminTable()
-	err = pTable.Load(state)
-
+	pTable, err := s.getPermissionState(ctx, blockNr)
 	if err != nil {
-		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
+
+	address = pTable.ChangeRootTOImage(address)
+	
 	v, ok := pTable.UserBasisPermi[address]
 	if !ok {
 		return nil, errors.New("address not exist")

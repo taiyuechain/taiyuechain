@@ -419,8 +419,10 @@ func (pt *PerminTable)UpdataRootInElection(rootAddr, curRootAddr []common.Addres
 }
 
 func  (pt *PerminTable)ChangeRootTOImage(from common.Address) common.Address  {
-	return pt.PBFT2Root[from]
-
+	if v,ok := pt.PBFT2Root[from]; ok {
+		from =  v
+	}
+	return from
 }
 
 func (pt *PerminTable)GetCreator(from common.Address) common.Address  {
