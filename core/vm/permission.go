@@ -50,7 +50,7 @@ func init() {
 func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	method, err := PermissionABI.MethodById(input)
 	if err != nil {
-		log.Error("No method found RunCaCertStore")
+		log.Error("No method found RunCaCertStore","err",err)
 		return nil, ErrPermissionInvalidInput
 	}
 	data := input[4:]
