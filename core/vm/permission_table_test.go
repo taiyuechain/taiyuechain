@@ -16,6 +16,7 @@
 package vm
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
@@ -30,6 +31,16 @@ var (
 	member2         common.Address
 	member3         common.Address
 )
+
+func TestNewInput(t *testing.T) {
+	input,_ := hex.DecodeString("6aa451bd0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000379616e0000000000000000000000000000000000000000000000000000000000")
+	method, err := PermissionABI.MethodById(input)
+	if err != nil {
+		fmt.Println("No method found RunCaCertStore","err",err)
+	}
+
+	fmt.Println("",method.Name)
+}
 
 //
 func TestSendTxManagerPermissionTable(t *testing.T) {

@@ -50,7 +50,7 @@ func init() {
 func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	method, err := PermissionABI.MethodById(input)
 	if err != nil {
-		log.Error("No method found RunCaCertStore","err",err)
+		log.Error("No method found RunPermissionCtr","err",err)
 		return nil, ErrPermissionInvalidInput
 	}
 	data := input[4:]
@@ -95,7 +95,7 @@ func grantPermission(evm *EVM, contract *Contract, input []byte) (ret []byte, er
 		return nil, err
 	}
 
-	from := contract.caller.Address()
+	from := pTable.ChangeRootTOImage(contract.caller.Address())
 	creator := pTable.GetCreator(from)
 
 	if creator == (common.Address{}) {
@@ -148,7 +148,7 @@ func revokePermission(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
-	from := contract.caller.Address()
+	from := pTable.ChangeRootTOImage(contract.caller.Address())
 	creator := pTable.GetCreator(from)
 	if len(creator) == 0 {
 		return nil, ErrPermissionInvalidFrom
@@ -192,7 +192,7 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
-	from := contract.caller.Address()
+	from := pTable.ChangeRootTOImage(contract.caller.Address())
 	if !pTable.CheckActionPerm(from, common.Address{}, common.Address{}, ModifyPerminType_CrtGrop) {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 		log.Error("Staking load error", "error", err)
 		return nil, err
 	}
-	from := contract.caller.Address()
+	from := pTable.ChangeRootTOImage(contract.caller.Address())
 	if !pTable.CheckActionPerm(from, args.GroupAddr, common.Address{}, ModifyPerminType_DelGrop) {
 		return nil, err
 	}

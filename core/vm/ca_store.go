@@ -431,7 +431,7 @@ func init() {
 func RunCaCertStore(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	method, err := abiCaCertStore.MethodById(input)
 	if err != nil {
-		log.Error("No method found RunCaCertStore")
+		log.Error("No method found RunCaCertStore","err",err)
 		return nil, errExecutionReverted
 	}
 	log.Info("---------------------func RunCaCertStore neo2020310 ", "name", method.Name, "height", evm.BlockNumber.Uint64())
