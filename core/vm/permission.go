@@ -206,6 +206,19 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 	pTable.Save(evm.StateDB)
 
 	groupAddr :=pTable.GetLastGroupAddr(from)
+
+	event := PermissionABI.Events["createGroup"]
+	logData, err := event.Inputs.Pack(args.GroupName)
+	if err != nil {
+		log.Error("Pack permission log error", "error", err)
+		return nil, err
+	}
+	topics := []common.Hash{
+		event.ID,
+		common.BytesToHash(groupAddr[:]),
+	}
+	logForReceipt(evm, contract, topics, logData)
+
 	ret, err = method.Outputs.Pack(groupAddr)
 	log.Info("createGroupPermission","number",evm.BlockNumber.Uint64(),"groupName",args.GroupName,"groupAddr",crypto.AddressToHex(groupAddr))
 	return ret, err
@@ -244,16 +257,15 @@ func delGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []byte,
 const PermissionABIJSON = `
 [
 	{
-    	"name": "GrantPermission",
-    	"outputs": [],
+    	"name": "createGroup",
     	"inputs": [
-	 	 {
-        	"type": "bytes",
-        	"name": "CaCert",
-        	"indexed": false
-		 }
+	  		{
+        	"type": "string",
+        	"name": "GroupName",
+	        "indexed": true
+      		}
     	],
-    	"anonymous": false,
+	    "anonymous": false,
     	"type": "event"
    	},
 	{
