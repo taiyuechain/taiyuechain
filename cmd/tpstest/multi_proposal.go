@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/common"
@@ -18,8 +17,6 @@ import (
 
 	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"gopkg.in/urfave/cli.v1"
-	"io/ioutil"
-	"log"
 	"math/big"
 )
 
@@ -34,8 +31,6 @@ var (
 	pbft2path =  pbft2Name + ".pem"
 	pbft3path =  pbft3Name + ".pem"
 	pbft4path =  pbft4Name + ".pem"
-	p2p1path  =  p2p1Name + ".pem"
-	p2p2path  =  p2p2Name + ".pem"
 
 	db     = yuedb.NewMemDatabase()
 	gspec  = DefaulGenesisBlock()
@@ -53,7 +48,6 @@ var (
 
 	pAccount1 = crypto.PubkeyToAddress(pKey1.PublicKey)
 
-	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
 	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = taicert.ReadPemFileByPath(pbft2path)
 	pbft3Byte, _ = taicert.ReadPemFileByPath(pbft3path)
@@ -141,7 +135,7 @@ func initBlockChain(cp ChainParams) {
 	var txs []*types.Transaction
 	nonce := stateDB.GetNonce(pAccount1)
 	for i := 0; i < 2000 ; i++ {
-		tx := addTx(nonce,pKey1,signer,p2p1Byte)
+		tx := addTx(nonce,pKey1,signer)
 		txs = append(txs,tx)
 		nonce++
 	}
@@ -153,15 +147,17 @@ func initBlockChain(cp ChainParams) {
 	usedIndex := 0
 	find := false
 	core.GenerateChain(gspec.Config, genesis, engine, db, 50, func(i int, gen *core.BlockGen) {
-		for i := 0; i < 400 ; i++ {
+		for i := 0; i < 1000 ; i++ {
 			if i + usedIndex < 2000 {
+				fmt.Println("number",gen.Number()," ",common.PrettyDuration(time.Since(t1)))
 				gen.AddTx(txs[i+ usedIndex])
+				fmt.Println("number",gen.Number()," ",common.PrettyDuration(time.Since(t1)))
 			}
 		}
-		usedIndex = usedIndex + 400
+		usedIndex = usedIndex + 1000
 
 		old := gen.PrevBlock(i-1)
-		tpsMetrics.Mark(2000)
+		tpsMetrics.Mark(int64(len(old.Transactions())))
 		if cp.Verify {
 			current := blockchain.CurrentBlock().Number().Uint64()
 			if old.NumberU64() == current+1 {
@@ -170,9 +166,9 @@ func initBlockChain(cp ChainParams) {
 				}
 			}
 		}
-		fmt.Println("number",gen.Number()," ",common.PrettyDuration(time.Since(t1)))
+		fmt.Println("number",gen.Number()," ",common.PrettyDuration(time.Since(t1)),"txs",len(old.Transactions()))
 		if old.NumberU64() > 0 && len(old.Transactions()) == 0 && !find {
-			fmt.Println(time.Since(t1)/1000,"tps",tpsMetrics.RateMean())
+			fmt.Println(time.Since(t0),"tps",tpsMetrics.RateMean(),"count",tpsMetrics.Count())
 			tpsMetrics.Stop()
 			find = true
 		}
@@ -181,47 +177,10 @@ func initBlockChain(cp ChainParams) {
 	fmt.Println("times ",common.PrettyDuration(time.Since(t0)))
 }
 
-func addTx(nonce uint64, priKey *ecdsa.PrivateKey, signer types.Signer, cert []byte) *types.Transaction {
-	tx, err := types.SignTx(types.NewTransaction(nonce, common.BytesToAddress([]byte("1234")), new(big.Int).SetInt64(1000), params.TxGas, big.NewInt(1000000000), nil, cert), signer, priKey)
+func addTx(nonce uint64, priKey *ecdsa.PrivateKey, signer types.Signer) *types.Transaction {
+	tx, err := types.SignTx(types.NewTransaction(nonce, common.BytesToAddress([]byte("1234")), new(big.Int).SetInt64(1000), params.TxGas, big.NewInt(1000000000), nil), signer, priKey)
 	if err != nil {
 		panic(err)
 	}
 	return tx
-}
-
-func getAllFile(path string) (string, error) {
-	rd, err := ioutil.ReadDir(path)
-	if err != nil {
-		printError("path ", err)
-	}
-	for _, fi := range rd {
-		if fi.IsDir() {
-			fmt.Printf("[%s]\n", path+"\\"+fi.Name())
-			getAllFile(path + fi.Name() + "\\")
-			return "", errors.New("path error")
-		} else {
-			fmt.Println(path, "dir has ", fi.Name(), "file")
-			return fi.Name(), nil
-		}
-	}
-	return "", err
-}
-
-func printError(error ...interface{}) {
-	log.Fatal(error)
-}
-
-func getPubFromFile(certfile string) ([]byte, *ecdsa.PublicKey) {
-	if !common.FileExist(certfile) {
-		printError("cert file not exist", certfile)
-	}
-	certByte, err := taicert.ReadPemFileByPath(certfile)
-	if err != nil {
-		printError("can't read cert from file ", certfile)
-	}
-	pub, err := taicert.FromCertBytesToPubKey(certByte)
-	if err != nil {
-		printError("cert convert to pub, no correct cert file", certfile)
-	}
-	return certByte, pub
 }
