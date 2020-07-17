@@ -767,7 +767,7 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 		}
 	}
 
-	log.Info("FetchFastBlock ", "parent:", parent.Number(), "hash", parent.Hash(), "committeeID", committeeID)
+	log.Info("FetchFastBlock ", "parent:", parent.Number(), "info", len(infos), "committeeID", committeeID)
 	if parent.Time().Cmp(new(big.Int).SetInt64(tstamp)) > 0 {
 		tstamp = parent.Time().Int64() + 1
 	}
@@ -819,6 +819,7 @@ func (agent *PbftAgent) FetchFastBlock(committeeID *big.Int, infos []*types.Comm
 	}
 	log.Info("voteSign show", "FastHeight", voteSign.FastHeight, "Result", voteSign.Result, "Height:", fastBlock.Number())
 	fastBlock.AppendSign(voteSign)
+	fastBlock.SetSwitchInfo(infos)
 	return fastBlock, err
 }
 
@@ -1241,12 +1242,12 @@ func (agent *PbftAgent) singleloop() {
 			block, err = agent.FetchFastBlock(nil, nil)
 			if err != nil {
 				log.Error("singleloop FetchFastBlock error", "err", err)
-				time.Sleep(time.Second*3)
+				time.Sleep(time.Second * 3)
 				continue
 			}
 			if len(block.Transactions()) == 0 && cnt < fetchBlockTime {
 				cnt++
-				time.Sleep(time.Second*3)
+				time.Sleep(time.Second * 3)
 				continue
 			} else {
 				break

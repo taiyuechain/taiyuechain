@@ -261,6 +261,11 @@ func (b *Body) SetSwitchInfo(infos []*CommitteeMember) {
 	b.Infos = infos
 }
 
+// SetSwitchInfo set info for shift committee
+func (b *Block) SetSwitchInfo(infos []*CommitteeMember) {
+	b.infos = infos
+}
+
 // NewBlockWithHeader creates a fast block with the given header data. The
 // header data is copied, changes to header and to the field values
 // will not affect the block.
