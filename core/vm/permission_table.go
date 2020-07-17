@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/golang-lru"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"math/big"
 )
 
 ////cache
@@ -104,7 +105,7 @@ func newImpawnCache() *PerminssionCache {
 /////cache
 
 type PerminTable struct {
-	LastRootID  int64
+	LastRootID  uint64
 	WhiteList  []common.Address
 	BlackList  []common.Address
 	RootList 	[]common.Address
@@ -352,7 +353,7 @@ func (pt *PerminTable) InitPBFTRootGrop(rootAddr []common.Address) {
 	var rootImage []common.Address
 	lenRoot := len(rootAddr)
 	for i:=1;i<=lenRoot;i++{
-		rootImgaddr := crypto.CreatePermiRootKey(int64(i))
+		rootImgaddr := pt.CreatePermiRootKey()
 		rootImage = append(rootImage,rootImgaddr)
 		pt.PBFT2Root[rootAddr[i-1]] = rootImgaddr;
 	}
@@ -409,8 +410,7 @@ func (pt *PerminTable)UpdataRootInElection(rootAddr, curRootAddr []common.Addres
 	for j := 0; j < lenCurRoot; j++ {
 		rootImage :=pt.PBFT2Root[curRootAddr[j]]
 		if (common.Address{}) == rootImage {
-			pt.LastRootID++;
-			rootImage = crypto.CreatePermiRootKey(pt.LastRootID)
+			rootImage = pt.CreatePermiRootKey()
 			pt.RootList = append(pt.RootList,rootImage)
 			pt.PBFT2Root[curRootAddr[j]] = rootImage
 		}
@@ -2024,4 +2024,7 @@ func (mt *MemberTable)clone() *MemberTable  {
 
 }
 
-
+func (pt *PerminTable) CreatePermiRootKey() common.Address {
+	pt.LastRootID++
+	return common.BigToAddress(new(big.Int).SetUint64(pt.LastRootID))
+}

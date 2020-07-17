@@ -201,7 +201,7 @@ func (p *PerminTable) DecodeRLP(s *rlp.Stream) error {
 		bps[ei.UBPArray[i]] = proposal
 	}
 
-	p.LastRootID, p.WhiteList, p.BlackList, p.RootList, p.ContractPermi, p.PBFT2Root = int64(ei.LastRootID), ei.WhiteList, ei.BlackList, ei.RootList, clts, prs
+	p.LastRootID, p.WhiteList, p.BlackList, p.RootList, p.ContractPermi, p.PBFT2Root = ei.LastRootID, ei.WhiteList, ei.BlackList, ei.RootList, clts, prs
 	p.GropPermi, p.SendTranPermi, p.CrtContracetPermi, p.UserBasisPermi = gps, mlts, ctps, bps
 	return nil
 }
@@ -299,7 +299,7 @@ func (i *PerminTable) EncodeRLP(w io.Writer) error {
 		bps = append(bps, i.UserBasisPermi[index])
 	}
 	ei := extPerminTable{
-		LastRootID:        uint64(i.LastRootID),
+		LastRootID:        i.LastRootID,
 		WhiteList:         i.WhiteList,
 		BlackList:         i.BlackList,
 		RootList:          i.RootList,
@@ -360,7 +360,7 @@ func (m *MemberInfo) DecodeRLP(s *rlp.Stream) error {
 
 func (l PerminTable) MarshalJSON() ([]byte, error) {
 	type CACertList struct {
-		LastRootID        int64                                 `json:"last_root_id"`
+		LastRootID        uint64                                 `json:"last_root_id"`
 		WhiteList         []common.Address                      `json:"white_list"`
 		BlackList         []common.Address                      `json:"black_list"`
 		RootList          []common.Address                      `json:"root_list"`
@@ -388,7 +388,7 @@ func (l PerminTable) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals from JSON.
 func (l *PerminTable) UnmarshalJSON(input []byte) error {
 	type CACertList struct {
-		LastRootID        *int64                                `json:"last_root_id"`
+		LastRootID        *uint64                                `json:"last_root_id"`
 		WhiteList         []common.Address                      `json:"white_list"`
 		BlackList         []common.Address                      `json:"black_list"`
 		RootList          []common.Address                      `json:"root_list"`
