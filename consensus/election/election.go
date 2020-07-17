@@ -279,12 +279,12 @@ func (e *Election) VerifySwitchInfo(fastNumber *big.Int, info []*types.Committee
 			members = append(members, b...)
 		}
 		if len(members) != len(info) {
-			log.Error("SwitchInfo members invalid", "num", fastNumber)
+			log.Error("SwitchInfo members invalid", "num", fastNumber,"member",len(members))
 			return ErrInvalidSwitch
 		}
 		for i := range info {
 			if !info[i].Compared(members[i]) {
-				log.Error("SwitchInfo members invalid", "num", fastNumber)
+				log.Error("SwitchInfo members invalid", "num", fastNumber,"i",i)
 				return ErrInvalidSwitch
 			}
 		}
@@ -376,6 +376,7 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 				backups = append(backups, m)
 			}
 		}
+		log.Info("getValidators","eid",eid,"current",currentCommittee.id,"member",len(members),"back",len(backups))
 		committee := &types.ElectionCommittee{Members: members, Backups: backups}
 		return committee.Members, committee.Backups
 	} else if eid.Cmp(currentCommittee.id) == 0 {

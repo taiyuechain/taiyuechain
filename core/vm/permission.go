@@ -208,7 +208,7 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 	groupAddr :=pTable.GetLastGroupAddr(from)
 
 	event := PermissionABI.Events["createGroup"]
-	logData, err := event.Inputs.Pack(args.GroupName)
+	logData, err := event.Inputs.PackNonIndexed(args.GroupName)
 	if err != nil {
 		log.Error("Pack permission log error", "error", err)
 		return nil, err
@@ -260,9 +260,14 @@ const PermissionABIJSON = `
     	"name": "createGroup",
     	"inputs": [
 	  		{
+        	"type": "address",
+        	"name": "GropAddr",
+	        "indexed": true
+      		},
+	  		{
         	"type": "string",
         	"name": "GroupName",
-	        "indexed": true
+	        "indexed": false
       		}
     	],
 	    "anonymous": false,
