@@ -685,7 +685,7 @@ func (e *Election) getCommitteeInfoByCommitteeId(committeeId *big.Int) *committe
 		endFastNumber:   new(big.Int).Set(end),
 	}
 	caCertPubkeyList := e.getCACertList()
-	if committeeId.Int64() > int64(caCertPubkeyList.GetCACertEpochCount()) -1 {
+	if committeeId.Int64() > int64(caCertPubkeyList.GetCACertEpochCount()) {
 		return nil
 	}
 	committee.members = e.assignmentCommitteeMember(caCertPubkeyList, committeeId)

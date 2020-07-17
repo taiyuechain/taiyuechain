@@ -18,6 +18,8 @@ package election
 
 import (
 	"bytes"
+	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/taiyuechain/taiyuechain/common"
@@ -105,4 +107,11 @@ func makeFast(parent *types.Block, n int, engine consensus.Engine, db yuedb.Data
 	})
 
 	return blocks
+}
+
+func TestEpoch(t *testing.T) {
+	epoch := types.GetEpochIDFromHeight(new(big.Int).SetUint64(5999))
+	fmt.Println("epoch",epoch)
+	epoch = types.GetEpochIDFromHeight(new(big.Int).SetUint64(6000))
+	fmt.Println("epoch",epoch)
 }
