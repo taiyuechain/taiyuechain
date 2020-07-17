@@ -374,10 +374,10 @@ func DefaultGenesisBlock() *Genesis {
 		Coinbase:   common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		ParentHash: common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		Alloc: map[common.Address]types.GenesisAccount{
-			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: amount1},
-			common.HexToAddress("0x5A778953403352839Faf865C82309B63965f15F2"): {Balance: amount1},
-			common.HexToAddress("0x1b3d007C0D5318D241F26374F379E882cDCbc371"): {Balance: amount1},
-			common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C"): {Balance: amount1},
+			common.HexToAddress("0x68231C69431Cd7592356aBaC59E7A9D325406653"): {Balance: amount1},
+			common.HexToAddress("0xf7547aB248CEdCD8DdEe37b3E2e331061898f869"): {Balance: amount1},
+			common.HexToAddress("0xA9b892D0A141932645BF8143cC984cbF1168bf97"): {Balance: amount1},
+			common.HexToAddress("0xA17aF10277326021CEa21BC8BdDece55a17C4585"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
 			{Coinbase: getAddressFromPub(seedkey1), Publickey: seedkey1},
@@ -472,7 +472,7 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 		PermisionWlCreateTx:		1,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
-			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: i},
+			common.HexToAddress("0x68231C69431Cd7592356aBaC59E7A9D325406653"): {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
 			{Coinbase: common.HexToAddress("0x76ea2f3a002431fede1141b660dbb75c26ba6d97"), Publickey: key1},
@@ -510,10 +510,10 @@ func DefaultTestnetGenesisBlock() *Genesis {
 		Coinbase:     common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		ParentHash:   common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
 		Alloc: map[common.Address]types.GenesisAccount{
-			common.HexToAddress("0x9dA04184dB45870Ee6A5F8A415F93015886cC768"): {Balance: amount1},
-			common.HexToAddress("0x5A778953403352839Faf865C82309B63965f15F2"): {Balance: amount1},
-			common.HexToAddress("0x1b3d007C0D5318D241F26374F379E882cDCbc371"): {Balance: amount1},
-			common.HexToAddress("0xFE9cFAc0EDf17FB746069f1d12885217fF30234C"): {Balance: amount1},
+			common.HexToAddress("0x68231C69431Cd7592356aBaC59E7A9D325406653"): {Balance: amount1},
+			common.HexToAddress("0xf7547aB248CEdCD8DdEe37b3E2e331061898f869"): {Balance: amount1},
+			common.HexToAddress("0xA9b892D0A141932645BF8143cC984cbF1168bf97"): {Balance: amount1},
+			common.HexToAddress("0xA17aF10277326021CEa21BC8BdDece55a17C4585"): {Balance: amount1},
 		},
 		Committee: []*types.CommitteeMember{
 			{Coinbase: getAddressFromPub(seedkey1), Publickey: seedkey1},

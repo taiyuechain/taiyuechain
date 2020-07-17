@@ -279,12 +279,12 @@ func (e *Election) VerifySwitchInfo(fastNumber *big.Int, info []*types.Committee
 			members = append(members, b...)
 		}
 		if len(members) != len(info) {
-			log.Error("SwitchInfo members invalid", "num", fastNumber,"member",len(members))
+			log.Error("SwitchInfo members invalid", "num", fastNumber, "member", len(members))
 			return ErrInvalidSwitch
 		}
 		for i := range info {
 			if !info[i].Compared(members[i]) {
-				log.Error("SwitchInfo members invalid", "num", fastNumber,"i",i)
+				log.Error("SwitchInfo members invalid", "num", fastNumber, "i", i)
 				return ErrInvalidSwitch
 			}
 		}
@@ -376,7 +376,7 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 				backups = append(backups, m)
 			}
 		}
-		log.Info("getValidators","eid",eid,"current",currentCommittee.id,"member",len(members),"back",len(backups))
+		log.Info("getValidators", "eid", eid, "current", currentCommittee.id, "member", len(members), "back", len(backups))
 		committee := &types.ElectionCommittee{Members: members, Backups: backups}
 		return committee.Members, committee.Backups
 	} else if eid.Cmp(currentCommittee.id) == 0 {
@@ -386,7 +386,7 @@ func (e *Election) getValidators(eid *big.Int) ([]*types.CommitteeMember, []*typ
 		currentCommittee = e.getCommitteeInfoByCommitteeId(eid)
 
 		if currentCommittee == nil {
-			return nil,nil
+			return nil, nil
 		}
 
 		e.mu.Lock()
@@ -478,7 +478,6 @@ func (e *Election) Start() error {
 	e.currentHeight = fastHeadNumber
 	curEpochID := types.GetEpochIDFromHeight(fastHeadNumber)
 	currentCommittee := e.getCommitteeByGenesis()
-	log.Info("Election start", "curEpochID", curEpochID, "fastHeadNumber", fastHeadNumber, "currentCommittee", currentCommittee)
 	if curEpochID.Cmp(common.Big0) > 0 {
 		currentCommittee = e.getCommitteeInfoByCommitteeId(curEpochID)
 	}
@@ -493,6 +492,7 @@ func (e *Election) Start() error {
 			e.prepare = true
 		}
 	}
+	log.Info("Election start", "curEpochID", curEpochID, "fastHeadNumber", fastHeadNumber, "currentCommittee", currentCommittee, "prepare", e.prepare)
 
 	// send event to the subscripber
 	go func(e *Election) {
@@ -653,7 +653,7 @@ func (e *Election) assignmentCommitteeMember(caCertList *vm.CACertList, committe
 	for i, caCert := range caCertMap.CACert {
 		log.Info("assignmentCommitteeMember", "committeeId", committeeId, "caCertMap", len(caCertMap.CACert), "caCert", caCert)
 
-		pub,ok := caCertMap.Pubky[types.RlpHash(caCert)]
+		pub, ok := caCertMap.Pubky[types.RlpHash(caCert)]
 		if !ok {
 			log.Warn("assignmentCommitteeMember pub not exist")
 			continue
