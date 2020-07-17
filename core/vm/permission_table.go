@@ -42,7 +42,7 @@ var(
 	ContractNotCreatePremError = errors.New("Contract not create prem")
 	ContractPremFlagError = errors.New("Contract premission flage error")
 	MemberInBlackListError = errors.New("member is in black list")
-	MemberNotSentTXPerm = errors.New("member have not sentTx permission")
+	MemberNotSentTXPerm = errors.New("member not in sentTx permission")
 )
 
 var PerminCache *PerminssionCache
@@ -608,12 +608,17 @@ func (pt *PerminTable)setSendTxPerm(creator,from ,member common.Address,isAdd bo
 
 		}
 	}else{
-		if !pt.UserBasisPermi[member].SendTran || pt.UserBasisPermi[member].MemberID != member {
+		v ,ok := pt.UserBasisPermi[member]
+		if !ok {
+			return false,MemberNotSentTXPerm
+		}
+
+		if !v.SendTran || v.MemberID != member {
 			//data base is nill
 			//return false,MemberNotInGropError
 		}
 
-		pt.UserBasisPermi[member].SendTran = false
+		v.SendTran = false
 
 		if iswhitelistWork{
 
