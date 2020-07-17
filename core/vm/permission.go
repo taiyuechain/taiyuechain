@@ -202,9 +202,6 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 		return nil, err
 	}
 
-
-	pTable.Save(evm.StateDB)
-
 	groupAddr :=pTable.GetLastGroupAddr(from)
 
 	event := PermissionABI.Events["createGroup"]
@@ -218,6 +215,7 @@ func createGroupPermission(evm *EVM, contract *Contract, input []byte) (ret []by
 		common.BytesToHash(groupAddr[:]),
 	}
 	logForReceipt(evm, contract, topics, logData)
+	pTable.Save(evm.StateDB)
 
 	ret, err = method.Outputs.Pack(groupAddr)
 	log.Info("createGroupPermission","number",evm.BlockNumber.Uint64(),"groupName",args.GroupName,"groupAddr",crypto.AddressToHex(groupAddr))
