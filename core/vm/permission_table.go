@@ -38,7 +38,7 @@ var(
 	ErrorMemberAlreadIn = errors.New("Mamber alread have this perminssion")
 	GropNameAlreadyUseError = errors.New("Grop Name alread use")
 	GropNotExitError = errors.New("Grop not exit")
-	MemberGropNotExitError = errors.New("member Grop not exit")
+	CheckPermissionError = errors.New("check permission failed")
 	ContractAlreadyCreatePremError = errors.New("Contract already create prem")
 	ContractNotCreatePremError = errors.New("Contract not create prem")
 	ContractPremFlagError = errors.New("Contract premission flage error")
