@@ -1699,8 +1699,9 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 	var bmanager []common.Address
 	// sendtx
 	if permType == 1 {
-		for _, v := range pTable.PBFT2Root {
-			if v, ok := pTable.SendTranPermi[v]; ok {
+		if v,ok := pTable.PBFT2Root[group_contract_Addr]; ok {
+			key := crypto.CreateGroupkey(v,1)
+			if v, ok := pTable.SendTranPermi[key]; ok {
 				if v.WhiteMembers != nil {
 					if v.WhiteMembers.Member != nil {
 						for _, m := range v.WhiteMembers.Member {
@@ -1727,11 +1728,14 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 			}
+		} else {
+			return nil, errors.New("not root account")
 		}
 	} else if permType == 2 {
 		//createcontract
-		for _, v := range pTable.PBFT2Root {
-			if v, ok := pTable.CrtContracetPermi[v]; ok {
+		if v,ok := pTable.PBFT2Root[group_contract_Addr]; ok {
+			key := crypto.CreateGroupkey(v,2)
+			if v, ok := pTable.CrtContracetPermi[key]; ok {
 				if v.WhiteMembers != nil {
 					if v.WhiteMembers.Member != nil {
 						for _, m := range v.WhiteMembers.Member {
@@ -1758,6 +1762,8 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 			}
+		} else {
+			return nil, errors.New("not root account")
 		}
 	} else if permType == 3 {
 		//group
