@@ -1710,7 +1710,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 						}
 					}
 					if v.WhiteMembers.Manager != nil {
-						for _, m := range v.WhiteMembers.Member {
+						for _, m := range v.WhiteMembers.Manager {
 							wManager = append(wmember, m.MemberID)
 						}
 					}
@@ -1723,7 +1723,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 						}
 					}
 					if v.BlackMembers.Manager != nil {
-						for _, m := range v.BlackMembers.Member {
+						for _, m := range v.BlackMembers.Manager {
 							bmanager = append(wmember, m.MemberID)
 						}
 					}
@@ -1742,7 +1742,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 						}
 					}
 					if v.WhiteMembers.Manager != nil {
-						for _, m := range v.WhiteMembers.Member {
+						for _, m := range v.WhiteMembers.Manager {
 							wManager = append(wmember, m.MemberID)
 						}
 					}
@@ -1755,7 +1755,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 						}
 					}
 					if v.BlackMembers.Manager != nil {
-						for _, m := range v.BlackMembers.Member {
+						for _, m := range v.BlackMembers.Manager {
 							bmanager = append(wmember, m.MemberID)
 						}
 					}
@@ -1772,7 +1772,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 				if v.WhiteMembers.Manager != nil {
-					for _, m := range v.WhiteMembers.Member {
+					for _, m := range v.WhiteMembers.Manager {
 						wManager = append(wmember, m.MemberID)
 					}
 				}
@@ -1785,7 +1785,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 				if v.BlackMembers.Manager != nil {
-					for _, m := range v.BlackMembers.Member {
+					for _, m := range v.BlackMembers.Manager {
 						bmanager = append(wmember, m.MemberID)
 					}
 				}
@@ -1801,7 +1801,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 				if v.WhiteMembers.Manager != nil {
-					for _, m := range v.WhiteMembers.Member {
+					for _, m := range v.WhiteMembers.Manager {
 						wManager = append(wmember, m.MemberID)
 					}
 				}
@@ -1814,7 +1814,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 				}
 				if v.BlackMembers.Manager != nil {
-					for _, m := range v.BlackMembers.Member {
+					for _, m := range v.BlackMembers.Manager {
 						bmanager = append(wmember, m.MemberID)
 					}
 				}

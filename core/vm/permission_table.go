@@ -44,6 +44,7 @@ var(
 	ContractPremFlagError = errors.New("Contract premission flage error")
 	MemberInBlackListError = errors.New("member is in black list")
 	MemberNotSentTXPerm = errors.New("member not in sentTx permission")
+	MemberNotCreateContractPermError = errors.New("member not create contract permission")
 )
 
 var PerminCache *PerminssionCache
@@ -811,11 +812,6 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 		return false,MemberInBlackListError
 	}
 
-	/*if pt.ContractPermi[contractAddr] == nil{
-		return false,ContractNotCreatePremError
-	}
-	creator := pt.ContractPermi[contractAddr].Creator*/
-
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
 	if pt.CrtContracetPermi[key] == nil{
@@ -837,16 +833,15 @@ func (pt *PerminTable)setCrtContractPerm(creator,from ,member common.Address,isA
 	}
 
 	if isAdd{
-		if pt.UserBasisPermi[member] == nil {
+		v,ok := pt.UserBasisPermi[member]
+		if !ok {
 			pt.UserBasisPermi[member] = &BasisPermin{}
 			pt.UserBasisPermi[member].MemberID = member
 			pt.UserBasisPermi[member].CreatorRoot = creator
+		} else if v.CrtContract && v.MemberID == member {
+			return true,nil
+		}
 
-		}
-		if !pt.UserBasisPermi[member].CrtContract || pt.UserBasisPermi[member].MemberID != member {
-			//data base is nill
-			//return false,MemberNotInGropError
-		}
 		pt.UserBasisPermi[member].CrtContract = true
 
 		if iswhitelistWork{
@@ -918,8 +913,6 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 	}
 
 
-	//creator := pt.ContractPermi[contractAddr].Creator
-
 	//frist time create and sendTx only one grop
 	key := crypto.CreateGroupkey(creator,2)
 	if pt.CrtContracetPermi[key] == nil{
@@ -941,36 +934,26 @@ func (pt *PerminTable)setCrtContractManegerPerm(creator,from ,member common.Addr
 		iswhitelistWork = whitelistIsWork_SendTx
 	}
 
-	//check member owner create contract
-	if !pt.UserBasisPermi[member].CrtContract || pt.UserBasisPermi[member].MemberID != member {
-		//data base is nill
-		//return false,MemberNotInGropError
-	}
-
 	if isAdd{
-		if pt.UserBasisPermi[member] == nil {
-			pt.UserBasisPermi[member] = &BasisPermin{}
-			pt.UserBasisPermi[member].MemberID = member
-			pt.UserBasisPermi[member].CreatorRoot = creator
-
+		_,ok := pt.UserBasisPermi[member]
+		if !ok {
+			return false,MemberNotCreateContractPermError
 		}
+
 		if iswhitelistWork{
 
+			if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil {
 
-			if pt.CrtContracetPermi[key].WhiteMembers.Manager != nil{
-
-			for _,m := range pt.CrtContracetPermi[key].WhiteMembers.Manager{
-				if m.MemberID == member{
-					return false,MemberAreadInGropError
+				for _, m := range pt.CrtContracetPermi[key].WhiteMembers.Manager {
+					if m.MemberID == member {
+						return false, MemberAreadInGropError
+					}
 				}
-			}
 
 			}
 
 			mber := &MemberInfo{member,0}
 			pt.CrtContracetPermi[key].WhiteMembers.Manager = append(pt.CrtContracetPermi[key].WhiteMembers.Manager,mber )
-
-			//pt.UserBasisPermi[member].CrtContract = true
 		}else{
 			if pt.CrtContracetPermi[key].BlackMembers.Manager != nil{
 
