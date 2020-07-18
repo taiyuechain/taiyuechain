@@ -1674,7 +1674,7 @@ func (s *PublicCertAPI) getPermissionState(ctx context.Context, blockNr rpc.Bloc
 		log.Error("Permission load error", "error", err)
 		return nil, err
 	}
-	return pTable,nil
+	return pTable, nil
 }
 
 func (s *PublicCertAPI) GetPermissionTable(ctx context.Context, blockNr rpc.BlockNumber) (*vm.PerminTable, error) {
@@ -1693,16 +1693,14 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 		return nil, err
 	}
 
-	fields := map[string]interface{}{}
 	var wmember []common.Address
 	var wManager []common.Address
 	var bMember []common.Address
 	var bmanager []common.Address
 	// sendtx
 	if permType == 1 {
-		for _, v := range pTable.RootList {
-			address := pTable.ChangeRootTOImage(v)
-			if v, ok := pTable.SendTranPermi[address]; ok {
+		for _, v := range pTable.PBFT2Root {
+			if v, ok := pTable.SendTranPermi[v]; ok {
 				if v.WhiteMembers != nil {
 					if v.WhiteMembers.Member != nil {
 						for _, m := range v.WhiteMembers.Member {
@@ -1711,7 +1709,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 					if v.WhiteMembers.Manager != nil {
 						for _, m := range v.WhiteMembers.Manager {
-							wManager = append(wmember, m.MemberID)
+							wManager = append(wManager, m.MemberID)
 						}
 					}
 				}
@@ -1719,12 +1717,12 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 				if v.BlackMembers != nil {
 					if v.BlackMembers.Member != nil {
 						for _, m := range v.BlackMembers.Member {
-							bMember = append(wmember, m.MemberID)
+							bMember = append(bMember, m.MemberID)
 						}
 					}
 					if v.BlackMembers.Manager != nil {
 						for _, m := range v.BlackMembers.Manager {
-							bmanager = append(wmember, m.MemberID)
+							bmanager = append(bmanager, m.MemberID)
 						}
 					}
 				}
@@ -1732,9 +1730,8 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 		}
 	} else if permType == 2 {
 		//createcontract
-		for _, v := range pTable.RootList {
-			address := pTable.ChangeRootTOImage(v)
-			if v, ok := pTable.CrtContracetPermi[address]; ok {
+		for _, v := range pTable.PBFT2Root {
+			if v, ok := pTable.CrtContracetPermi[v]; ok {
 				if v.WhiteMembers != nil {
 					if v.WhiteMembers.Member != nil {
 						for _, m := range v.WhiteMembers.Member {
@@ -1743,7 +1740,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 					}
 					if v.WhiteMembers.Manager != nil {
 						for _, m := range v.WhiteMembers.Manager {
-							wManager = append(wmember, m.MemberID)
+							wManager = append(wManager, m.MemberID)
 						}
 					}
 				}
@@ -1751,12 +1748,12 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 				if v.BlackMembers != nil {
 					if v.BlackMembers.Member != nil {
 						for _, m := range v.BlackMembers.Member {
-							bMember = append(wmember, m.MemberID)
+							bMember = append(bMember, m.MemberID)
 						}
 					}
 					if v.BlackMembers.Manager != nil {
 						for _, m := range v.BlackMembers.Manager {
-							bmanager = append(wmember, m.MemberID)
+							bmanager = append(bmanager, m.MemberID)
 						}
 					}
 				}
@@ -1773,7 +1770,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 				}
 				if v.WhiteMembers.Manager != nil {
 					for _, m := range v.WhiteMembers.Manager {
-						wManager = append(wmember, m.MemberID)
+						wManager = append(wManager, m.MemberID)
 					}
 				}
 			}
@@ -1781,12 +1778,12 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 			if v.BlackMembers != nil {
 				if v.BlackMembers.Member != nil {
 					for _, m := range v.BlackMembers.Member {
-						bMember = append(wmember, m.MemberID)
+						bMember = append(bMember, m.MemberID)
 					}
 				}
 				if v.BlackMembers.Manager != nil {
 					for _, m := range v.BlackMembers.Manager {
-						bmanager = append(wmember, m.MemberID)
+						bmanager = append(bmanager, m.MemberID)
 					}
 				}
 			}
@@ -1802,7 +1799,7 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 				}
 				if v.WhiteMembers.Manager != nil {
 					for _, m := range v.WhiteMembers.Manager {
-						wManager = append(wmember, m.MemberID)
+						wManager = append(wManager, m.MemberID)
 					}
 				}
 			}
@@ -1810,19 +1807,19 @@ func (s *PublicCertAPI) ListPermission(ctx context.Context, group_contract_Addr 
 			if v.BlackMembers != nil {
 				if v.BlackMembers.Member != nil {
 					for _, m := range v.BlackMembers.Member {
-						bMember = append(wmember, m.MemberID)
+						bMember = append(bMember, m.MemberID)
 					}
 				}
 				if v.BlackMembers.Manager != nil {
 					for _, m := range v.BlackMembers.Manager {
-						bmanager = append(wmember, m.MemberID)
+						bmanager = append(bmanager, m.MemberID)
 					}
 				}
 			}
 		}
 	}
 
-	fields = map[string]interface{}{
+	fields := map[string]interface{}{
 
 		"WhiteMembers": wmember,
 		"WhiteManager": wManager,
@@ -1867,6 +1864,20 @@ func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address,
 	}
 
 	return v.GropList, nil
+}
+
+func getWhiteList(v *vm.MemberTable,wmember, wManager []common.Address) ([]common.Address, []common.Address) {
+	if v.Member != nil {
+		for _, m := range v.Member {
+			wmember = append(wmember, m.MemberID)
+		}
+	}
+	if v.Manager != nil {
+		for _, m := range v.Member {
+			wManager = append(wmember, m.MemberID)
+		}
+	}
+	return wmember, wManager
 }
 
 // ShowMyGroup returns the all cert list.
@@ -1937,7 +1948,7 @@ func (s *PublicCertAPI) ListBasePermission(ctx context.Context, address common.A
 	}
 
 	address = pTable.ChangeRootTOImage(address)
-	
+
 	v, ok := pTable.UserBasisPermi[address]
 	if !ok {
 		return nil, errors.New("address not exist")
