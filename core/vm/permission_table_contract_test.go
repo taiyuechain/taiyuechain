@@ -472,11 +472,11 @@ func checkBaseSendTxPermission(from common.Address, t *testing.T, has bool, ptab
 }
 
 func checkBaseManagerSendTxPermission(from common.Address, t *testing.T, has bool, ptable *PerminTable, ) {
-	checkSendTxPermission(ptable, from, t, true)
-	checkAddSendTxPermission(ptable, from, t, true)
-	checkDelSendTxPermission(ptable, from, t, true)
-	checkSendTxManagerPermission(ptable, from, t, true)
-	checkDelSendTxManagerPermission(ptable, from, t, true)
+	checkSendTxPermission(ptable, from, t, has)
+	checkAddSendTxPermission(ptable, from, t, has)
+	checkDelSendTxPermission(ptable, from, t, has)
+	checkSendTxManagerPermission(ptable, from, t, has)
+	checkDelSendTxManagerPermission(ptable, from, t, has)
 }
 
 func checkSendTxPermission(ptable *PerminTable, from common.Address, t *testing.T, has bool) {

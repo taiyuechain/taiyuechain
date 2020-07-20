@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 	"testing"
 )
@@ -32,14 +33,90 @@ var (
 	member3         common.Address
 )
 
+func TestManagerPermissionTable(t *testing.T) {
+	ptable := initPerminTable(true,true)
+	checkBaseManagerSendTxPermission(root1,t,true,ptable)
+	checkBaseCrtManagerContractPermission(root1,t,true,ptable)
+
+	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddWhitListPerm,"a",false)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	checkBaseManagerSendTxPermission(member1,t,true,ptable)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelWhitListPerm,"a",true)
+	printResError(res,err,t,"Grent err")
+	checkBaseManagerSendTxPermission(member1,t,false,ptable)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddBlockListPerm,"a",false)
+	printResError(res,err,t,"Grent err,ModifyPerminType_AddSendTxManagerPerm")
+	checkBaseManagerSendTxPermission(member1,t,false,ptable)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelBlockListPerm,"a",true)
+	printResError(res,err,t,"Grent err")
+	checkBaseManagerSendTxPermission(member1,t,false,ptable)
+}
+
 func TestNewInput(t *testing.T) {
-	input,_ := hex.DecodeString("6aa451bd0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000379616e0000000000000000000000000000000000000000000000000000000000")
+	input,_ := hex.DecodeString("91af02090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b720227586d7b760114b196ea1970d32bf7a7fdc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000170000000000000000000000000000000000000000000000000000000000000000")
 	method, err := PermissionABI.MethodById(input)
 	if err != nil {
 		fmt.Println("No method found RunCaCertStore","err",err)
 	}
+	switch method.Name {
+	case "grantPermission":
+		args := struct {
+			ContractAddr    common.Address
+			Member          common.Address
+			GropAddr        common.Address
+			MPermType       *big.Int
+			WhitelistisWork bool
+		}{}
 
+		method, _ := PermissionABI.Methods["grantPermission"]
+		err = method.Inputs.Unpack(&args, input[4:])
+		if err != nil {
+			fmt.Println("err",err,method.Name)
+		}
+		fmt.Println("member",crypto.AddressToHex(args.Member)," ",args.MPermType,"",args.WhitelistisWork)
+	case "revokePermission":
+		//ret, err = revokePermission(evm, contract, data)
+	case "createGroupPermission":
+		//ret, err = createGroupPermission(evm, contract, data)
+	case "delGroupPermission":
+		//ret, err = delGroupPermission(evm, contract, data)
+	default:
+		log.Warn("CA cert store call fallback function")
+		err = ErrPermissionInvalidInput
+	}
 	fmt.Println("",method.Name)
+}
+
+func TestSendTxNullPermissionTable(t *testing.T) {
+	ptable := initPerminTable(true,true)
+	checkBaseManagerSendTxPermission(root1,t,true,ptable)
+
+	// check no permission account
+	errAddr := common.BytesToAddress([]byte("1234"))
+	checkNoBothTxGroupPermission(errAddr,t,false,ptable)
+
+	res, err :=ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelSendTxManagerPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_AddWhitListPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelCrtContractManagerPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelGropManagerPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelGropMemberPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelContractMemberPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelContractManagerPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelWhitListPerm,"a",true)
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelBlockListPerm,"a",true)
+
+	res, err =ptable.GrantPermission(root1,root1,member1,common.Address{},ModifyPerminType_DelGrop,"a",true)
+	fmt.Println(res,err)
 }
 
 //

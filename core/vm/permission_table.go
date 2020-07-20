@@ -1280,6 +1280,9 @@ func (pt *PerminTable) CreateContractPem(contractAddr ,creator common.Address,no
 		return false, errors.New("CreateContractPem fail gropAddr not equl contract Addr")
 	}
 
+	if v,ok := pt.PBFT2Root[creator]; ok {
+		creator = v
+	}
 	pt.ContractPermi[contractAddr] = &ContractListTable{contractAddr,creator,1,whitelistIsWork_SendTx,&MemberTable{},&MemberTable{}}
 
 	return true,nil

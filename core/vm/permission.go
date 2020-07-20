@@ -51,7 +51,7 @@ func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 	method, err := PermissionABI.MethodById(input)
 	if err != nil {
 		log.Error("No method found RunPermissionCtr","err",err)
-		return nil, ErrPermissionInvalidInput
+		return nil, errExecutionReverted
 	}
 	data := input[4:]
 
@@ -66,7 +66,7 @@ func RunPermissionCtr(evm *EVM, contract *Contract, input []byte) (ret []byte, e
 		ret, err = delGroupPermission(evm, contract, data)
 	default:
 		log.Warn("CA cert store call fallback function")
-		err = ErrPermissionInvalidInput
+		err = errExecutionReverted
 	}
 
 	return ret, err
