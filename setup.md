@@ -40,7 +40,8 @@ genesis.json文件指定了创世块的样式。创世中定义了chainid,密码
 + `useGas`: 0--不使用gas即gasprice=0,1--表示使用gas.
 + `isCoin`: 表示链是否有奖励(有币)，0--无，1--有。当isCoin=0时，useGas不能为 1.
 + `kindOfCrypto`: 表示加密系统类型1-ECC国际标准(p256曲线)，2--ECC国家标准(SM2)，3--ECC国际标准(s256曲线)
-
++ `permisionWlSendTx`: 表示链是否允许所有地址默认拥有发送交易权限，0--禁止，1--允许。
++ `permisionWlCreateTx`: 表示链是否允许所有地址默认拥有创建合约交易权限，0--禁止，1--允许。
 
 ```
 {
