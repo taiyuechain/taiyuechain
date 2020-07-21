@@ -603,6 +603,64 @@ func (ec *Client) ListAccounts(ctx context.Context) ([]common.Address, error) {
 	return result, nil
 }
 
+// cpm_ListPermission
+func (ec *Client) ListPermission(ctx context.Context, group_contract_Addr common.Address, permType uint8, number *big.Int) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := ec.c.CallContext(ctx, &result, "cpm_listPermission", group_contract_Addr,permType,toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// cpm_showMyGroup
+func (ec *Client) ShowMyGroup(ctx context.Context, addr common.Address, number *big.Int) ([]common.Address, error) {
+	var result []common.Address
+	err := ec.c.CallContext(ctx, &result, "cpm_showMyGroup", addr,toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// cpm_showGroup
+func (ec *Client) ShowGroup(ctx context.Context, addr common.Address, number *big.Int) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := ec.c.CallContext(ctx, &result, "cpm_showGroup", addr,toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// cpm_listBasePermission
+func (ec *Client) ListBasePermission(ctx context.Context, addr common.Address, number *big.Int) (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := ec.c.CallContext(ctx, &result, "cpm_listBasePermission", addr,toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func (ec *Client) ShowWhiteList(ctx context.Context, number *big.Int) ([]common.Address, error) {
+	var result []common.Address
+	err := ec.c.CallContext(ctx, &result, "cpm_showWhiteList",toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func (ec *Client) ShowBlackList(ctx context.Context, number *big.Int) ([]common.Address, error) {
+	var result []common.Address
+	err := ec.c.CallContext(ctx, &result, "cpm_showBlackList",toBlockNumArg(number))
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
 func (ec *Client) AppendCert(ctx context.Context, tx *types.Transaction, self, proposalCert []byte) (*types.Transaction, error) {
 	input, err := ec.ca.Pack("multiProposal", self, proposalCert, true)
 	if err == nil {
