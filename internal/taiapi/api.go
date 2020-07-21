@@ -1872,17 +1872,20 @@ func (s *PublicCertAPI) ShowMyGroup(ctx context.Context, address common.Address,
 	return v.GropList, nil
 }
 
-func getWhiteList(v *vm.MemberTable,wmember, wManager []common.Address) ([]common.Address, []common.Address) {
-	if v.Member != nil {
-		for _, m := range v.Member {
-			wmember = append(wmember, m.MemberID)
+func getWhiteList(v *vm.MemberTable, wmember, wManager []common.Address) ([]common.Address, []common.Address) {
+	if v != nil {
+		if v.Member != nil {
+			for _, m := range v.Member {
+				wmember = append(wmember, m.MemberID)
+			}
+		}
+		if v.Manager != nil {
+			for _, m := range v.Manager {
+				wManager = append(wManager, m.MemberID)
+			}
 		}
 	}
-	if v.Manager != nil {
-		for _, m := range v.Member {
-			wManager = append(wmember, m.MemberID)
-		}
-	}
+
 	return wmember, wManager
 }
 
@@ -1909,8 +1912,8 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, b
 				}
 			}
 			if v.WhiteMembers.Manager != nil {
-				for _, m := range v.WhiteMembers.Member {
-					wManager = append(wmember, m.MemberID)
+				for _, m := range v.WhiteMembers.Manager {
+					wManager = append(wManager, m.MemberID)
 				}
 			}
 		}
@@ -1918,12 +1921,12 @@ func (s *PublicCertAPI) ShowGroup(ctx context.Context, address common.Address, b
 		if v.BlackMembers != nil {
 			if v.BlackMembers.Member != nil {
 				for _, m := range v.BlackMembers.Member {
-					bMember = append(wmember, m.MemberID)
+					bMember = append(bMember, m.MemberID)
 				}
 			}
 			if v.BlackMembers.Manager != nil {
 				for _, m := range v.BlackMembers.Member {
-					bmanager = append(wmember, m.MemberID)
+					bmanager = append(bmanager, m.MemberID)
 				}
 			}
 		}

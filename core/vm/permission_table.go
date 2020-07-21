@@ -1305,143 +1305,107 @@ func (pt *PerminTable) setContractPem(contractAddr ,creator common.Address, whit
 	return true,nil
 }
 
-func (pt *PerminTable) setContractMember(contractAddr,member common.Address,isAdd bool)(bool,error){
+func (pt *PerminTable) setContractMember(contractAddr, member common.Address, isAdd bool) (bool, error) {
 
-	if pt.isInBlackList(member){
-		return false,MemberInBlackListError
-	}
-	if pt.ContractPermi[contractAddr] == nil{
-		return false,ContractNotCreatePremError
+	if err := pt.checkContractParam(contractAddr,member); err != nil {
+		return false,err
 	}
 
-	if pt.ContractPermi[contractAddr].CreateFlag != 2{
-		return false,ContractPremFlagError
-	}
-	if isAdd{
-		if pt.ContractPermi[contractAddr].IsWhitListWork{
-
-			for _,m := range pt.ContractPermi[contractAddr].WhiteMembers.Member{
-				if m.MemberID == member{
-					return false,MemberAreadInGropError
-				}
+	if isAdd {
+		mem := &MemberInfo{member, 0}
+		if pt.ContractPermi[contractAddr].IsWhitListWork {
+			ok := findMember(pt.ContractPermi[contractAddr].WhiteMembers.Member, member)
+			if ok {
+				return false, MemberAreadInGropError
 			}
 
-			mem :=&MemberInfo{member,0}
-			pt.ContractPermi[contractAddr].WhiteMembers.Member = append(pt.ContractPermi[contractAddr].WhiteMembers.Member,mem)
+			pt.ContractPermi[contractAddr].WhiteMembers.Member = append(pt.ContractPermi[contractAddr].WhiteMembers.Member, mem)
+		} else {
+			ok := findMember(pt.ContractPermi[contractAddr].BlackMembers.Member, member)
+			if ok {
+				return false, MemberAreadInGropError
+			}
+
+			pt.ContractPermi[contractAddr].BlackMembers.Member = append(pt.ContractPermi[contractAddr].BlackMembers.Member, mem)
 		}
-	}else{
-		if pt.ContractPermi[contractAddr].IsWhitListWork{
-
-			totalM :=0;
-			for i,m := range pt.ContractPermi[contractAddr].WhiteMembers.Member{
-				if m.MemberID == member{
-					pt.ContractPermi[contractAddr].WhiteMembers.Member = append(pt.ContractPermi[contractAddr].WhiteMembers.Member[:i],pt.ContractPermi[contractAddr].WhiteMembers.Member[i+1:]...)
-					return true,nil
-				}
-				totalM ++;
+	} else {
+		if pt.ContractPermi[contractAddr].IsWhitListWork {
+			mis, ok := findMemberRemove(pt.ContractPermi[contractAddr].WhiteMembers.Member, member)
+			if ok {
+				pt.ContractPermi[contractAddr].WhiteMembers.Member = mis
+			} else {
+				return false, MemberNotInGropError
 			}
-
-			if totalM == len(pt.ContractPermi[contractAddr].WhiteMembers.Member){
-				return false,MemberNotInGropError
+		} else {
+			mis, ok := findMemberRemove(pt.ContractPermi[contractAddr].BlackMembers.Member, member)
+			if ok {
+				pt.ContractPermi[contractAddr].BlackMembers.Member = mis
+			} else {
+				return false, MemberNotInGropError
 			}
-
-		}else{
-			for _,m := range pt.ContractPermi[contractAddr].BlackMembers.Member{
-				if m.MemberID == member{
-					return false,MemberAreadInGropError
-				}
-			}
-
-			mem :=&MemberInfo{member,0}
-			pt.ContractPermi[contractAddr].BlackMembers.Member = append(pt.ContractPermi[contractAddr].BlackMembers.Member,mem)
 		}
 	}
 
-	return true,nil
+	return true, nil
 }
 
-func (pt *PerminTable) setContractManager(contractAddr,manager common.Address,isAdd bool)(bool,error){
-
-	if pt.isInBlackList(manager){
-		return false,MemberInBlackListError
+func (pt *PerminTable) checkContractParam(contractAddr, manager common.Address) error {
+	if pt.isInBlackList(manager) {
+		return MemberInBlackListError
 	}
 
-	if pt.ContractPermi[contractAddr] == nil{
-		return false,ContractNotCreatePremError
+	if pt.ContractPermi[contractAddr] == nil {
+		return ContractNotCreatePremError
 	}
 
-	if pt.ContractPermi[contractAddr].CreateFlag != 2{
-		return false,ContractPremFlagError
+	if pt.ContractPermi[contractAddr].CreateFlag != 2 {
+		return ContractPremFlagError
 	}
-	if isAdd{
-		if pt.ContractPermi[contractAddr].IsWhitListWork{
-			if pt.ContractPermi[contractAddr].WhiteMembers.Manager != nil{
 
+	return nil
+}
 
-			for _,m := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
-				if m.MemberID == manager{
-					return false,MemberAreadInGropError
-				}
-			}
-			}
+func (pt *PerminTable) setContractManager(contractAddr, manager common.Address, isAdd bool) (bool, error) {
 
-			mem :=&MemberInfo{manager,0}
-			pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager,mem)
-		}else{
-			if pt.ContractPermi[contractAddr].BlackMembers.Manager != nil{
+	if err := pt.checkContractParam(contractAddr,manager); err != nil {
+		return false,err
+	}
 
-
-				for _,m := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-					if m.MemberID == manager{
-						return false,MemberAreadInGropError
-					}
-				}
+	if isAdd {
+		mem := &MemberInfo{manager, 0}
+		if pt.ContractPermi[contractAddr].IsWhitListWork {
+			ok := findMember(pt.ContractPermi[contractAddr].WhiteMembers.Manager, manager)
+			if ok {
+				return false, MemberAreadInGropError
 			}
 
-			mem :=&MemberInfo{manager,0}
-			pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager,mem)
+			pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager, mem)
+		} else {
+			ok := findMember(pt.ContractPermi[contractAddr].BlackMembers.Manager, manager)
+			if ok {
+				return false, MemberAreadInGropError
+			}
 
+			pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager, mem)
 		}
-	}else{
-		if pt.ContractPermi[contractAddr].IsWhitListWork{
-
-			totalM :=0;
-			if pt.ContractPermi[contractAddr].WhiteMembers.Manager != nil{
-
-
-			for i,m := range pt.ContractPermi[contractAddr].WhiteMembers.Manager{
-				if m.MemberID == manager{
-					pt.ContractPermi[contractAddr].WhiteMembers.Manager = append(pt.ContractPermi[contractAddr].WhiteMembers.Manager[:i],pt.ContractPermi[contractAddr].WhiteMembers.Manager[i+1:]...)
-					return true,nil
-				}
-				totalM ++;
+	} else {
+		if pt.ContractPermi[contractAddr].IsWhitListWork {
+			mis, ok := findMemberRemove(pt.ContractPermi[contractAddr].WhiteMembers.Manager, manager)
+			if ok {
+				pt.ContractPermi[contractAddr].WhiteMembers.Manager = mis
+			} else {
+				return false, MemberNotInGropError
 			}
-			}
-
-			if totalM == len(pt.ContractPermi[contractAddr].WhiteMembers.Manager){
-				return false,MemberNotInGropError
-			}
-
-		}else{
-			totalM :=0;
-			if pt.ContractPermi[contractAddr].BlackMembers.Manager != nil{
-
-
-				for i,m := range pt.ContractPermi[contractAddr].BlackMembers.Manager{
-					if m.MemberID == manager{
-						pt.ContractPermi[contractAddr].BlackMembers.Manager = append(pt.ContractPermi[contractAddr].BlackMembers.Manager[:i],pt.ContractPermi[contractAddr].BlackMembers.Manager[i+1:]...)
-						return true,nil
-					}
-					totalM ++;
-				}
-			}
-
-			if totalM == len(pt.ContractPermi[contractAddr].BlackMembers.Manager){
-				return false,MemberNotInGropError
+		} else {
+			mis, ok := findMemberRemove(pt.ContractPermi[contractAddr].BlackMembers.Manager, manager)
+			if ok {
+				pt.ContractPermi[contractAddr].BlackMembers.Manager = mis
+			} else {
+				return false, MemberNotInGropError
 			}
 		}
 	}
-	return true,nil
+	return true, nil
 }
 
 func (pt *PerminTable) findGroupAddr(groupAddr,from common.Address) bool {

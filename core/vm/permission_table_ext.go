@@ -437,3 +437,28 @@ func (l *PerminTable) UnmarshalJSON(input []byte) error {
 	}
 	return nil
 }
+
+func  findMember(mis []*MemberInfo,member common.Address) bool {
+	if mis == nil {
+		return false
+	}
+	for _,m := range mis{
+		if m.MemberID == member{
+			return true
+		}
+	}
+	return false
+}
+
+func findMemberRemove(mis []*MemberInfo,member common.Address) ([]*MemberInfo,bool) {
+	if mis == nil {
+		return mis,false
+	}
+	for i,m := range mis{
+		if m.MemberID == member{
+			mis = append(mis[:i], mis[i+1:]...)
+			return mis,true
+		}
+	}
+	return mis,false
+}

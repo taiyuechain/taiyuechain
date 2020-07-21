@@ -56,7 +56,7 @@ func TestManagerPermissionTable(t *testing.T) {
 }
 
 func TestNewInput(t *testing.T) {
-	input,_ := hex.DecodeString("91af02090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b720227586d7b760114b196ea1970d32bf7a7fdc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000170000000000000000000000000000000000000000000000000000000000000000")
+	input,_ := hex.DecodeString("91af02090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000488167ec4f1c98974411e5bf90b74a57ca380aa50000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d0000000000000000000000000000000000000000000000000000000000000000")
 	method, err := PermissionABI.MethodById(input)
 	if err != nil {
 		fmt.Println("No method found RunCaCertStore","err",err)
@@ -76,7 +76,7 @@ func TestNewInput(t *testing.T) {
 		if err != nil {
 			fmt.Println("err",err,method.Name)
 		}
-		fmt.Println("member",crypto.AddressToHex(args.Member)," ",args.MPermType,"",args.WhitelistisWork)
+		fmt.Println("member",crypto.AddressToHex(args.Member)," ",args.MPermType,"",args.WhitelistisWork,"contract",crypto.AddressToHex(args.ContractAddr),"group",crypto.AddressToHex(args.GropAddr))
 	case "revokePermission":
 		//ret, err = revokePermission(evm, contract, data)
 	case "createGroupPermission":
