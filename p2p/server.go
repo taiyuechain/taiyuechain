@@ -20,14 +20,20 @@ package p2p
 import (
 	"bytes"
 	"crypto/ecdsa"
+
+	// "crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"net"
 	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/p2p/tls"
 
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
@@ -605,8 +611,33 @@ func (srv *Server) setupDiscovery() error {
 }
 
 func (srv *Server) setupListening() error {
-	// Launch the TCP listener.
-	listener, err := net.Listen("tcp", srv.ListenAddr)
+	// get tls cert
+	if srv.Config.P2PNodeCert == nil || srv.Config.P2PPrivateKey == nil {
+		return errors.New("tls error: no valid P2PNodeCert or P2PPrivateKey")
+	}
+	var cert tls.Certificate
+	cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	cert.PrivateKey = srv.Config.P2PPrivateKey
+	// set tls listener config
+	conf := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequestClientCert,
+		MinVersion:   tls.VersionTLS10,
+		MaxVersion:   tls.VersionTLS12,
+		// ClientCAs:    clientCertPool,
+	}
+	conf.VerifyPeerCertificate = func(certificates [][]byte, _ [][]*x509.Certificate) error {
+		// verify peer certificate
+		if err := srv.localnode.CM.List.VerifyCert(certificates[0]); err != nil {
+			fmt.Println("verifyPeerCert failed", err)
+			return err
+		}
+		return nil
+
+	}
+	// Launch the tls listener
+	listener, err := tls.Listen("tcp", srv.ListenAddr, conf)
+
 	if err != nil {
 		return err
 	}
@@ -906,12 +937,56 @@ func (srv *Server) listenLoop() {
 			ip = tcp.IP
 		}
 		fd = newMeteredConn(fd, true, ip)
+		// fmt.Println("Accepted connection", "addr", fd.RemoteAddr())
 		srv.log.Debug("Accepted connection", "addr", fd.RemoteAddr())
 		go func() {
 			srv.SetupConn(fd, inboundConn, nil)
 			slots <- struct{}{}
 		}()
 	}
+}
+
+// TLSSetupConn runs tls handshake
+func (srv *Server) TLSSetupConn(flags connFlag, dest *enode.Node) error {
+	// tls dial
+	addr := &net.TCPAddr{IP: dest.IP(), Port: dest.TCP()}
+	// get config from dialing server
+	if srv.Config.P2PNodeCert == nil || srv.Config.P2PPrivateKey == nil {
+		return errors.New("tls error: no valid P2PNodeCert or P2PPrivateKey")
+	}
+	var cert tls.Certificate
+	cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	cert.PrivateKey = srv.Config.P2PPrivateKey
+
+	// set tls config
+	conf := &tls.Config{
+		// no need to use Root CA pool
+		// RootCAs:      serverCertPool,
+		Certificates: []tls.Certificate{cert},
+		// InsecureSkipVerify controls whether a client verifies the
+		// server's certificate chain and host name.
+		InsecureSkipVerify: true,
+		MinVersion:         tls.VersionTLS10,
+		MaxVersion:         tls.VersionTLS12,
+	}
+
+	conf.VerifyPeerCertificate = func(certificates [][]byte, _ [][]*x509.Certificate) error {
+		// check peer certificate using taiyue method
+		if err := srv.localnode.CM.List.VerifyCert(certificates[0]); err != nil {
+			fmt.Println("verifyPeerCert failed", err)
+			return err
+		}
+		return nil
+
+	}
+
+	fd, err := tls.Dial("tcp", addr.String(), conf)
+	if err != nil {
+		srv.log.Debug("tls: Failed to launch tls dialer")
+		return err
+	}
+	mfd := newMeteredConn(fd, false, dest.IP())
+	return srv.SetupConn(mfd, flags, dest)
 }
 
 // SetupConn runs the handshakes and attempts to add the connection
@@ -922,6 +997,7 @@ func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Node) 
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
 		c.close(err)
+		fmt.Println("Setting up connection failed", "addr", fd.RemoteAddr(), "err", err)
 		srv.log.Trace("Setting up connection failed", "addr", fd.RemoteAddr(), "err", err)
 	}
 	return err

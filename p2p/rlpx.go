@@ -28,15 +28,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"hash"
 	"io"
 	"io/ioutil"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 
 	"github.com/golang/snappy"
 	"github.com/taiyuechain/taiyuechain/common/bitutil"
@@ -442,9 +443,9 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 			return s, err
 		}
 
-		if err = t.cm.List.VerifyCert(buf); err != nil {
-			return s, err
-		}
+		// if err = t.cm.List.VerifyCert(buf); err != nil {
+		// 	return s, err
+		// }
 		//pub, err := taicert.FromCertBytesToPubKey(buf)
 		//if err != nil {
 		//	return s, err
