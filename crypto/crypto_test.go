@@ -325,6 +325,7 @@ func TestSm2Recover(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("t", hex.EncodeToString(FromECDSAPub(&priv.PublicKey)))
 	msg := []byte("123456hhsdhdsjhsjhjhsfjdhjhjhsdfjhjhsdfjhjhsfjhjhsdfhjjhsdfhhjhsfdhjhjsdfhjjhfffffffffjhjhsfjhjhdsfjhhfhhsdhsdfhjhsdjhjhhsdhjhjsdhjhjfjhsjhjhjhdshjfhsdfhhjsfhjjfshdhhhjfshjjhsdfhjhsfhdhfsjddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 	hash := Keccak256(msg)
 	signdata, err := Sign(hash, priv)
@@ -332,7 +333,7 @@ func TestSm2Recover(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	pk,err := SigToPub(hash,signdata)
+	pk,err := SigToPub(hash,signdata[0:65])
 	if err != nil {
 		log.Fatal(err)
 	}

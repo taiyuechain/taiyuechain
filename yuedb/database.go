@@ -55,23 +55,6 @@ type AncientReader interface {
 	AncientSize(kind string) (uint64, error)
 }
 
-//caoliang add
-/*// AncientReader contains the methods required to read from immutable ancient data.
-type AncientReader interface {
-	// HasAncient returns an indicator whether the specified data exists in the
-	// ancient store.
-	HasAncient(kind string, number uint64) (bool, error)
-
-	// Ancient retrieves an ancient binary blob from the append-only immutable files.
-	Ancient(kind string, number uint64) ([]byte, error)
-
-	// Ancients returns the ancient item numbers in the ancient store.
-	Ancients() (uint64, error)
-
-	// AncientSize returns the ancient size of the specified category.
-	AncientSize(kind string) (uint64, error)
-}*/
-
 // AncientWriter contains the methods required to write to immutable ancient data.
 type AncientWriter interface {
 	// AppendAncient injects all binary blobs belong to block at the end of the
@@ -88,7 +71,6 @@ type AncientWriter interface {
 // Reader contains the methods required to read data from both key-value as well as
 // immutable ancient data.
 type Reader interface {
-	KeyValueReader
 	AncientReader
 }
 

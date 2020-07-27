@@ -9,6 +9,7 @@ import (
 	"encoding/asn1"
 	"encoding/binary"
 	"errors"
+	"encoding/hex"
 	"fmt"
 	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
@@ -790,21 +791,26 @@ func RecoverCompactSM2(curve P256V1Curve, signature,
 		return nil, false, errors.New("invalid compact signature size")
 	}
 
-	iteration := int((signature[0] - 27) & ^byte(4))
+	// iteration := int((signature[0] - 27) & ^byte(4))
 
 	// format is <header byte><bitlen R><bitlen S>
 	sig := &Sm2Signature{
-		R: new(big.Int).SetBytes(signature[1 : bitlen+1]),
-		S: new(big.Int).SetBytes(signature[bitlen+1:]),
+		R: new(big.Int).SetBytes(signature[0: bitlen]),
+		S: new(big.Int).SetBytes(signature[bitlen:]),
 	}
 	// The iteration used here was encoded
 	//key, err := recoverKeyFromSignatureSM2(curve, sig, hash, iteration, false)
-	key, err := recoverKeyFromSignatureSM2_2(curve, sig, hash, iteration, false)
-	if err != nil {
-		return nil, false, err
+	for i := 0; i < int(sm2H.Int64()+1)*2; i++ { 
+		key, err := recoverKeyFromSignatureSM2_2(curve, sig, hash, i, false)
+		if err != nil {
+			// return nil, false, err
+			fmt.Println("e:",err)
+		} else {
+			fmt.Println("t", hex.EncodeToString(elliptic.Marshal(GetSm2P256V1(), key.X, key.Y)))
+			// return key, false, nil
+		}
 	}
-
-	return key, ((signature[0] - 27) & 4) == 4, nil
+	return nil, false, nil
 }
 
 func recoverKeyFromSignatureSM2_2(curve P256V1Curve, sig *Sm2Signature, msg []byte,

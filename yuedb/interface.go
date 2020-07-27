@@ -22,15 +22,6 @@ import "io"
 // The value was determined empirically.
 const IdealBatchSize = 100 * 1024
 
-//caoliang add
-type KeyValueReader interface {
-	// Has retrieves if a key is present in the key-value data store.
-	Has(key []byte) (bool, error)
-
-	// Get retrieves the given key if it's present in the key-value data store.
-	Get(key []byte) ([]byte, error)
-}
-
 // KeyValueWriter wraps the Put method of a backing data store.
 type KeyValueWriter interface {
 	// Put inserts the given value into the key-value data store.
@@ -61,7 +52,6 @@ type Compacter interface {
 // KeyValueStore contains all the methods required to allow handling different
 // key-value data stores backing the high level database.
 type KeyValueStore interface {
-	KeyValueReader
 	KeyValueWriter
 	Batcher
 	Iteratee
@@ -69,8 +59,6 @@ type KeyValueStore interface {
 	Compacter
 	io.Closer
 }
-
-//caoliang add
 
 // Putter wraps the database write operation supported by both batches and regular databases.
 type Putter interface {
@@ -87,7 +75,6 @@ type Database interface {
 	Putter
 	Deleter
 	//KeyValueWriter
-	//KeyValueReader
 	Get(key []byte) ([]byte, error)
 	Has(key []byte) (bool, error)
 	Close()
@@ -105,7 +92,6 @@ type Batch interface {
 	Putter
 	Deleter
 	//KeyValueWriter
-	KeyValueReader
 	Iteratee
 	ValueSize() int // amount of data in the batch
 	Write() error
