@@ -588,7 +588,7 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	if len(cfg.P2PPrivateKeyFile) > 0 {
 		privKey, err := sm2.ReadPrivateKeyFromPem(cfg.P2PPrivateKeyFile, nil)
 		if err != nil {
-			Fatalf("setNodeKey failed,the wrong P2PPrivateKeyFile")
+			Fatalf("setNodeKey failed,the wrong P2PPrivateKeyFile", err)
 		}
 		newPrivKey := ToEcdsaPrivate(privKey)
 		cfg.P2PPrivateKey = newPrivKey

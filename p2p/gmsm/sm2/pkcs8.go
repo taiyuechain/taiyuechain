@@ -16,6 +16,7 @@ limitations under the License.
 package sm2
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/elliptic"
@@ -210,16 +211,43 @@ func ParseSm2PrivateKey(der []byte) (*PrivateKey, error) {
 	return priv, nil
 }
 
-func ParsePKCS8UnecryptedPrivateKey(der []byte) (*PrivateKey, error) {
-	var privKey pkcs8
+// my change
+type ecPrivateKey struct {
+	Version       int
+	PrivateKey    []byte
+	NamedCurveOID asn1.ObjectIdentifier `asn1:"optional,explicit,tag:0"`
+	PublicKey     asn1.BitString        `asn1:"optional,explicit,tag:1"`
+}
 
+// my change end
+
+func ParsePKCS8UnecryptedPrivateKey(der []byte) (*PrivateKey, error) {
+	// orginal
+	// var privKey pkcs8
+
+	// if _, err := asn1.Unmarshal(der, &privKey); err != nil {
+	// 	return nil, err
+	// }
+	// if !reflect.DeepEqual(privKey.Algo.Algorithm, oidSM2) {
+	// 	return nil, errors.New("x509: not sm2 elliptic curve")
+	// }
+	// return ParseSm2PrivateKey(privKey.PrivateKey)
+
+	// my change
+	var privKey ecPrivateKey
 	if _, err := asn1.Unmarshal(der, &privKey); err != nil {
-		return nil, err
+		return nil, errors.New("x509: failed to parse EC private key: " + err.Error())
 	}
-	if !reflect.DeepEqual(privKey.Algo.Algorithm, oidSM2) {
-		return nil, errors.New("x509: not sm2 elliptic curve")
-	}
-	return ParseSm2PrivateKey(privKey.PrivateKey)
+	return ParseSm2PrivateKey(der)
+
+	// if _, err := asn1.Unmarshal(der, &privKey); err != nil {
+	// 	return nil, err
+	// }
+	// if !reflect.DeepEqual(privKey.Algo.Algorithm, oidSM2) {
+	// 	return nil, errors.New("x509: not sm2 elliptic curve")
+	// }
+	// return ParseSm2PrivateKey(privKey.PrivateKey)
+	// my change end
 }
 
 func ParsePKCS8EcryptedPrivateKey(der, pwd []byte) (*PrivateKey, error) {
@@ -369,6 +397,14 @@ func MarshalSm2PrivateKey(key *PrivateKey, pwd []byte) ([]byte, error) {
 
 func ReadPrivateKeyFromMem(data []byte, pwd []byte) (*PrivateKey, error) {
 	var block *pem.Block
+
+	// check if data has ec parameters
+	paramStart := []byte("-----BEGIN EC PARAMETERS-----")
+	paramEnd := []byte("-----END EC PARAMETERS-----")
+	if bytes.HasPrefix(data, paramStart) {
+		indexEnd := bytes.Index(data, paramEnd)
+		data = data[indexEnd+len(paramEnd)+1:]
+	}
 
 	block, _ = pem.Decode(data)
 	if block == nil {

@@ -45,6 +45,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/common/mclock"
 	"github.com/taiyuechain/taiyuechain/event"
 	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/p2p/customtls"
 	"github.com/taiyuechain/taiyuechain/p2p/discover"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
@@ -615,8 +616,14 @@ func (srv *Server) setupListening() error {
 	if srv.Config.P2PNodeCert == nil || srv.Config.P2PPrivateKey == nil {
 		return errors.New("tls error: no valid P2PNodeCert or P2PPrivateKey")
 	}
-	var cert tls.Certificate
-	cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	// var cert tls.Certificate
+	// cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	// cert.PrivateKey = srv.Config.P2PPrivateKey
+	cert, err := customtls.CustomX509Cert(srv.Config.P2PNodeCertFile)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	cert.PrivateKey = srv.Config.P2PPrivateKey
 	// set tls listener config
 	conf := &tls.Config{
@@ -954,10 +961,15 @@ func (srv *Server) TLSSetupConn(flags connFlag, dest *enode.Node) error {
 	if srv.Config.P2PNodeCert == nil || srv.Config.P2PPrivateKey == nil {
 		return errors.New("tls error: no valid P2PNodeCert or P2PPrivateKey")
 	}
-	var cert tls.Certificate
-	cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	// var cert tls.Certificate
+	// cert.Certificate = append(cert.Certificate, srv.Config.P2PNodeCert)
+	// cert.PrivateKey = srv.Config.P2PPrivateKey
+	cert, err := customtls.CustomX509Cert(srv.Config.P2PNodeCertFile)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 	cert.PrivateKey = srv.Config.P2PPrivateKey
-
 	// set tls config
 	conf := &tls.Config{
 		// no need to use Root CA pool
@@ -1022,6 +1034,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	// Run the encryption handshake.
 	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)
 	if err != nil {
+		fmt.Println("Failed doEncHandshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		srv.log.Debug("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		return err
 	}
@@ -1046,6 +1059,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	// Run the protocol handshake
 	phs, err := c.doProtoHandshake(srv.ourHandshake)
 	if err != nil {
+		fmt.Println("Failed proto handshake", "err", err)
 		clog.Trace("Failed proto handshake", "err", err)
 		return err
 	}
