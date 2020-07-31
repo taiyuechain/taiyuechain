@@ -352,13 +352,21 @@ type dialError struct {
 }
 
 // dial performs the actual connection attempt.
+// func (t *dialTask) dial(srv *Server, dest *enode.Node) error {
+// 	fd, err := srv.Dialer.Dial(dest)
+// 	if err != nil {
+// 		return &dialError{err}
+// 	}
+// 	mfd := newMeteredConn(fd, false, dest.IP())
+// 	return srv.SetupConn(mfd, t.flags, dest)
+// }
+
+// dial with tls to launch connection
+
 func (t *dialTask) dial(srv *Server, dest *enode.Node) error {
-	fd, err := srv.Dialer.Dial(dest)
-	if err != nil {
-		return &dialError{err}
-	}
-	mfd := newMeteredConn(fd, false, dest.IP())
-	return srv.SetupConn(mfd, t.flags, dest)
+
+	return srv.TLSSetupConn(t.flags, dest)
+
 }
 
 func (t *dialTask) String() string {

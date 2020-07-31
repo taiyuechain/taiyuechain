@@ -18,36 +18,40 @@ var _ = (*configMarshaling)(nil)
 // MarshalTOML marshals as TOML.
 func (c Config) MarshalTOML() (interface{}, error) {
 	type Config struct {
-		PrivateKey       *ecdsa.PrivateKey `toml:"-"`
-		P2PNodeCert      hexutil.Bytes  `toml:"-"`
-		P2PKey           hexutil.Bytes
-		P2PNodeCertFile  string
-		MaxPeers         int
-		MaxPendingPeers  int `toml:",omitempty"`
-		DialRatio        int `toml:",omitempty"`
-		NoDiscovery      bool
-		DiscoveryV5      bool   `toml:",omitempty"`
-		Name             string `toml:"-"`
-		BootstrapNodes   []*enode.Node
-		BootstrapNodesV5 []*discv5.Node `toml:",omitempty"`
-		StaticNodes      []*enode.Node
-		TrustedNodes     []*enode.Node
-		NetRestrict      *netutil.Netlist `toml:",omitempty"`
-		NodeDatabase     string           `toml:",omitempty"`
-		Protocols        []Protocol       `toml:"-"`
-		ListenAddr       string
-		NAT              nat.Interface `toml:",omitempty"`
-		Dialer           NodeDialer    `toml:"-"`
-		NoDial           bool          `toml:",omitempty"`
-		EnableMsgEvents  bool
-		Logger           log.Logger `toml:",omitempty"`
-		Host             string     `toml:",omitempty"`
+		PrivateKey        *ecdsa.PrivateKey `toml:"-"`
+		P2PNodeCert       hexutil.Bytes     `toml:"-"`
+		P2PKey            hexutil.Bytes
+		P2PNodeCertFile   string
+		P2PPrivateKeyFile string
+		P2PPrivateKey     *ecdsa.PrivateKey `toml:"-"`
+		MaxPeers          int
+		MaxPendingPeers   int `toml:",omitempty"`
+		DialRatio         int `toml:",omitempty"`
+		NoDiscovery       bool
+		DiscoveryV5       bool   `toml:",omitempty"`
+		Name              string `toml:"-"`
+		BootstrapNodes    []*enode.Node
+		BootstrapNodesV5  []*discv5.Node `toml:",omitempty"`
+		StaticNodes       []*enode.Node
+		TrustedNodes      []*enode.Node
+		NetRestrict       *netutil.Netlist `toml:",omitempty"`
+		NodeDatabase      string           `toml:",omitempty"`
+		Protocols         []Protocol       `toml:"-"`
+		ListenAddr        string
+		NAT               nat.Interface `toml:",omitempty"`
+		Dialer            NodeDialer    `toml:"-"`
+		NoDial            bool          `toml:",omitempty"`
+		EnableMsgEvents   bool
+		Logger            log.Logger `toml:",omitempty"`
+		Host              string     `toml:",omitempty"`
 	}
 	var enc Config
 	enc.PrivateKey = c.PrivateKey
 	enc.P2PNodeCert = c.P2PNodeCert
 	enc.P2PKey = c.P2PKey
 	enc.P2PNodeCertFile = c.P2PNodeCertFile
+	enc.P2PPrivateKey = c.P2PPrivateKey
+	enc.P2PPrivateKeyFile = c.P2PPrivateKeyFile
 	enc.MaxPeers = c.MaxPeers
 	enc.MaxPendingPeers = c.MaxPendingPeers
 	enc.DialRatio = c.DialRatio
@@ -74,30 +78,32 @@ func (c Config) MarshalTOML() (interface{}, error) {
 // UnmarshalTOML unmarshals from TOML.
 func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Config struct {
-		PrivateKey       *ecdsa.PrivateKey `toml:"-"`
-		P2PNodeCert      *hexutil.Bytes  `toml:"-"`
-		P2PKey           *hexutil.Bytes
-		P2PNodeCertFile  *string
-		MaxPeers         *int
-		MaxPendingPeers  *int `toml:",omitempty"`
-		DialRatio        *int `toml:",omitempty"`
-		NoDiscovery      *bool
-		DiscoveryV5      *bool   `toml:",omitempty"`
-		Name             *string `toml:"-"`
-		BootstrapNodes   []*enode.Node
-		BootstrapNodesV5 []*discv5.Node `toml:",omitempty"`
-		StaticNodes      []*enode.Node
-		TrustedNodes     []*enode.Node
-		NetRestrict      *netutil.Netlist `toml:",omitempty"`
-		NodeDatabase     *string          `toml:",omitempty"`
-		Protocols        []Protocol       `toml:"-"`
-		ListenAddr       *string
-		NAT              nat.Interface `toml:",omitempty"`
-		Dialer           NodeDialer    `toml:"-"`
-		NoDial           *bool         `toml:",omitempty"`
-		EnableMsgEvents  *bool
-		Logger           log.Logger `toml:",omitempty"`
-		Host             *string    `toml:",omitempty"`
+		PrivateKey        *ecdsa.PrivateKey `toml:"-"`
+		P2PNodeCert       *hexutil.Bytes    `toml:"-"`
+		P2PKey            *hexutil.Bytes
+		P2PNodeCertFile   *string
+		P2PPrivateKeyFile *string
+		P2PPrivateKey     *ecdsa.PrivateKey `toml:"-"`
+		MaxPeers          *int
+		MaxPendingPeers   *int `toml:",omitempty"`
+		DialRatio         *int `toml:",omitempty"`
+		NoDiscovery       *bool
+		DiscoveryV5       *bool   `toml:",omitempty"`
+		Name              *string `toml:"-"`
+		BootstrapNodes    []*enode.Node
+		BootstrapNodesV5  []*discv5.Node `toml:",omitempty"`
+		StaticNodes       []*enode.Node
+		TrustedNodes      []*enode.Node
+		NetRestrict       *netutil.Netlist `toml:",omitempty"`
+		NodeDatabase      *string          `toml:",omitempty"`
+		Protocols         []Protocol       `toml:"-"`
+		ListenAddr        *string
+		NAT               nat.Interface `toml:",omitempty"`
+		Dialer            NodeDialer    `toml:"-"`
+		NoDial            *bool         `toml:",omitempty"`
+		EnableMsgEvents   *bool
+		Logger            log.Logger `toml:",omitempty"`
+		Host              *string    `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -114,6 +120,12 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.P2PKey != nil {
 		c.P2PKey = *dec.P2PKey
+	}
+	if dec.P2PPrivateKey != nil {
+		c.P2PPrivateKey = dec.P2PPrivateKey
+	}
+	if dec.P2PPrivateKeyFile != nil {
+		c.P2PPrivateKeyFile = *dec.P2PPrivateKeyFile
 	}
 	if dec.MaxPeers != nil {
 		c.MaxPeers = *dec.MaxPeers

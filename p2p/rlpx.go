@@ -28,15 +28,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/taiyuechain/taiyuechain/crypto"
-	"github.com/taiyuechain/taiyuechain/log"
-	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"hash"
 	"io"
 	"io/ioutil"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/taiyuechain/taiyuechain/crypto"
+	"github.com/taiyuechain/taiyuechain/log"
+	"github.com/taiyuechain/taiyuechain/p2p/enode"
 
 	"github.com/golang/snappy"
 	"github.com/taiyuechain/taiyuechain/common/bitutil"
@@ -400,6 +401,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
 	if err != nil {
+		fmt.Println("receiverEncHandshake readHandshakeMsg err", err)
 		return s, err
 	}
 	h := new(encHandshake)
@@ -407,6 +409,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 		h.CertSize = uint16(len(t.cm.Cert))
 	}
 	if err := h.handleAuthMsg(authMsg, prv); err != nil {
+		fmt.Println("receiverEncHandshake handlwAuthMsg err", err)
 		return s, err
 	}
 
@@ -442,9 +445,9 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 			return s, err
 		}
 
-		if err = t.cm.List.VerifyCert(buf); err != nil {
-			return s, err
-		}
+		// if err = t.cm.List.VerifyCert(buf); err != nil {
+		// 	return s, err
+		// }
 		//pub, err := taicert.FromCertBytesToPubKey(buf)
 		//if err != nil {
 		//	return s, err
@@ -556,6 +559,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 
 	buf := make([]byte, plainSize)
 	if _, err := io.ReadFull(r, buf); err != nil {
+		fmt.Println("readHandshakeMsg readfull err", err)
 		return buf, err
 	}
 

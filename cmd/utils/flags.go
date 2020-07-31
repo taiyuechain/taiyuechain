@@ -21,7 +21,9 @@ import (
 	//"github.com/taiyuechain/taiyuechain/crypto"
 
 	//"encoding/hex"
+	"crypto/ecdsa"
 	"fmt"
+
 	//"crypto/ecdsa"
 	"io/ioutil"
 	"os"
@@ -30,13 +32,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/taiyuechain/taiyuechain/crypto"
-	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/accounts"
 	"github.com/taiyuechain/taiyuechain/accounts/keystore"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
 	"github.com/taiyuechain/taiyuechain/common"
 	"github.com/taiyuechain/taiyuechain/common/fdlimit"
 	"github.com/taiyuechain/taiyuechain/consensus"
+	"github.com/taiyuechain/taiyuechain/crypto"
+
+	// "github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 
 	//"github.com/taiyuechain/taiyuechain/consensus/clique"
 
@@ -55,6 +59,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/p2p"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
+	"github.com/taiyuechain/taiyuechain/p2p/gmsm/sm2"
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
 	"github.com/taiyuechain/taiyuechain/p2p/netutil"
 	"github.com/taiyuechain/taiyuechain/params"
@@ -550,6 +555,23 @@ func MakeDataDir(ctx *cli.Context) string {
 	return ""
 }
 
+// ToECDSAPublickey convert gm publickey to ecdsa publickey.
+func ToECDSAPublickey(key *sm2.PublicKey) *ecdsa.PublicKey {
+	return &ecdsa.PublicKey{
+		Curve: key.Curve,
+		X:     key.X,
+		Y:     key.Y,
+	}
+}
+
+// ToEcdsaPrivate convert gm privatekey to ecdsa privatekey.
+func ToEcdsaPrivate(key *sm2.PrivateKey) *ecdsa.PrivateKey {
+	return &ecdsa.PrivateKey{
+		D:         key.D,
+		PublicKey: *ToECDSAPublickey(&key.PublicKey),
+	}
+}
+
 // setNodeKey creates a node key from set command line flags, either loading it
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
@@ -561,14 +583,24 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 			cfg.P2PNodeCert = data
 		}
 	}
-	
+
+	// load P2PPrivateKey from pem file
+	if len(cfg.P2PPrivateKeyFile) > 0 {
+		privKey, err := sm2.ReadPrivateKeyFromPem(cfg.P2PPrivateKeyFile, nil)
+		if err != nil {
+			Fatalf("setNodeKey failed,the wrong P2PPrivateKeyFile", err)
+		}
+		newPrivKey := ToEcdsaPrivate(privKey)
+		cfg.P2PPrivateKey = newPrivKey
+	}
+
 	if len(cfg.P2PKey) > 0 {
 		if key, err := crypto.ToECDSA(cfg.P2PKey); err != nil {
 			Fatalf("Option %v: %v", cfg.P2PKey, err)
 		} else {
 			cfg.PrivateKey = key
 		}
-	} 	
+	}
 }
 
 func setBftCommitteeKey(ctx *cli.Context, cfg *yue.Config) {
