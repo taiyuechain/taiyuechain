@@ -79,7 +79,7 @@ type Config struct {
 	P2PNodeCert     []byte `toml:"-"`
 	// P2PPivateKeyFile and P2PNodeCertFile are used for tls
 	P2PPrivateKeyFile string
-	P2PPrivateKey     *ecdsa.PrivateKey `toml:"-"`
+	P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 	P2PKey            []byte
 	// MaxPeers is the maximum number of peers that can be
 	// connected. It must be greater than zero.
@@ -644,6 +644,7 @@ func (srv *Server) setupListening() error {
 	}
 	// Launch the tls listener
 	listener, err := tls.Listen("tcp", srv.ListenAddr, conf)
+	// listener, err := net.Listen("tcp", srv.ListenAddr)
 
 	if err != nil {
 		return err

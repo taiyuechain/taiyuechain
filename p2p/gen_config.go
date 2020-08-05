@@ -6,6 +6,7 @@ import (
 	"crypto/ecdsa"
 
 	"github.com/taiyuechain/taiyuechain/common/hexutil"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"github.com/taiyuechain/taiyuechain/log"
 	"github.com/taiyuechain/taiyuechain/p2p/discv5"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
@@ -23,7 +24,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		P2PKey            hexutil.Bytes
 		P2PNodeCertFile   string
 		P2PPrivateKeyFile string
-		P2PPrivateKey     *ecdsa.PrivateKey `toml:"-"`
+		P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 		MaxPeers          int
 		MaxPendingPeers   int `toml:",omitempty"`
 		DialRatio         int `toml:",omitempty"`
@@ -83,7 +84,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		P2PKey            *hexutil.Bytes
 		P2PNodeCertFile   *string
 		P2PPrivateKeyFile *string
-		P2PPrivateKey     *ecdsa.PrivateKey `toml:"-"`
+		P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 		MaxPeers          *int
 		MaxPendingPeers   *int `toml:",omitempty"`
 		DialRatio         *int `toml:",omitempty"`
