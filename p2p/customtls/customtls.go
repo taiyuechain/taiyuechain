@@ -129,6 +129,22 @@ func CustomX509KeyPair(certPEMBlock, keyPEMBlock []byte) (tls.Certificate, error
 	return cert, nil
 }
 
+func ParsePrivateKeyFile(keyFile string) (crypto.PrivateKey, error) {
+	keyPEMBlock, err := ioutil.ReadFile(keyFile)
+	if err != nil {
+		return nil, errors.New("tls: load private key file failed")
+	}
+	var keyDERBlock *pem.Block
+	for {
+		keyDERBlock, keyPEMBlock = pem.Decode(keyPEMBlock)
+
+		if keyDERBlock.Type == "PRIVATE KEY" || strings.HasSuffix(keyDERBlock.Type, " PRIVATE KEY") {
+			break
+		}
+	}
+	return parsePrivateKey(keyDERBlock.Bytes)
+}
+
 // Attempt to parse the given private key DER block. OpenSSL 0.9.8 generates
 // PKCS#1 private keys by default, while OpenSSL 1.0.0 generates PKCS#8 keys.
 // OpenSSL ecparam generates SEC1 EC private keys for ECDSA. We try all three.

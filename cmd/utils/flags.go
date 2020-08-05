@@ -58,6 +58,7 @@ import (
 	"github.com/taiyuechain/taiyuechain/metrics/influxdb"
 	"github.com/taiyuechain/taiyuechain/node"
 	"github.com/taiyuechain/taiyuechain/p2p"
+	"github.com/taiyuechain/taiyuechain/p2p/customtls"
 	"github.com/taiyuechain/taiyuechain/p2p/enode"
 	"github.com/taiyuechain/taiyuechain/p2p/gmsm/sm2"
 	"github.com/taiyuechain/taiyuechain/p2p/nat"
@@ -586,12 +587,20 @@ func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 
 	// load P2PPrivateKey from pem file
 	if len(cfg.P2PPrivateKeyFile) > 0 {
-		privKey, err := sm2.ReadPrivateKeyFromPem(cfg.P2PPrivateKeyFile, nil)
+		privKey, err := customtls.ParsePrivateKeyFile(cfg.P2PPrivateKeyFile)
 		if err != nil {
-			Fatalf("setNodeKey failed,the wrong P2PPrivateKeyFile", err)
+			gmprivKey, err := sm2.ReadPrivateKeyFromPem(cfg.P2PPrivateKeyFile, nil)
+			if err != nil {
+
+				Fatalf("setNodeKey failed,the wrong P2PPrivateKeyFile", err)
+			}
+			newPrivKey := ToEcdsaPrivate(gmprivKey)
+			cfg.P2PPrivateKey = newPrivKey
+		} else {
+			// fmt.Println("p2p privatekey", privKey)
+			cfg.P2PPrivateKey = privKey
 		}
-		newPrivKey := ToEcdsaPrivate(privKey)
-		cfg.P2PPrivateKey = newPrivKey
+
 	}
 
 	if len(cfg.P2PKey) > 0 {

@@ -55,6 +55,9 @@ var (
 
 var errInvalidPubkey = errors.New("invalid public key")
 
+// PrivateKey represents a private key using an unspecified algorithm.
+type PrivateKey interface{}
+
 // According to gm,s256 or p256 param to Keccak256 calculates and returns
 // the Keccak256 hash of the input data.
 func Keccak256(data ...[]byte) []byte {
