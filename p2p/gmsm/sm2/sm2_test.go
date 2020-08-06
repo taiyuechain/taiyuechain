@@ -21,6 +21,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"log"
 	"math/big"
@@ -287,5 +288,57 @@ func TestKEB2(t *testing.T) {
 	}
 	if bytes.Compare(Sa, S2) != 0 {
 		t.Error("hash verfication failed")
+	}
+}
+
+func TestSm2ToCA(t *testing.T) {
+	var (
+		p2p1PrivString = "d5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
+		p2p2PrivString = "ea4297749d514cc476fe971a7fe20100cbd29f010864341b3e624e8744d46cec"
+		p2p3PrivString = "86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc"
+		p2p4PrivString = "cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801"
+	)
+	privEsda, err := crypto.HexToECDSA(p2p1PrivString)
+	priv := ToSm2privatekey(privEsda)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y)) // 验证是否为sm2的曲线
+
+	ok, err := WritePrivateKeytoPem("priv1.pem", priv, nil) // 生成密钥文件
+	if ok != true {
+		log.Fatal(err)
+	}
+
+	privEsda, err = crypto.HexToECDSA(p2p2PrivString)
+	priv = ToSm2privatekey(privEsda)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ok, err = WritePrivateKeytoPem("priv2.pem", priv, nil) // 生成密钥文件
+	if ok != true {
+		log.Fatal(err)
+	}
+	privEsda, err = crypto.HexToECDSA(p2p3PrivString)
+	priv = ToSm2privatekey(privEsda)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ok, err = WritePrivateKeytoPem("priv3.pem", priv, nil) // 生成密钥文件
+	if ok != true {
+		log.Fatal(err)
+	}
+
+	privEsda, err = crypto.HexToECDSA(p2p4PrivString)
+	priv = ToSm2privatekey(privEsda)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ok, err = WritePrivateKeytoPem("priv4.pem", priv, nil) // 生成密钥文件
+	if ok != true {
+		log.Fatal(err)
 	}
 }

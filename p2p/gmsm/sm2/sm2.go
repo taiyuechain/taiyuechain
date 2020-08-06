@@ -21,6 +21,7 @@ import (
 	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha512"
@@ -170,6 +171,23 @@ func GenerateKey() (*PrivateKey, error) {
 	priv.D = k
 	priv.PublicKey.X, priv.PublicKey.Y = c.ScalarBaseMult(k.Bytes())
 	return priv, nil
+}
+
+// ecdsa privatekey covert to gm privatekey.
+func ToSm2privatekey(key *ecdsa.PrivateKey) *PrivateKey {
+	return &PrivateKey{
+		D:         key.D,
+		PublicKey: *ToSm2Publickey(&key.PublicKey),
+	}
+}
+
+//ecdsa publickey covert to gm publickey.
+func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
+	return &PublicKey{
+		X:     key.X,
+		Y:     key.Y,
+		Curve: P256Sm2(),
+	}
 }
 
 var errZeroParam = errors.New("zero parameter")

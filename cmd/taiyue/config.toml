@@ -46,4 +46,5 @@ ListenAddr = ":30303"
 EnableMsgEvents = false
 P2PNodeCertFile = "./cert/p2pnodecert.pem"
 P2PKey = "0xd5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
+P2PPrivateKeyFile = "./cert/CA.key"
 BootstrapNodes = ["enode://41dbdfd708e660fc955820d257b8783b51c5a75d6f0988257e204147759d9d3dba9eebdd7970d2196b64197f3e1de6bc6714176aa709cd4a3bb6b0ff90f93667@52.16.188.185:30303", "enode://41dbdfd708e660fc955820d257b8783b51c5a75d6f0988257e204147759d9d3dba9eebdd7970d2196b64197f3e1de6bc6714176aa709cd4a3bb6b0ff90f93667@13.93.211.84:30303"]
