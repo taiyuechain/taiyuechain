@@ -234,19 +234,18 @@ func ParsePKCS8UnecryptedPrivateKey(der []byte) (*PrivateKey, error) {
 	// return ParseSm2PrivateKey(privKey.PrivateKey)
 
 	// my change
-	var privKey ecPrivateKey
-	if _, err := asn1.Unmarshal(der, &privKey); err != nil {
-		return nil, errors.New("x509: failed to parse EC private key: " + err.Error())
-	}
-	return ParseSm2PrivateKey(der)
-
+	// var privKey ecPrivateKey
 	// if _, err := asn1.Unmarshal(der, &privKey); err != nil {
-	// 	return nil, err
+	// 	return nil, errors.New("x509: failed to parse EC private key: " + err.Error())
 	// }
-	// if !reflect.DeepEqual(privKey.Algo.Algorithm, oidSM2) {
-	// 	return nil, errors.New("x509: not sm2 elliptic curve")
-	// }
-	// return ParseSm2PrivateKey(privKey.PrivateKey)
+	// return ParseSm2PrivateKey(der)
+	var privKey pkcs8
+	if _, err := asn1.Unmarshal(der, &privKey); err != nil {
+		return ParseSm2PrivateKey(der)
+	} else {
+		return ParseSm2PrivateKey(privKey.PrivateKey)
+	}
+
 	// my change end
 }
 
