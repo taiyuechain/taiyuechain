@@ -22,9 +22,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/hex"
+	"math/big"
 	"errors"
 	"fmt"
-
 	"github.com/taiyuechain/taiyuechain/common/math"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/p256"
@@ -50,8 +50,12 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 	}
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
-		smpub := sm2.Decompress(sig[65:])
-		return FromECDSAPub(sm2.ToECDSAPublickey(smpub)), nil
+		ee := new(big.Int).SetBytes(sig[65:])
+		smpub, err := sm2.SigToPub(hash,sig[:65],nil,ee)
+		if err != nil {
+			return nil, err
+		}
+		return FromECDSAPub(smpub), nil
 	}
 	//guoji S256
 	if CryptoType == CRYPTO_S256_SH3_AES {
@@ -62,7 +66,7 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
-	if len(sig) != 98 || len(hash) != 32 {
+	if len(sig) != 97 || len(hash) != 32 {
 		return nil, errors.New("SigToPub sign length is wrong ")
 	}
 	if CryptoType == CRYPTO_P256_SH3_AES {
@@ -75,8 +79,9 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 	}
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
-		smpub, err := DecompressPubkey(sig[65:])
-		// smpub, err := sm2.SigToPub(hash, sig[:65])
+		// smpub, err := DecompressPubkey(sig[65:])
+		ee := new(big.Int).SetBytes(sig[65:])
+		smpub, err := sm2.SigToPub(hash,sig[:65],nil,ee)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +130,7 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
 
-		smsign, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
+		smsign,e, err := sm2.Sign(sm2.ToSm2privatekey(prv), nil, digestHash)
 		if err != nil {
 			return nil, err
 		}
@@ -133,8 +138,11 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			log.Warn("Sign", "digestHash", hex.EncodeToString(digestHash), "priv", hex.EncodeToString(FromECDSA(prv)), " smsign", len(smsign))
 			return nil, errors.New("sig length is wrong !!!  " + string(len(smsign)))
 		}
-		pubtype := CompressPubkey(&prv.PublicKey)
-		smsign = append(smsign, pubtype...)
+		var pad [32]byte
+		buf := e.Bytes()
+		copy(pad[32-len(buf):],buf)
+		// pubtype := CompressPubkey(&prv.PublicKey)
+		smsign = append(smsign, pad[:]...)
 		return smsign, nil
 	}
 	//guoji S256
@@ -241,7 +249,7 @@ func getPubFromBytes(pk []byte) (*ecdsa.PublicKey, error) {
 		return smpub, nil
 	}
 	if len(pk) != 65 {
-		return nil, errors.New("len not equal 65")
+		return nil,errors.New("len not equal 65")
 	}
 	p256pub, err := UnmarshalPubkey(pk)
 	if err != nil {
@@ -277,6 +285,7 @@ func VerifySignatureTransactionPk(digestHash, signature, pk []byte) bool {
 	}
 	return false
 }
+
 
 // DecompressPubkey parses a public key in the 33-byte compressed format.
 func DecompressPubkey(pubkey []byte) (*ecdsa.PublicKey, error) {

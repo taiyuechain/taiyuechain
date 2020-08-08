@@ -333,9 +333,20 @@ func TestSm2Recover(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	pk,err := SigToPub(hash,signdata[0:65])
+	pk,err := SigToPub(hash,signdata)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("t", hex.EncodeToString(FromECDSAPub(pk)))
+}
+func Test_02(t *testing.T) {
+	var vv [32]byte 
+	msg := []byte("xiangojfoengjidie1234eu9830u4")
+	hash := Keccak256(msg)
+	
+	val := new(big.Int).SetBytes(hash[:])
+	buf := val.Bytes()
+	copy(vv[32-len(buf):],buf)
+	fmt.Println("vv",vv)
+	fmt.Println("finish")
 }

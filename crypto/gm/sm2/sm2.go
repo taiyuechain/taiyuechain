@@ -38,6 +38,7 @@ const (
 
 var (
 	sm2H                 = new(big.Int).SetInt64(1)
+	ee 					 = new(big.Int).SetInt64(0)
 	sm2SignDefaultUserId = []byte{
 		0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38,
 		0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38}
@@ -541,7 +542,7 @@ func toSignData(i *big.Int) []byte {
 	}
 }
 // sign algorithm.
-func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err error) {
+func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s, ee *big.Int, err error) {
 	digest := sm3.New()
 	pubX, pubY := priv.Curve.ScalarBaseMult(priv.D.Bytes())
 	if userId == nil {
@@ -557,7 +558,7 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 		for {
 			k, err = nextK(rand.Reader, priv.Curve.N)
 			if err != nil {
-				return nil, nil, err
+				return nil, nil,nil, err
 			}
 			px, _ := priv.Curve.ScalarBaseMult(k.Bytes())
 			r = util.Add(e, px)
@@ -582,17 +583,16 @@ func SignToRS(priv *PrivateKey, userId []byte, in []byte) (r, s *big.Int, err er
 			break
 		}
 	}
-
-	return r, s, nil
+	return r, s,new(big.Int).Set(e), nil
 }
 
 // gm sign with privatekey, r and s covert to byte array ,According to
 // byte array length to implementation method.
-func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
+func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte,*big.Int, error) {
 	signrmark := 1   // unused
-	r, s, err := SignToRS(priv, userId, in)
+	r, s,e, err := SignToRS(priv, userId, in)
 	if err != nil {
-		return nil, err
+		return nil,nil, err
 	}
 
 	sig := make([]byte, 65)
@@ -600,7 +600,7 @@ func Sign(priv *PrivateKey, userId []byte, in []byte) ([]byte, error) {
 	copy(sig[64-len(s.Bytes()):], s.Bytes())
 
 	sig[64] = byte(signrmark)
-	return sig, nil
+	return sig,e, nil
 }
 
 // verify sign algorithm.
@@ -768,8 +768,8 @@ func ToEcdsaPrivate(key *PrivateKey) *ecdsa.PrivateKey {
 	}
 }
 
-func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
-	pk,ok ,err := RecoverCompactSM2(GetSm2P256V1(),sig,hash)
+func SigToPub(hash, sig,userId []byte,ee *big.Int) (*ecdsa.PublicKey, error) {
+	pk,ok ,err := RecoverCompactSM2(GetSm2P256V1(),sig,hash,userId,ee)
 	if err != nil {
 		fmt.Println("err ",err)
 		panic(err)
@@ -785,7 +785,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 // key will be returned as well as a boolen if the original key was compressed
 // or not, else an error will be returned.
 func RecoverCompactSM2(curve P256V1Curve, signature,
-	hash []byte) (*PublicKey, bool, error) {
+	hash,userId []byte,ee *big.Int) (*PublicKey, bool, error) {
 	bitlen := (curve.BitSize + 7) / 8
 	if len(signature) != 1+bitlen*2 {
 		return nil, false, errors.New("invalid compact signature size")
@@ -796,29 +796,40 @@ func RecoverCompactSM2(curve P256V1Curve, signature,
 	// format is <header byte><bitlen R><bitlen S>
 	sig := &Sm2Signature{
 		R: new(big.Int).SetBytes(signature[0: bitlen]),
-		S: new(big.Int).SetBytes(signature[bitlen:]),
+		S: new(big.Int).SetBytes(signature[bitlen:64]),
 	}
 	// The iteration used here was encoded
 	//key, err := recoverKeyFromSignatureSM2(curve, sig, hash, iteration, false)
 	for i := 0; i < int(sm2H.Int64()+1)*2; i++ { 
-		key, err := recoverKeyFromSignatureSM2_2(curve, sig, hash, i, false)
+		key, err := recoverKeyFromSignatureSM2_2(curve, ee,sig, hash, i, false)
 		if err != nil {
 			// return nil, false, err
 			fmt.Println("e:",err)
 		} else {
+			// check e 
+			digest := sm3.New()
+			if userId == nil {
+				userId = sm2SignDefaultUserId
+			}
+			e := calculateE(digest, &curve, key.X, key.Y, userId, hash)	
 			fmt.Println("t", hex.EncodeToString(elliptic.Marshal(GetSm2P256V1(), key.X, key.Y)))
+			if e.Cmp(ee) == 0 {
+				return key,true,nil
+			}
 			// return key, false, nil
 		}
 	}
 	return nil, false, nil
 }
 
-func recoverKeyFromSignatureSM2_2(curve P256V1Curve, sig *Sm2Signature, msg []byte,
+func recoverKeyFromSignatureSM2_2(curve P256V1Curve,ee *big.Int, sig *Sm2Signature, msg []byte,
 	iter int, doChecks bool) (*PublicKey, error) {
-	// 1.1 x = (n * i) + r
+	// 1.1 x = (n * i) + r - e 
 	Rx := new(big.Int).Mul(curve.Params().N,
 		new(big.Int).SetInt64(int64(iter/2)))
 	Rx.Add(Rx, sig.R)
+	Rx.Sub(Rx,ee)
+	
 	if Rx.Cmp(curve.Params().P) != -1 {
 		return nil, errors.New("calculated Rx is larger than curve P")
 	}
@@ -830,7 +841,6 @@ func recoverKeyFromSignatureSM2_2(curve P256V1Curve, sig *Sm2Signature, msg []by
 	if err != nil {
 		return nil, err
 	}
-
 	// 1.4 Check n*R is point at infinity
 	if doChecks {
 		nRx, nRy := curve.ScalarMult(Rx, Ry, curve.Params().N.Bytes())
@@ -847,9 +857,8 @@ func recoverKeyFromSignatureSM2_2(curve P256V1Curve, sig *Sm2Signature, msg []by
 	// We calculate the two terms sR and eG separately multiplied by the
 	// inverse of r (from the signature). We then add them to calculate
 	// Q = r^-1(sR-eG)
-	// Q = (s-r)^-1(R-sG)
-	invr := new(big.Int).ModInverse(new(big.Int).Sub(sig.S,sig.R), curve.Params().N)
-
+	// Q = (s+r)^-1(R-sG)
+	invr := new(big.Int).ModInverse(new(big.Int).Add(sig.S,sig.R), curve.Params().N)
 	// first term.
 	// invrS := new(big.Int).Mul(invr, sig.S)
 	// invrS.Mod(invrS, curve.Params().N)
@@ -865,7 +874,6 @@ func recoverKeyFromSignatureSM2_2(curve P256V1Curve, sig *Sm2Signature, msg []by
 	// TODO: this would be faster if we did a mult and add in one
 	// step to prevent the jacobian conversion back and forth.
 	Qx, Qy := curve.Add(sRx, sRy, minuseGx, minuseGy)
-
 	return &PublicKey{
 		Curve: curve,
 		X:     Qx,
