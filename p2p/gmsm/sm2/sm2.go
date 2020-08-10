@@ -190,6 +190,23 @@ func ToSm2Publickey(key *ecdsa.PublicKey) *PublicKey {
 	}
 }
 
+// gm privatekey covert to ecdsa privatekey.
+func ToEcdsaPrivate(key *PrivateKey) *ecdsa.PrivateKey {
+	return &ecdsa.PrivateKey{
+		D:         key.D,
+		PublicKey: *ToECDSAPublickey(&key.PublicKey),
+	}
+}
+
+// gm publickey covert to ecdsa publickey.
+func ToECDSAPublickey(key *PublicKey) *ecdsa.PublicKey {
+	return &ecdsa.PublicKey{
+		Curve: key.Curve,
+		X:     key.X,
+		Y:     key.Y,
+	}
+}
+
 var errZeroParam = errors.New("zero parameter")
 
 func Sign(priv *PrivateKey, hash []byte) (r, s *big.Int, err error) {

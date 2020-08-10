@@ -215,7 +215,7 @@ func TestSign(t *testing.T) {
 		dBytes, _ := hex.DecodeString(data.d)
 		priv.D = new(big.Int).SetBytes(dBytes)
 		inBytes, _ := hex.DecodeString(data.in)
-		sign, err := Sign(priv, nil, inBytes)
+		sign,_, err := Sign(priv, nil, inBytes)
 		if err != nil {
 			t.Error(err.Error())
 			return

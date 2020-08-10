@@ -396,4 +396,9 @@ func TestPrintPem(t *testing.T) {
 	fmt.Println(hex.EncodeToString(pbft3Byte))
 	fmt.Println(hex.EncodeToString(pbft4Byte))
 
+	privKey, err := ReadPrivateKeyFromPem("CA.key", nil) // 读取密钥
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(hex.EncodeToString(crypto.FromECDSA(ToEcdsaPrivate(privKey))))
 }
