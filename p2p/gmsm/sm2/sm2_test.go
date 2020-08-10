@@ -20,13 +20,17 @@ import (
 	"crypto/rand"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"encoding/hex"
 	"fmt"
+	taicert "github.com/taiyuechain/taiyuechain/cert"
+	"github.com/taiyuechain/taiyuechain/cim"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -269,11 +273,11 @@ func TestKEB2(t *testing.T) {
 	rb.D = new(big.Int).SetBytes(rbBuf)
 	rb.PublicKey.X, rb.PublicKey.Y = curve.ScalarBaseMult(rbBuf)
 
-	k1,Sb,S2, err := KeyExchangeB(16, ida, idb, db, &da.PublicKey, rb, &ra.PublicKey)
+	k1, Sb, S2, err := KeyExchangeB(16, ida, idb, db, &da.PublicKey, rb, &ra.PublicKey)
 	if err != nil {
 		t.Error(err)
 	}
-	k2,S1,Sa, err := KeyExchangeA(16, ida, idb, da, &db.PublicKey, ra, &rb.PublicKey)
+	k2, S1, Sa, err := KeyExchangeA(16, ida, idb, da, &db.PublicKey, ra, &rb.PublicKey)
 	if err != nil {
 		t.Error(err)
 	}
@@ -298,47 +302,98 @@ func TestSm2ToCA(t *testing.T) {
 		p2p3PrivString = "86937006ac1e6e2c846e160d93f86c0d63b0fcefc39a46e9eaeb65188909fbdc"
 		p2p4PrivString = "cbddcbecd252a8586a4fd759babb0cc77f119d55f38bc7f80a708e75964dd801"
 	)
-	privEsda, err := crypto.HexToECDSA(p2p1PrivString)
-	priv := ToSm2privatekey(privEsda)
+	p2pPrivArr := []string{p2p1PrivString, p2p2PrivString, p2p3PrivString, p2p4PrivString}
+	for i, priv := range p2pPrivArr {
+		j := int64(i + 1)
+		privEsda, err := crypto.HexToECDSA(priv)
+		priv := ToSm2privatekey(privEsda)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if i == 0 {
+			fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y)) // 验证是否为sm2的曲线
+		}
+
+		ok, err := WritePrivateKeytoPem("p2p"+strconv.FormatInt(j, 10)+".key", priv, nil) // 生成密钥文件
+		if ok != true {
+			log.Fatal(err)
+		}
+	}
+}
+
+func TestSm2RootToCA(t *testing.T) {
+	var (
+		pbft1PrivString = "7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
+		pbft2PrivString = "bab8dbdcb4d974eba380ff8b2e459efdb6f8240e5362e40378de3f9f5f1e67bb"
+		pbft3PrivString = "122d186b77a030e04f5654e13d934b21af2aac03b942c3ecda4632364d81cbab"
+		pbft4PrivString = "fe44cbc0e164092a6746bd57957422ab165c009d0299c7639a2f4d290317f20f"
+	)
+	p2pPrivArr := []string{pbft1PrivString, pbft2PrivString, pbft3PrivString, pbft4PrivString}
+	for i, priv := range p2pPrivArr {
+		j := int64(i + 1)
+		privEsda, err := crypto.HexToECDSA(priv)
+		priv := ToSm2privatekey(privEsda)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if i == 0 {
+			fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y)) // 验证是否为sm2的曲线
+		}
+
+		ok, err := WritePrivateKeytoPem("bft"+strconv.FormatInt(j, 10)+".key", priv, nil) // 生成密钥文件
+		if ok != true {
+			log.Fatal(err)
+		}
+	}
+}
+
+var (
+	CryptoSM2 = uint8(2)
+	pbft1path = "bft1" + ".pem"
+	pbft2path = "bft2" + ".pem"
+	pbft3path = "bft3" + ".pem"
+	pbft4path = "bft4" + ".pem"
+
+	p2p1path = "p2p1" + ".pem"
+	p2p2path = "p2p2" + ".pem"
+)
+
+func TestVerifyCert(t *testing.T) {
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+
+	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
+	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
+
+	//new cimList
+	cimList := cim.NewCIMList(CryptoSM2)
+	cimList.AddCim(cim.CreateCim(pbft1Byte))
+	cimList.AddCim(cim.CreateCim(pbft2Byte))
+
+	err := cimList.VerifyCert(p2p1Byte)
 	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%v\n", priv.Curve.IsOnCurve(priv.X, priv.Y)) // 验证是否为sm2的曲线
-
-	ok, err := WritePrivateKeytoPem("priv1.pem", priv, nil) // 生成密钥文件
-	if ok != true {
-		log.Fatal(err)
+		t.Fatalf("verify cert 1 error")
 	}
 
-	privEsda, err = crypto.HexToECDSA(p2p2PrivString)
-	priv = ToSm2privatekey(privEsda)
+	err = cimList.VerifyCert(p2p2Byte)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatalf("verify cert 2 error")
 	}
 
-	ok, err = WritePrivateKeytoPem("priv2.pem", priv, nil) // 生成密钥文件
-	if ok != true {
-		log.Fatal(err)
-	}
-	privEsda, err = crypto.HexToECDSA(p2p3PrivString)
-	priv = ToSm2privatekey(privEsda)
+	_, err = taicert.GetPubByteFromCert(p2p1Byte)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+}
 
-	ok, err = WritePrivateKeytoPem("priv3.pem", priv, nil) // 生成密钥文件
-	if ok != true {
-		log.Fatal(err)
-	}
+func TestPrintPem(t *testing.T) {
+	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
+	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ := taicert.ReadPemFileByPath(pbft3path)
+	pbft4Byte, _ := taicert.ReadPemFileByPath(pbft4path)
+	fmt.Println(hex.EncodeToString(pbft1Byte))
+	fmt.Println(hex.EncodeToString(pbft2Byte))
+	fmt.Println(hex.EncodeToString(pbft3Byte))
+	fmt.Println(hex.EncodeToString(pbft4Byte))
 
-	privEsda, err = crypto.HexToECDSA(p2p4PrivString)
-	priv = ToSm2privatekey(privEsda)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ok, err = WritePrivateKeytoPem("priv4.pem", priv, nil) // 生成密钥文件
-	if ok != true {
-		log.Fatal(err)
-	}
 }

@@ -338,6 +338,9 @@ func TestSm2Recover(t *testing.T) {
 		log.Fatal(err)
 	}
 	fmt.Println("t", hex.EncodeToString(FromECDSAPub(pk)))
+	pk1,err := Ecrecover(hash,signdata)
+	fmt.Println("pk", hex.EncodeToString(pk1))
+
 }
 func Test_02(t *testing.T) {
 	var vv [32]byte 

@@ -988,7 +988,7 @@ func TestRoot(t *testing.T)  {
 
 	fmt.Println("err",err," 65 ",sig[64] ," data ",hexutil.Encode(sig))
 	fmt.Println("CompressPubkey ",hex.EncodeToString(crypto.CompressPubkey(&key.PublicKey)))
-	smsign, err := sm2.Sign(sm2.ToSm2privatekey(key), nil, hash[:])
+	smsign,_, err := sm2.Sign(sm2.ToSm2privatekey(key), nil, hash[:])
 	fmt.Println("smsign",hex.EncodeToString(smsign))}
 
 func TestVerifyRS(t *testing.T) {

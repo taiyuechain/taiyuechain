@@ -194,11 +194,7 @@ func (s CommonSigner) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	pub, err := crypto.DecompressPubkey(sig[65:])
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	tx.data.PK = crypto.FromECDSAPub(pub)
+	tx.data.PK = sig[65:]
 	if s.chainId.Sign() != 0 {
 		V = big.NewInt(int64(sig[64] + 35))
 		V.Add(V, s.chainIdMul)
@@ -285,24 +281,24 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, pk []byte) (common.Add
 
 	// encode the snature in uncompressed format
 	r, s := R.Bytes(), S.Bytes()
-	sig := make([]byte, 65)
+	sig := make([]byte, 98)
 	copy(sig[32-len(r):32], r)
 	copy(sig[64-len(s):64], s)
 	sig[64] = V
+	copy(sig[65:], pk)
 
-	if len(pk) == 33 {
-		smpub, err := crypto.DecompressPubkey(pk)
-		if err != nil {
-			return common.Address{}, ErrInvalidPK
-		}
-		pk = crypto.FromECDSAPub(smpub)
+	// recover the public key from the signature
+	pub, err := crypto.Ecrecover(sighash[:], sig)
+	if err != nil {
+		return common.Address{}, err
 	}
-
-	if !crypto.VerifySignatureTransactionPk(sighash[:], sig, pk) {
-		return common.Address{}, errors.New("can't verify signature")
+	if len(pub) == 0 || pub[0] != 4 {
+		return common.Address{}, errors.New("invalid public key")
 	}
+	var addr common.Address
+	copy(addr[:], crypto.Keccak256(pub[1:])[12:])
 
-	return common.BytesToAddress(crypto.Keccak256(pk[1:])[12:]), nil
+	return addr, nil
 }
 
 // deriveChainId derives the chain id from the given v parameter

@@ -66,16 +66,8 @@ func Ecrecover(hash, sig []byte) ([]byte, error) {
 
 // SigToPub returns the public key that created the given signature.
 func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
-	if len(sig) != 97 || len(hash) != 32 {
+	if len(sig) != 98 || len(hash) != 32 {
 		return nil, errors.New("SigToPub sign length is wrong ")
-	}
-	if CryptoType == CRYPTO_P256_SH3_AES {
-		//p256pub,err:=p256.ECRecovery(hash, sig)nil
-		p256pub, err := DecompressPubkey(sig[65:])
-		if err != nil {
-			return nil, err
-		}
-		return p256pub, nil
 	}
 	//guomi
 	if CryptoType == CRYPTO_SM2_SM3_SM4 {
@@ -88,7 +80,7 @@ func SigToPub(hash, sig []byte) (*ecdsa.PublicKey, error) {
 		return smpub, nil
 	}
 	//guoji S256
-	if CryptoType == CRYPTO_S256_SH3_AES {
+	if CryptoType == CRYPTO_S256_SH3_AES || CryptoType == CRYPTO_P256_SH3_AES {
 		s, err := Ecrecover(hash, sig)
 		if err != nil {
 			return nil, err
@@ -138,10 +130,9 @@ func Sign(digestHash []byte, prv *ecdsa.PrivateKey) (sig []byte, err error) {
 			log.Warn("Sign", "digestHash", hex.EncodeToString(digestHash), "priv", hex.EncodeToString(FromECDSA(prv)), " smsign", len(smsign))
 			return nil, errors.New("sig length is wrong !!!  " + string(len(smsign)))
 		}
-		var pad [32]byte
+		var pad [33]byte
 		buf := e.Bytes()
-		copy(pad[32-len(buf):],buf)
-		// pubtype := CompressPubkey(&prv.PublicKey)
+		copy(pad[33-len(buf):],buf)
 		smsign = append(smsign, pad[:]...)
 		return smsign, nil
 	}
