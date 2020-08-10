@@ -1010,7 +1010,7 @@ func (srv *Server) SetupConn(fd net.Conn, flags connFlag, dialDest *enode.Node) 
 	err := srv.setupConn(c, flags, dialDest)
 	if err != nil {
 		c.close(err)
-		fmt.Println("Setting up connection failed", "addr", fd.RemoteAddr(), "err", err)
+		// fmt.Println("Setting up connection failed", "addr", fd.RemoteAddr(), "err", err)
 		srv.log.Trace("Setting up connection failed", "addr", fd.RemoteAddr(), "err", err)
 	}
 	return err
@@ -1035,7 +1035,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	// Run the encryption handshake.
 	remotePubkey, err := c.doEncHandshake(srv.PrivateKey, dialPubkey)
 	if err != nil {
-		fmt.Println("Failed doEncHandshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
+		// fmt.Println("Failed doEncHandshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		srv.log.Debug("Failed RLPx handshake", "addr", c.fd.RemoteAddr(), "conn", c.flags, "err", err)
 		return err
 	}
@@ -1060,7 +1060,7 @@ func (srv *Server) setupConn(c *conn, flags connFlag, dialDest *enode.Node) erro
 	// Run the protocol handshake
 	phs, err := c.doProtoHandshake(srv.ourHandshake)
 	if err != nil {
-		fmt.Println("Failed proto handshake", "err", err)
+		// fmt.Println("Failed proto handshake", "err", err)
 		clog.Trace("Failed proto handshake", "err", err)
 		return err
 	}

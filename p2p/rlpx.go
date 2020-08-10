@@ -373,7 +373,6 @@ func (h *encHandshake) makeAuthMsg(prv *ecdsa.PrivateKey) (*authMsgV4, error) {
 	copy(msg.Signature[:], signature)
 	copy(msg.InitiatorPubkey[:], crypto.FromECDSAPub(&prv.PublicKey)[1:])
 	if len(signature) != 98 || len(crypto.FromECDSAPub(&prv.PublicKey)[1:]) != 64 {
-		fmt.Println("signed ", hex.EncodeToString(signed), " priv ", hex.EncodeToString(crypto.FromECDSA(h.randomPrivKey)), " signature ", len(signature))
 		panic("signature not equal 98")
 	}
 
@@ -401,7 +400,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 	authMsg := new(authMsgV4)
 	authPacket, err := readHandshakeMsg(authMsg, encAuthMsgLen, prv, conn)
 	if err != nil {
-		fmt.Println("receiverEncHandshake readHandshakeMsg err", err)
+		// fmt.Println("receiverEncHandshake readHandshakeMsg err", err)
 		return s, err
 	}
 	h := new(encHandshake)
@@ -409,7 +408,7 @@ func (t *rlpx) receiverEncHandshake(conn io.ReadWriter, prv *ecdsa.PrivateKey) (
 		h.CertSize = uint16(len(t.cm.Cert))
 	}
 	if err := h.handleAuthMsg(authMsg, prv); err != nil {
-		fmt.Println("receiverEncHandshake handlwAuthMsg err", err)
+		// fmt.Println("receiverEncHandshake handlwAuthMsg err", err)
 		return s, err
 	}
 
@@ -559,7 +558,7 @@ func readHandshakeMsg(msg plainDecoder, plainSize int, prv *ecdsa.PrivateKey, r 
 
 	buf := make([]byte, plainSize)
 	if _, err := io.ReadFull(r, buf); err != nil {
-		fmt.Println("readHandshakeMsg readfull err", err)
+		// fmt.Println("readHandshakeMsg readfull err", err)
 		return buf, err
 	}
 
