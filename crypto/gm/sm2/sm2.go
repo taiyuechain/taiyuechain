@@ -9,7 +9,6 @@ import (
 	"encoding/asn1"
 	"encoding/binary"
 	"errors"
-	"encoding/hex"
 	"fmt"
 	sm3 "github.com/taiyuechain/taiyuechain/crypto/gm/sm3"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/util"
@@ -812,7 +811,6 @@ func RecoverCompactSM2(curve P256V1Curve, signature,
 				userId = sm2SignDefaultUserId
 			}
 			e := calculateE(digest, &curve, key.X, key.Y, userId, hash)	
-			fmt.Println("t", hex.EncodeToString(elliptic.Marshal(GetSm2P256V1(), key.X, key.Y)))
 			if e.Cmp(ee) == 0 {
 				return key,true,nil
 			}
