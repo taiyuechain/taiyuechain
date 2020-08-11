@@ -320,7 +320,7 @@ func TestS256Time(t *testing.T) {
 }
 
 func TestSm2Recover(t *testing.T) {
-	CryptoType = CRYPTO_SM2_SM3_SM4
+	CryptoType = CRYPTO_S256_SH3_AES
 	priv, err := GenerateKey()
 	if err != nil {
 		log.Fatal(err)

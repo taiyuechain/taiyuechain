@@ -456,7 +456,7 @@ func DefaultDevGenesisBlock() *Genesis {
 func DefaultSingleNodeGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
 	key1 := hexutil.MustDecode(
-		"0x04bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd")
+		"0x04b05c899076beccd524718daf560f5922fddeee001ab8decb65a81c384cafed5edeae5e1ad7790bec895d45a840eaf2ab8f9b401d173bad0a3ea125f424e3c746")
 
 	strcert1 := "308201453081ec0209008c731f572c5ec0c6300a06082a811ccf55018375302b310f300d060355040a0c06e6b3b0e5b2b33118301606035504030c0f746169797565636861696e2e636f6d301e170d3230303831303033333535345a170d3230303930393033333535345a302b310f300d060355040a0c06e6b3b0e5b2b33118301606035504030c0f746169797565636861696e2e636f6d3059301306072a8648ce3d020106082a811ccf5501822d03420004bdf9699d20b4ebabe76e76260480e5492c87aaeda51b138bd22c6d66b69549313dc3eb8c96dc9a1cbbf3b347322c51c05afdd609622277444e0f07e6bd35d8bd300a06082a811ccf55018375034800304502202ead6d5cf1ecaa477851a563b2971902058729305678122aa91da2f2fb2b82b6022100af38c200f3c91a54977c305a9d59188abd336e7c785086c3b11279210222508e"
 	cert1, _ := hex.DecodeString(strcert1)
@@ -467,15 +467,15 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 		GasLimit:     22020096,
 		UseGas:       1,
 		IsCoin:   1,
-		KindOfCrypto: 2,
+		KindOfCrypto: 3,
 		PermisionWlSendTx:		1,
 		PermisionWlCreateTx:		1,
 		//Alloc:      decodePrealloc(mainnetAllocData),
 		Alloc: map[common.Address]types.GenesisAccount{
-			common.HexToAddress("0x68231C69431Cd7592356aBaC59E7A9D325406653"): {Balance: i},
+			common.HexToAddress("0x966DfF880c6598C07DC5d09A24F61892aFAfd950"): {Balance: i},
 		},
 		Committee: []*types.CommitteeMember{
-			{Coinbase: common.HexToAddress("0x76ea2f3a002431fede1141b660dbb75c26ba6d97"), Publickey: key1},
+			{Coinbase: common.HexToAddress("0x966DfF880c6598C07DC5d09A24F61892aFAfd950"), Publickey: key1},
 		},
 		CertList: certList,
 	}

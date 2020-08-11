@@ -6,7 +6,7 @@ const (
 	CRYPTO_S256_SH3_AES = 3
 )
 
-var CryptoType = CRYPTO_SM2_SM3_SM4
+var CryptoType = CRYPTO_S256_SH3_AES
 
 func SetCrtptoType(cryptoType uint8) {
 	if int(cryptoType) >= CRYPTO_P256_SH3_AES && int(cryptoType) <= CRYPTO_S256_SH3_AES  {

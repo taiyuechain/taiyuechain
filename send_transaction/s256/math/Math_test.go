@@ -29,11 +29,11 @@ var (
 	gspec = DefaulGenesisBlock()
 
 	//p2p 1
-	priKey, _ = crypto.HexToECDSA("41c8bcf352894b132db095b0ef67b1c7ea9f4d7afd72a36b16c62c9fc582a5df")
+	priKey, _ = crypto.GenerateKey()
 	// p2p 2
-	skey1, _ = crypto.HexToECDSA("200854f6bdcd2f94ecf97805ec95f340026375b347a6efe6913d5287afbabeed")
+	skey1, _ = crypto.GenerateKey()
 	// pbft 1
-	dkey1, _ = crypto.HexToECDSA("8c2c3567667bf29509afabb7e1178e8a40a849b0bd22e0455cff9bab5c97a247")
+	dkey1, _ = crypto.GenerateKey()
 	mAccount = crypto.PubkeyToAddress(priKey.PublicKey)
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
@@ -53,7 +53,7 @@ func DefaulGenesisBlock() *core.Genesis {
 		GasLimit:     20971520,
 		UseGas:       1,
 		IsCoin:   1,
-		KindOfCrypto: 1,
+		KindOfCrypto: 3,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},

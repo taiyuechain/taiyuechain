@@ -19,6 +19,7 @@ package enode
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"net"
@@ -29,7 +30,8 @@ import (
 )
 
 var (
-	IDStr = "fc651fc22740dd006fef308a7efc96b013e0a7056c6ae5d4e19c116755419d5bd309e387a9d5402e22df3a8724f3068a3384e0a210d1f2ea57b4877d9798dfe9"
+	privkey1, _ = crypto.GenerateKey()
+	IDStr = hex.EncodeToString(crypto.FromECDSAPub(&privkey1.PublicKey)[1:])
 )
 
 var parseNodeTests = []struct {

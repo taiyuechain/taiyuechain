@@ -54,7 +54,6 @@ var (
 	saddr1   = crypto.PubkeyToAddress(skey1.PublicKey)
 	daddr1   = crypto.PubkeyToAddress(dkey1.PublicKey)
 
-	p2p1Byte, _  = taicert.ReadPemFileByPath(p2p1path)
 	p2p2Byte, _  = taicert.ReadPemFileByPath(p2p2path)
 	pbft1Byte, _ = taicert.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ = taicert.ReadPemFileByPath(pbft2path)
@@ -80,7 +79,7 @@ func DefaulGenesisBlock() *core.Genesis {
 		GasLimit:     20971520,
 		UseGas:       1,
 		IsCoin:   1,
-		KindOfCrypto: 1,
+		KindOfCrypto: 3,
 		Timestamp:    1537891200,
 		Alloc: map[common.Address]types.GenesisAccount{
 			mAccount: {Balance: i},

@@ -433,8 +433,7 @@ Method arrangement of hash in Engineering.
 // According to gm,s256 or p256 param to sum hash.
 func Sum256(input []byte) ([]byte, error) {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		h := sha3.NewLegacyKeccak256().Sum(input)
 		return h[:], nil
 	case CRYPTO_SM2_SM3_SM4:
@@ -447,8 +446,7 @@ func Sum256(input []byte) ([]byte, error) {
 // According to gm,s256 or p256 param write two param to Hash value,but xor s and h to write.
 func Hash256(auth, s, h []byte) hash.Hash {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		mac := sha3.NewLegacyKeccak256()
 		mac.Write(xor(s, h))
 		mac.Write(auth)
@@ -465,8 +463,7 @@ func Hash256(auth, s, h []byte) hash.Hash {
 // According to gm,s256 or p256 param write two param to Hash value.
 func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		h := sha3.NewLegacyKeccak256()
 		h.Write(seedBytes)
 		h.Write(riseedBytes)
@@ -484,8 +481,7 @@ func Hash256Byte(seedBytes, riseedBytes []byte) []byte {
 // According to gm,s256 or p256 param,convert address to string.
 func AddressToHex(a common.Address) string {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		unchecksummed := hex.EncodeToString(a[:])
 		sha := sha3.NewLegacyKeccak256()
 		sha.Write([]byte(unchecksummed))
@@ -541,8 +537,7 @@ func xor(one, other []byte) (xor []byte) {
 // According to gm,s256 or p256 param double to Hash value.
 func Double256(b []byte) []byte {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		hasher := sha3.NewLegacyKeccak256()
 		hasher.Write(b)
 		sum := hasher.Sum(nil)
@@ -563,8 +558,7 @@ func Double256(b []byte) []byte {
 // According to gm,s256 or p256 param to Hash value,but pass RLP encode.
 func RlpHash(x interface{}) (h common.Hash) {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		hw := sha3.NewLegacyKeccak256()
 		rlp.Encode(hw, x)
 		hw.Sum(h[:0])
@@ -581,8 +575,7 @@ func RlpHash(x interface{}) (h common.Hash) {
 // According to gm,s256 or p256 param to new distinct hash.Hash interface.
 func NewHash() hash.Hash {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		return sha3.NewLegacyKeccak256()
 	case CRYPTO_SM2_SM3_SM4:
 		return sm3.New()
@@ -593,8 +586,7 @@ func NewHash() hash.Hash {
 // According to gm,s256 or p256 param to new distinct hash method.
 func NewHashObject() func() hash.Hash {
 	switch CryptoType {
-	case CRYPTO_S256_SH3_AES:
-	case CRYPTO_P256_SH3_AES:
+	case CRYPTO_S256_SH3_AES, CRYPTO_P256_SH3_AES:
 		return sha3.NewLegacyKeccak256
 	case CRYPTO_SM2_SM3_SM4:
 		return sm3.New

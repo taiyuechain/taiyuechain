@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/taiyuechain/taiyuechain/common"
-	"github.com/taiyuechain/taiyuechain/log"
 	"math/big"
 )
 
@@ -51,7 +50,6 @@ SIGN:
 		sign = append(sign, (byte)(signrmark))
 
 	}
-	log.Debug("p256 sign length ", "p256 r is", len(r.Bytes()), "p256 s is", len(s.Bytes()), "sign", len(sign))
 	return sign, nil
 }
 func BytesCombine(pBytes ...[]byte) []byte {

@@ -22,7 +22,7 @@ func init() {
 func TestAllCaCert(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
 	executable := func(number uint64, gen *core.BlockGen, fastChain *core.BlockChain, header *types.Header, statedb *state.StateDB) {
-		sendTranction(number, gen, statedb, mAccount, saddr1, big.NewInt(6000000000000000000), priKey, signer, nil, header, p2p1Byte)
+		sendTranction(number, gen, statedb, mAccount, saddr1, big.NewInt(6000000000000000000), priKey, signer, nil, header)
 		cert44 := []byte{127}
 		sendGetCaCertAmountTranscation(number, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 		sendIsApproveCACertTranscation(number, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
@@ -33,7 +33,7 @@ func TestAllCaCert(t *testing.T) {
 		sendGetCaCertAmountTranscation(number-25, gen, saddr1, pbft1Byte, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 	}
 	newTestPOSManager(2, executable)
-	fmt.Println("staking addr", types.CACertListAddress)
+	fmt.Println("staking addr", types.CACertListAddress,"",priKey.Curve.Params().Name)
 	//fmt.Println(" saddr1 ", manager.GetBalance(saddr1), " StakingAddress ", manager.GetBalance(types.StakingAddress), " ", types.ToTai(manager.GetBalance(types.StakingAddress)))
 }
 

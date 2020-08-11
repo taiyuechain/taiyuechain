@@ -72,7 +72,7 @@ func TestDeployContract(t *testing.T) {
 	chain, _ := core.GenerateChain(gspec.Config, genesis, pow, db, 10, func(i int, gen *core.BlockGen) {
 		switch i {
 		case 1:
-			tx, _ := types.SignTx(types.NewContractCreation(gen.TxNonce(mAccount), big.NewInt(30), 1000000, new(big.Int).SetUint64(1), bytecode, nil), signer, priKey)
+			tx, _ := types.SignTx(types.NewContractCreation(gen.TxNonce(mAccount), big.NewInt(30), 1000000, new(big.Int).SetUint64(1), bytecode), signer, priKey)
 			gen.AddTx(tx)
 			contractAddress = crypto.CreateAddress(mAccount, tx.Nonce())
 			fmt.Println("contractAddress", crypto.AddressToHex(contractAddress))
@@ -83,7 +83,7 @@ func TestDeployContract(t *testing.T) {
 			args := struct {
 				common.Address
 			}{}
-			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(mAccount), contractAddress, big.NewInt(1000), 500000, nil, input, nil), signer, priKey)
+			tx1, _ := types.SignTx(types.NewTransaction(gen.TxNonce(mAccount), contractAddress, big.NewInt(1000), 500000, nil, input), signer, priKey)
 			gen.AddTx(tx1)
 			output, gas := gen.ReadTxWithChain(blockchain, tx1)
 			UnpackOutput(contractABI, "minter", output, &args)
