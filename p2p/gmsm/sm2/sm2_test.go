@@ -349,13 +349,13 @@ func TestSm2RootToCA(t *testing.T) {
 
 var (
 	CryptoSM2 = uint8(2)
-	pbft1path = "bft1" + ".pem"
-	pbft2path = "bft2" + ".pem"
-	pbft3path = "bft3" + ".pem"
-	pbft4path = "bft4" + ".pem"
+	pbft1path = "pem/bft1" + ".pem"
+	pbft2path = "pem/bft2" + ".pem"
+	pbft3path = "pem/bft3" + ".pem"
+	pbft4path = "pem/bft4" + ".pem"
 
-	p2p1path = "p2p1" + ".pem"
-	p2p2path = "p2p2" + ".pem"
+	p2p1path = "pem/p2p1" + ".pem"
+	p2p2path = "pem/p2p2" + ".pem"
 )
 
 func TestVerifyCert(t *testing.T) {

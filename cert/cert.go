@@ -3,6 +3,7 @@ package cert
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rsa"
 
 	"crypto/x509"
 	"encoding/pem"
@@ -28,6 +29,8 @@ func IsCorrectSY(syCrypto interface{}) bool {
 				return true
 			}
 		}
+	case *rsa.PublicKey :
+		return true
 	}
 	return false
 }
@@ -69,6 +72,7 @@ func CheckSignatureFrom(son *x509.Certificate, parent *x509.Certificate) error {
 	case *sm2.PublicKey:
 		CheckSignatureFromSM2(son, parent)
 	case *ecdsa.PublicKey:
+	case *rsa.PublicKey :
 		son.CheckSignatureFrom(parent)
 	}
 
@@ -80,7 +84,8 @@ func CheckSignature(cert *x509.Certificate) error {
 	switch cert.PublicKey.(type) {
 	case *sm2.PublicKey:
 		CheckSignatureSM2(cert)
-	case *ecdsa.PublicKey:
+	case *ecdsa.PublicKey :
+	case *rsa.PublicKey :
 		cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
 	}
 
