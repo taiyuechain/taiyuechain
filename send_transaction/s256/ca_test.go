@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/common/hexutil"
 	"github.com/taiyuechain/taiyuechain/crypto"
 	"math/big"
 	"os"
@@ -35,8 +36,12 @@ func TestAllCaCert(t *testing.T) {
 
 func TestGetAddress(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
-	skey, _ := crypto.GenerateKey()
-	saddr := crypto.PubkeyToAddress(skey.PublicKey)
-
-	fmt.Println("saddr", crypto.AddressToHex(saddr), "priv",hex.EncodeToString(crypto.FromECDSA(skey)))
+	for i := 0; i < 4; i++ {
+		skey, _ := crypto.GenerateKey()
+		fmt.Println("priv",hex.EncodeToString(crypto.FromECDSA(skey)),"pub",hexutil.Encode(crypto.FromECDSAPub(&skey.PublicKey)))
+	}
+	// c769a2bb5656d951ead8a00c9f426720aaee0d8fdb35ae2568b06cace803b095
+	// f60d6a7b9f108dca4fdf968215c0942714324470fcfca85b006294beacd2b143
+	// da888debf74c311ca97b1d500b1ffb1cda590dd29a325734d9f8d94b7683e649
+	// 1727596dfdb521a56097be9b089ec0b775047dec227d5c5b23a8c420980fd1aa
 }
