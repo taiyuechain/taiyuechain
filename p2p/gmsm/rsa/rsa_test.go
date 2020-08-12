@@ -88,6 +88,8 @@ var (
 
 	p2p1path = "pem/p2p1" + ".pem"
 	p2p2path = "pem/p2p2" + ".pem"
+	p2p3path = "pem/p2p3" + ".pem"
+	p2p5path = "pem/p2p5" + ".pem"
 )
 
 func TestVerifyCert(t *testing.T) {
@@ -96,6 +98,8 @@ func TestVerifyCert(t *testing.T) {
 
 	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
 	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
+	p2p3Byte, _ := taicert.ReadPemFileByPath(p2p3path)
+	p2p5Byte, _ := taicert.ReadPemFileByPath(p2p5path)
 
 	//new cimList
 	cimList := cim.NewCIMList(CryptoSM2)
@@ -104,14 +108,24 @@ func TestVerifyCert(t *testing.T) {
 
 	err := cimList.VerifyCert(p2p1Byte)
 	if err != nil {
-		t.Fatalf("verify cert 1 error %v",err)
+		t.Fatalf("verify cert 1 error %v", err)
 	}
 
 	err = cimList.VerifyCert(p2p2Byte)
 	if err != nil {
-		t.Fatalf("verify cert 2 error %v",err)
+		t.Fatalf("verify cert 2 error %v", err)
 	}
 
+	err = cimList.VerifyCert(p2p3Byte)
+	if err != nil {
+		fmt.Printf("verify cert 3 error %v \n",err)
+	}
+
+	crypto.CryptoType = crypto.CRYPTO_SM2_SM3_SM4
+	err = cimList.VerifyCert(p2p5Byte)
+	if err != nil {
+		fmt.Printf("verify cert 5 error %v \n", err)
+	}
 }
 
 func TestPrintPem(t *testing.T) {

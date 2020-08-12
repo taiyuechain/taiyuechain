@@ -31,15 +31,14 @@ func TestAllCaCert(t *testing.T) {
 		sendDelCaCertTranscation(number, gen, saddr1, cert44, skey1, signer, statedb, fastChain, abiCA, nil, p2p2Byte)
 	}
 	newTestPOSManager(2, executable)
-	fmt.Println("staking addr", types.CACertListAddress,"Name",priKey.Curve.Params().Name)
+	fmt.Println("staking addr", types.CACertListAddress, "Name", priKey.Curve.Params().Name)
 }
 
 func TestGetAddress(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
-	for i := 0; i < 4; i++ {
-		skey, _ := crypto.GenerateKey()
-		fmt.Println("priv",hex.EncodeToString(crypto.FromECDSA(skey)),"pub",hexutil.Encode(crypto.FromECDSAPub(&skey.PublicKey)))
-	}
+	skey, _ := crypto.HexToECDSA("c769a2bb5656d951ead8a00c9f426720aaee0d8fdb35ae2568b06cace803b095")
+	fmt.Println("priv", hex.EncodeToString(crypto.FromECDSA(skey)), "pub", hexutil.Encode(crypto.FromECDSAPub(&skey.PublicKey)))
+	fmt.Println("", crypto.AddressToHex(crypto.PubkeyToAddress(skey.PublicKey)))
 	// c769a2bb5656d951ead8a00c9f426720aaee0d8fdb35ae2568b06cace803b095
 	// f60d6a7b9f108dca4fdf968215c0942714324470fcfca85b006294beacd2b143
 	// da888debf74c311ca97b1d500b1ffb1cda590dd29a325734d9f8d94b7683e649

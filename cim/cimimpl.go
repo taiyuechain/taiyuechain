@@ -106,10 +106,7 @@ func (cl *CimList) VerifyCert(cert []byte) error  {
 		err := ci.ValidateByByte(cert)
 		if err != nil{
 			errNumber++;
-		}else{
-			return nil
 		}
-
 	}
 	if errNumber == len(cl.CimMap){
 		return errors.New("can not find right root cert")

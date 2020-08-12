@@ -29,7 +29,7 @@ func IsCorrectSY(syCrypto interface{}) bool {
 				return true
 			}
 		}
-	case *rsa.PublicKey :
+	case *rsa.PublicKey:
 		return true
 	}
 	return false
@@ -54,12 +54,11 @@ func ParseCertificate(asn1Data []byte) (*x509.Certificate, error) {
 		return nil, errors.New("ParseCertificate error: nil idBytes")
 	}
 
-	cert ,err := x509.ParseCertificate(asn1Data)
-	if err != nil{
+	cert, err := x509.ParseCertificate(asn1Data)
+	if err != nil {
 		return ParseCertificateSM2(asn1Data)
 
 	}
-
 
 	return cert, err
 
@@ -67,13 +66,12 @@ func ParseCertificate(asn1Data []byte) (*x509.Certificate, error) {
 
 func CheckSignatureFrom(son *x509.Certificate, parent *x509.Certificate) error {
 
-
 	switch son.PublicKey.(type) {
 	case *sm2.PublicKey:
-		CheckSignatureFromSM2(son, parent)
+		return CheckSignatureFromSM2(son, parent)
 	case *ecdsa.PublicKey:
-	case *rsa.PublicKey :
-		son.CheckSignatureFrom(parent)
+	case *rsa.PublicKey:
+		return son.CheckSignatureFrom(parent)
 	}
 
 	return nil
@@ -83,10 +81,10 @@ func CheckSignature(cert *x509.Certificate) error {
 
 	switch cert.PublicKey.(type) {
 	case *sm2.PublicKey:
-		CheckSignatureSM2(cert)
-	case *ecdsa.PublicKey :
-	case *rsa.PublicKey :
-		cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
+		return CheckSignatureSM2(cert)
+	case *ecdsa.PublicKey:
+	case *rsa.PublicKey:
+		return cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature)
 	}
 
 	return nil
@@ -152,7 +150,6 @@ func GetPubByteFromCert(asn1Data []byte) ([]byte, error) {
 func FromCertBytesToPubKey(asn1Data []byte) (*ecdsa.PublicKey, error) {
 	//data, err := GetPubByteFromCert(asn1Data)
 
-
 	cert, err := ParseCertificate(asn1Data)
 	if err != nil {
 		return nil, err
@@ -166,7 +163,6 @@ func FromCertBytesToPubKey(asn1Data []byte) (*ecdsa.PublicKey, error) {
 	case *sm2.PublicKey:
 		return &ecdsa.PublicKey{Curve: pub2.Curve, X: pub2.X, Y: pub2.Y}, nil
 	}
-
 
 	return nil, nil
 }

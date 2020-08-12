@@ -9,9 +9,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
 	"github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte"
 	cryptobyte_asn1 "github.com/taiyuechain/taiyuechain/crypto/gm/cryptobyte/asn1"
-	"github.com/taiyuechain/taiyuechain/cert/crypto/sm2"
 	//"log"
 	"math/big"
 	"net"
@@ -620,8 +620,13 @@ func VerifyCSRSign(csr *x509.CertificateRequest, userId []byte) bool {
 }
 
 func CheckSignatureSM2(csr *x509.Certificate)  error{
-
-	pub := csr.PublicKey.(*sm2.PublicKey)
+	var pub *sm2.PublicKey
+	switch csr.PublicKey.(type) {
+	case *sm2.PublicKey:
+		pub = csr.PublicKey.(*sm2.PublicKey)
+	default:
+		return errors.New("CheckSignatureSM2 interface {} is not *sm2.PublicKey")
+	}
 
 	res:= sm2.Verify(pub, nil, csr.RawTBSCertificate, csr.Signature)
 	if res{
@@ -632,8 +637,13 @@ func CheckSignatureSM2(csr *x509.Certificate)  error{
 }
 
 func CheckSignatureFromSM2(son,parent *x509.Certificate)  error{
-
-	pub := parent.PublicKey.(*sm2.PublicKey)
+	var pub *sm2.PublicKey
+	switch parent.PublicKey.(type) {
+	case *sm2.PublicKey:
+		pub = parent.PublicKey.(*sm2.PublicKey)
+	default:
+		return errors.New("CheckSignatureFromSM2 interface {} is not *sm2.PublicKey")
+	}
 
 	res:= sm2.Verify(pub, nil, son.RawTBSCertificate, son.Signature)
 	if res{
