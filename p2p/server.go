@@ -634,6 +634,10 @@ func (srv *Server) setupListening() error {
 		// ClientCAs:    clientCertPool,
 	}
 	conf.VerifyPeerCertificate = func(certificates [][]byte, _ [][]*x509.Certificate) error {
+		if len(certificates) == 0 {
+			return errors.New("not certificates")
+		}
+
 		// verify peer certificate
 		if err := srv.localnode.CM.List.VerifyCert(certificates[0]); err != nil {
 			fmt.Println("verifyPeerCert failed", err)
