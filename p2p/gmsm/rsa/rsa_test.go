@@ -95,6 +95,7 @@ var (
 func TestVerifyCert(t *testing.T) {
 	pbft1Byte, _ := taicert.ReadPemFileByPath(pbft1path)
 	pbft2Byte, _ := taicert.ReadPemFileByPath(pbft2path)
+	pbft3Byte, _ := taicert.ReadPemFileByPath(pbft3path)
 
 	p2p1Byte, _ := taicert.ReadPemFileByPath(p2p1path)
 	p2p2Byte, _ := taicert.ReadPemFileByPath(p2p2path)
@@ -105,6 +106,7 @@ func TestVerifyCert(t *testing.T) {
 	cimList := cim.NewCIMList(CryptoSM2)
 	cimList.AddCim(cim.CreateCim(pbft1Byte))
 	cimList.AddCim(cim.CreateCim(pbft2Byte))
+	cimList.AddCim(cim.CreateCim(pbft3Byte))
 
 	err := cimList.VerifyCert(p2p1Byte)
 	if err != nil {

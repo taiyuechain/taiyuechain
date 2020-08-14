@@ -120,8 +120,8 @@ func TestSm2(t *testing.T) {
 		}
 
 		signdata := sign
-		ok1 := VerifySignatureTransaction(Keccak256(msg), signdata)
-		if ok1 != true {
+		_, err = Ecrecover(Keccak256(msg), signdata)
+		if err != nil {
 			fmt.Printf("VerifyTransaction error\n")
 		} else {
 			fmt.Printf("VerifyTransaction ok\n")
@@ -254,8 +254,8 @@ func TestSm2Time(t *testing.T) {
 
 	t0 := time.Now()
 	for i := 0; i < 5000; i++ {
-		ok1 := VerifySignatureTransaction(hash, signdata)
-		if ok1 != true {
+		_,err = Ecrecover(hash, signdata)
+		if err != nil {
 			fmt.Printf("VerifyTransaction 0 error\n")
 		}
 	}
@@ -263,11 +263,10 @@ func TestSm2Time(t *testing.T) {
 	fmt.Println("t", t11, " ", t11/5000)
 
 	t0 = time.Now()
-	pk := FromECDSAPub(&priv.PublicKey)
 	for i := 0; i < 5000; i++ {
-		ok1 := VerifySignatureTransactionPk(hash, signdata, pk)
-		if ok1 != true {
-			fmt.Printf("VerifyTransaction 1 error\n")
+		ok := VerifySignature(FromECDSAPub(&priv.PublicKey),hash, signdata)
+		if ok != true {
+			fmt.Printf("VerifyTransaction 0 error\n")
 		}
 	}
 	t11 = time.Since(t0)
@@ -289,30 +288,19 @@ func TestS256Time(t *testing.T) {
 
 	t0 := time.Now()
 	for i := 0; i < 5000; i++ {
-		ok1 := VerifySignatureTransaction(hash, signdata)
-		if ok1 != true {
-			fmt.Printf("VerifyTransaction 0 error\n")
+		_,err := Ecrecover(hash, signdata)
+		if err != nil {
+			fmt.Println("VerifyTransaction 1 error ",err)
 		}
 	}
 	t11 := time.Since(t0)
 	fmt.Println("t", t11, " ", t11/5000)
 
 	t0 = time.Now()
-	pk := FromECDSAPub(&priv.PublicKey)
 	for i := 0; i < 5000; i++ {
-		ok1 := VerifySignatureTransactionPk(hash, signdata, pk)
-		if ok1 != true {
-			fmt.Printf("VerifyTransaction 1 error\n")
-		}
-	}
-	t11 = time.Since(t0)
-	fmt.Println("t", t11, " ", t11/5000)
-
-	t0 = time.Now()
-	for i := 0; i < 5000; i++ {
-		_,err := Ecrecover(hash, signdata)
-		if err != nil {
-			fmt.Println("VerifyTransaction 1 error ",err)
+		ok := VerifySignature(FromECDSAPub(&priv.PublicKey),hash, signdata)
+		if ok != true {
+			fmt.Printf("VerifyTransaction 0 error\n")
 		}
 	}
 	t11 = time.Since(t0)

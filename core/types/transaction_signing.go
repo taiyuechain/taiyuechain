@@ -261,7 +261,7 @@ func (s CommonSigner) Hash_Payment(tx *Transaction) common.Hash {
 }
 
 func SignatureValues(tx *Transaction, sig []byte) (r, s, v *big.Int, err error) {
-	if len(sig) != 98 {
+	if len(sig) != crypto.SignatureLength {
 		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
 	}
 	r = new(big.Int).SetBytes(sig[:32])
@@ -281,7 +281,7 @@ func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, pk []byte) (common.Add
 
 	// encode the snature in uncompressed format
 	r, s := R.Bytes(), S.Bytes()
-	sig := make([]byte, 98)
+	sig := make([]byte, crypto.SignatureLength)
 	copy(sig[32-len(r):32], r)
 	copy(sig[64-len(s):64], s)
 	sig[64] = V

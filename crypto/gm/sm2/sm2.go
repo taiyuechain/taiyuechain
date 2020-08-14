@@ -775,6 +775,7 @@ func SigToPub(hash, sig,userId []byte,ee *big.Int) (*ecdsa.PublicKey, error) {
 	}
 	if !ok {
 		fmt.Println("ok ",ok)
+		return nil,errors.New("sig to pub failed")
 	}
 	return ToECDSAPublickey(pk),nil
 }
