@@ -38,7 +38,10 @@ func TestGetAddress(t *testing.T) {
 	// Create a helper to check if a gas allowance results in an executable transaction
 	skey, _ := crypto.HexToECDSA("c769a2bb5656d951ead8a00c9f426720aaee0d8fdb35ae2568b06cace803b095")
 	fmt.Println("priv", hex.EncodeToString(crypto.FromECDSA(skey)), "pub", hexutil.Encode(crypto.FromECDSAPub(&skey.PublicKey)))
-	fmt.Println("", crypto.AddressToHex(crypto.PubkeyToAddress(skey.PublicKey)))
+	fmt.Println(crypto.CryptoType," ", crypto.AddressToHex(crypto.PubkeyToAddress(skey.PublicKey)))
+	crypto.CryptoType = crypto.CRYPTO_SM2_SM3_SM4
+	fmt.Println("priv", hex.EncodeToString(crypto.FromECDSA(skey)), "pub", hexutil.Encode(crypto.FromECDSAPub(&skey.PublicKey)))
+	fmt.Println(crypto.CryptoType," ", crypto.AddressToHex(crypto.PubkeyToAddress(skey.PublicKey)))
 	// c769a2bb5656d951ead8a00c9f426720aaee0d8fdb35ae2568b06cace803b095
 	// f60d6a7b9f108dca4fdf968215c0942714324470fcfca85b006294beacd2b143
 	// da888debf74c311ca97b1d500b1ffb1cda590dd29a325734d9f8d94b7683e649
