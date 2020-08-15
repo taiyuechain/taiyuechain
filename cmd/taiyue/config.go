@@ -129,17 +129,18 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 
 	// Apply flags.
 	utils.SetNodeConfig(ctx, &cfg.Node)
-	stack, err := node.New(&cfg.Node)
-	if err != nil {
-		utils.Fatalf("Failed to create the protocol stack: %v", err)
-	}
-	utils.SetTaichainConfig(ctx, stack, &cfg.Taiyue)
+
+	utils.SetTaichainConfig(ctx, &cfg.Taiyue)
 	if ctx.GlobalIsSet(utils.YueStatsURLFlag.Name) {
 		cfg.Yuestats.URL = ctx.GlobalString(utils.YueStatsURLFlag.Name)
 	}
 
-	//utils.SetDashboardConfig(ctx, &cfg.Dashboard)
+	utils.SetNodeKey(ctx, &cfg.Node.P2P)
 
+	stack, err := node.New(&cfg.Node)
+	if err != nil {
+		utils.Fatalf("Failed to create the protocol stack: %v", err)
+	}
 	return stack, cfg
 }
 

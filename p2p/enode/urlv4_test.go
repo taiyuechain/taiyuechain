@@ -119,7 +119,6 @@ func hexPubkey(h string) *ecdsa.PublicKey {
 }
 
 func TestHexPub(t *testing.T) {
-	crypto.CryptoType = crypto.CRYPTO_P256_SH3_AES
 	hexPubkey(IDStr)
 }
 

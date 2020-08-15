@@ -51,6 +51,9 @@ const (
 	HASHCRYPTOSM3         = 5
 	HASHCRYPTOHAS3        = 6
 )
+var (
+	KindOfCrypto          = 1
+)
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
@@ -363,6 +366,7 @@ func DefaultGenesisBlock() *Genesis {
 	cert4, _ := hex.DecodeString(strcert4)
 	var certList = [][]byte{cert1, cert2, cert3, cert4}
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
+	KindOfCrypto = 3
 
 	return &Genesis{
 		Config:              params.MainnetChainConfig,
@@ -392,6 +396,7 @@ func DefaultGenesisBlock() *Genesis {
 }
 
 func getAddressFromPub(pubByte []byte) common.Address {
+	crypto.SetCrtptoType(uint8(KindOfCrypto))
 	pub, _ := crypto.UnmarshalPubkey(pubByte)
 	addr4 := crypto.PubkeyToAddress(*pub)
 	return addr4
@@ -435,6 +440,7 @@ func GenesisBlockForTesting(db yuedb.Database, addr common.Address, balance *big
 // DefaultDevGenesisBlock returns the Rinkeby network genesis block.
 func DefaultDevGenesisBlock() *Genesis {
 	i, _ := new(big.Int).SetString("90000000000000000000000", 10)
+	KindOfCrypto = 2
 
 	return &Genesis{
 		Config:              params.DevnetChainConfig,
@@ -464,6 +470,7 @@ func DefaultSingleNodeGenesisBlock() *Genesis {
 	cert1, _ := hex.DecodeString(strcert1)
 
 	var certList = [][]byte{cert1}
+	KindOfCrypto = 3
 	return &Genesis{
 		Config:              params.SingleNodeChainConfig,
 		GasLimit:            22020096,
@@ -508,6 +515,8 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	cert4, _ := hex.DecodeString(strcert4)
 	var certList = [][]byte{cert1, cert2, cert3, cert4}
 	amount1, _ := new(big.Int).SetString("24000000000000000000000000", 10)
+	KindOfCrypto = 2
+
 	return &Genesis{
 		Config:              params.TestnetChainConfig,
 		GasLimit:            20971520,

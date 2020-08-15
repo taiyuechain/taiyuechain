@@ -576,7 +576,7 @@ func ToEcdsaPrivate(key *sm2.PrivateKey) *ecdsa.PrivateKey {
 // setNodeKey creates a node key from set command line flags, either loading it
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
-func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
+func SetNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	if len(cfg.P2PNodeCertFile) > 0 {
 		if data, err := taicert.ReadPemFileByPath(cfg.P2PNodeCertFile); err != nil {
 			Fatalf("setNodeKey failed,the wrong P2PNodeCertFile")
@@ -799,7 +799,6 @@ func MakePasswordList(ctx *cli.Context) []string {
 }
 
 func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
-	setNodeKey(ctx, cfg)
 	setNAT(ctx, cfg)
 	setListenAddress(ctx, cfg)
 	setBootstrapNodes(ctx, cfg)
@@ -955,7 +954,7 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 }
 
 // SetTaichainConfig applies yue-related command line flags to the config.
-func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
+func SetTaichainConfig(ctx *cli.Context, cfg *yue.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, TestnetFlag, DevnetFlag)
 	//CheckExclusive(ctx, LightServFlag, LightModeFlag)
@@ -985,9 +984,6 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if ctx.GlobalIsSet(BFTStandbyPortFlag.Name) {
 		cfg.StandbyPort = int(ctx.GlobalUint64(BFTStandbyPortFlag.Name))
 	}
-
-	//set PrivateKey by config,file or hex
-	setBftCommitteeKey(ctx, cfg)
 
 	if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheDatabaseFlag.Name) {
 		cfg.DatabaseCache = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
@@ -1046,6 +1042,9 @@ func SetTaichainConfig(ctx *cli.Context, stack *node.Node, cfg *yue.Config) {
 	if gen := ctx.GlobalInt(TrieCacheGenFlag.Name); gen > 0 {
 		state.MaxTrieCacheGen = uint16(gen)
 	}
+
+	//set PrivateKey by config,file or hex
+	setBftCommitteeKey(ctx, cfg)
 }
 
 /*
