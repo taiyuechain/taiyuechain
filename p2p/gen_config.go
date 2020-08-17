@@ -24,6 +24,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		P2PKey            hexutil.Bytes
 		P2PNodeCertFile   string
 		P2PPrivateKeyFile string
+		BootstrapNodesStr    []string
 		P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 		MaxPeers          int
 		MaxPendingPeers   int `toml:",omitempty"`
@@ -53,6 +54,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.P2PNodeCertFile = c.P2PNodeCertFile
 	enc.P2PPrivateKey = c.P2PPrivateKey
 	enc.P2PPrivateKeyFile = c.P2PPrivateKeyFile
+	enc.BootstrapNodesStr = c.BootstrapNodesStr
 	enc.MaxPeers = c.MaxPeers
 	enc.MaxPendingPeers = c.MaxPendingPeers
 	enc.DialRatio = c.DialRatio
@@ -84,6 +86,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		P2PKey            *hexutil.Bytes
 		P2PNodeCertFile   *string
 		P2PPrivateKeyFile *string
+		BootstrapNodesStr    []string
 		P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 		MaxPeers          *int
 		MaxPendingPeers   *int `toml:",omitempty"`
@@ -127,6 +130,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.P2PPrivateKeyFile != nil {
 		c.P2PPrivateKeyFile = *dec.P2PPrivateKeyFile
+	}
+	if dec.BootstrapNodesStr != nil {
+		c.BootstrapNodesStr = dec.BootstrapNodesStr
 	}
 	if dec.MaxPeers != nil {
 		c.MaxPeers = *dec.MaxPeers

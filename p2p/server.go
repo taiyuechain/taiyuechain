@@ -79,6 +79,7 @@ type Config struct {
 	P2PNodeCert     []byte `toml:"-"`
 	// P2PPivateKeyFile and P2PNodeCertFile are used for tls
 	P2PPrivateKeyFile string
+	BootstrapNodesStr []string
 	P2PPrivateKey     crypto.PrivateKey `toml:"-"`
 	P2PKey            []byte
 	// MaxPeers is the maximum number of peers that can be

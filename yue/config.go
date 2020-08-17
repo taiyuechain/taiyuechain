@@ -40,6 +40,7 @@ var DefaultConfig = Config{
 	TrieTimeout:   60 * time.Minute,
 	//GasPrice:      big.NewInt(18 * params.Shannon),
 	MinervaMode: 0,
+	CryptoType  : 2,
 	GasPrice:    big.NewInt(1 * params.Babbage),
 	MinerGasFloor: 12000000,
 	MinerGasCeil:  16000000,
@@ -99,6 +100,7 @@ type Config struct {
 	TrieTimeout        time.Duration
 	// ModeNormal(0) for Minerva
 	MinervaMode   int
+	CryptoType  int
 	MinerGasCeil  uint64
 	MinerGasFloor uint64
 	// Transaction pool options

@@ -135,6 +135,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		cfg.Yuestats.URL = ctx.GlobalString(utils.YueStatsURLFlag.Name)
 	}
 
+	utils.SetBootstrapNodes(ctx, &cfg.Node.P2P)
 	utils.SetNodeKey(ctx, &cfg.Node.P2P)
 
 	stack, err := node.New(&cfg.Node)

@@ -28,6 +28,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		TrieCache               int
 		TrieTimeout             time.Duration
 		MinervaMode             int
+		CryptoType  int
 		Host                    string
 		CommitteeKey            hexutil.Bytes
 		CommitteeBase           common.Address
@@ -54,6 +55,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.DatabaseCache = c.DatabaseCache
 	enc.TrieCache = c.TrieCache
 	enc.MinervaMode = c.MinervaMode
+	enc.CryptoType = c.CryptoType
 	enc.TrieTimeout = c.TrieTimeout
 	enc.Host = c.Host
 	enc.Port = c.Port
@@ -85,6 +87,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		DatabaseCache           *int
 		TrieCache               *int
 		MinervaMode             *int
+		CryptoType  *int
 		Host                    *string
 		Port                    *int
 		StandbyPort             *int
@@ -134,6 +137,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.MinervaMode != nil {
 		c.MinervaMode = *dec.MinervaMode
+	}
+	if dec.CryptoType != nil {
+		c.CryptoType = *dec.CryptoType
 	}
 	if dec.TrieTimeout != nil {
 		c.TrieTimeout = *dec.TrieTimeout

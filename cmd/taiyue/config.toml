@@ -2,6 +2,7 @@
 NetworkId = 2812913
 SyncMode = "full"
 MinervaMode = 0
+CryptoType  = 2
 CommitteeKey = "0x7631a11e9d28563cdbcf96d581e4b9a19e53ad433a53c25a9f18c74ddf492f75"
 Host = "39.99.195.63"
 Port = 30314
@@ -47,3 +48,4 @@ EnableMsgEvents = false
 P2PNodeCertFile = "./cert/p2pnodecert.pem"
 P2PKey = "0xd5939c73167cd3a815530fd8b4b13f1f5492c1c75e4eafb5c07e8fb7f4b09c7c"
 P2PPrivateKeyFile = "./cert/CA.key"
+BootstrapNodesStr = ["enode://08b7ea4f68a685b508b1140d5745b7d43056ba4c2560106ad7cde1127e41e26abf6394651c728e3a0a70a97c571ec280678f9fefb7ad9473e595073720f3c903@39.100.84.72:30313"]
