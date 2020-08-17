@@ -529,7 +529,7 @@ func (t *udp) loop() {
 
 const (
 	macSize  = 256 / 8           //32
-	sigSize  = 8 * crypto.SignatureLength           //65
+	sigSize  = crypto.SignatureLength           //65
 	headSize = macSize + sigSize // space of packet frame data
 )
 
